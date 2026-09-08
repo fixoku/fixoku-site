@@ -14,9 +14,7 @@ export default defineConfig({
   forbidOnly: true,
   reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   outputDir: "test-results/artifacts",
-  snapshotPathTemplate: referenceRoot
-    ? path.resolve(referenceRoot, "{arg}{ext}")
-    : "{testDir}/../test-results/unconfigured/{arg}{ext}",
+  snapshotPathTemplate: "{testDir}/../test-results/harness-input/{arg}{ext}",
   expect: { toMatchSnapshot: { threshold: 0, maxDiffPixels: 0 } },
   use: {
     baseURL: "http://127.0.0.1:5173",
@@ -34,7 +32,7 @@ export default defineConfig({
   },
   projects: [{
     name: "chromium",
-    testIgnore: "**/visual/authority.test.ts",
+    testIgnore: ["**/visual/authority.test.ts", "**/visual/trainer-dashboard.spec.ts"],
     use: {
       viewport: { width: 1440, height: 900 },
       deviceScaleFactor: 1,
@@ -43,6 +41,13 @@ export default defineConfig({
     name: "chromium-harness",
     testMatch: "**/visual/authority.test.ts",
     snapshotPathTemplate: "{testDir}/../test-results/harness-input/{arg}{ext}",
+    use: { viewport: { width: 1600, height: 900 } },
+  }, {
+    name: "chromium-trainer-dashboard",
+    testMatch: "**/visual/trainer-dashboard.spec.ts",
+    snapshotPathTemplate: referenceRoot
+      ? path.resolve(referenceRoot, "{arg}{ext}")
+      : "{testDir}/../test-results/unconfigured/{arg}{ext}",
     use: { viewport: { width: 1600, height: 900 } },
   }],
   webServer: {

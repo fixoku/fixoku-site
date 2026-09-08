@@ -30,6 +30,7 @@ import LegalPage from "./pages/LegalPage.jsx";
 import StudentReadingLanding from "./pages/StudentReadingLanding.jsx";
 import InstitutionReadingLanding from "./pages/InstitutionReadingLanding.jsx";
 import InstructorReadingLanding from "./pages/InstructorReadingLanding.jsx";
+import { TrainerDashboardPreview } from "./platform/trainer/dashboard/TrainerDashboardPreview";
 
 const PanelApp = lazy(() => import("./panel/PanelApp.jsx"));
 
@@ -127,6 +128,7 @@ export default function AppRoutes() {
         {legalPages.map((page) => (
           <Route key={page.path} path={page.path} element={<LegalPage page={page} />} />
         ))}
+        <Route path="/panel/egitmen" element={<TrainerDashboardPreview />} />
         <Route
           path="/panel/*"
           element={(

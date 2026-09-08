@@ -22,8 +22,9 @@ export async function compareScreenshot(actual: Buffer, referenceFile: string, i
     ? (await readdir(info.outputDir)).find((name) => name.endsWith("-diff.png"))
     : undefined;
   const diff = emittedDiff ? path.join(info.outputDir, emittedDiff) : null;
+  const diffPixels = error ? Number(String(error).match(/(\d+) pixels/)?.[1] ?? 0) : 0;
   const result = { result: error ? "FAIL" : "PASS", reference: info.snapshotPath(referenceFile),
-    actual: actualPath, diff, thresholdStatus: "ESTIMATED", ...STRICT_VISUAL_POLICY };
+    actual: actualPath, diff, diffPixels, thresholdStatus: "ESTIMATED", ...STRICT_VISUAL_POLICY };
   await writeFile(info.outputPath("comparison-result.json"), JSON.stringify(result, null, 2) + "\n");
   if (error) throw error;
   return result;

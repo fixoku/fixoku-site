@@ -41,6 +41,11 @@ const EXERCISES = [
 const TOTAL_SECONDS = 30;
 const PREVIEW_SECONDS = 3;
 
+// Keep the difference markers visually unchanged while making the interaction
+// target easier to hit on touch screens. The previous tolerance was 12
+// percentage points; 17 is a 42% increase and is still bounded to the image.
+const DIFFERENCE_HIT_RADIUS = 17;
+
 const DIFFERENCE_SETS = {
   ilkokul: [
     {
@@ -166,17 +171,6 @@ const DIFFERENCE_SETS = {
         { x: 25.1, y: 73.6 },
         { x: 85.9, y: 53.4 },
         { x: 8.8, y: 82.1 },
-      ],
-    },
-    {
-      left: "/attention-games/fark-bul/lise/set4-left.png",
-      right: "/attention-games/fark-bul/lise/set4-right.png",
-      differences: [
-        { x: 80.0, y: 57.0 },
-        { x: 23.0, y: 79.0 },
-        { x: 64.0, y: 76.0 },
-        { x: 43.0, y: 16.0 },
-        { x: 35.0, y: 59.0 },
       ],
     },
   ],
@@ -707,14 +701,26 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
 
-    const hitIndex = currentFocusSet.differences.findIndex((point, index) => {
-      if (foundDifferences.includes(index)) return false;
+    // Evaluate the closest remaining difference instead of taking the first
+    // matching point. This keeps the enlarged targets bounded and deterministic
+    // when two nearby difference coordinates fall inside the same tolerance.
+    const hitCandidate = currentFocusSet.differences
+      .map((point, index) => {
+        if (foundDifferences.includes(index)) return null;
 
-      const dx = point.x - x;
-      const dy = point.y - y;
+        const dx = point.x - x;
+        const dy = point.y - y;
 
-      return Math.sqrt(dx * dx + dy * dy) <= 12;
-    });
+        return {
+          index,
+          distance: Math.sqrt(dx * dx + dy * dy),
+        };
+      })
+      .filter(Boolean)
+      .sort((left, right) => left.distance - right.distance)[0];
+    const hitIndex = hitCandidate && hitCandidate.distance <= DIFFERENCE_HIT_RADIUS
+      ? hitCandidate.index
+      : -1;
 
     if (hitIndex >= 0) {
       const nextFound = [...foundDifferences, hitIndex];
@@ -1190,7 +1196,7 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
 
             <div className="attention-difference-card">
               <div className="attention-badge">{selectedLevel.label} · {selectedLevel.difficulty}</div>
-              <div className="attention-round-title">Set {focusSetIndex + 1}/4 · Sağdaki resimde farkları işaretle</div>
+              <div className="attention-round-title">Set {focusSetIndex + 1}/{focusSets.length} · Sağdaki resimde farkları işaretle</div>
 
               <div className="attention-difference-grid">
                 <div className="attention-difference-image">

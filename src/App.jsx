@@ -512,7 +512,7 @@ function App() {
                       <span className="mobile-btn-text">Seviyeni Ölç</span>
                     </button>
 
-                    <button type="button" className="slide-btn slide-btn-purple">
+                    <Link to="/ogrenciler-icin-hizli-okuma-egitimi" className="slide-btn slide-btn-purple">
                       <span className="slide-btn-icon">
                         <svg viewBox="0 0 24 24" fill="none">
                           <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
@@ -527,10 +527,10 @@ function App() {
                       <span className="desktop-btn-text">
                         Eğitim Hakkında
                         <br />
-                        Bilgi al
+                        Bilgi Al
                       </span>
                       <span className="mobile-btn-text">Eğitim hakkında</span>
-                    </button>
+                    </Link>
                   </div>
                 </>
               )}
@@ -553,10 +553,10 @@ function App() {
                   </div>
 
                   <div className="slide-actions-trainer">
-                    <button type="button" className="apply-btn">
+                    <Link to="/hizli-okuma-egitmeni-ol" className="apply-btn">
                       HEMEN BAŞVUR
                       <span className="apply-btn-arrow">→</span>
-                    </button>
+                    </Link>
 
                     <div className="trainer-note-wrap">
                       <span className="trainer-note-arrow">↖</span>
@@ -664,15 +664,15 @@ function App() {
                             </div>
                           </div>
 
-                          <button
-                            type="button"
+                          <Link
+                            to="/fixoku-egitimi/neden-fixoku"
                             className="engine-cta-btn compact-btn engine-grid-cta"
                           >
                             <span>Sistemi İncele</span>
                             <span className="engine-cta-arrow" aria-hidden="true">
                               →
                             </span>
-                          </button>
+                          </Link>
                         </div>
                       </div>
 
@@ -774,24 +774,34 @@ function App() {
           <div className="why-fixoku-overview">
             <div className="why-fixoku-content">
               <p>
-                Fixoku; akıcı okuma, hızlı okuma, anlama, dikkat, odaklanma ve
-                paragraf çözme becerilerini geliştirmeye yönelik{" "}
-                <strong>kapsamlı bir eğitim sistemidir.</strong> Program,
-                öğrencilerin okuma hızını artırmayı, metni daha doğru anlamalarını
-                ve <strong>dikkat becerilerini</strong> güçlendirerek sınavlarda
-                başarıya ulaşmalarını sağlar.
+                <strong>Fixoku Akademi</strong>; yapay zekâ destekli yazılımı,
+                akıcı okuma, hızlı okuma, paragraf teknikleri, dikkat ve
+                odaklanma eğitimleriyle öğrencilerin bireysel gelişimini
+                destekleyen; okuduğunu daha iyi anlamasına ve sınavlarda zamanı
+                daha verimli kullanmasına yardımcı olan yeni nesil akademik
+                gelişim sistemidir.
               </p>
 
               <p>
-                Fixoku sistemi; <strong>yapay zekâ destekli yazılım</strong>, akıcı
-                okuma, hızlı okuma, paragraf kitapları ve özel olarak hazırlanmış
-                egzersizler ile öğrencilerin gelişimini ölçebilen yenilikçi bir
-                eğitim modelidir. Yapay zekâ destekli yazılım içerisinde yer alan{" "}
-                <strong>126 farklı egzersiz</strong>,{" "}
-                <strong>21 günlük eğitim</strong> periyodu ile öğrencilerin
-                performansını analiz ederek gelişim sürecini takip eder. Program
-                sonunda öğrenciler <strong>9 farklı beceri</strong> alanında
-                değerlendirilir ve gelişim raporu oluşturulur.
+                <strong>Fixoku Akademi</strong>, uzman eğitmenler eşliğinde
+                yürütülen eğitimleri; özel olarak hazırlanan kitaplar, yapay zekâ
+                destekli yazılım ve kişiye özel egzersizlerle destekleyerek
+                öğrencilerin gelişimini <strong>planlı, ölçülebilir ve
+                sürdürülebilir</strong> bir yapıya dönüştürür. Böylece öğrenciler,
+                yalnızca eğitim almakla kalmaz; gelişim süreçlerini adım adım
+                takip ederek eksik oldukları alanlarda hedefe yönelik ilerleme
+                fırsatı yakalar.
+              </p>
+
+              <p>
+                Yapay zekâ destekli yazılım içerisinde yer alan{" "}
+                <strong>126 farklı egzersiz</strong>, <strong>21 günlük eğitim
+                programı</strong> boyunca öğrencinin performansını analiz eder,
+                gelişimini anlık olarak takip eder ve ihtiyaç duyduğu beceri
+                alanlarına yönelik kişiselleştirilmiş çalışma süreci oluşturur.
+                Program sonunda öğrenciler <strong>9 farklı akademik beceri
+                alanında</strong> değerlendirilerek ayrıntılı gelişim raporuna
+                sahip olur.
               </p>
             </div>
 
@@ -844,14 +854,20 @@ function App() {
       <h2 className="how-it-works-title">Fixoku Sistemi Nasıl Çalışır?</h2>
 
       <p className="how-it-works-subtitle">
-        <strong>Fixoku;</strong> kitap, yazılım ve uzman eğitmen desteğini bir
-        araya getiren kapsamlı bir hızlı okuma, anlama, dikkat ve odaklanma
-        eğitim sistemidir.
+        <strong>Fixoku Akademi</strong>; eğitim sürecini üç temel bileşen üzerine
+        kurar: Eğitim kitapları, yapay zekâ destekli yazılım ve uzman eğitmen
+        desteği. Bu üç yapı birbiriyle entegre çalışarak öğrencilerin gelişimini
+        planlı ve ölçülebilir şekilde destekleyerek akademik başarılarına katkı
+        sağlar.
       </p>
     </div>
 
     <div className="how-it-works-panel">
-      <div className="how-it-works-grid">
+      <div
+        className="how-it-works-grid how-it-works-carousel"
+        role="region"
+        aria-label="Fixoku sisteminin üç temel bileşeni"
+      >
         <article className="how-card">
           <div className="how-card-head how-card-head-orange">
             Fixoku Eğitim Kitapları
@@ -1028,7 +1044,7 @@ function App() {
                 </svg>
               </div>
 
-              <div className="progress-value">%86</div>
+              <div className="progress-value">86</div>
               <div className="progress-sub">126 egzersizi analiz eder</div>
             </div>
           </article>
@@ -1049,7 +1065,7 @@ function App() {
                 </svg>
               </div>
 
-              <div className="progress-value">%78</div>
+              <div className="progress-value">78</div>
               <div className="progress-sub">Öğrencinin gelişimini ölçer</div>
             </div>
           </article>
@@ -1097,7 +1113,6 @@ function App() {
 
             <div className="model-card-text">
               <div className="model-label">Kitap</div>
-              <div className="model-rate">%30</div>
             </div>
           </article>
 
@@ -1117,7 +1132,6 @@ function App() {
 
             <div className="model-card-text">
               <div className="model-label">Yazılım</div>
-              <div className="model-rate">%30</div>
             </div>
           </article>
 
@@ -1139,7 +1153,6 @@ function App() {
 
             <div className="model-card-text">
               <div className="model-label">Eğitmen</div>
-              <div className="model-rate">%40</div>
             </div>
           </article>
         </div>
@@ -1413,8 +1426,10 @@ function App() {
             <span className="faq-toggle" />
           </summary>
           <div className="faq-answer">
-            İlkokul, ortaokul ve lise düzeyindeki öğrenciler için uygun program
-            yapısı oluşturulabilir.
+            Fixoku; ilkokul, ortaokul ve lise düzeyindeki öğrencilerin yanı sıra
+            üniversite öğrencileri, lisansüstü öğrencileri, mezunlar, çalışanlar ve okuma, anlama,
+            dikkat ve odaklanma becerilerini geliştirmek isteyen yetişkinler için
+            de uygun program yapıları sunar.
           </div>
         </details>
 

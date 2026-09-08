@@ -9,62 +9,371 @@ export const corporateHub = {
   path: CORPORATE_HUB_PATH,
   navLabel: collectionLabel,
   icon: "message",
-  eyebrow: "Fixoku Kurumsal",
-  heading: "Fixoku Hakkında: Eğitim Yaklaşımı, Misyon ve Vizyon",
-  seoTitle: "Fixoku Hakkında: Eğitim Yaklaşımı ve Kurumsal Yapı | Fixoku",
+  eyebrow: "FİXOKU AKADEMİ",
+  heading: "Fixoku Akademi Hakkında",
+  seoTitle: "Fixoku Akademi Hakkında | Hızlı Okuma ve Akademik Gelişim",
   metaDescription:
-    "Fixoku'nun hızlı okuma, anlama, dikkat ve odaklanmayı birlikte ele alan eğitim yaklaşımını; misyonunu, vizyonunu ve çalışma modelini inceleyin.",
-  readingTime: "5 dakika",
+    "Fixoku Akademi’nin okuma, anlama, dikkat ve akademik düşünme becerilerini geliştiren eğitim modelini kitap, yazılım, egzersiz, ölçme ve eğitmen desteğiyle inceleyin.",
+  readingTime: "12 dakika",
   summary:
-    "Fixoku; hızlı okuma, okuduğunu anlama, dikkat ve odaklanma çalışmalarını kitap, dijital araçlar ve eğitmen rehberliğiyle birlikte ele alan bir eğitim yaklaşımıdır.",
+    "Fixoku Akademi; bireylerin okuma, anlama, dikkat, odaklanma ve akademik düşünme becerilerini geliştirmek amacıyla eğitim içerikleri, basılı yayınlar ve yeni nesil eğitim teknolojileri geliştiren kapsamlı bir eğitim markasıdır.",
   sections: [
     {
-      id: "fixoku-kimdir",
-      title: "Fixoku nasıl bir eğitim yaklaşımı sunar?",
+      id: "biz-kimiz",
+      title: "Biz Kimiz?",
       paragraphs: [
-        "Fixoku, okuma temposunu tek başına bir hedef olarak görmek yerine anlama, dikkat ve metin türüne uygun okuma davranışıyla birlikte değerlendiren bir eğitim yaklaşımı sunar.",
-        "Öğrencilerden yetişkin okurlara kadar farklı grupların kullandığı metinler ve çalışma amaçları aynı değildir. Bu nedenle içerik, çalışma sırası ve uygulama biçimi okurun düzeyi ile ihtiyacına göre planlanmalıdır.",
+        "Fixoku Akademi; bireylerin okuma, anlama, dikkat, odaklanma ve akademik düşünme becerilerini geliştirmek amacıyla eğitim içerikleri, basılı yayınlar ve yeni nesil eğitim teknolojileri geliştiren kapsamlı bir eğitim markasıdır.",
+        "Fixoku Akademi’nin eğitim yaklaşımı yalnızca daha hızlı okumaya dayanmaz. Sistem; bireyin okuduğunu doğru anlamasını, bilgiyi analiz etmesini, dikkatini daha etkili yönetmesini ve öğrendiği bilgiyi akademik yaşamında kullanabilmesini hedefler.",
+        "Akıcı okuma, hızlı okuma, okuduğunu anlama, paragraf çözümleme teknikleri, dikkat ve odaklanma çalışmaları Fixoku Akademi’nin temel eğitim alanlarını oluşturur. Bu alanlar; yaş grubuna özel kitaplar, yapay zekâ destekli yazılım, uygulamalı egzersizler, ölçüm araçları, gelişim raporları ve eğitmen desteğiyle bütüncül bir eğitim modeline dönüştürülür.",
+        "İlkokuldan yetişkinlere kadar farklı yaş ve eğitim seviyelerine özel olarak hazırlanan Fixoku programları; öğrencilerin akademik becerilerini geliştirmelerine, sınav süreçlerini daha verimli yönetmelerine ve öğrenme kapasitelerini güçlendirmelerine yardımcı olur.",
+        "25 yılı aşkın eğitim ve iletişim deneyiminden beslenen Fixoku Akademi; geleneksel eğitim yöntemlerini modern öğrenme yaklaşımları ve yapay zekâ destekli teknolojilerle birleştirerek ölçülebilir, sürdürülebilir ve kişiselleştirilebilir bir gelişim sistemi sunar.",
+        "Fixoku Akademi, yalnızca bugünün eğitim ihtiyaçlarına cevap veren bir program değil; geleceğin öğrenme modellerini geliştirmeyi hedefleyen bir eğitim teknolojileri markasıdır.",
+      ],
+      callout: "Okuyan, Anlayan, Gelişen Nesiller.",
+    },
+    {
+      id: "fixoku-akademi-nedir",
+      title: "Fixoku Akademi Nedir?",
+      paragraphs: [
+        "Fixoku Akademi; öğrencilerin ve yetişkinlerin okuma, anlama, dikkat ve öğrenme becerilerini sistemli biçimde geliştiren yeni nesil bir akademik gelişim sistemidir.",
+        "Sistem, bireyin yalnızca okuma hızını artırmayı değil; okuma sırasında dikkatini korumasını, metindeki önemli bilgileri ayırt etmesini, ana düşünceyi belirlemesini, çıkarım yapmasını ve bilgiyi etkili biçimde kullanmasını amaçlar.",
+        "Fixoku Akademi eğitim modeli şu temel alanları bir araya getirir:",
+      ],
+      bullets: [
+        "Akıcı ve doğru okuma",
+        "Hızlı ve etkili okuma",
+        "Okuduğunu anlama",
+        "Paragraf çözümleme teknikleri",
+        "Dikkat ve odaklanma",
+        "Görsel algı ve seçici dikkat",
+        "Sözel düşünme ve kelime bilgisi",
+        "Akademik analiz ve yorumlama",
+        "Ölçme, değerlendirme ve gelişim raporlaması",
+      ],
+      afterBullets: [
+        "Bu bütüncül yapı sayesinde öğrencinin yalnızca ne kadar hızlı okuduğu değil; okuduğunu ne ölçüde anladığı, dikkatini nasıl yönettiği ve eğitim sürecinde hangi alanlarda gelişim gösterdiği de değerlendirilir.",
       ],
     },
     {
-      id: "egitim-modeli",
-      title: "Kitap, dijital çalışma ve eğitmen rehberliği",
+      id: "egitim-modelimiz",
+      title: "Eğitim Modelimiz",
       paragraphs: [
-        "Fixoku Eğitim Sistemi; basılı materyalleri, dijital egzersizleri, okuma ve anlama ölçümlerini ve eğitmen rehberliğini aynı çalışma planı içinde bir araya getirir.",
-        "Bu araçların amacı okurun farklı becerilerdeki çalışmalarını görünür kılmak ve uygun tekrarların planlanmasını desteklemektir. Tek bir ölçüm sonucu, öğrencinin bütün öğrenme kapasitesi hakkında hüküm vermez.",
+        "Fixoku Akademi eğitim modeli dört temel bileşenden oluşur:",
+      ],
+      subsections: [
+        {
+          title: "1. Yaş Grubuna Özel Eğitim Kitapları",
+          paragraphs: [
+            "Fixoku Akademi yayınları; ilkokul, ortaokul, lise ve yetişkin seviyelerine göre ayrı ayrı hazırlanır.",
+            "Her kitap, ilgili yaş grubunun okuma düzeyi, kelime bilgisi, akademik ihtiyaçları ve sınav beklentileri dikkate alınarak oluşturulur. Eğitim içerikleri yalnızca konu anlatımından değil; uygulamalar, metinler, dikkat çalışmaları, paragraf teknikleri ve gelişim egzersizlerinden oluşur.",
+          ],
+        },
+        {
+          title: "2. Yapay Zekâ Destekli Yazılım",
+          paragraphs: [
+            "Fixoku yazılımı, öğrencinin eğitim sürecindeki performansını takip eder, yaptığı çalışmaları analiz eder ve gelişim verilerini düzenli olarak kayıt altına alır.",
+            "Öğrenciler yazılım üzerinden günlük egzersizlerini gerçekleştirirken okuma, anlama, dikkat ve odaklanma alanlarındaki gelişimlerini somut verilerle görebilir.",
+          ],
+        },
+        {
+          title: "3. Uygulamalı Egzersiz Sistemi",
+          paragraphs: [
+            "Fixoku Akademi’nin 21 günlük ana gelişim programı, günlük 6 egzersizden ve toplam 126 uygulamadan oluşur.",
+            "Egzersizler; öğrencinin okuma alışkanlıklarını geliştirmek, dikkatini güçlendirmek, görsel algısını desteklemek, kelime dağarcığını artırmak ve okuduğunu anlama becerisini ilerletmek amacıyla aşamalı olarak hazırlanır.",
+          ],
+        },
+        {
+          title: "4. Ölçme ve Gelişim Raporları",
+          paragraphs: [
+            "Eğitim sürecinde öğrencinin performansı yalnızca tek bir puan üzerinden değerlendirilmez.",
+            "Fixoku sistemi; öğrencinin gelişimini 9 farklı beceri alanında analiz ederek güçlü yönlerini, desteklenmesi gereken alanları ve genel gelişim durumunu ortaya koyar.",
+            "Eğitim sonunda hazırlanan raporlar sayesinde öğrenci, veli, eğitmen veya kurum eğitim sürecini somut veriler üzerinden değerlendirebilir.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "fixoku-akademi-nasil-calisir",
+      title: "Fixoku Akademi Nasıl Çalışır?",
+      paragraphs: [
+        "Fixoku Akademi, öğrencinin mevcut seviyesini tanıyan ve gelişimini aşamalı olarak takip eden planlı bir eğitim modeli uygular.",
+      ],
+      subsections: [
+        {
+          title: "1. Başlangıç Ölçümü",
+          paragraphs: [
+            "Eğitim sürecinin başında öğrencinin okuma hızı, anlama oranı, dikkat performansı ve mevcut beceri düzeyi belirlenir.",
+            "Bu ölçüm, öğrencinin başlangıç noktasını görmek ve eğitim sonundaki gelişimi karşılaştırabilmek için kullanılır.",
+          ],
+        },
+        {
+          title: "2. Kişiye ve Seviyeye Uygun Eğitim",
+          paragraphs: [
+            "Öğrenci, yaş grubuna ve eğitim seviyesine uygun Fixoku kitabı ile çalışmaya başlar.",
+            "Eğitim içerikleri; ilkokul öğrencilerinde akıcı okuma ve temel dikkat becerilerine, ortaokul öğrencilerinde paragraf ve sınav becerilerine, lise öğrencilerinde ileri düzey paragraf analizi ve akademik okumaya, yetişkinlerde ise hızlı ve verimli okumaya odaklanır.",
+          ],
+        },
+        {
+          title: "3. Günlük Uygulamalar",
+          paragraphs: [
+            "Öğrenci, 21 günlük program boyunca her gün planlanan egzersizleri tamamlar.",
+            "Günlük çalışmalar kısa, uygulanabilir ve birbiriyle bağlantılı biçimde hazırlanır. Böylece eğitim süreci öğrenciyi yormadan, düzenli tekrar ve aşamalı ilerleme mantığıyla sürdürülür.",
+          ],
+        },
+        {
+          title: "4. Yapay Zekâ Destekli Takip",
+          paragraphs: [
+            "Yazılım, öğrencinin yaptığı çalışmaları ve performans sonuçlarını düzenli olarak takip eder.",
+            "Rutin veri toplama, ölçüm ve raporlama işlemleri teknoloji tarafından gerçekleştirilirken; değerlendirme, yönlendirme, öğrenci ilişkisi ve özel durumların yönetimi eğitmen veya danışman tarafından yürütülür.",
+          ],
+        },
+        {
+          title: "5. Gelişim Analizi",
+          paragraphs: [
+            "Eğitim sürecinin belirli aşamalarında öğrencinin gelişimi değerlendirilir.",
+            "Program sonunda başlangıç ve sonuç verileri karşılaştırılarak öğrencinin hangi alanlarda ilerleme gösterdiği ve hangi beceriler üzerinde çalışmaya devam etmesi gerektiği belirlenir.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "fixoku-metodu",
+      title: "Fixoku Metodu",
+      paragraphs: [
+        "Fixoku Metodu; okuma, anlama, dikkat ve akademik düşünme becerilerini bir arada geliştiren bütüncül bir eğitim yaklaşımıdır.",
+        "Geleneksel hızlı okuma eğitimleri çoğunlukla yalnızca belirli bir sürede okunan kelime sayısına odaklanır. Fixoku Metodu ise hızın tek başına yeterli olmadığını kabul eder.",
+        "Bir öğrencinin gerçek gelişimi;",
+      ],
+      bullets: [
+        "Daha akıcı okuyabilmesi,",
+        "Okuduğunu doğru anlayabilmesi,",
+        "Dikkatini sürdürebilmesi,",
+        "Ana düşünceyi belirleyebilmesi,",
+        "Bilgiler arasında ilişki kurabilmesi,",
+        "Paragrafı doğru analiz edebilmesi,",
+        "Öğrendiği bilgiyi kullanabilmesi",
+      ],
+      afterBullets: [
+        "ile değerlendirilir.",
+        "Bu nedenle Fixoku Metodu, öğrenciyi yalnızca daha hızlı okuyan değil; okuyan, anlayan, yorumlayan ve gelişimini sürdürebilen bir birey haline getirmeyi hedefler.",
+      ],
+    },
+    {
+      id: "egitim-alanlarimiz",
+      title: "Eğitim Alanlarımız",
+      subsections: [
+        {
+          title: "Akıcı Okuma",
+          paragraphs: [
+            "Öğrencinin kelimeleri doğru, anlaşılır ve uygun ritimle okuyabilmesini amaçlar.",
+            "Akıcı okuma çalışmaları; heceleme, kelime atlama, yanlış okuma, geri dönüş ve okuma sırasında yaşanan duraksamaların azaltılmasına yardımcı olur.",
+          ],
+        },
+        {
+          title: "Hızlı Okuma",
+          paragraphs: [
+            "Göz hareketleri, kelime gruplarıyla okuma, görme alanını genişletme ve gereksiz geri dönüşleri azaltma çalışmalarıyla okuma sürecinin daha verimli hale getirilmesini sağlar.",
+            "Hedef yalnızca hız kazanmak değil, anlama seviyesini koruyarak daha etkili okumaktır.",
+          ],
+        },
+        {
+          title: "Okuduğunu Anlama",
+          paragraphs: [
+            "Öğrencinin metindeki bilgileri doğru kavramasını, ana düşünceyi bulmasını, yardımcı düşünceleri ayırt etmesini ve metinden çıkarım yapmasını geliştirir.",
+          ],
+        },
+        {
+          title: "Paragraf Teknikleri",
+          paragraphs: [
+            "Özellikle LGS ve YKS gibi sınavlara hazırlanan öğrencilerin paragraf sorularını daha doğru ve daha planlı çözmelerini destekler.",
+            "Ana düşünce, yardımcı düşünce, paragraf tamamlama, cümle sıralama, akışı bozan cümle, paragrafı ikiye bölme, çıkarım ve yorumlama gibi farklı soru türlerine yönelik teknikler sunar.",
+          ],
+        },
+        {
+          title: "Dikkat ve Odaklanma",
+          paragraphs: [
+            "Öğrencinin çalışma sırasında dikkatini koruyabilmesi, görsel ve sözel ayrıntıları fark edebilmesi ve verilen görevi daha kontrollü tamamlayabilmesi için özel egzersizler uygulanır.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "kimler-icin-uygundur",
+      title: "Kimler İçin Uygundur?",
+      paragraphs: [
+        "Fixoku Akademi, farklı yaş ve eğitim seviyelerinin ihtiyaçlarına göre yapılandırılmıştır.",
+      ],
+      subsections: [
+        {
+          title: "İlkokul Öğrencileri",
+          paragraphs: [
+            "Akıcı ve doğru okuma becerisini geliştirmek, okuma hatalarını azaltmak, kelime bilgisini artırmak ve dikkat becerilerini güçlendirmek isteyen öğrenciler için hazırlanmıştır.",
+          ],
+        },
+        {
+          title: "Ortaokul Öğrencileri",
+          paragraphs: [
+            "Okuma hızını, anlama becerisini ve paragraf çözme performansını geliştirmek isteyen öğrenciler için etkili bir eğitim modeli sunar.",
+            "Özellikle LGS hazırlık sürecinde uzun metinleri daha doğru ve daha kontrollü okuyabilmeye katkı sağlar.",
+          ],
+        },
+        {
+          title: "Lise Öğrencileri",
+          paragraphs: [
+            "Yoğun ders programı ve sınav sürecinde bilgiye daha hızlı ulaşmak, ileri düzey paragraf sorularını analiz etmek ve zaman yönetimi becerisini geliştirmek isteyen öğrenciler için hazırlanmıştır.",
+          ],
+        },
+        {
+          title: "Üniversite ve Lisansüstü Öğrencileri",
+          paragraphs: [
+            "Ders notlarını, akademik kaynakları ve araştırma metinlerini daha verimli okumak isteyen öğrencilerin öğrenme süreçlerini destekler.",
+          ],
+        },
+        {
+          title: "Yetişkinler",
+          paragraphs: [
+            "Kişisel gelişimine önem veren, iş yaşamında yoğun doküman okuyan ve bilgiyi daha hızlı analiz etmek isteyen yetişkinlere yönelik eğitim içerikleri sunar.",
+          ],
+        },
+        {
+          title: "Eğitmenler",
+          paragraphs: [
+            "Öğrencilerine sistemli, ölçülebilir ve teknoloji destekli bir eğitim modeli sunmak isteyen eğitmenler için kitap, yazılım, eğitim materyali ve uygulama desteği sağlar.",
+          ],
+        },
+        {
+          title: "Eğitim Kurumları",
+          paragraphs: [
+            "Okullar, kurs merkezleri ve eğitim kurumlarının öğrencilerine toplu biçimde uygulayabileceği, gelişimi ölçülebilir ve raporlanabilir kurumsal eğitim çözümleri sunar.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "neden-fixoku-akademi",
+      title: "Neden Fixoku Akademi?",
+      paragraphs: [
+        "Fixoku Akademi’yi farklı kılan temel özellik, eğitim sürecini tek bir kitap, tek bir ders veya tek bir ölçümden ibaret görmemesidir.",
+        "Fixoku Akademi;",
+      ],
+      bullets: [
+        "Kitap, yazılım ve uygulamalı eğitimi bir araya getirir.",
+        "İlkokuldan yetişkinlere kadar farklı seviyelere özel içerik sunar.",
+        "Her öğrenci için ayrı kitap ve kişisel yazılım kullanımı sağlar.",
+        "21 günlük planlı ve aşamalı bir eğitim modeli uygular.",
+        "Günlük 6, toplam 126 egzersizle düzenli çalışma alışkanlığı oluşturur.",
+        "Öğrencinin gelişimini 9 beceri alanında analiz eder.",
+        "Başlangıç ve sonuç ölçümleriyle gelişimi karşılaştırır.",
+        "Yapay zekâ destekli takip ve raporlama sistemi kullanır.",
+        "Eğitmen, veli ve kurumların süreci takip edebilmesini sağlar.",
+        "Eğitim içeriklerini yeni nesil öğrenme ihtiyaçlarına göre sürekli geliştirir.",
+      ],
+      afterBullets: [
+        "Fixoku Akademi’nin amacı yalnızca eğitim vermek değil; öğrencinin gelişiminin görülebildiği, takip edilebildiği ve sürdürülebildiği güçlü bir öğrenme sistemi oluşturmaktır.",
+      ],
+    },
+    {
+      id: "egitim-kazanimlari",
+      title: "Eğitim Kazanımları",
+      paragraphs: [
+        "Fixoku Akademi programlarını tamamlayan öğrencilerin aşağıdaki alanlarda gelişim göstermesi hedeflenir:",
+      ],
+      subsections: [
+        {
+          title: "Daha Akıcı Okuma",
+          paragraphs: [
+            "Öğrencinin okuma sırasında yaptığı hataların ve gereksiz duraksamaların azalmasına yardımcı olur.",
+          ],
+        },
+        {
+          title: "Daha Etkili Okuma",
+          paragraphs: [
+            "Okuma hızının, metnin türüne ve öğrencinin seviyesine uygun biçimde geliştirilmesini destekler.",
+          ],
+        },
+        {
+          title: "Daha Güçlü Anlama",
+          paragraphs: [
+            "Öğrencinin okuduğu metni doğru kavramasına, önemli bilgileri ayırt etmesine ve çıkarım yapmasına katkı sağlar.",
+          ],
+        },
+        {
+          title: "Dikkat ve Odaklanma",
+          paragraphs: [
+            "Öğrencinin çalışma sırasında dikkatini daha uzun süre koruyabilmesini ve verilen görevlere daha kontrollü yaklaşmasını destekler.",
+          ],
+        },
+        {
+          title: "Paragraf Çözme Becerisi",
+          paragraphs: [
+            "Öğrencinin farklı paragraf soru türlerini tanımasına, soruya uygun teknik geliştirmesine ve sınav süresini daha verimli kullanmasına yardımcı olur.",
+          ],
+        },
+        {
+          title: "Akademik Özgüven",
+          paragraphs: [
+            "Okuma ve anlama becerilerindeki gelişim, öğrencinin derslere ve sınavlara daha güvenli yaklaşmasına katkı sağlar.",
+          ],
+        },
+        {
+          title: "Öğrenme Verimliliği",
+          paragraphs: [
+            "Bilgiyi daha doğru okuyan, anlayan ve analiz eden öğrencinin ders çalışma süreci daha planlı ve verimli hale gelir.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "egitmen-ve-kurum-modeli",
+      title: "Eğitmen ve Kurum Modeli",
+      paragraphs: [
+        "Fixoku Akademi, bireysel kullanıcıların yanında eğitmenlere ve eğitim kurumlarına da uygulanabilir bir sistem sunar.",
+        "Eğitmenler, Fixoku eğitim modelini kullanarak öğrencilerinin gelişimini sistemli biçimde takip edebilir; kitap, yazılım, uygulama planı ve gelişim raporlarını bir bütün halinde kullanabilir.",
+        "Kurumlar ise öğrencilerine ortak bir eğitim standardı sunabilir, öğrenci performanslarını ayrı ayrı değerlendirebilir ve eğitim sonuçlarını raporlar üzerinden inceleyebilir.",
+        "Bu yapı sayesinde Fixoku Akademi; bireysel eğitimden sınıf uygulamalarına, eğitmen destekli programlardan kurumsal eğitim modellerine kadar farklı ihtiyaçlara uyarlanabilir.",
       ],
     },
     {
       id: "misyonumuz",
       title: "Misyonumuz",
       paragraphs: [
-        "Fixoku'nun misyonu; bireylerin okuma ve anlama becerilerini geliştirmeye, dikkatlerini daha bilinçli yönetmelerine ve düzenli çalışma alışkanlığı oluşturmalarına yardımcı olan eğitim araçları hazırlamaktır.",
-        "Eğitim yaklaşımı, her öğrenci için aynı sonucu vaat etmek yerine seviyeye uygun görevler ve sürdürülebilir uygulamalar oluşturmayı amaçlar.",
+        "Fixoku Akademi’nin misyonu; bireylerin okuma, anlama, dikkat, odaklanma ve akademik düşünme becerilerini geliştiren, teknoloji destekli ve ölçülebilir eğitim sistemleri oluşturmaktır.",
+        "Öğrencilerin yalnızca sınavlarda daha başarılı olmasını değil; öğrenmeyi öğrenen, bilgiyi doğru analiz eden ve gelişimini sürdürebilen bireyler haline gelmesini amaçlıyoruz.",
+        "Basılı yayınları, yapay zekâ destekli yazılımı, uygulamalı eğitimleri ve uzman desteğini bir araya getirerek herkes için erişilebilir, sürdürülebilir ve etkili bir öğrenme deneyimi sunmayı hedefliyoruz.",
       ],
     },
     {
       id: "vizyonumuz",
       title: "Vizyonumuz",
       paragraphs: [
-        "Fixoku, eğitim ile teknolojiyi anlaşılır ve uygulanabilir bir çalışma düzeninde buluşturan; okuma, anlama ve dikkat alanlarında kendini sürekli geliştiren bir eğitim sistemi oluşturmayı hedefler.",
-        "Bu vizyonun odağında farklı yaş gruplarının ihtiyaçlarını gözetmek, gelişimi birden fazla göstergeyle takip etmek ve öğrenme sürecini okur için daha bilinçli hâle getirmek bulunur.",
+        "Fixoku Akademi’nin vizyonu; Türkiye’de geliştirdiği eğitim modeli ve eğitim teknolojileriyle ulusal ve uluslararası alanda referans gösterilen güçlü bir akademik gelişim markası olmaktır.",
+        "Geleceğin eğitim modellerinin yalnızca içerik sunan değil; öğrenciyi tanıyan, gelişimini takip eden, ihtiyaçlarını analiz eden ve doğru öğrenme yolunu gösteren sistemlerden oluşacağına inanıyoruz.",
+        "Bu doğrultuda Fixoku Akademi; yayıncılık, eğitim, yazılım ve yapay zekâ teknolojilerini aynı yapı içerisinde geliştirerek geleceğin öğrenme ekosistemini oluşturmayı hedeflemektedir.",
       ],
     },
     {
-      id: "kurumsal-calisma-alanlari",
-      title: "Kurumsal çalışma alanları",
+      id: "gelecegin-ogrenme-modeli",
+      title: "Geleceğin Öğrenme Modeli",
       paragraphs: [
-        "Fixoku yaklaşımı bireysel eğitimlerin yanında okullar ve eğitim kurumlarıyla yürütülebilecek programlar ile eğitmen hazırlık süreçlerini de kapsar. Kurumun öğrenci profili, mevcut eğitim düzeni ve uygulama hedefi ön görüşmede birlikte değerlendirilir.",
-        "Programın kapsamı, materyalleri ve uygulama sorumlulukları güncel koşullara göre açık biçimde belirlenmelidir. Ticari şartlar veya sonuç beklentileri doğrulanmadan genel bir vaat olarak sunulmaz.",
+        "Bilgiye ulaşmanın her geçen gün kolaylaştığı bir dünyada asıl önemli olan; doğru bilgiye ulaşmak, bilgiyi anlamak, analiz etmek ve etkili biçimde kullanabilmektir.",
+        "Fixoku Akademi, bireyleri yalnızca bugünün sınavlarına değil; geleceğin öğrenme ve çalışma hayatına hazırlayan bir sistem geliştirir.",
+        "Kitaplarımız, eğitim programlarımız, yapay zekâ destekli yazılımımız, gelişim raporlarımız, eğitmenlerimiz ve kurumlarımızla birlikte daha güçlü bir öğrenme kültürü oluşturmak için çalışıyoruz.",
+      ],
+      closing: [
+        "Fixoku Akademi",
+        "Yeni Nesil Akademik Gelişim Sistemi",
+        "Okuyan, Anlayan, Gelişen Nesiller.",
       ],
     },
   ],
-  cardsHeading: "Kurumsal çalışma alanlarını inceleyin",
+  showHubLinks: false,
+  showCta: false,
+  cardsHeading: "Fixoku Akademi hakkında daha fazla bilgi",
   cardsIntro:
     "Kurum uygulaması, eğitmen hazırlığı ve sık sorulan sorular için hazırlanan içeriklerden ihtiyacınıza uygun olanı seçebilirsiniz.",
   cta: {
-    title: "Fixoku çalışma yaklaşımı hakkında bilgi alın",
-    text: "Kurumunuzun veya eğitim hedefinizin kapsamını paylaşarak güncel uygulama seçeneklerini değerlendirebilirsiniz.",
+    title: "Fixoku Akademi eğitim yaklaşımını birlikte değerlendirelim",
+    text: "Eğitim modelinin yaş, seviye ve kurum ihtiyaçlarına göre nasıl uygulanabileceği hakkında bilgi alabilirsiniz.",
     primary: { label: "Fixoku ile İletişime Geçin", to: "/iletisim" },
     secondary: { label: "Fixoku Eğitimini İnceleyin", to: "/fixoku-egitimi" },
   },

@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import App from "./App.jsx";
 import SeoRouteManager from "./components/seo/Seo.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 import {
   attentionFocusArticles,
   attentionFocusHub,
@@ -36,6 +37,7 @@ export default function AppRoutes() {
   return (
     <>
       <SeoRouteManager />
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/iletisim" element={<Iletisim />} />

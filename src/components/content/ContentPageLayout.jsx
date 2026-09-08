@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Header from "../Header.jsx";
 import Footer from "../Footer.jsx";
@@ -26,10 +25,6 @@ function getBreadcrumbs(page) {
 
 export default function ContentPageLayout({ page, children }) {
   const location = useLocation();
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.pathname]);
 
   return (
     <div className="page quick-reading-page">

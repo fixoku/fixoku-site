@@ -4162,10 +4162,28 @@ img {
 }
 
 .how-it-works-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
   gap: 24px;
   margin-bottom: 22px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 16px;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+}
+
+.how-it-works-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.how-it-works-grid .how-card {
+  flex: 0 0 calc((100% - 48px) / 3);
+  min-width: 0;
+  scroll-snap-align: start;
 }
 
 .how-card {
@@ -4345,6 +4363,10 @@ img {
     grid-template-columns: 1fr;
   }
 
+  .how-it-works-grid .how-card {
+    flex-basis: 82%;
+  }
+
   .how-it-works-panel {
     border-radius: 36px;
     padding: 16px;
@@ -4356,6 +4378,16 @@ img {
 }
 
 @media (max-width: 768px) {
+  .how-it-works-grid {
+    gap: 14px;
+    padding: 2px 0 14px;
+    margin-inline: -2px;
+  }
+
+  .how-it-works-grid .how-card {
+    flex-basis: 82%;
+  }
+
   .how-it-works-section {
     padding: 34px 16px 70px;
   }
@@ -4639,20 +4671,15 @@ img {
 .model-card-text {
   color: white;
   min-width: 0;
+  display: flex;
+  align-items: center;
 }
 
 .model-label {
   font-size: 44px;
   line-height: 1;
   font-weight: 300;
-  margin-bottom: 12px;
   letter-spacing: -0.8px;
-}
-
-.model-rate {
-  font-size: 58px;
-  line-height: 0.95;
-  font-weight: 300;
 }
 
 .education-model-desc {
@@ -4692,9 +4719,6 @@ img {
     font-size: 36px;
   }
 
-  .model-rate {
-    font-size: 46px;
-  }
 }
 
 @media (max-width: 1024px) {
@@ -4774,11 +4798,6 @@ img {
 
   .model-label {
     font-size: 28px;
-    margin-bottom: 8px;
-  }
-
-  .model-rate {
-    font-size: 38px;
   }
 
   .education-model-desc {
@@ -4811,10 +4830,6 @@ img {
 
   .model-label {
     font-size: 24px;
-  }
-
-  .model-rate {
-    font-size: 32px;
   }
 
   .education-model-desc {
@@ -15386,3 +15401,227 @@ iframe {
   }
 }
 /* FIXOKU PREVERCEL SHORT DOTS V1 END */
+
+/* =========================================================
+   LIVE TOP ACHIEVEMENT BANNER
+   Inline SVG replaces the legacy raster banner while keeping
+   the existing orange header dimensions and responsive offsets.
+========================================================= */
+.top-achievement-banner {
+  width: 100%;
+  min-width: 0;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.desktop-top-header .top-center,
+.mobile-top-header .top-center {
+  width: min(100%, 920px);
+}
+
+.top-achievement-inner {
+  width: min(100%, 920px);
+  min-width: 0;
+  min-height: 72px;
+  padding: 2px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.5vw, 18px);
+}
+
+.top-achievement-art {
+  width: clamp(100px, 10vw, 138px);
+  height: 68px;
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.top-achievement-artwork {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.top-achievement-trophy {
+  opacity: 0;
+  will-change: transform, opacity;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: topAchievementTrophyDrop 1.7s cubic-bezier(.2,.76,.25,1) .05s both;
+}
+
+.top-achievement-arrow {
+  opacity: 0;
+  will-change: transform, opacity;
+  transform-box: fill-box;
+  transform-origin: 43px 55px;
+  animation: topAchievementArrowStrike .72s cubic-bezier(.2,.72,.25,1) 1.8s both;
+}
+
+@keyframes topAchievementTrophyDrop {
+  0% { opacity: 0; transform: translateY(-30px) rotate(-3deg); }
+  48% { opacity: 1; transform: translateY(5px) rotate(1.4deg); }
+  61% { opacity: 1; transform: translateY(-2px) rotate(-1deg); }
+  72% { opacity: 1; transform: translateY(1px) rotate(.65deg); }
+  82% { opacity: 1; transform: translateY(-.5px) rotate(-.35deg); }
+  91% { opacity: 1; transform: translateY(0) rotate(.15deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+@keyframes topAchievementArrowStrike {
+  0% { opacity: 0; transform: translateX(-78px) rotate(-4deg); }
+  68% { opacity: 1; transform: translateX(3px) rotate(.5deg); }
+  84% { opacity: 1; transform: translateX(-1px) rotate(-.2deg); }
+  100% { opacity: 1; transform: translateX(0) rotate(0); }
+}
+
+.top-achievement-copy {
+  min-width: 0;
+  min-height: 1.35em;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: .42em;
+  color: var(--fixoku-white-soft);
+  font-size: clamp(12px, 1.35vw, 19px);
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -.15px;
+  white-space: nowrap;
+}
+
+.top-achievement-prefix {
+  color: #fff;
+  flex: 0 1 auto;
+}
+
+.top-achievement-suffix {
+  min-width: 31ch;
+  display: inline-block;
+  color: #4b1e74;
+  font-weight: 800;
+  will-change: transform, opacity;
+  animation: topAchievementTextIn .45s ease both;
+}
+
+@keyframes topAchievementTextIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1100px) {
+  .mobile-top-header .top-center {
+    width: 100%;
+  }
+
+  .top-achievement-banner,
+  .top-achievement-inner {
+    min-height: 50px;
+  }
+
+  .top-achievement-inner {
+    width: min(100%, 760px);
+    padding: 3px 10px;
+    gap: 7px;
+  }
+
+  .top-achievement-art {
+    width: clamp(84px, 21vw, 126px);
+    height: 44px;
+  }
+
+  .top-achievement-copy {
+    gap: .32em;
+    font-size: clamp(10px, 1.65vw, 15px);
+    line-height: 1.12;
+  }
+
+  .top-achievement-suffix {
+    min-width: 22ch;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-top-header .top-achievement-banner,
+  .mobile-top-header .top-achievement-inner {
+    min-height: 42px;
+    height: 42px;
+  }
+
+  .mobile-top-header .top-achievement-inner {
+    width: 100%;
+    padding: 1px 8px;
+    gap: 5px;
+  }
+
+  .mobile-top-header .top-achievement-art {
+    width: clamp(72px, 23vw, 98px);
+    height: 39px;
+  }
+
+  .mobile-top-header .top-achievement-copy {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-content: center;
+    min-height: 2.2em;
+    gap: .28em;
+    font-size: clamp(8.4px, 2.42vw, 11.5px);
+    line-height: 1.08;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .mobile-top-header .top-achievement-prefix,
+  .mobile-top-header .top-achievement-suffix {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-top-header .top-achievement-suffix {
+    min-width: 0;
+    display: inline;
+  }
+}
+
+@media (max-width: 360px) {
+  .mobile-top-header .top-achievement-inner {
+    padding-inline: 5px;
+    gap: 3px;
+  }
+
+  .mobile-top-header .top-achievement-art {
+    width: 68px;
+    height: 36px;
+  }
+
+  .mobile-top-header .top-achievement-copy {
+    font-size: 8.35px;
+    letter-spacing: -.2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-achievement-trophy,
+  .top-achievement-arrow,
+  .top-achievement-suffix {
+    animation: none !important;
+  }
+
+  .top-achievement-trophy,
+  .top-achievement-arrow {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .top-achievement-suffix {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

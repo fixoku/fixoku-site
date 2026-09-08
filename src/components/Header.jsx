@@ -13,6 +13,7 @@ import { quickReadingArticles } from "../data/quickReadingContent.js";
 import { TRAINING_HUB_PATH, trainingArticles } from "../data/trainingContent.js";
 import { INSTITUTION_READING_LANDING_PATH } from "../data/institutionReadingLanding.js";
 import { INSTRUCTOR_READING_LANDING_PATH } from "../data/instructorReadingLanding.js";
+import TopAchievementBanner from "./TopAchievementBanner.jsx";
 
 const desktopIconPaths = {
   book: <><path d="M5 5.8C5 4.8 5.8 4 6.8 4H11c1.4 0 2.6.5 3.5 1.3A5.2 5.2 0 0 1 18 4h.7c1 0 1.8.8 1.8 1.8V19c0 .6-.4 1-1 1h-1.8c-1.2 0-2.3.4-3.2 1.1A5.5 5.5 0 0 0 11 20H6.8C5.8 20 5 19.2 5 18.2V5.8Z" /><path d="M14.5 5.3v15.6" /></>,
@@ -200,6 +201,8 @@ function WhatsAppIcon() {
 
 function Header() {
   const location = useLocation();
+  const isHomePath = location.pathname === "/";
+  const headerLogoSrc = isHomePath ? "/logo-fixoku.png" : "/siyah-logo-fixoku.png";
   const [desktopActiveMenu, setDesktopActiveMenu] = useState("");
   const [mobileActiveMenu, setMobileActiveMenu] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -211,9 +214,12 @@ function Header() {
   useEffect(() => {
     const handleScroll = () => {
       const hero = document.querySelector(".hero-slider");
-      const fallbackLimit = window.innerHeight * 0.72;
-      const heroBottom = hero ? hero.getBoundingClientRect().bottom : fallbackLimit;
-      setIsAfterHero(heroBottom <= 0);
+      if (!hero) {
+        setIsAfterHero(window.scrollY > 0);
+        return;
+      }
+
+      setIsAfterHero(hero.getBoundingClientRect().bottom <= 0);
     };
 
     handleScroll();
@@ -347,7 +353,7 @@ function Header() {
       <div className="top-header desktop-top-header">
         <div className="top-header-inner top-header-single">
           <div className="top-center">
-            <img src="/top-banner.svg" alt="banner" className="top-banner-svg" />
+            <TopAchievementBanner />
           </div>
         </div>
       </div>
@@ -358,7 +364,7 @@ function Header() {
             <a className="top-contact" href="mailto:info@fixoku.com"><MobileIcon type="mail" />info@fixoku.com</a>
             <a className="top-contact" href="tel:+905334789253"><MobileIcon type="phone" />+90 533 478 92 53</a>
           </div>
-          <div className="top-center"><img src="/top-banner.svg" alt="Fixoku" className="top-banner-svg" /></div>
+          <div className="top-center"><TopAchievementBanner /></div>
           <div className="top-right top-header-desktop-contact">
             <a className="whatsapp top-whatsapp-clean" href="https://wa.me/905334789253" target="_blank" rel="noopener noreferrer">
               <span className="whatsapp-icon real-whatsapp-icon"><WhatsAppIcon /></span>WhatsApp Destek
@@ -367,14 +373,18 @@ function Header() {
         </div>
       </div>
 
-      <header className={`desktop-topbar glass-topbar ${isAfterHero ? "is-after-hero" : ""}`}>
-        <div className="topbar-wrap">
+      <div className="desktop-logo-layer">
+        <div className="desktop-logo-wrap">
           <div className="logo-floating">
             <Link to="/" className="logo-area" aria-label="Fixoku Ana Sayfa">
-              <img src={isAfterHero ? "/siyah-logo-fixoku.png" : "/logo-fixoku.png"} alt="Fixoku Logo" className="site-logo" />
+              <img src={headerLogoSrc} alt="Fixoku Logo" className="site-logo" />
             </Link>
           </div>
+        </div>
+      </div>
 
+      <header className={`desktop-topbar glass-topbar ${isAfterHero ? "is-after-hero" : ""}`}>
+        <div className="topbar-wrap">
           <div className="topbar-inner glass-menu">
             <nav className="nav" aria-label="Ana menü">
               {desktopMenuItems.map((menu) => (
@@ -421,8 +431,9 @@ function Header() {
             </nav>
 
             <div className="top-actions">
-
               <Link to={TRAINING_HUB_PATH} className="action-btn store-btn">Eğitimleri İncele</Link>
+              <button type="button" className="action-btn purchase-btn" disabled aria-disabled="true" title="Satın alma bağlantısı henüz tanımlanmadı">Satın Al</button>
+              <button type="button" className="action-btn login-btn" disabled aria-disabled="true" title="Giriş bağlantısı henüz tanımlanmadı">Giriş Yap</button>
             </div>
           </div>
         </div>
@@ -430,11 +441,11 @@ function Header() {
 
       {isMobileMenuOpen && <button className="mobile-menu-backdrop" type="button" aria-label="Menüyü kapat" onClick={closeMobileMenu} />}
 
-      <header className="mobile-topbar">
+      <header className={`mobile-topbar ${isHomePath ? "is-home" : "is-inner"}`}>
         <div className="topbar-wrap">
           <div className="logo-floating">
             <Link to="/" className="logo-area" aria-label="Fixoku Ana Sayfa" onClick={closeMobileMenu}>
-              <img src="/siyah-logo-fixoku.png" alt="Fixoku Logo" className="site-logo" />
+              <img src={headerLogoSrc} alt="Fixoku Logo" className="site-logo" />
             </Link>
           </div>
 
@@ -462,7 +473,7 @@ function Header() {
           >
             <div className="mobile-drawer-profile mobile-logo-only">
               <Link to="/" className="mobile-profile-logo" onClick={closeMobileMenu}>
-                <img src="/siyah-logo-fixoku.png" alt="Fixoku" />
+                <img src={headerLogoSrc} alt="Fixoku" />
               </Link>
               <button type="button" className="mobile-drawer-close" aria-label="Menüyü kapat" onClick={closeMobileMenu}>
                 <span aria-hidden="true">×</span>
@@ -513,8 +524,9 @@ function Header() {
             </nav>
 
             <div className="mobile-actions">
-
               <Link to={TRAINING_HUB_PATH} className="action-btn store-btn" onClick={closeMobileMenu}>Eğitimleri İncele</Link>
+              <button type="button" className="action-btn purchase-btn" disabled aria-disabled="true" title="Satın alma bağlantısı henüz tanımlanmadı">Satın Al</button>
+              <button type="button" className="action-btn login-btn" disabled aria-disabled="true" title="Giriş bağlantısı henüz tanımlanmadı">Giriş Yap</button>
             </div>
 
             <div className="mobile-menu-contact">
@@ -539,6 +551,56 @@ function Header() {
         .mobile-menu-backdrop { display: none; }
 
         .desktop-top-header { display: block; }
+
+        /* The logo remains in its own scrolling layer. Only the menu header
+           becomes fixed after the hero, so the logo never returns as a sticky clone. */
+        .desktop-logo-layer {
+          position: absolute;
+          top: 92px;
+          left: 0;
+          width: 100%;
+          z-index: 1000;
+          padding: 0 18px;
+          pointer-events: none;
+        }
+
+        .desktop-logo-wrap {
+          max-width: 1350px;
+          min-height: 74px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+        }
+
+        .desktop-logo-layer .logo-floating {
+          flex-shrink: 0;
+          position: relative;
+          z-index: 4;
+          pointer-events: auto;
+        }
+
+        .desktop-logo-layer .logo-area {
+          min-width: 150px;
+          height: 62px;
+          padding: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 0;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+
+        .desktop-logo-layer .site-logo {
+          width: 148px;
+          height: auto;
+          object-fit: contain;
+          transition: width .25s ease, filter .25s ease;
+          filter: drop-shadow(0 10px 18px rgba(20, 0, 33, .18));
+        }
 
         .glass-topbar {
           position: absolute !important;
@@ -565,34 +627,16 @@ function Header() {
         }
 
         .glass-topbar .topbar-wrap {
-          max-width: 1350px;
-          margin: 0 auto;
-          display: flex;
-          align-items: center;
-          gap: 18px;
+           max-width: 1350px;
+           margin: 0 auto;
+           display: flex;
+           align-items: center;
+           gap: 0;
+           padding-left: 156px;
         }
 
-        .glass-topbar .logo-area {
-          min-width: 150px;
-          height: 62px;
-          padding: 0;
-          border-radius: 0;
-          background: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-        }
-
-        .glass-topbar .site-logo {
-          width: 148px;
-          transition: width .25s ease, filter .25s ease;
-          filter: drop-shadow(0 10px 18px rgba(20, 0, 33, .18));
-        }
-
-        .glass-topbar.is-after-hero .site-logo {
-          width: 142px;
-          filter: none;
+        .glass-topbar.is-after-hero .topbar-wrap {
+          padding-left: 0;
         }
 
         .glass-menu {
@@ -721,20 +765,28 @@ function Header() {
 
         .glass-menu .top-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .glass-menu .top-actions .action-btn { white-space: nowrap; }
-        .glass-menu .top-actions .login-btn { background: linear-gradient(135deg, #ff8a00, #f37021) !important; color: #fff !important; }
+        .glass-menu .top-actions .purchase-btn { background: linear-gradient(135deg, #ff8a00, #f37021) !important; color: #fff !important; border: 1px solid rgba(243,112,33,.14) !important; }
+        .glass-menu .top-actions .login-btn { background: rgba(66, 17, 95, .08) !important; color: #42115f !important; border: 1px solid rgba(66, 17, 95, .14) !important; }
         .glass-menu .top-actions .store-btn { background: rgba(66, 17, 95, .08) !important; color: #42115f !important; border: 1px solid rgba(66, 17, 95, .08) !important; }
+        .glass-menu .top-actions .action-btn:disabled,
+        .mobile-actions .action-btn:disabled {
+          opacity: 1;
+          cursor: not-allowed;
+          filter: saturate(.9);
+        }
 
         @media (max-width: 1399px) and (min-width: 1101px) {
           .glass-topbar { padding: 0 12px !important; }
-          .glass-topbar .topbar-wrap { gap: 12px; }
-          .glass-topbar .logo-area { min-width: 128px; }
-          .glass-topbar .site-logo { width: 126px; }
-          .glass-topbar.is-after-hero .site-logo { width: 126px; }
+          .desktop-logo-layer { padding: 0 12px; }
+          .desktop-logo-layer .logo-area { min-width: 128px; }
+          .desktop-logo-layer .site-logo { width: 126px; }
+          .glass-topbar .topbar-wrap { padding-left: 132px; }
+          .glass-topbar.is-after-hero .topbar-wrap { padding-left: 0; }
           .glass-menu { padding: 8px 10px !important; gap: 8px; }
           .glass-menu .nav { gap: 0; }
           .glass-menu .nav-link { font-size: 11.5px; padding: 9px 6px; }
           .glass-menu .top-actions { gap: 6px; }
-          .glass-menu .top-actions .action-btn { padding: 10px 11px; font-size: 12.5px; }
+          .glass-menu .top-actions .action-btn { padding: 9px 8px; font-size: 11.5px; }
         }
 
         @media (max-width: 1100px) and (min-width: 769px) {
@@ -764,9 +816,19 @@ function Header() {
         @media (max-width: 1100px) {
           body.fixoku-menu-open { overflow: hidden; }
           .desktop-top-header,
-          .desktop-topbar { display: none !important; }
+          .desktop-topbar,
+          .desktop-logo-layer { display: none !important; }
           .mobile-top-header,
           .mobile-topbar { display: block; }
+
+          .mobile-topbar.is-home .topbar-wrap {
+            background: linear-gradient(135deg, rgba(43, 8, 63, .96), rgba(86, 25, 108, .94)) !important;
+            box-shadow: 0 10px 28px rgba(35, 12, 55, .3) !important;
+          }
+
+          .mobile-topbar.is-home .mobile-drawer-profile.mobile-logo-only {
+            background: linear-gradient(135deg, rgba(43, 8, 63, .96), rgba(86, 25, 108, .94)) !important;
+          }
 
           .mobile-top-header .top-header-inner.top-header-with-contact { grid-template-columns: 1fr !important; padding: 9px 14px; }
           .mobile-top-header .top-header-desktop-contact { display: none !important; }

@@ -1,16 +1,8 @@
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import Breadcrumbs from "../components/content/Breadcrumbs.jsx";
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
 
 export default function LegalPage({ page }) {
-  const location = useLocation();
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.pathname]);
-
   return (
     <div className="page quick-reading-page legal-page">
       <Header />

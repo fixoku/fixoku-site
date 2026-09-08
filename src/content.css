@@ -485,6 +485,38 @@
   letter-spacing: -0.025em;
 }
 
+.content-section h3 {
+  margin: 34px 0 14px;
+  color: var(--content-purple);
+  font-size: clamp(21px, 2.2vw, 28px);
+  line-height: 1.24;
+  letter-spacing: -0.018em;
+}
+
+.content-subsection + .content-subsection {
+  margin-top: 30px;
+}
+
+.content-callout,
+.content-closing-line {
+  color: var(--content-purple);
+  font-weight: 850;
+}
+
+.content-callout {
+  margin-top: 30px !important;
+  padding: 18px 20px;
+  border-left: 4px solid var(--content-orange);
+  border-radius: 0 16px 16px 0;
+  background: rgba(243, 112, 33, 0.08);
+  font-size: 18px;
+}
+
+.content-closing-line {
+  margin-bottom: 8px !important;
+  font-size: 18px !important;
+}
+
 .content-section p,
 .content-cta p {
   margin: 0 0 18px;

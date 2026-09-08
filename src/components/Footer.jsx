@@ -98,11 +98,12 @@ function Footer({ showCta = true }) {
               <img src="/logo-fixoku.png" alt="Fixoku Logo" />
             </Link>
 
-            <p className="footer-brand-subtitle">Yeni Nesil Akademik Gelişim Merkezi</p>
+            <p className="footer-brand-subtitle">YENİ NESİL AKADEMİK GELİŞİM SİSTEMİ</p>
 
             <p className="footer-brand-text">
               Fixoku; kitap, yazılım ve uzman eğitmen desteğini bir araya getiren
-              hızlı okuma, anlama, dikkat ve odaklanma eğitim sistemidir.
+              hızlı okuma, anlama, dikkat ve odaklanma, paragraf teknikleri ile
+              öğrencilerin akademik başarılarına katkı sağlayan eğitim sistemidir.
             </p>
 
             <div className="footer-socials">

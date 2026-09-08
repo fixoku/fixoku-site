@@ -36,6 +36,7 @@ import {
   institutionTypes,
   shortInstitutionProcess,
 } from "../src/data/institutionReadingLanding.js";
+import { instructorReadingLandingRoute } from "../src/data/instructorReadingLanding.js";
 import {
   attentionFocusRoutePaths,
   blogRoutePaths,
@@ -267,7 +268,7 @@ check(
     legalPages.length === 3,
   "Üç hukuki route merkezi veri ve route registry içinde kayıtlı.",
 );
-check(indexableRoutePaths.length === 44, "Toplam indexlenebilir public route sayısı tam olarak 44.");
+check(indexableRoutePaths.length === 43, "Toplam indexlenebilir public route sayısı tam olarak 43.");
 check(
   publicRouteRegistry.filter(
     (route) => route.path === studentReadingLandingRoute.path,
@@ -297,15 +298,38 @@ check(
   isUnique(publicRouteRegistry.map((route) => route.description)),
   "Indexlenebilir route meta description değerleri benzersiz.",
 );
+const approvedMetadataExceptions = new Map([
+  [
+    studentReadingLandingRoute.path,
+    {
+      title: "Öğrenciler İçin Hızlı Okuma Eğitimi | Fixoku",
+      description:
+        "Fixoku’nun ücretsiz dikkat, okuma ve anlama testleriyle öğrencinizin mevcut seviyesini ölçün; hızlı okuma, anlama, dikkat ve odaklanma eğitim modelini inceleyin.",
+    },
+  ],
+  [
+    instructorReadingLandingRoute.path,
+    {
+      title: "Hızlı Okuma Eğitmeni Ol | Fixoku Akademi",
+      description:
+        "Fixoku Akademi eğitmen modelini, yapay zekâ destekli yazılımı, eğitim sistemini, öğrenci takibini ve eğitmenlik sürecini keşfedin.",
+    },
+  ],
+]);
 check(
-  publicRouteRegistry.every((route) =>
-    route.path === studentReadingLandingRoute.path
-      ? route.title === "Öğrenciler İçin Hızlı Okuma Eğitimi | Fixoku"
-      : route.title.length >= 45 && route.title.length <= 70),
+  publicRouteRegistry.every((route) => {
+    const exception = approvedMetadataExceptions.get(route.path);
+    return exception
+      ? route.title === exception.title && route.description === exception.description
+      : route.title.length >= 45 && route.title.length <= 70;
+  }),
   "Title değerleri doğal SEO hedef aralığında veya onaylı landing title sözleşmesinde.",
 );
 check(
-  publicRouteRegistry.every((route) => route.description.length >= 140 && route.description.length <= 165),
+  publicRouteRegistry.every((route) => {
+    if (approvedMetadataExceptions.has(route.path)) return true;
+    return route.description.length >= 140 && route.description.length <= 165;
+  }),
   "Meta description uzunlukları doğal SEO hedef aralığında.",
 );
 
@@ -679,7 +703,16 @@ check(
   "Eğitim sayfalarında doğrulanamayan ticari, puan veya Course şeması bulunmuyor.",
 );
 
-const corporateContent = JSON.stringify(corporatePages).toLocaleLowerCase("tr-TR");
+const corporateSourceTruthPhrases = [
+  "21 günlük ana gelişim programı",
+  "21 günlük program",
+  "21 günlük planlı",
+  "126 uygulamadan",
+  "126 egzersizle",
+  "9 farklı beceri alanında",
+];
+const corporateHubContent = JSON.stringify(corporateHub).toLocaleLowerCase("tr-TR");
+const corporateContent = JSON.stringify(corporateArticles).toLocaleLowerCase("tr-TR");
 const unsafeCorporateClaims = [
   /(?:2|iki) kat/,
   /garanti (?:eder|sağlar|sunar|verir)/,
@@ -693,6 +726,10 @@ const unsafeCorporateClaims = [
 check(
   unsafeCorporateClaims.every((pattern) => !pattern.test(corporateContent)),
   "Kurumsal içeriklerde garanti, iki kat, gelir, sabit süre, yüzde veya tıbbi iddia bulunmuyor.",
+);
+check(
+  corporateSourceTruthPhrases.every((phrase) => corporateHubContent.includes(phrase)),
+  "Hakkımızda SOURCE OF TRUTH içeriğinin ölçülebilir gelişim ifadeleri eksiksiz korunuyor.",
 );
 check(
   corporateHub.sections.length >= 4 &&
@@ -713,7 +750,39 @@ check(
     route.path === "/hakkimizda"
       ? route.schemaType === "AboutPage"
       : route.schemaType === "WebPage"),
-  "Kurumsal hub AboutPage, üç alt sayfa WebPage şeması kullanıyor.",
+  "Kurumsal hub AboutPage, bir alt sayfa WebPage şeması kullanıyor.",
+);
+const aboutRoute = publicRouteRegistry.find((route) => route.path === "/hakkimizda");
+const aboutPageSchema = buildContentSchemas(aboutRoute).find((schema) => schema?.["@type"] === "AboutPage");
+const requiredAboutHeadings = [
+  "Biz Kimiz?",
+  "Fixoku Akademi Nedir?",
+  "Eğitim Modelimiz",
+  "Fixoku Akademi Nasıl Çalışır?",
+  "Fixoku Metodu",
+  "Eğitim Alanlarımız",
+  "Kimler İçin Uygundur?",
+  "Neden Fixoku Akademi?",
+  "Eğitim Kazanımları",
+  "Eğitmen ve Kurum Modeli",
+  "Misyonumuz",
+  "Vizyonumuz",
+  "Geleceğin Öğrenme Modeli",
+];
+check(
+  aboutRoute?.title === "Fixoku Akademi Hakkında | Hızlı Okuma ve Akademik Gelişim" &&
+    aboutRoute?.description.length >= 140 &&
+    aboutRoute?.description.length <= 165 &&
+    aboutPageSchema?.about?.["@id"] === `${buildSiteUrl("/")}#organization` &&
+    aboutPageSchema?.publisher?.["@id"] === `${buildSiteUrl("/")}#organization` &&
+    aboutPageSchema?.isPartOf?.["@id"] === `${buildSiteUrl("/")}#website` &&
+    !JSON.stringify(buildContentSchemas(aboutRoute)).includes('"@type":"Organization"'),
+  "Hakkımızda AboutPage metadata ve mevcut Organization/Website bağlantılarıyla tekil şema kullanıyor.",
+);
+check(
+  JSON.stringify(corporateHub.sections.map((section) => section.title)) === JSON.stringify(requiredAboutHeadings) &&
+    corporateHub.sections.some((section) => section.subsections?.length),
+  "Hakkımızda tek H1 altında on üç H2 ve iç içe H3 içerik hiyerarşisini kullanıyor.",
 );
 check(
   corporateSchemaRoutes.every(
@@ -1240,11 +1309,12 @@ check(
   "Footer güncel CTA ve üç kurumsal satırı gösteriyor; eski kişi adı ve görünür slogan kaldırıldı.",
 );
 check(
-  headerSource.includes(">Sisteme Giriş</Link>") &&
-    !headerSource.includes("Sisteme Giriş Yap") &&
+  headerSource.includes("Satın Al") &&
+    headerSource.includes("Giriş Yap") &&
+    headerSource.includes('disabled aria-disabled="true"') &&
     !footerSource.includes("Ersin Usta") &&
     !homeSchemaText.includes("Ersin Usta"),
-  "Header giriş etiketi güncel; Ersin Usta public kaynak ve schema çıktısından kaldırıldı.",
+  "Header Satın Al/Giriş Yap etiketlerini unresolved durumda gösteriyor; Ersin Usta public kaynak ve schema çıktısından kaldırıldı.",
 );
 check(
   headerSource.includes("flex-wrap: nowrap;") &&

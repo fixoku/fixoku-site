@@ -1,11 +1,11 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-for (const route of ["/", "/panel"]) {
+for (const route of ["/", "/giris"]) {
   test(`axe observation ${route}`, async ({ page }, info) => {
     await page.goto(route);
     await expect(page.locator("h1")).toHaveCount(1);
-    if (route === "/panel") await expect(page.getByRole("heading", { name: "Panele giriş yap" })).toBeVisible();
+    if (route === "/giris") await expect(page.getByRole("heading", { name: "Panele giriş yap" })).toBeVisible();
     const result = await new AxeBuilder({ page }).analyze();
     const summary = {
       route, scanStatus: "COMPLETED", complianceStatus: result.violations.length ? "BASELINE_ISSUES" : "NO_AUTOMATED_FINDINGS",

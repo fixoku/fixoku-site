@@ -1,6 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { createInstitutionApplicationHandler } from './api/institution-application.js'
+import fs from 'node:fs'
+
+if (fs.existsSync('.env.local')) {
+  for (const line of fs.readFileSync('.env.local', 'utf8').split(/\r?\n/u)) {
+    const match = /^([A-Z][A-Z0-9_]*)=(.*)$/u.exec(line.trim())
+    if (match && !process.env[match[1]]) process.env[match[1]] = match[2]
+  }
+}
 
 function institutionApplicationApi() {
   const handler = createInstitutionApplicationHandler()
@@ -15,9 +23,31 @@ function institutionApplicationApi() {
   }
 }
 
+function betterAuthApi() {
+  return {
+    name: 'fixoku-better-auth-api',
+    async configureServer(server) {
+      if (!process.env.DATABASE_URL) return
+      const [{ auth }, { toNodeHandler }] = await Promise.all([
+        import('./src/server/auth/auth.js'),
+        import('better-auth/node'),
+      ])
+      const handler = toNodeHandler(auth)
+      server.middlewares.use((request, response, next) => {
+        if (request.url?.startsWith('/api/panel-context')) {
+          import('./api/panel-context.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (!request.url?.startsWith('/api/auth')) return next()
+        handler(request, response).catch(next)
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), institutionApplicationApi()],
+  plugins: [react(), institutionApplicationApi(), betterAuthApi()],
   build: {
     rolldownOptions: {
       output: {

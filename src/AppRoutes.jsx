@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import App from "./App.jsx";
 import SeoRouteManager from "./components/seo/Seo.jsx";
@@ -30,9 +30,8 @@ import LegalPage from "./pages/LegalPage.jsx";
 import StudentReadingLanding from "./pages/StudentReadingLanding.jsx";
 import InstitutionReadingLanding from "./pages/InstitutionReadingLanding.jsx";
 import InstructorReadingLanding from "./pages/InstructorReadingLanding.jsx";
-import { TrainerDashboardPreview } from "./platform/trainer/dashboard/TrainerDashboardPreview";
-
-const PanelApp = lazy(() => import("./panel/PanelApp.jsx"));
+import Giris from "./pages/Giris.jsx";
+import { ProtectedPanelRouter, ProtectedTrainerDashboard, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
 
 export default function AppRoutes() {
   return (
@@ -40,6 +39,7 @@ export default function AppRoutes() {
       <SeoRouteManager />
       <ScrollToTop />
       <Routes>
+        <Route path="/giris" element={<Giris />} />
         <Route path="/" element={<App />} />
         <Route path="/iletisim" element={<Iletisim />} />
         <Route
@@ -128,12 +128,14 @@ export default function AppRoutes() {
         {legalPages.map((page) => (
           <Route key={page.path} path={page.path} element={<LegalPage page={page} />} />
         ))}
-        <Route path="/panel/egitmen" element={<TrainerDashboardPreview />} />
+        <Route path="/panel/egitmen" element={<ProtectedTrainerDashboard />} />
+        <Route path="/panel/admin" element={<FoundationPanel title="Yönetim paneli" role="SUPER_ADMIN" />} />
+        <Route path="/panel/ogrenci" element={<FoundationPanel title="Öğrenci paneli" role={["STUDENT", "GUARDIAN"]} />} />
         <Route
           path="/panel/*"
           element={(
             <Suspense fallback={<div className="route-loading-status" role="status" aria-live="polite">Panel yükleniyor…</div>}>
-              <PanelApp />
+              <ProtectedPanelRouter />
             </Suspense>
           )}
         />

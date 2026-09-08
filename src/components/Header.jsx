@@ -433,7 +433,7 @@ function Header() {
             <div className="top-actions">
               <Link to={TRAINING_HUB_PATH} className="action-btn store-btn">Eğitimleri İncele</Link>
               <button type="button" className="action-btn purchase-btn" disabled aria-disabled="true" title="Satın alma bağlantısı henüz tanımlanmadı">Satın Al</button>
-              <button type="button" className="action-btn login-btn" disabled aria-disabled="true" title="Giriş bağlantısı henüz tanımlanmadı">Giriş Yap</button>
+              <Link to="/giris" className="action-btn login-btn">Giriş Yap</Link>
             </div>
           </div>
         </div>
@@ -526,7 +526,7 @@ function Header() {
             <div className="mobile-actions">
               <Link to={TRAINING_HUB_PATH} className="action-btn store-btn" onClick={closeMobileMenu}>Eğitimleri İncele</Link>
               <button type="button" className="action-btn purchase-btn" disabled aria-disabled="true" title="Satın alma bağlantısı henüz tanımlanmadı">Satın Al</button>
-              <button type="button" className="action-btn login-btn" disabled aria-disabled="true" title="Giriş bağlantısı henüz tanımlanmadı">Giriş Yap</button>
+              <Link to="/giris" className="action-btn login-btn">Giriş Yap</Link>
             </div>
 
             <div className="mobile-menu-contact">

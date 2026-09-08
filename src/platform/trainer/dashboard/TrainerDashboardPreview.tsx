@@ -5,13 +5,15 @@ import { PanelShell } from "../../panel/layout/PanelShell";
 import { PanelStatCard } from "../../panel/components/PanelStatCard";
 import { TRAINER_DASHBOARD_PREVIEW } from "./trainerDashboardModel";
 
-export function TrainerDashboardPreview() {
+export function TrainerDashboardPreview({ user }: { user?: { name: string; email?: string } } = {}) {
+  const trainerName = user?.name ?? TRAINER_DASHBOARD_PREVIEW.trainerName;
+  const greeting = `Merhaba ${trainerName.split(" ")[0]} Hocam`;
   return (
-    <PanelShell>
+    <PanelShell user={user}>
       <main className="trainer-dashboard-preview" aria-label="Eğitmen paneli önizlemesi">
         <div className="trainer-dashboard-hero">
           <div>
-            <h2>{TRAINER_DASHBOARD_PREVIEW.greeting} <span aria-hidden="true">👋</span></h2>
+            <h2>{greeting} <span aria-hidden="true">👋</span></h2>
             <p>{TRAINER_DASHBOARD_PREVIEW.heroDescription}</p>
           </div>
           <div className="trainer-dashboard-hero-art" aria-hidden="true"><span>“ Eğitimle<br />daha güçlü yarınlara... ”</span><div className="trainer-book-stack" /></div>

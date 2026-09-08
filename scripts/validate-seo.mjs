@@ -510,7 +510,7 @@ check(
   "Blog Article şemaları yalnızca doğrulanabilir alanları içeriyor.",
 );
 
-const knownRoutePaths = new Set(indexableRoutePaths);
+const knownRoutePaths = new Set([...indexableRoutePaths, "/giris"]);
 check(
   schemaRoutes.every(
     (route) =>

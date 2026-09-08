@@ -94,7 +94,7 @@ export default function SeoRouteManager() {
   const location = useLocation();
   const normalizedPath = normalizeRoutePath(location.pathname);
   const route = getPublicRoute(normalizedPath);
-  const pageType = location.pathname.startsWith("/panel") ? "panel" : route ? "public" : "not-found";
+  const pageType = location.pathname.startsWith("/panel") || location.pathname.startsWith("/giris") ? "panel" : route ? "public" : "not-found";
 
   return <Seo route={route} pageType={pageType} />;
 }

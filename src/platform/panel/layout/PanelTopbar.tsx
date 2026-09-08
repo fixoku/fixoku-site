@@ -1,6 +1,6 @@
 import { PanelIcon } from "../components/PanelIcon";
 
-export function PanelTopbar() {
+export function PanelTopbar({ user = { name: "Özlem Yılmaz" } }: { user?: { name: string; email?: string } }) {
   return (
     <header className="panel-topbar">
       <div className="panel-topbar-title">
@@ -20,7 +20,7 @@ export function PanelTopbar() {
         <div className="panel-profile" aria-label="Eğitmen profili">
           <div className="panel-profile-avatar" aria-hidden="true">OY</div>
           <div>
-            <strong>Özlem Yılmaz</strong>
+            <strong>{user.name}</strong>
             <span>Eğitmen</span>
           </div>
           <span className="panel-chevron" aria-hidden="true">⌄</span>

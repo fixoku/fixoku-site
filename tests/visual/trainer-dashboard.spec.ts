@@ -3,11 +3,25 @@ import { mkdir, writeFile, readFile, copyFile } from "node:fs/promises";
 import path from "node:path";
 import { TRAINER_SCREEN_CONTRACTS } from "../../src/platform/core/screenContracts";
 import { compareTrainerScreen } from "../support/visualComparison";
+import { readFileSync } from "node:fs";
+import type { Page } from "@playwright/test";
+const localSeed = process.env.TEST_SEED_PASSWORD || readFileSync(".env.local", "utf8").match(/^TEST_SEED_PASSWORD=(.*)$/m)?.[1];
+
+async function loginTrainer(page: Page) {
+  const password = localSeed;
+  if (!password) throw new Error("TEST_SEED_PASSWORD_REQUIRED");
+  await page.goto("/giris");
+  await page.getByLabel("E-posta").fill("trainer.phase1c@example.test");
+  await page.getByLabel("Şifre").fill(password);
+  await page.getByRole("button", { name: "Giriş Yap" }).click();
+  await page.waitForURL("**/panel/egitmen");
+  await page.getByRole("heading", { name: "Merhaba Özlem Hocam" }).waitFor({ state: "visible" });
+}
 
 test("trainer dashboard captures against the immutable primary reference", async ({ page }, info) => {
   const screen = TRAINER_SCREEN_CONTRACTS.find((item) => item.id === "trainer-dashboard");
   if (!screen) throw new Error("TRAINER_DASHBOARD_CONTRACT_MISSING");
-  await page.goto("/panel/egitmen");
+  await loginTrainer(page);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   let comparisonError = "";
   try { await compareTrainerScreen(page, screen, info); } catch (error) { comparisonError = String(error); }

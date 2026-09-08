@@ -16,6 +16,7 @@
   "include": [
     "src/platform/**/*.ts",
     "src/platform/**/*.tsx",
+    "src/server/**/*.ts",
     "tests/**/*.ts",
     "tests/**/*.tsx",
     "playwright.config.ts"

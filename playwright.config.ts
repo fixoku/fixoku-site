@@ -5,6 +5,7 @@ const referenceRoot = process.env.FIXOKU_VISUAL_AUTHORITY_ROOT;
 const viteCli = path.resolve("node_modules/vite/bin/vite.js");
 
 export default defineConfig({
+  globalSetup: "./tests/support/globalSetup.ts",
   testDir: "./tests",
   timeout: 30_000,
   fullyParallel: false,

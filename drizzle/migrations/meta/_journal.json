@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1788883697297,
+      "tag": "0000_dear_donald_blake",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788884814470,
+      "tag": "0001_dashing_edwin_jarvis",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788885605268,
+      "tag": "0002_wild_shriek",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788885828443,
+      "tag": "0003_auth-user-mapping",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788887203989,
+      "tag": "0004_rate-limit",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788887370541,
+      "tag": "0005_ratelimit-id",
+      "breakpoints": true
+    }
+  ]
+}

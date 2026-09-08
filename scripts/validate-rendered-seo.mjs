@@ -582,6 +582,7 @@ const allRenderedHrefs = renderedRoutes.flatMap((item) =>
 );
 const renderedHrefValues = allRenderedHrefs.map(({ href }) => href);
 const knownPublicPaths = new Set(indexableRoutePaths);
+const knownNonIndexablePaths = new Set(["/giris", "/panel"]);
 
 function isValidRenderedInternalHref(href) {
   if (href.startsWith("#")) return href.length > 1;
@@ -589,7 +590,7 @@ function isValidRenderedInternalHref(href) {
 
   const url = new URL(href, SITE_ORIGIN);
   const pathname = normalizeRoutePath(url.pathname);
-  if (!knownPublicPaths.has(pathname) && pathname !== "/panel") return false;
+  if (!knownPublicPaths.has(pathname) && !knownNonIndexablePaths.has(pathname)) return false;
 
   if (url.search) {
     const params = [...url.searchParams.entries()];

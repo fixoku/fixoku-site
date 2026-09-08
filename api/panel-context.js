@@ -16,7 +16,7 @@ export default async function handler(request, response) {
     if (!principal.memberships.length || !principal.user) { response.statusCode = 403; response.end(JSON.stringify({ error: "FORBIDDEN" })); return; }
     const context = resolvePanelDestination(principal);
     const requestedPanel = new URL(request.url, "http://local").searchParams.get("panel");
-    const requestedAllowed = requestedPanel === "/panel/egitmen/profil" ? context.roles.includes("TRAINER") : (context.destinations?.includes(requestedPanel) || context.destination === requestedPanel);
+    const requestedAllowed = ["/panel/egitmen/profil", "/panel/egitmen/egitimlerim"].includes(requestedPanel) ? context.roles.includes("TRAINER") : (context.destinations?.includes(requestedPanel) || context.destination === requestedPanel);
     if (!context || (requestedPanel && !requestedAllowed)) { response.statusCode = 403; response.end(JSON.stringify({ error: "FORBIDDEN" })); return; }
     const role = context.roles[0];
     const requiredPermission = role === "SUPER_ADMIN" ? "user.manage" : role === "TRAINER" ? "trainer.read" : "student.read";

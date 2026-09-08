@@ -22,6 +22,8 @@
     "test:seed-guard": "node --test scripts/test-seed-guard.mjs",
     "test:rate-limit": "node scripts/test-rate-limit.mjs",
     "test:profile": "node scripts/test-profile-api.mjs",
+    "seed:trainings:test": "node scripts/seed-trainings-test.mjs",
+    "test:dev-login": "node scripts/test-dev-login.mjs",
     "test:platform:phase1c": "node scripts/test-platform-phase1c.mjs",
     "test:e2e": "playwright test tests/e2e",
     "test:visual:authority": "node scripts/test-visual-authority.mjs",

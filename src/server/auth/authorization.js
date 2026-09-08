@@ -3,7 +3,7 @@ import { createDb } from "../db/client.js";
 import { memberships, users } from "../db/schema.js";
 
 export const ROLE_PANEL = Object.freeze({ SUPER_ADMIN: "/panel/admin", TRAINER: "/panel/egitmen", STUDENT: "/panel/ogrenci", GUARDIAN: "/panel/ogrenci" });
-export const ROLE_PERMISSIONS = Object.freeze({ SUPER_ADMIN: ["user.manage", "membership.manage", "audit.read", "trainer.profile.read", "trainer.profile.update"], TRAINER: ["trainer.read", "trainer.profile.read", "trainer.profile.update", "student.read", "schedule.read", "earning.read", "content.read", "qualification.read"], STUDENT: ["student.read", "enrollment.read", "content.read", "schedule.read"], GUARDIAN: ["student.read", "enrollment.read", "content.read", "schedule.read"] });
+export const ROLE_PERMISSIONS = Object.freeze({ SUPER_ADMIN: ["user.manage", "membership.manage", "audit.read", "trainer.profile.read", "trainer.profile.update", "trainer.training.read"], TRAINER: ["trainer.read", "trainer.profile.read", "trainer.profile.update", "trainer.training.read", "student.read", "schedule.read", "earning.read", "content.read", "qualification.read"], STUDENT: ["student.read", "enrollment.read", "content.read", "schedule.read"], GUARDIAN: ["student.read", "enrollment.read", "content.read", "schedule.read"] });
 const KNOWN_ROLES = new Set(Object.keys(ROLE_PANEL));
 const KNOWN_PERMISSIONS = new Set(Object.values(ROLE_PERMISSIONS).flat());
 

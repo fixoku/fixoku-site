@@ -5,7 +5,7 @@ import { NavLink } from "react-router-dom";
 const navigation = [
   ["home", "Ana Sayfa", "/panel/egitmen"],
   ["user", "Profilim", "/panel/egitmen/profil"],
-  ["book", "Eğitimlerim", undefined],
+  ["book", "Eğitimlerim", "/panel/egitmen/egitimlerim"],
   ["presentation", "Sunumlarım", undefined],
   ["folder", "Eğitmen Kaynakları", undefined],
   ["cube", "Eğitmen Paketleri", undefined],

@@ -11,6 +11,11 @@
     "build": "node scripts/build.mjs",
     "lint": "eslint .",
     "test:institution-form": "node scripts/test-institution-application.mjs",
+    "typecheck:platform": "tsc -p tsconfig.platform.json --noEmit",
+    "test:e2e": "playwright test tests/e2e",
+    "test:visual:authority": "node scripts/test-visual-authority.mjs",
+    "test:a11y": "playwright test tests/accessibility",
+    "test:platform:foundation": "node scripts/test-platform-foundation.mjs",
     "preview": "vite preview",
     "preview:rendered": "node scripts/rendered-server.mjs"
   },
@@ -21,7 +26,10 @@
     "react-router-dom": "^7.14.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -29,6 +37,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "typescript": "7.0.2",
     "vite": "^8.0.4"
   }
 }

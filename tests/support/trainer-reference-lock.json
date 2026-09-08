@@ -1,0 +1,74 @@
+[
+  {
+    "fileName": "01-trainer-dashboard.png",
+    "width": 1600,
+    "height": 900,
+    "sha256": "05E0B1A27D1A77575730F8C558DAC5E6A221B6054D3CFA273A4A8EBF921D7489",
+    "screenId": "trainer-dashboard",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  },
+  {
+    "fileName": "02-trainer-profile.png",
+    "width": 1448,
+    "height": 1086,
+    "sha256": "2EDC200A2520638C8398C45E6CC025B66908643CF40E615C32934C7442740448",
+    "screenId": "trainer-profile",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  },
+  {
+    "fileName": "03-trainer-trainings.png",
+    "width": 1600,
+    "height": 900,
+    "sha256": "6D9240ADE96E610F38023C307799C904A88DA568B658217D547487E6EEC236D1",
+    "screenId": "trainer-trainings",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  },
+  {
+    "fileName": "04-trainer-presentations.png",
+    "width": 1600,
+    "height": 900,
+    "sha256": "C3A10C954D1850D05484419FAEF1511C5B0479A8AB51197CC7EA4775204F26EC",
+    "screenId": "trainer-presentations",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  },
+  {
+    "fileName": "05-trainer-resources.png",
+    "width": 1600,
+    "height": 900,
+    "sha256": "72BEA6ED75B1EAFA9DA9CF7B888761A0536F9D24FAE8E5AA631AEEAFAFB0492F",
+    "screenId": "trainer-resources",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  },
+  {
+    "fileName": "06-trainer-students.png",
+    "width": 1600,
+    "height": 900,
+    "sha256": "019E9E1ECB8052D35EDD27A82D06243446E79517B88F18E85974D31948FA58CE",
+    "screenId": "trainer-students",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  },
+  {
+    "fileName": "07-trainer-student-detail.png",
+    "width": 1600,
+    "height": 900,
+    "sha256": "E0BB5A57CB9D633C7194EDFCBBBE50EC4A94C608211C89021C931191925A7D33",
+    "screenId": "trainer-student-detail",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  },
+  {
+    "fileName": "08-trainer-earnings.png",
+    "width": 1600,
+    "height": 900,
+    "sha256": "5BB7D907F654D0E96469B91B477C907838ED7917ED4B69666E7BC2E3FE3E0084",
+    "screenId": "trainer-earnings",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  },
+  {
+    "fileName": "09-trainer-availability.png",
+    "width": 1600,
+    "height": 900,
+    "sha256": "F7075B025C0B1A4CF516CB0CD390FCA8B54A97FAF5FC1413B35FC7EB351D9C63",
+    "screenId": "trainer-availability",
+    "authorityStatus": "REFERENCE_LOCKED_INPUT"
+  }
+]

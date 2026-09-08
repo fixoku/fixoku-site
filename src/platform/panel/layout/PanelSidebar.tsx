@@ -6,7 +6,7 @@ const navigation = [
   ["home", "Ana Sayfa", "/panel/egitmen"],
   ["user", "Profilim", "/panel/egitmen/profil"],
   ["book", "Eğitimlerim", "/panel/egitmen/egitimlerim"],
-  ["presentation", "Sunumlarım", undefined],
+  ["presentation", "Sunumlarım", "/panel/egitmen/sunumlarim"],
   ["folder", "Eğitmen Kaynakları", undefined],
   ["cube", "Eğitmen Paketleri", undefined],
   ["users", "Öğrencilerim", undefined],

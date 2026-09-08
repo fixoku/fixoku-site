@@ -53,6 +53,10 @@ export const trainingPrograms = pgTable("training_programs", {
 export const trainerEntitlements = pgTable("trainer_entitlements", {
   id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: entitlementStatus("status").notNull().default("ACTIVE"), startsAt: timestamp("starts_at", { withTimezone: true }).notNull().defaultNow(), expiresAt: timestamp("expires_at", { withTimezone: true }), revokedAt: timestamp("revoked_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("trainer_entitlements_trainer_program_start_uq").on(table.trainerUserId, table.trainingProgramId, table.startsAt)]);
+export const presentationStatus = pgEnum("presentation_status", ["DRAFT", "PUBLISHED", "ARCHIVED"]);
+export const presentations = pgTable("presentations", {
+  id: uuid("id").defaultRandom().primaryKey(), slug: text("slug").notNull().unique(), title: text("title").notNull(), shortDescription: text("short_description").notNull(), trainingProgramId: uuid("training_program_id").references(() => trainingPrograms.id, { onDelete: "restrict" }), status: presentationStatus("status").notNull().default("DRAFT"), displayOrder: text("display_order").notNull().default("0"), slideCount: text("slide_count"), videoCount: text("video_count"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("presentations_training_program_order_uq").on(table.trainingProgramId, table.displayOrder)]);
 
 export type PlatformRole = typeof membershipRole.enumValues[number];
 export type MembershipScopeType = typeof membershipScopeType.enumValues[number];

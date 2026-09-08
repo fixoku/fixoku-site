@@ -23,6 +23,8 @@
     "test:rate-limit": "node scripts/test-rate-limit.mjs",
     "test:profile": "node scripts/test-profile-api.mjs",
     "seed:trainings:test": "node scripts/seed-trainings-test.mjs",
+    "seed:presentations:test": "node scripts/seed-presentations-test.mjs",
+    "test:presentations": "node scripts/test-presentations-api.mjs",
     "test:dev-login": "node scripts/test-dev-login.mjs",
     "test:platform:phase1c": "node scripts/test-platform-phase1c.mjs",
     "test:e2e": "playwright test tests/e2e",

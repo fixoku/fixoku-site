@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { TrainerDashboardPreview } from "../trainer/dashboard/TrainerDashboardPreview";
 import { TrainerProfilePage } from "../trainer/profile/TrainerProfilePage";
 import { TrainerTrainingsPage } from "../trainer/trainings/TrainerTrainingsPage";
+import { TrainerPresentationsPage } from "../trainer/presentations/TrainerPresentationsPage";
 
 type PanelContext = { user: { id: string; name: string; email: string }; roles: string[]; destination: string | null; destinations?: string[]; selectionRequired?: boolean };
 
@@ -35,6 +36,7 @@ export function ProtectedTrainerProfile() {
   return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerProfilePage user={user} />}</ProtectedPanelEntry>;
 }
 export function ProtectedTrainerTrainings() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerTrainingsPage user={user} />}</ProtectedPanelEntry>; }
+export function ProtectedTrainerPresentations() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerPresentationsPage user={user} />}</ProtectedPanelEntry>; }
 
 export function ProtectedPanelRouter() {
   return <ProtectedPanelEntry>{({ destination, destinations = [] }) => destination ? <Navigate replace to={destination as string} /> : <main className="platform-panel-chooser"><h1>Panel seçin</h1><p>Hesabınızın yetkili olduğu paneli seçin.</p><div>{destinations.map((target) => <button type="button" key={target} onClick={() => window.location.assign(target)}>{target}</button>)}</div></main>}</ProtectedPanelEntry>;

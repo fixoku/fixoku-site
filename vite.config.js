@@ -46,6 +46,10 @@ function betterAuthApi() {
           import('./api/trainer/trainings.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/trainer/presentations')) {
+          import('./api/trainer/presentations.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/dev-login')) {
           import('./api/dev-login.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return

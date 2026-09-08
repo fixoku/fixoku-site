@@ -38,6 +38,12 @@ export const auditEvents = pgTable("platform_audit_events", {
   metadataJson: text("metadata_json").notNull().default("{}"),
   occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
 });
+export const trainerProfiles = pgTable("trainer_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "restrict" }),
+  phone: text("phone"), city: text("city"), profession: text("profession"), institution: text("institution"), bio: text("bio"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export type PlatformRole = typeof membershipRole.enumValues[number];
 export type MembershipScopeType = typeof membershipScopeType.enumValues[number];

@@ -31,7 +31,7 @@ import StudentReadingLanding from "./pages/StudentReadingLanding.jsx";
 import InstitutionReadingLanding from "./pages/InstitutionReadingLanding.jsx";
 import InstructorReadingLanding from "./pages/InstructorReadingLanding.jsx";
 import Giris from "./pages/Giris.jsx";
-import { ProtectedPanelRouter, ProtectedTrainerDashboard, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
+import { ProtectedPanelRouter, ProtectedTrainerDashboard, ProtectedTrainerProfile, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
 
 export default function AppRoutes() {
   return (
@@ -129,6 +129,7 @@ export default function AppRoutes() {
           <Route key={page.path} path={page.path} element={<LegalPage page={page} />} />
         ))}
         <Route path="/panel/egitmen" element={<ProtectedTrainerDashboard />} />
+        <Route path="/panel/egitmen/profil" element={<ProtectedTrainerProfile />} />
         <Route path="/panel/admin" element={<FoundationPanel title="Yönetim paneli" role="SUPER_ADMIN" />} />
         <Route path="/panel/ogrenci" element={<FoundationPanel title="Öğrenci paneli" role={["STUDENT", "GUARDIAN"]} />} />
         <Route

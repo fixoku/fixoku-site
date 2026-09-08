@@ -12,3 +12,9 @@ export const memberships = pgTable("platform_memberships", {
 export const auditEvents = pgTable("platform_audit_events", {
   id: uuid("id").defaultRandom().primaryKey(), actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "restrict" }), action: text("action").notNull(), subjectType: text("subject_type").notNull(), subjectId: text("subject_id").notNull(), result: text("result").notNull(), correlationId: text("correlation_id").notNull(), metadataJson: text("metadata_json").notNull().default("{}"), occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
 });
+export const trainerProfiles = pgTable("trainer_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "restrict" }),
+  phone: text("phone"), city: text("city"), profession: text("profession"), institution: text("institution"), bio: text("bio"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

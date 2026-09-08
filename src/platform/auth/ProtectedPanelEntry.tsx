@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { TrainerDashboardPreview } from "../trainer/dashboard/TrainerDashboardPreview";
+import { TrainerProfilePage } from "../trainer/profile/TrainerProfilePage";
 
 type PanelContext = { user: { id: string; name: string; email: string }; roles: string[]; destination: string | null; destinations?: string[]; selectionRequired?: boolean };
 
@@ -27,6 +28,10 @@ export function ProtectedPanelEntry({ requiredRole, children }: { requiredRole?:
 
 export function ProtectedTrainerDashboard() {
   return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerDashboardPreview user={user} />}</ProtectedPanelEntry>;
+}
+
+export function ProtectedTrainerProfile() {
+  return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerProfilePage user={user} />}</ProtectedPanelEntry>;
 }
 
 export function ProtectedPanelRouter() {

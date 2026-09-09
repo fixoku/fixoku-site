@@ -1,4 +1,4 @@
-import { boolean, pgEnum, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const membershipScopeType = pgEnum("membership_scope_type", ["GLOBAL", "INSTITUTION", "TRAINER", "STUDENT"]);
 export const membershipRole = pgEnum("membership_role", ["SUPER_ADMIN", "TRAINER", "STUDENT", "GUARDIAN"]);
@@ -64,3 +64,58 @@ export type MembershipStatus = typeof membershipStatus.enumValues[number];
 
 // Official Better Auth CLI generated schema; application tables above remain separate.
 export { user, session, account, verification, rateLimit, userRelations, sessionRelations, accountRelations } from "../auth/auth-schema";
+export const resourceStatus = pgEnum("resource_status", ["DRAFT", "PUBLISHED", "ARCHIVED"]);
+export const resources = pgTable("resources", { id: uuid("id").defaultRandom().primaryKey(), slug: text("slug").notNull().unique(), title: text("title").notNull(), shortDescription: text("short_description").notNull(), resourceType: text("resource_type").notNull(), trainingProgramId: uuid("training_program_id").references(() => trainingPrograms.id, { onDelete: "restrict" }), status: resourceStatus("status").notNull().default("DRAFT"), displayOrder: text("display_order").notNull().default("0"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("resources_training_program_order_uq").on(table.trainingProgramId, table.displayOrder)]);
+export const availabilitySlotStatus = pgEnum("availability_slot_status", ["OPEN", "HELD", "BOOKED", "BLOCKED", "CANCELLED"]);
+export const availabilitySlots = pgTable("availability_slots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+  timezone: text("timezone").notNull().default("Europe/Istanbul"),
+  capacity: integer("capacity").notNull().default(1),
+  status: availabilitySlotStatus("status").notNull().default("OPEN"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("availability_slots_trainer_start_uq").on(table.trainerUserId, table.startsAt)]);
+
+export const trainerEarningEntryType = pgEnum("trainer_earning_entry_type", ["SESSION", "BONUS", "ADJUSTMENT"]);
+export const trainerEarningStatus = pgEnum("trainer_earning_status", ["EARNED", "HELD", "PAID", "REVERSED"]);
+/** Append-only source ledger. No payout or payment provider state is stored here. */
+export const trainerEarningLedger = pgTable("trainer_earning_ledger", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  studentUserId: uuid("student_user_id").references(() => users.id, { onDelete: "restrict" }),
+  trainingProgramId: uuid("training_program_id").references(() => trainingPrograms.id, { onDelete: "restrict" }),
+  entryType: trainerEarningEntryType("entry_type").notNull(),
+  status: trainerEarningStatus("status").notNull().default("EARNED"),
+  amountMinor: integer("amount_minor").notNull(),
+  currency: text("currency").notNull().default("TRY"),
+  description: text("description").notNull(),
+  sourceType: text("source_type").notNull(), sourceId: text("source_id").notNull(), idempotencyKey: text("idempotency_key").notNull(), holdReason: text("hold_reason"), paidAt: timestamp("paid_at", { withTimezone: true }),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("trainer_earning_ledger_idempotency_key_uq").on(table.idempotencyKey)]);
+
+/** Minimal trainer roster authority. Links are explicit and scoped to one trainer. */
+export const studentProfileStatus = pgEnum("student_profile_status", ["ACTIVE", "ARCHIVED"]);
+export const studentProfiles = pgTable("student_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "restrict" }),
+  grade: text("grade"),
+  school: text("school"),
+  status: studentProfileStatus("status").notNull().default("ACTIVE"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const trainerStudentLinks = pgTable("trainer_student_links", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  status: studentProfileStatus("status").notNull().default("ACTIVE"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("trainer_student_links_trainer_student_uq").on(table.trainerUserId, table.studentUserId)]);
+export const enrollmentStatus = pgEnum("enrollment_status", ["ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"]);
+export const enrollments = pgTable("enrollments", { id: uuid("id").defaultRandom().primaryKey(), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: enrollmentStatus("status").notNull().default("ACTIVE"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("enrollments_student_program_uq").on(table.studentUserId, table.trainingProgramId)]);
+export const trainerAssignments = pgTable("trainer_assignments", { id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }), status: studentProfileStatus("status").notNull().default("ACTIVE"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("trainer_assignments_trainer_enrollment_uq").on(table.trainerUserId, table.enrollmentId)]);

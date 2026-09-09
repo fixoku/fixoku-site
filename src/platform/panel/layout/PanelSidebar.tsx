@@ -7,11 +7,11 @@ const navigation = [
   ["user", "Profilim", "/panel/egitmen/profil"],
   ["book", "Eğitimlerim", "/panel/egitmen/egitimlerim"],
   ["presentation", "Sunumlarım", "/panel/egitmen/sunumlarim"],
-  ["folder", "Eğitmen Kaynakları", undefined],
+  ["folder", "Eğitmen Kaynakları", "/panel/egitmen/kaynaklarim"],
   ["cube", "Eğitmen Paketleri", undefined],
-  ["users", "Öğrencilerim", undefined],
-  ["calendar", "Müsaitlik Takvimim", undefined],
-  ["wallet", "Bakiyem", undefined],
+  ["users", "Öğrencilerim", "/panel/egitmen/ogrencilerim"],
+  ["calendar", "Müsaitlik Takvimim", "/panel/egitmen/musaitlik"],
+  ["wallet", "Kazançlarım", "/panel/egitmen/bakiyem"],
 ] as const;
 
 export function PanelSidebar() {

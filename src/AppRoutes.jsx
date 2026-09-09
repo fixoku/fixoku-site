@@ -31,7 +31,7 @@ import StudentReadingLanding from "./pages/StudentReadingLanding.jsx";
 import InstitutionReadingLanding from "./pages/InstitutionReadingLanding.jsx";
 import InstructorReadingLanding from "./pages/InstructorReadingLanding.jsx";
 import Giris from "./pages/Giris.jsx";
-import { ProtectedPanelRouter, ProtectedTrainerDashboard, ProtectedTrainerProfile, ProtectedTrainerTrainings, ProtectedTrainerPresentations, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
+import { ProtectedPanelRouter, ProtectedTrainerDashboard, ProtectedTrainerProfile, ProtectedTrainerTrainings, ProtectedTrainerPresentations, ProtectedTrainerResources, ProtectedTrainerEarnings, ProtectedTrainerAvailability, ProtectedTrainerStudents, ProtectedTrainerStudentDetail, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
 
 export default function AppRoutes() {
   return (
@@ -132,6 +132,11 @@ export default function AppRoutes() {
         <Route path="/panel/egitmen/profil" element={<ProtectedTrainerProfile />} />
         <Route path="/panel/egitmen/egitimlerim" element={<ProtectedTrainerTrainings />} />
         <Route path="/panel/egitmen/sunumlarim" element={<ProtectedTrainerPresentations />} />
+        <Route path="/panel/egitmen/kaynaklarim" element={<ProtectedTrainerResources />} />
+        <Route path="/panel/egitmen/ogrencilerim" element={<ProtectedTrainerStudents />} />
+        <Route path="/panel/egitmen/ogrencilerim/:id" element={<ProtectedTrainerStudentDetail />} />
+        <Route path="/panel/egitmen/musaitlik" element={<ProtectedTrainerAvailability />} />
+        <Route path="/panel/egitmen/bakiyem" element={<ProtectedTrainerEarnings />} />
         <Route path="/panel/admin" element={<FoundationPanel title="Yönetim paneli" role="SUPER_ADMIN" />} />
         <Route path="/panel/ogrenci" element={<FoundationPanel title="Öğrenci paneli" role={["STUDENT", "GUARDIAN"]} />} />
         <Route

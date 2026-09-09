@@ -50,6 +50,30 @@ function betterAuthApi() {
           import('./api/trainer/presentations.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/trainer/resources')) {
+          import('./api/trainer/resources.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/students/')) {
+          import('./api/trainer/students/[id].js').then(({ default: handler }) => {
+            const parsed = new URL(request.url, 'http://local');
+            request.query = { id: parsed.pathname.split('/').pop() };
+            handler(request, response);
+          }).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/students')) {
+          import('./api/trainer/students.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/earnings')) {
+          import('./api/trainer/earnings.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/availability')) {
+          import('./api/trainer/availability.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/dev-login')) {
           import('./api/dev-login.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return

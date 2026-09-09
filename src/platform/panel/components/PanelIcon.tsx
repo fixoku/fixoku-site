@@ -1,7 +1,7 @@
 type IconName =
   | "home" | "user" | "book" | "presentation" | "folder" | "cube"
   | "users" | "calendar" | "wallet" | "logout" | "search" | "bell"
-  | "arrow" | "package" | "menu" | "bolt";
+  | "arrow" | "package" | "menu" | "bolt" | "info" | "check";
 
 const paths: Record<IconName, string> = {
   home: "M3 10.5 12 3l9 7.5M5.5 9v11h13V9M9 20v-6h6v6",
@@ -20,6 +20,8 @@ const paths: Record<IconName, string> = {
   package: "m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5-8 4.5m-8-4.5 8 4.5",
   menu: "M4 7h16M4 12h16M4 17h16",
   bolt: "m13 2-9 12h7l-1 8 9-12h-7l1-8Z",
+  info: "M12 16v-4M12 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+  check: "m5 12 4 4L19 6",
 };
 
 export function PanelIcon({ name, size = 22 }: { name: IconName; size?: number }) {

@@ -64,6 +64,41 @@
       "when": 1788906705644,
       "tag": "0008_dazzling_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788909651320,
+      "tag": "0009_jittery_killmonger",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788910000000,
+      "tag": "0010_trainer_earning_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788911000000,
+      "tag": "0011_trainer_availability",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788912000000,
+      "tag": "0012_student_roster",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788920000000,
+      "tag": "0013_canonical_enrollment_assignment",
+      "breakpoints": true
     }
   ]
 }

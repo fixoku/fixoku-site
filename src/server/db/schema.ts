@@ -119,3 +119,23 @@ export const trainerStudentLinks = pgTable("trainer_student_links", {
 export const enrollmentStatus = pgEnum("enrollment_status", ["ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"]);
 export const enrollments = pgTable("enrollments", { id: uuid("id").defaultRandom().primaryKey(), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: enrollmentStatus("status").notNull().default("ACTIVE"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("enrollments_student_program_uq").on(table.studentUserId, table.trainingProgramId)]);
 export const trainerAssignments = pgTable("trainer_assignments", { id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }), status: studentProfileStatus("status").notNull().default("ACTIVE"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("trainer_assignments_trainer_enrollment_uq").on(table.trainerUserId, table.enrollmentId)]);
+
+/** Guardian identity is distinct from the student they are authorized to view. */
+export const guardianProfileStatus = pgEnum("guardian_profile_status", ["ACTIVE", "ARCHIVED"]);
+export const guardianProfiles = pgTable("guardian_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "restrict" }),
+  status: guardianProfileStatus("status").notNull().default("ACTIVE"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const guardianRelationshipStatus = pgEnum("guardian_relationship_status", ["ACTIVE", "INACTIVE"]);
+/** Canonical, read-only in this phase, many-to-many guardian ↔ student authority. */
+export const guardianStudentRelationships = pgTable("guardian_student_relationships", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  guardianUserId: uuid("guardian_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  studentProfileId: uuid("student_profile_id").notNull().references(() => studentProfiles.id, { onDelete: "restrict" }),
+  status: guardianRelationshipStatus("status").notNull().default("ACTIVE"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("guardian_student_relationships_guardian_student_uq").on(table.guardianUserId, table.studentProfileId)]);

@@ -15,8 +15,8 @@ assert.ok(typeof password === "string" && password.length >= 12, "TEST_SEED_PASS
 const principals = [
   { key: "super-admin", id: "phase1c-super-admin-test-user", email: "super-admin.phase1c@example.test", name: "Fixoku Test Super Admin", role: "SUPER_ADMIN", scope: "GLOBAL" },
   { key: "trainer", id: "phase1c-trainer-test-user", email: "trainer.phase1c@example.test", name: "Özlem Yılmaz", role: "TRAINER", scope: "TRAINER" },
-  { key: "student", id: "phase1c-student-test-user", email: "student.phase1c@example.test", name: "Fixoku Test Student", role: "STUDENT", scope: "STUDENT" },
-  { key: "guardian", id: "phase1c-guardian-test-user", email: "guardian.phase1c@example.test", name: "Fixoku Test Guardian", role: "GUARDIAN", scope: "STUDENT" },
+  { key: "student", id: "phase1c-student-test-user", email: "student.phase1c@example.test", name: "ERSİN", role: "STUDENT", scope: "STUDENT" },
+  { key: "guardian", id: "phase1c-guardian-test-user", email: "guardian.phase1c@example.test", name: "Ersin Velisi", role: "GUARDIAN", scope: "STUDENT" },
 ];
 
 const pool = new pg.Pool({ connectionString: parsedUrl.toString(), max: 2 });

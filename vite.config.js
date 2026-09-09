@@ -38,6 +38,10 @@ function betterAuthApi() {
           import('./api/panel-context.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/student/portal-context')) {
+          import('./api/student/portal-context.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/trainer/profile')) {
           import('./api/trainer/profile.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return

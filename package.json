@@ -34,7 +34,9 @@
     "test:a11y": "playwright test tests/accessibility",
     "test:platform:foundation": "node scripts/test-platform-foundation.mjs",
     "preview": "vite preview",
-    "preview:rendered": "node scripts/rendered-server.mjs"
+    "preview:rendered": "node scripts/rendered-server.mjs",
+    "test:student-guardian": "node scripts/test-student-guardian-api.mjs",
+    "seed:student-guardian:test": "node scripts/seed-student-guardian-test.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.3",

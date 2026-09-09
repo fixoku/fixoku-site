@@ -9,6 +9,7 @@ import { TrainerStudentsPage } from "../trainer/students/TrainerStudentsPage";
 import { TrainerStudentDetailPage } from "../trainer/students/TrainerStudentDetailPage";
 import { TrainerAvailabilityPage } from "../trainer/availability/TrainerAvailabilityPage";
 import { TrainerEarningsPage } from "../trainer/earnings/TrainerEarningsPage";
+import { StudentPortalPage } from "../student/StudentPortalPage";
 
 type PanelContext = { user: { id: string; name: string; email: string }; roles: string[]; destination: string | null; destinations?: string[]; selectionRequired?: boolean };
 
@@ -47,6 +48,7 @@ export function ProtectedTrainerStudents() { return <ProtectedPanelEntry require
 export function ProtectedTrainerStudentDetail() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerStudentDetailPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerAvailability() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerAvailabilityPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerEarnings() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerEarningsPage user={user} />}</ProtectedPanelEntry>; }
+export function ProtectedStudentPortal() { return <ProtectedPanelEntry requiredRole={["STUDENT", "GUARDIAN"]}>{({ user, roles }) => <StudentPortalPage user={user} roles={roles} />}</ProtectedPanelEntry>; }
 
 export function ProtectedPanelRouter() {
   return <ProtectedPanelEntry>{({ destination, destinations = [] }) => destination ? <Navigate replace to={destination as string} /> : <main className="platform-panel-chooser"><h1>Panel seçin</h1><p>Hesabınızın yetkili olduğu paneli seçin.</p><div>{destinations.map((target) => <button type="button" key={target} onClick={() => window.location.assign(target)}>{target}</button>)}</div></main>}</ProtectedPanelEntry>;

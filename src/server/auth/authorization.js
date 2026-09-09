@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { createDb } from "../db/client.js";
 import { memberships, users } from "../db/schema.js";
 
@@ -26,14 +26,10 @@ export async function resolvePrincipal(headers) {
     if (!rows.length) return { session, user: null, memberships: [] };
     const ownerId = rows[0].user.id;
     const candidates = rows.map((row) => row.membership).filter(Boolean).filter((m) => validScopeType(m, ownerId));
-    const validMemberships = [];
-    for (const membership of candidates) {
-      if (membership.role !== "GUARDIAN") { validMemberships.push(membership); continue; }
-      if (!membership.scopeId) continue;
-      const linked = await db.select({ id: memberships.userId }).from(memberships).where(and(eq(memberships.userId, membership.scopeId), eq(memberships.role, "STUDENT"), eq(memberships.scopeType, "STUDENT"), eq(memberships.status, "ACTIVE"))).limit(1);
-      if (linked.length) validMemberships.push(membership);
-    }
-    return { session, user: rows[0].user, memberships: validMemberships };
+    // Guardian membership grants portal entry, including its truthful empty
+    // state. scopeId is never child authority: resource reads must validate
+    // guardian_student_relationships against the requested StudentProfile.
+    return { session, user: rows[0].user, memberships: candidates };
   } finally { await pool.end(); }
 }
 

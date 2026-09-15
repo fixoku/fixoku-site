@@ -8,7 +8,7 @@
     "generate:seo": "node scripts/generate-seo-files.mjs",
     "validate:seo": "node scripts/validate-seo.mjs",
     "validate:rendered-seo": "node scripts/validate-rendered-seo.mjs",
-    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-bundled-node.ps1 scripts/build.mjs",
+    "build": "node scripts/build.mjs",
     "lint": "eslint .",
     "test:institution-form": "node scripts/test-institution-application.mjs",
     "typecheck:platform": "tsc -p tsconfig.platform.json --noEmit",
@@ -59,7 +59,8 @@
     "test:relationship": "node scripts/test-relationship-notification.mjs",
     "test:r2:residual": "node scripts/test-r2-residual-audit.mjs",
     "test:r2:auth": "node scripts/test-r2-auth-contracts.mjs",
-    "test:account-closure-r2": "node scripts/test-account-closure-r2.mjs"
+    "test:account-closure-r2": "node scripts/test-account-closure-r2.mjs",
+    "build:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-bundled-node.ps1 scripts/build.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.3",

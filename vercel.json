@@ -4,6 +4,23 @@
     },
     "cleanUrls":  true,
     "trailingSlash":  false,
+    "headers":  [
+                    {
+                        "source":  "/(.*)",
+                        "has":  [
+                                    {
+                                        "type":  "host",
+                                        "value":  "staging.fixoku.com"
+                                    }
+                                ],
+                        "headers":  [
+                                        {
+                                            "key":  "X-Robots-Tag",
+                                            "value":  "noindex, nofollow"
+                                        }
+                                    ]
+                    }
+                ],
     "rewrites":  [
                      {
                          "source":  "/panel",

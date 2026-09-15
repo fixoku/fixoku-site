@@ -1433,3 +1433,21 @@
     font-size: 0.85rem;
   }
 }
+
+/* Public release candidate: preserve supplied instructor poster proportions. */
+.instructor-video-layout .shared-promo-video {
+  min-height: 420px;
+  border-radius: 34px;
+}
+.instructor-video-layout .shared-promo-video.shared-promo-video-instructor {
+  min-height: 0 !important;
+  height: auto !important;
+  aspect-ratio: 664 / 420 !important;
+}
+@media (max-width: 768px) {
+  .instructor-video-layout .shared-promo-video.shared-promo-video-instructor {
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: 402 / 250 !important;
+  }
+}

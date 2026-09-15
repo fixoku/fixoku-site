@@ -1,7 +1,7 @@
 type IconName =
   | "home" | "user" | "book" | "presentation" | "folder" | "cube"
   | "users" | "calendar" | "wallet" | "logout" | "search" | "bell"
-  | "arrow" | "package" | "menu" | "bolt" | "info" | "check";
+  | "arrow" | "chevron-down" | "package" | "menu" | "bolt" | "info" | "check";
 
 const paths: Record<IconName, string> = {
   home: "M3 10.5 12 3l9 7.5M5.5 9v11h13V9M9 20v-6h6v6",
@@ -17,6 +17,7 @@ const paths: Record<IconName, string> = {
   search: "m20 20-4.5-4.5M10.8 18a7.2 7.2 0 1 0 0-14.4 7.2 7.2 0 0 0 0 14.4Z",
   bell: "M6 10a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9ZM10 22h4",
   arrow: "M5 12h14M13 6l6 6-6 6",
+  "chevron-down": "m6 9 6 6 6-6",
   package: "m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5-8 4.5m-8-4.5 8 4.5",
   menu: "M4 7h16M4 12h16M4 17h16",
   bolt: "m13 2-9 12h7l-1 8 9-12h-7l1-8Z",

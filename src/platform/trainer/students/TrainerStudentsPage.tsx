@@ -15,7 +15,7 @@ export function TrainerStudentsPage({ user }: { user: { id: string; name: string
   useEffect(() => { void load(); }, [load]);
   const filtered = useMemo(() => { const normalized = query.trim().toLocaleLowerCase("tr-TR"); if (!normalized) return students; return students.filter((student) => `${student.name} ${student.email} ${student.school ?? ""}`.toLocaleLowerCase("tr-TR").includes(normalized)); }, [students, query]);
   return <PanelShell user={user}><main className="trainer-students-page">
-    <p className="students-breadcrumb"><Link to="/panel/egitmen">Ana Sayfa</Link><span aria-hidden="true">›</span> Öğrencilerim</p>
+
     <div className="students-heading"><div><h2>Öğrencilerim</h2><p>Fixoku merkezi tarafından size yönlendirilen öğrencileri bu alandan takip edebilirsiniz.</p></div><div className="students-art" aria-hidden="true">“Her öğrencinin<br />potansiyeli değerlidir…”<i /></div></div>
     {state === "loading" && <div className="students-state" role="status" aria-live="polite"><span className="loading-dot" /> Öğrenciler yükleniyor…</div>}
     {state === "error" && <div className="students-state" role="alert"><h3>Öğrenciler yüklenemedi</h3><p>Öğrenci listenize şu anda ulaşılamıyor. Lütfen tekrar deneyin.</p><button type="button" onClick={() => void load}>Tekrar dene</button></div>}

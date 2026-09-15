@@ -7,6 +7,9 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
 const temporaryServerDirectory = path.join(projectRoot, ".prerender-server");
 const viteCli = path.join(projectRoot, "node_modules", "vite", "bin", "vite.js");
+// Avoid Vite's Windows-sensitive temporary config bundle under node_modules/.vite-temp.
+// The supported runner loader evaluates the existing config in place.
+const viteConfigLoaderArgs = ["--configLoader", "runner"];
 
 function run(label, command, args) {
   console.log(`\n[build] ${label}`);
@@ -35,10 +38,11 @@ try {
   await run("SEO dosyalarını üret", process.execPath, [
     path.join(scriptDirectory, "generate-seo-files.mjs"),
   ]);
-  await run("Vite client build", process.execPath, [viteCli, "build"]);
+  await run("Vite client build", process.execPath, [viteCli, "build", ...viteConfigLoaderArgs]);
   await run("Vite server build", process.execPath, [
     viteCli,
     "build",
+    ...viteConfigLoaderArgs,
     "--ssr",
     "src/entry-server.jsx",
     "--outDir",

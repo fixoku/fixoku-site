@@ -379,7 +379,7 @@ check(
   "Rendered footer cep/WhatsApp ve ofis telefonlarını doğru tel URI'leriyle ayırt ediyor.",
 );
 check(
-  legalRoutePaths.length === 3 &&
+  legalRoutePaths.length === 14 &&
     legalRoutePaths.every((routePath) => {
       const rendered = renderedByPath.get(routePath);
       return (
@@ -451,7 +451,7 @@ check(
     studentLandingHtml.includes('loading="lazy"') &&
     studentLandingHtml.includes('class="student-seated-problem-frame"') &&
     studentLandingHtml.includes('class="student-standing-final-frame"') &&
-    studentLandingHtml.includes('class="student-why-play" aria-hidden="true"') &&
+    studentLandingHtml.includes("shared-promo-video-student") &&
     studentLandingHtml.includes('class="student-landing-shell student-info-grid"') &&
     !studentLandingHtml.includes("Çocuğunuzun Akademik Gelişimini Ertelemeyin") &&
     !studentLandingHtml.includes('class="student-video-placeholder"') &&
@@ -466,11 +466,7 @@ const institutionLandingHtml = institutionLandingRendered?.html ?? "";
 const institutionFormHtml = institutionLandingHtml.match(
   /<section class="institution-form-section"[\s\S]*?<\/section>/i,
 )?.[0] ?? "";
-const institutionEmptyVideoHtml = ["hero", "features"].map((variant) =>
-  institutionLandingHtml.match(
-    new RegExp(`<div[^>]*data-empty-video="${variant}"[\\s\\S]*?<\\/div>`, "i"),
-  )?.[0] ?? "",
-);
+
 check(
   institutionLandingRendered &&
     JSON.stringify(institutionLandingRendered.schemaTypes) ===
@@ -492,16 +488,10 @@ check(
   "Kurum landing ilk HTML'inde iki gerçek ortak video sliderı doğru bileşenlerden geliyor.",
 );
 check(
-  (institutionLandingHtml.match(/data-empty-video=/g) ?? []).length === 2 &&
-    institutionEmptyVideoHtml.every((html) =>
-      html.includes('role="img"') &&
-      html.includes('aria-label="') &&
-      html.includes("institution-placeholder-play") &&
-      !/<(?:video|button|a)\b/i.test(html) &&
-      !/tabindex=|onclick=/i.test(html)
-    ) &&
-    institutionEmptyVideoHtml[0] !== institutionEmptyVideoHtml[1],
-  "Kurum landing ilk HTML'inde iki farklı aria-label taşıyan, turuncu play işaretli ve etkileşimsiz boş medya alanı var.",
+  (institutionLandingHtml.match(/class="shared-promo-video shared-promo-video-institution/g) ?? []).length === 2 &&
+    institutionLandingHtml.includes('aria-label="Kurumlar için Neden Fixoku tanıtım videosunu oynat"') &&
+    institutionLandingHtml.includes('aria-label="Fixoku Akademi özellik tanıtım videosunu oynat"'),
+  "Kurum landing ilk HTML'inde iki supplied shared promo video alanı poster ve erişilebilir etiketle geliyor.",
 );
 check(
   (institutionLandingHtml.match(/data-institution-type=/g) ?? []).length === 5 &&

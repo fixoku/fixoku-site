@@ -8,7 +8,7 @@ test("student and guardian portals render server-owned context", async ({ page }
   await signIn(page, "student.phase1c@example.test");
   await expect(page.locator(".student-portal__hero h2")).toBeVisible();
   await expect(page.locator(".student-portal__card[aria-labelledby=student-access-title]")).toContainText("Eğitmenim");
-  await expect(page.locator(".student-portal__card[aria-labelledby=student-access-title]")).toContainText("Özlem Yılmaz");
+  await expect(page.locator(".student-portal__card[aria-labelledby=student-access-title]")).toContainText("Özlem KAPLAN");
   await expect(page.locator(".student-portal__enrollments")).toContainText("Hızlı Okuma");
   await expect(page.locator(".student-portal__sidebar")).not.toContainText("Eğitimlerim");
   await page.locator(".student-portal__topbar button").click();
@@ -23,7 +23,7 @@ test("student and guardian portals render server-owned context", async ({ page }
   await page.locator("#student-context-select").selectOption({ index: 1 });
   await expect(page.locator(".student-portal__identity strong")).not.toHaveText(initialName);
   await expect(page.locator(".student-portal__card[aria-labelledby=student-access-title]")).toContainText("Eğitmeni");
-  await expect(page.locator(".student-portal__card[aria-labelledby=student-access-title]")).toContainText("Özlem Yılmaz");
+  await expect(page.locator(".student-portal__card[aria-labelledby=student-access-title]")).toContainText("Özlem KAPLAN");
   await expect(page.locator(".student-portal__enrollments")).toContainText("Hızlı Okuma");
   await expect(page.locator(".student-portal__sidebar")).not.toContainText("Eğitimlerim");
 });

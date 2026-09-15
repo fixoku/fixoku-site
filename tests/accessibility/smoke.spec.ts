@@ -1,9 +1,11 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { handleConsent } from "../support/consent";
 
 for (const route of ["/", "/giris"]) {
   test(`axe observation ${route}`, async ({ page }, info) => {
     await page.goto(route);
+    await handleConsent(page);
     await expect(page.locator("h1")).toHaveCount(1);
     if (route === "/giris") await expect(page.getByRole("heading", { name: "Panele giriş yap" })).toBeVisible();
     const result = await new AxeBuilder({ page }).analyze();

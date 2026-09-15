@@ -4589,7 +4589,7 @@ img {
   font-size: 72px;
   line-height: 0.95;
   font-weight: 900;
-  color: #ef6418;
+  color: #d95514;
   letter-spacing: -1.5px;
   margin-bottom: 6px;
 }
@@ -5220,7 +5220,7 @@ img {
 }
 
 .process-pin-red span {
-  color: #ff6238;
+  color: #e9552f;
 }
 
 .process-pin-orange {
@@ -5229,7 +5229,7 @@ img {
 }
 
 .process-pin-orange span {
-  color: #ff9800;
+  color: #c47700;
 }
 
 .process-pin-yellow {
@@ -5238,7 +5238,7 @@ img {
 }
 
 .process-pin-yellow span {
-  color: #f1ab00;
+  color: #996600;
 }
 
 .process-pin-cyan {
@@ -5337,7 +5337,7 @@ img {
   align-items: center;
   gap: 12px;
   min-width: 0;
-  color: #ef6418;
+  color: #b94b11;
   font-size: 17px;
   line-height: 1.2;
   font-weight: 500;
@@ -5347,7 +5347,7 @@ img {
   font-size: 28px;
   line-height: 1;
   font-weight: 900;
-  color: #ef6418;
+  color: #b94b11;
   flex-shrink: 0;
 }
 
@@ -15623,5 +15623,357 @@ iframe {
   .top-achievement-suffix {
     opacity: 1 !important;
     transform: none !important;
+  }
+}
+
+.footer-consent-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.footer-consent-link:focus-visible { outline: 2px solid var(--fixoku-orange); outline-offset: 3px; border-radius: 4px; }
+
+/* =========================================================
+   PUBLIC SHARED VIDEO SLIDERS AND HOMEPAGE MODEL ALIGNMENT R2
+========================================================= */
+.stories-panel,
+.trainer-videos-panel {
+  overflow: hidden !important;
+}
+
+.stories-grid,
+.trainer-videos-grid {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  grid-template-columns: none !important;
+  gap: 22px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory !important;
+  scroll-behavior: smooth !important;
+  scrollbar-width: thin;
+  padding: 2px 2px 12px !important;
+}
+
+.story-card,
+.trainer-video-card {
+  flex: 0 0 calc((100% - 66px) / 4) !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  scroll-snap-align: start !important;
+}
+
+.story-badge {
+  min-height: 48px !important;
+  padding-inline: 10px !important;
+  font-size: clamp(11px, 1.05vw, 15px) !important;
+  white-space: nowrap !important;
+}
+
+.homepage-education-model-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 22px !important;
+}
+
+.homepage-education-model-grid .model-card {
+  display: grid !important;
+  grid-template-columns: 150px minmax(0, 1fr) !important;
+  align-items: center !important;
+  min-height: 144px !important;
+  overflow: hidden;
+}
+
+.homepage-education-model-grid .model-card-text {
+  min-width: 0;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+}
+
+.homepage-education-model-grid .model-label {
+  margin: 0 !important;
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .story-card,
+  .trainer-video-card {
+    flex-basis: calc((100% - 22px) / 2) !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .homepage-education-model-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .stories-grid,
+  .trainer-videos-grid {
+    gap: 14px !important;
+    margin-inline: -16px !important;
+    padding: 4px 16px 18px !important;
+    scrollbar-width: none;
+  }
+
+  .stories-grid::-webkit-scrollbar,
+  .trainer-videos-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .story-card,
+  .trainer-video-card {
+    flex: 0 0 74vw !important;
+    width: 74vw !important;
+    max-width: 300px !important;
+    min-width: 230px !important;
+  }
+
+  .story-badge {
+    min-height: 34px !important;
+    padding: 7px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .homepage-education-model-grid .model-card {
+    grid-template-columns: 110px minmax(0, 1fr) !important;
+    min-height: 120px !important;
+  }
+
+  .homepage-education-model-grid .model-card-text {
+    min-height: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .story-card,
+  .trainer-video-card {
+    flex-basis: 76vw !important;
+    width: 76vw !important;
+    max-width: 285px !important;
+  }
+
+  .homepage-education-model-grid .model-card {
+    grid-template-columns: 92px minmax(0, 1fr) !important;
+  }
+}
+
+/* Final R3 interaction override: arrows stay visible and native scrollbars stay hidden. */
+.stories-panel,
+.trainer-videos-panel {
+  overflow: visible !important;
+}
+
+.stories-grid,
+.trainer-videos-grid {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.stories-grid::-webkit-scrollbar,
+.trainer-videos-grid::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.story-slider-arrow,
+.trainer-slider-arrow {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Shared student/trainer modal sequence navigation. */
+.story-video-modal-inner {
+  width: min(920px, calc(100vw - 192px));
+}
+
+.story-video-modal-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: flex;
+  width: 54px;
+  height: 54px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ef6418, #5a137d);
+  color: #fff;
+  font-size: 42px;
+  line-height: 1;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .32);
+  transform: translateY(-50%);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.story-video-modal-arrow:hover {
+  box-shadow: 0 18px 36px rgba(0, 0, 0, .4);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.story-video-modal-arrow:disabled {
+  cursor: not-allowed;
+  opacity: .38;
+  box-shadow: none;
+}
+
+.story-video-modal-arrow:disabled:hover {
+  transform: translateY(-50%);
+}
+
+.story-video-modal-arrow:focus-visible,
+.trainer-video-close:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.story-video-modal-previous {
+  left: -72px;
+}
+
+.story-video-modal-next {
+  right: -72px;
+}
+
+.story-video-modal-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 6px 2px;
+  color: #fff;
+}
+
+.story-video-modal-details strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.story-video-modal-details span {
+  flex: none;
+  color: rgba(255, 255, 255, .76);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .story-video-modal {
+    padding: 16px 12px;
+  }
+
+  .story-video-modal-inner {
+    display: grid;
+    width: min(100%, 520px);
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 20px;
+  }
+
+  .story-video-modal .trainer-video-player,
+  .story-video-modal-details {
+    grid-column: 1 / -1;
+  }
+
+  .story-video-modal-arrow {
+    position: static;
+    grid-row: 3;
+    width: 100%;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 38px;
+    transform: none;
+  }
+
+  .story-video-modal-arrow:hover {
+    transform: none;
+  }
+
+  .story-video-modal-arrow:disabled:hover {
+    transform: none;
+  }
+
+  .story-video-modal-previous {
+    grid-column: 1;
+  }
+
+  .story-video-modal-next {
+    grid-column: 2;
+  }
+
+  .story-video-modal-details {
+    grid-row: 2;
+    padding: 4px 2px 0;
+  }
+
+  .story-video-modal-details strong {
+    font-size: 14px;
+  }
+
+  .story-video-modal .trainer-video-close {
+    top: -9px;
+    right: -5px;
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .story-video-modal-arrow {
+    width: 48px;
+    height: 48px;
+    font-size: 38px;
+  }
+
+  .story-video-modal-previous {
+    left: 12px;
+  }
+
+  .story-video-modal-next {
+    right: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-video-modal-arrow {
+    transition: none;
+  }
+}
+
+/* R5: mobile card rows rely on swipe and a visible next-card peek. Keep the
+   card-carousel controls removed at mobile widths; modal controls use the
+   separate .story-video-modal-arrow selector above and remain available. */
+@media (max-width: 768px) {
+  .stories-panel > .story-slider-arrow,
+  .trainer-videos-panel > .trainer-slider-arrow {
+    display: none !important;
+    pointer-events: none !important;
+  }
+
+  .stories-panel,
+  .trainer-videos-panel {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-top: 18px !important;
+  }
+
+  .stories-panel::after,
+  .trainer-videos-panel::after {
+    content: none !important;
+    display: none !important;
   }
 }

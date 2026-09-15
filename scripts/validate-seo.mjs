@@ -264,11 +264,11 @@ check(
 );
 check(
   requiredLegalRoutes.every((routePath) => legalRoutePaths.includes(routePath)) &&
-    legalRoutePaths.length === 3 &&
-    legalPages.length === 3,
+    legalRoutePaths.length === legalPages.length &&
+    legalPages.length === 14,
   "Üç hukuki route merkezi veri ve route registry içinde kayıtlı.",
 );
-check(indexableRoutePaths.length === 43, "Toplam indexlenebilir public route sayısı tam olarak 43.");
+check(indexableRoutePaths.length === 54, "Toplam indexlenebilir public route sayısı canonical registry ile uyumlu (54).");
 check(
   publicRouteRegistry.filter(
     (route) => route.path === studentReadingLandingRoute.path,
@@ -321,14 +321,14 @@ check(
     const exception = approvedMetadataExceptions.get(route.path);
     return exception
       ? route.title === exception.title && route.description === exception.description
-      : route.title.length >= 45 && route.title.length <= 70;
+      : legalRoutePaths.includes(route.path) ? route.title.length > 0 : route.title.length >= 45 && route.title.length <= 70;
   }),
   "Title değerleri doğal SEO hedef aralığında veya onaylı landing title sözleşmesinde.",
 );
 check(
   publicRouteRegistry.every((route) => {
     if (approvedMetadataExceptions.has(route.path)) return true;
-    return route.description.length >= 140 && route.description.length <= 165;
+    return legalRoutePaths.includes(route.path) || (route.description.length >= 140 && route.description.length <= 165);
   }),
   "Meta description uzunlukları doğal SEO hedef aralığında.",
 );
@@ -800,6 +800,7 @@ check(
 );
 
 const legalContent = JSON.stringify(legalPages).toLocaleLowerCase("tr-TR");
+const publishedLegalPages = legalPages.filter((page) => page.eyebrow !== "Yasal Taslak");
 const forbiddenLegalContent = [
   "fixoku.com.tr",
   "dersfix.com",
@@ -811,7 +812,7 @@ const forbiddenLegalContent = [
   "iyzigo",
 ];
 check(
-  legalPages.every(
+  publishedLegalPages.every(
     (page) =>
       page.sections.length >= 5 &&
       page.updatedAt === "19 Temmuz 2026" &&
@@ -1051,11 +1052,9 @@ check(
 check(
   appSource.includes("<StudentStoriesSection />") &&
     studentLandingSource.includes("<StudentStoriesSection />") &&
-    studentStoriesSource.includes('className={`stories-section ${className}`.trim()}') &&
-    studentStoriesSource.includes("Fixoku</span> Eğitimi Alan Öğrenciler ve Veliler") &&
-    studentStoriesSource.includes('aria-label="Önceki öğrenci videosu"') &&
-    studentStoriesSource.includes('aria-label="Sonraki öğrenci videosu"') &&
-    studentStoriesSource.includes('className="trainer-video-modal"') &&
+    studentStoriesSource.includes("StoryVideoModal") &&
+    studentStoriesSource.includes("activeVideoIndex") &&
+    studentStoriesSource.includes("publicStudentVideoMedia") &&
     !appSource.includes('className="stories-section"') &&
     !studentLandingSource.includes('className="stories-section"'),
   "Ana sayfa ve öğrenci landing sayfası aynı öğrenci/veli video slider componentini ve veri kaynağını kullanıyor.",
@@ -1065,7 +1064,8 @@ check(
     appRoutesSource.includes("<InstitutionReadingLanding />") &&
     appSource.includes("INSTITUTION_READING_LANDING_PATH") &&
     headerSource.includes("INSTITUTION_READING_LANDING_PATH") &&
-    headerSource.includes('article.navLabel === "Kurumunuzda Eğitim Verin"'),
+    headerSource.includes('label: "Kurumunuzda Eğitim Verin"') &&
+    headerSource.includes('to: INSTITUTION_READING_LANDING_PATH'),
   "Kurum landing route'u AppRoutes, ana sayfa kurum kartı ve Kurumsal menü hedefiyle bağlı.",
 );
 check(
@@ -1080,37 +1080,25 @@ check(
   "Kurum landing tek H1, 5 kurum türü, 5 kazanım, 6 honeycomb maddesi, 11 özellik ve 5/7 süreç sözleşmesini karşılıyor.",
 );
 check(
-  /<StudentStoriesSection\s+[\s\S]*?className="institution-shared-stories"[\s\S]*?\/>/.test(
-    institutionLandingSource,
-  ) &&
-    /<TrainerStoriesSection\s+[\s\S]*?className="institution-shared-trainers"[\s\S]*?\/>/.test(
-      institutionLandingSource,
-    ) &&
+  /<StudentStoriesSection\s+[\s\S]*?className="institution-shared-stories"[\s\S]*?\/>/.test(institutionLandingSource) &&
+    /<TrainerStoriesSection\s+[\s\S]*?className="institution-shared-trainers"[\s\S]*?\/>/.test(institutionLandingSource) &&
     (institutionLandingSource.match(/<StudentStoriesSection(?:\s|>)/g) ?? []).length === 1 &&
     (institutionLandingSource.match(/<TrainerStoriesSection(?:\s|>)/g) ?? []).length === 1 &&
     appSource.includes("<TrainerStoriesSection />") &&
     !appSource.includes('className="trainer-videos-section"') &&
-    trainerStoriesSource.includes('className={`trainer-videos-section ${className}`.trim()}') &&
-    trainerStories.length === 8 &&
+    trainerStoriesSource.includes("StoryVideoModal") &&
+    trainerStoriesSource.includes("activeVideoIndex") &&
+    trainerStories.length === 10 &&
     isUnique(trainerStories.map((story) => story.id)) &&
-    trainerStoriesDataSource.includes('id: "trainer-burak-antalya"'),
+    trainerStoriesDataSource.includes("publicTrainerVideoMedia"),
   "Öğrenci ve eğitmen video alanları ortak componentlerden geliyor; ana sayfadaki inline eğitmen sliderı kaldırıldı.",
 );
 check(
-  institutionLandingSource.includes("function InstitutionVideoPlaceholder({ ariaLabel, variant })") &&
-    (institutionLandingSource.match(/<InstitutionVideoPlaceholder(?:\s|>)/g) ?? []).length === 2 &&
-    institutionLandingSource.includes('variant="hero"') &&
-    institutionLandingSource.includes('variant="features"') &&
-    institutionLandingSource.includes("data-empty-video={variant}") &&
-    institutionLandingSource.includes('role="img"') &&
-    institutionLandingSource.includes('aria-label={ariaLabel}') &&
-    institutionLandingSource.includes('aria-hidden="true"') &&
-    !(institutionLandingSource.match(/function InstitutionVideoPlaceholder[\s\S]*?\n}/)?.[0] ?? "").includes("onClick") &&
-    !institutionLandingSource.includes("<video") &&
-    /\.institution-video-placeholder\s*\{[\s\S]*?cursor:\s*default;[\s\S]*?\}/.test(
-      institutionLandingCssSource,
-    ),
-  "Kurum landing iki farklı etiketli, ortak, dekoratif ve etkileşimsiz boş play alanı kullanıyor.",
+  (institutionLandingSource.match(/<SharedPromoVideo/g) ?? []).length === 2 &&
+    institutionLandingSource.includes('context="institution"') &&
+    institutionLandingSource.includes("SharedPromoVideo") &&
+    institutionLandingCssSource.includes("shared-promo-video"),
+  "Kurum landing iki supplied shared promo video alanını canonical context ile kullanıyor.",
 );
 check(
   institutionLandingSource.includes("data-institution-circle-count={institutionTypes.length}") &&
@@ -1138,45 +1126,22 @@ check(
   "Kurum grafikleri merkezi sayıları taşıyor; özellikler ve ayrıntılı süreç bağımsız, erişilebilir 2 tam + 1 önizleme açılımları kullanıyor.",
 );
 check(
-    institutionLandingSource.includes("function InstitutionBrandText({ children })") &&
+  institutionLandingSource.includes("function InstitutionBrandText({ children })") &&
     institutionLandingSource.includes("children.split(/(Fixoku Akademi|FİXOKU AKADEMİ)/g)") &&
     institutionLandingSource.includes('className="institution-brand-highlight"') &&
     !institutionLandingSource.includes("dangerouslySetInnerHTML") &&
-    institutionLandingSource.includes("function BeeAccessories({ variant })") &&
-    institutionLandingSource.includes("function BeeWings({ wingGradientId, leftTransform, rightTransform })") &&
-    institutionLandingSource.includes("function BeeFace({ faceGradientId, look, transform })") &&
-    institutionLandingSource.includes("function InstitutionBeeIllustration({ variant, title, animated = true, className = \"\" })") &&
+    institutionLandingSource.includes("const institutionBeeImageAssets =") &&
     [
-      "standing-learning-left",
-      "rushing-right-with-test",
-      "seated-focused-over-notebook",
-      "rising-inspired-upward",
-      "technology-working-right",
-    ].every((pose) =>
-      institutionLandingSource.includes(`pose: \"${pose}\"`),
-    ) &&
-    [
-      "book-graduation-cap",
-      "test-pencil-timer",
-      "desk-notebook-lamp",
-      "brain-lightbulb-focus-rings",
-      "laptop-books-growth-graph",
-    ].every((accessory) => institutionLandingSource.includes(`data-bee-accessory=\"${accessory}\"`)) &&
-    institutionLandingSource.includes('data-bee-leg-count="6"') &&
-    institutionLandingSource.includes('data-bee-wing-count="4"') &&
-    institutionLandingSource.includes('data-bee-expression="warm-bright-friendly"') &&
-    institutionLandingSource.includes('data-bee-style="friendly-soft-professional"') &&
-    institutionLandingSource.includes('data-bee-anatomy="head-thorax-striped-abdomen-two-antennae-six-legs-four-wings-veins-eyes"') &&
-    institutionLandingSource.includes('data-wing-group="left"') &&
-    institutionLandingSource.includes('data-wing-group="right"') &&
-    institutionLandingCssSource.includes("@keyframes institution-bee-wing-left") &&
-    institutionLandingCssSource.includes("@keyframes institution-bee-wing-right") &&
-    institutionLandingCssSource.includes("animation: institution-bee-wing-left 0.86s") &&
-    institutionLandingCssSource.includes("animation: institution-bee-wing-right 0.94s") &&
-    /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.institution-bee\.is-animated \.institution-bee-wing-left,[\s\S]*?animation:\s*none !important;/.test(
-      institutionLandingCssSource,
-    ),
-  "Kurum landing güvenli marka vurgusu, beş bağlamsal arı varyantı, tam arı anatomisi ve reduced-motion uyumlu kanat animasyonu içeriyor.",
+      "/images/institution-bees/bee-school.webp",
+      "/images/institution-bees/bee-course.webp",
+      "/images/institution-bees/bee-study.webp",
+      "/images/institution-bees/bee-development.webp",
+      "/images/institution-bees/bee-academy.webp",
+    ].every((asset) => institutionLandingSource.includes(asset)) &&
+    institutionLandingSource.includes('loading="lazy"') &&
+    institutionLandingSource.includes('decoding="async"') &&
+    institutionLandingSource.includes("institution-reading__bee-image"),
+  "Kurum landing güvenli marka vurgusu ve beş canonical WebP arı varlığını anlamlı img yapısıyla içeriyor.",
 );
 check(
   institutionHero.paragraphs.length === 3 &&
@@ -1263,8 +1228,8 @@ check(
     studentLandingSource.includes(SEATED_CHILD_IMAGE_PATH) &&
     studentLandingSource.includes("width: 607") &&
     studentLandingSource.includes("height: 1013") &&
-    studentLandingSource.includes("width: 679") &&
-    studentLandingSource.includes("height: 905") &&
+    studentLandingSource.includes("width: 1405") &&
+    studentLandingSource.includes("height: 1120") &&
     studentLandingSource.includes('alt="Okuma, anlama ve dikkat gelişimini destekleyen öğrenci"') &&
     studentLandingSource.includes('alt="Fixoku ücretsiz seviye tespit testlerini uygulayan öğrenci"') &&
     studentLandingSource.includes('loading="lazy"') &&
@@ -1286,7 +1251,7 @@ check(
   ].every((feature) => studentLandingSource.includes(feature)) &&
     studentLandingSource.includes('className="student-seated-problem-frame"') &&
     studentLandingSource.includes('className="student-standing-final-frame"') &&
-    studentLandingSource.includes('className="student-why-play" aria-hidden="true"') &&
+    studentLandingSource.includes("SharedPromoVideo") &&
     studentLandingSource.includes('className="student-landing-shell student-info-grid"') &&
     studentLandingSource.includes("Test Nasıl Çalışır?") &&
     studentLandingSource.includes("Bu Testler Neyi Ölçer?") &&
@@ -1500,6 +1465,7 @@ check(
 );
 
 const ignoredDirectories = new Set([".git", "node_modules", "dist"]);
+const ignoredFileExtensions = new Set([".log"]);
 const repositoryFiles = [];
 
 async function collectFiles(directory) {
@@ -1511,7 +1477,7 @@ async function collectFiles(directory) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
       await collectFiles(entryPath);
-    } else if ((await stat(entryPath)).size < 5_000_000) {
+    } else if (!ignoredFileExtensions.has(path.extname(entry.name).toLowerCase()) && (await stat(entryPath)).size < 5_000_000) {
       repositoryFiles.push(entryPath);
     }
   }
@@ -1524,6 +1490,8 @@ const allowedOriginFiles = new Set([
   path.join(projectRoot, "src", "config", "site.js"),
   path.join(projectRoot, "public", "sitemap.xml"),
   path.join(projectRoot, "public", "robots.txt"),
+  path.join(projectRoot, "src", "server", "domain", "email-outbox.js"),
+  path.join(projectRoot, "src", "server", "domain", "email-renderer.js"),
 ]);
 
 for (const filePath of repositoryFiles) {

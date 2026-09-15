@@ -1,3 +1,4 @@
+import { handleConsent, switchReviewUser } from "../support/consent";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
@@ -7,11 +8,7 @@ const localSeed = process.env.TEST_SEED_PASSWORD || readFileSync(".env.local", "
 async function loginTrainer(page: Page) {
   const password = localSeed;
   if (!password) throw new Error("TEST_SEED_PASSWORD_REQUIRED");
-  await page.goto("/giris");
-  await page.getByLabel("E-posta").fill("trainer.phase1c@example.test");
-  await page.getByLabel("Şifre").fill(password);
-  await page.getByRole("button", { name: "Giriş Yap" }).click();
-  await page.waitForURL("**/panel/egitmen");
+  await switchReviewUser(page, "trainer");
 }
 
 test("trainer dashboard accessibility scan", async ({ page }, info) => {

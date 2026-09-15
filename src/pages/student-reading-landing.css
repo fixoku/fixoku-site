@@ -1147,3 +1147,9 @@
     width: min(480px, 94vw);
   }
 }
+
+/* Public release candidate: use the supplied responsive promo artwork. */
+.student-why-media-layout .shared-promo-video {
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+}

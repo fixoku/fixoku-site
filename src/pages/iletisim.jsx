@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Breadcrumbs from "../components/content/Breadcrumbs.jsx";
 import { buildSiteUrl } from "../config/site.js";
 import { contactPhones } from "../data/legalContent.js";
+import { pushEvent } from "../martech/events.js";
 
 const CONTACT_SOURCE_URL = buildSiteUrl("/iletisim");
 const INITIAL_FORM_DATA = {
@@ -85,8 +86,10 @@ function Iletisim() {
   const [preview, setPreview] = useState(null);
   const formHeadingRef = useRef(null);
   const previewHeadingRef = useRef(null);
+  const trackingStarted = useRef(false);
 
   const handleFieldChange = (event) => {
+    if (!trackingStarted.current) { trackingStarted.current = true; pushEvent("form_start", { form_id: "contact_form" }); }
     const { name, value } = event.target;
     const limit = FIELD_LIMITS[name];
     setFormData((current) => ({ ...current, [name]: value.slice(0, limit) }));
@@ -113,12 +116,14 @@ function Iletisim() {
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
+      pushEvent("form_error", { form_id: "contact_form", error_count: Object.keys(nextErrors).length });
       const firstInvalidField = event.currentTarget.elements[Object.keys(nextErrors)[0]];
       firstInvalidField?.focus();
       return;
     }
 
     const message = buildWhatsappMessage(sanitized);
+    pushEvent("form_success", { form_id: "contact_form" });
     setPreview({
       message,
       whatsappUrl: `${contactPhones.mobile.whatsappUrl}?text=${encodeURIComponent(message)}`,
@@ -207,7 +212,7 @@ function Iletisim() {
                     <p>Mesajınızı hazırlayın; WhatsApp’a geçmeden önce içeriği siz kontrol edin.</p>
                   </div>
 
-                  <form className="contact-form" onSubmit={handleSubmit} noValidate>
+                  <form className="contact-form" data-form-id="contact_form" onSubmit={handleSubmit} noValidate>
                     <div className="contact-form-grid">
                       <label htmlFor="contact-full-name">
                         <span>Ad Soyad (zorunlu)</span>

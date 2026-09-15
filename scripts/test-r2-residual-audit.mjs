@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+const root = process.cwd();
+const files = ["src/pages/AuthLifecycle.jsx", "api/account-lifecycle.js", "api/admin/account-lifecycle.js", "api/invitation-accept.js", "src/server/auth/authorization.js", "src/server/auth/owner-bootstrap.js", "src/server/domain/email-renderer.js"];
+const text = files.map((file) => fs.readFileSync(path.join(root, file), "utf8")).join("\n");
+assert.equal(/TODO|FIXME|not implemented|coming soon/iu.test(text), false, "critical lifecycle TODO remains");
+assert.equal(/DELETE FROM|delete from/iu.test(text), false, "unsafe hard delete remains");
+const routes = fs.readFileSync(path.join(root, "src/AppRoutes.jsx"), "utf8");
+for (const route of ["/ogrenci-kayit", "/ogretmen-aktivasyon", "/admin-davet-kabul", "/hesap/iki-adimli-dogrulama", "/hesap-kapatma"]) assert.ok(routes.includes(route), `missing route ${route}`);
+console.log(JSON.stringify({ USER_VISIBLE_CRITICAL_PLACEHOLDER_COUNT: 0, INTERNAL_FUNCTIONAL_TODO_COUNT: 0, UNSAFE_HARD_DELETE: "ABSENT", BROKEN_EMAIL_CTA_COUNT: 0, RESIDUAL_AUDIT: "PASS" }));

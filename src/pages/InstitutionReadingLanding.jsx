@@ -3,6 +3,8 @@ import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
 import StudentStoriesSection from "../components/StudentStoriesSection.jsx";
 import TrainerStoriesSection from "../components/TrainerStoriesSection.jsx";
+import SharedPromoVideo from "../components/SharedPromoVideo.jsx";
+import { pushEvent } from "../martech/events.js";
 import {
   detailedInstitutionProcess,
   detailedProcessIntro,
@@ -267,21 +269,7 @@ function InstitutionBeeIllustration({ variant, title, animated = true, className
   );
 }
 
-function InstitutionVideoPlaceholder({ ariaLabel, variant }) {
-  return (
-    <div
-      className={`institution-video-placeholder is-${variant}`}
-      data-empty-video={variant}
-      role="img"
-      aria-label={ariaLabel}
-    >
-      <span className="institution-placeholder-grid" aria-hidden="true" />
-      <svg className="institution-placeholder-play" viewBox="0 0 112 112" aria-hidden="true">
-        <path d="M31 17 94 56 31 95V17Z" fill="currentColor" />
-      </svg>
-    </div>
-  );
-}
+
 
 function InstitutionCapsuleCta({ children }) {
   return (
@@ -303,12 +291,14 @@ export default function InstitutionReadingLanding() {
   const [featuresExpanded, setFeaturesExpanded] = useState(false);
   const [processExpanded, setProcessExpanded] = useState(false);
   const formStartedAt = useRef(0);
+  const trackingStarted = useRef(false);
 
   useEffect(() => {
     formStartedAt.current = Date.now();
   }, []);
 
   const updateField = (event) => {
+    if (!trackingStarted.current) { trackingStarted.current = true; pushEvent("form_start", { form_id: "institution_application" }); }
     const { checked, name, type, value } = event.target;
     setFormValues((current) => ({
       ...current,
@@ -324,6 +314,7 @@ export default function InstitutionReadingLanding() {
 
     const validationErrors = validateApplication(formValues);
     if (Object.keys(validationErrors).length) {
+      pushEvent("form_error", { form_id: "institution_application", error_count: Object.keys(validationErrors).length });
       setFormErrors(validationErrors);
       setFormStatus({ type: "error", message: "Lütfen işaretlenen alanları kontrol edin." });
       return;
@@ -345,6 +336,7 @@ export default function InstitutionReadingLanding() {
       const result = await response.json().catch(() => null);
 
       if (response.ok && result?.ok === true) {
+        pushEvent("form_success", { form_id: "institution_application" });
         setFormStatus({
           type: "success",
           message: "Başvurunuz alınmıştır. Ekibimiz sizinle iletişime geçecektir.",
@@ -352,6 +344,7 @@ export default function InstitutionReadingLanding() {
         return;
       }
 
+      pushEvent("form_error", { form_id: "institution_application", response_status: response.status });
       if (response.status === 503) {
         setFormStatus({
           type: "service",
@@ -374,6 +367,7 @@ export default function InstitutionReadingLanding() {
         });
       }
     } catch {
+      pushEvent("form_error", { form_id: "institution_application", response_status: "network" });
       setFormStatus({
         type: "error",
         message: "Bağlantı kurulamadı. Bilgileriniz korunarak formda bırakıldı.",
@@ -405,10 +399,11 @@ export default function InstitutionReadingLanding() {
 
           <div className="institution-shell institution-first-play-wrap">
             <div className="institution-hero-media-row">
-              <InstitutionVideoPlaceholder
-              variant="hero"
-              ariaLabel="Fixoku Akademi üst tanıtım videosu için boş medya alanı"
-            />
+              <SharedPromoVideo
+                context="institution"
+                title="Neden Fixoku?"
+                label="Kurumlar için Neden Fixoku tanıtım videosunu oynat"
+              />
               <img
                 src="/kurumsal-egitim-uzmani.png"
                 alt="Fixoku kurumsal eğitim danışmanı"
@@ -522,9 +517,10 @@ export default function InstitutionReadingLanding() {
               {featuresExpanded ? "DAHA AZ GÖSTER" : "TÜM ÖZELLİKLERİ GÖR"}
             </button>
 
-            <InstitutionVideoPlaceholder
-              variant="features"
-              ariaLabel="Fixoku Akademi özellik tanıtım videosu için boş medya alanı"
+            <SharedPromoVideo
+              context="institution"
+              title="Neden Fixoku?"
+              label="Fixoku Akademi özellik tanıtım videosunu oynat"
             />
           </div>
         </section>
@@ -559,7 +555,7 @@ export default function InstitutionReadingLanding() {
               ))}
             </ol>
             <div className="institution-process-line" aria-hidden="true">
-              {shortInstitutionProcess.map((step, index) => <span className={`node-${index + 1}`} key={step.id} />)}
+              {shortInstitutionProcess.map((step, index) => <span className={`institution-process-line-${index + 1}`} key={step.id} />)}
             </div>
           </div>
         </section>
@@ -651,7 +647,7 @@ export default function InstitutionReadingLanding() {
               <p className="institution-email-contact">İletişim: <strong>info@fixoku.com</strong></p>
             </aside>
 
-            <form className="institution-application-form" onSubmit={submitApplication} noValidate>
+            <form className="institution-application-form" data-form-id="institution_application" onSubmit={submitApplication} noValidate>
               <div className="institution-form-grid">
                 <div className="institution-form-field">
                   <label htmlFor="institution-full-name">Ad Soyad</label>

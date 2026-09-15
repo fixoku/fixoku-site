@@ -1,0 +1,41 @@
+{
+  "schemaEquivalent": true,
+  "schemaDiff": {
+    "schemas": {
+      "currentCount": 3,
+      "shadowCount": 3,
+      "onlyCurrent": [],
+      "onlyShadow": []
+    },
+    "tables": {
+      "currentCount": 57,
+      "shadowCount": 57,
+      "onlyCurrent": [],
+      "onlyShadow": []
+    },
+    "columns": {
+      "currentCount": 565,
+      "shadowCount": 565,
+      "onlyCurrent": [],
+      "onlyShadow": []
+    },
+    "constraints": {
+      "currentCount": 638,
+      "shadowCount": 638,
+      "onlyCurrent": [],
+      "onlyShadow": []
+    },
+    "indexes": {
+      "currentCount": 125,
+      "shadowCount": 125,
+      "onlyCurrent": [],
+      "onlyShadow": []
+    },
+    "enums": {
+      "currentCount": 121,
+      "shadowCount": 121,
+      "onlyCurrent": [],
+      "onlyShadow": []
+    }
+  }
+}

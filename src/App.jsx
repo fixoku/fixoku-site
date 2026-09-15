@@ -1,15 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import StudentStoriesSection from "./components/StudentStoriesSection.jsx";
 import TrainerStoriesSection from "./components/TrainerStoriesSection.jsx";
+import SharedPromoVideo from "./components/SharedPromoVideo.jsx";
 import LiveEducationEngine from "./components/LiveEducationEngine.jsx";
 import {
   AssessmentTestCards,
   AssessmentTestExperience,
 } from "./components/assessment/AssessmentTests.jsx";
 import { INSTITUTION_READING_LANDING_PATH } from "./data/institutionReadingLanding.js";
+
+const subscribeToViewport = (callback) => {
+  if (typeof window === "undefined") return () => {};
+  const query = window.matchMedia("(max-width: 768px)");
+  const handler = () => callback();
+  if (query.addEventListener) query.addEventListener("change", handler);
+  else query.addListener(handler);
+  return () => {
+    if (query.removeEventListener) query.removeEventListener("change", handler);
+    else query.removeListener(handler);
+  };
+};
+
+const getViewportSnapshot = () => (
+  typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches
+);
 
 function HeroSlideHeading({ active, className, children }) {
   const HeadingTag = active ? "h1" : "div";
@@ -90,10 +107,10 @@ function HelpAudienceIcon({ type }) {
 
 function App() {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [isMobileViewport, setIsMobileViewport] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 768px)").matches
+  const isMobileViewport = useSyncExternalStore(
+    subscribeToViewport,
+    getViewportSnapshot,
+    () => false,
   );
 
   const sliderCount = isMobileViewport ? 4 : 3;
@@ -102,7 +119,6 @@ function App() {
     const viewportQuery = window.matchMedia("(max-width: 768px)");
 
     const handleViewportChange = (event) => {
-      setIsMobileViewport(event.matches);
       setActiveSlide((current) =>
         Math.min(current, event.matches ? 3 : 2)
       );
@@ -805,20 +821,12 @@ function App() {
               </p>
             </div>
 
-            <div
+            <SharedPromoVideo
+              context="home"
               className="why-video-box"
-              role="img"
-              aria-label="Fixoku eğitim sistemi tanıtım sunumu için görsel alan"
-            >
-              <span className="why-video-glow" aria-hidden="true" />
-              <span className="why-video-mark" aria-hidden="true">
-                <svg viewBox="0 0 96 96" fill="none">
-                  <circle cx="48" cy="48" r="43" stroke="currentColor" strokeWidth="3" />
-                  <path d="M40 31 67 48 40 65V31Z" fill="currentColor" />
-                </svg>
-              </span>
-              <span className="why-video-caption">Fixoku Eğitim Sistemi</span>
-            </div>
+              title="Neden Fixoku?"
+              label="Neden Fixoku tanıtım videosunu oynat"
+            />
           </div>
 
           <div className="help-audience-section">
@@ -867,6 +875,7 @@ function App() {
         className="how-it-works-grid how-it-works-carousel"
         role="region"
         aria-label="Fixoku sisteminin üç temel bileşeni"
+        tabIndex={0}
       >
         <article className="how-card">
           <div className="how-card-head how-card-head-orange">
@@ -1097,7 +1106,7 @@ function App() {
       <h2 className="education-model-title">Fixoku Eğitim Modeli</h2>
 
       <div className="education-model-panel">
-        <div className="education-model-grid">
+        <div className="homepage-education-model-grid">
           <article className="model-card model-card-orange">
             <div className="model-card-icon" aria-hidden="true">
               <svg viewBox="0 0 120 80" fill="none">

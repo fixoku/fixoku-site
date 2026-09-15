@@ -1,0 +1,7 @@
+import { useState } from "react";
+
+export default function CheckoutLegalConsents({ digitalOrService = false, onChange }) {
+  const [state, setState] = useState({ preInformation: false, distanceSales: false, privacy: false, marketing: false, commencement: false });
+  const update = (key, value) => { const next = { ...state, [key]: value }; setState(next); onChange?.(next); };
+  return <fieldset className="checkout-legal-consents"><legend>Sipariş ve iletişim tercihleri</legend><label><input type="checkbox" checked={state.preInformation} onChange={(e) => update("preInformation", e.target.checked)} required /> Ön bilgilendirme formunu okudum.</label><label><input type="checkbox" checked={state.distanceSales} onChange={(e) => update("distanceSales", e.target.checked)} required /> Mesafeli satış sözleşmesini kabul ediyorum.</label><label><input type="checkbox" checked={state.privacy} onChange={(e) => update("privacy", e.target.checked)} required /> KVKK aydınlatma metnini okudum.</label>{digitalOrService && <label><input type="checkbox" checked={state.commencement} onChange={(e) => update("commencement", e.target.checked)} /> Dijital içeriğin/hizmetin hemen başlamasını talep ediyorum.</label>}<label><input type="checkbox" checked={state.marketing} onChange={(e) => update("marketing", e.target.checked)} /> Kampanya ve duyuruları e-posta ile almak istiyorum (isteğe bağlı).</label></fieldset>;
+}

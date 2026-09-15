@@ -1,5 +1,5 @@
 export type DeterministicFixture = Readonly<{
-  trainerName: "Özlem Yılmaz";
+  trainerName: "Özlem KAPLAN";
   role: "Eğitmen";
   notificationCount: 3;
   activeStudents: 4;
@@ -10,7 +10,7 @@ export type DeterministicFixture = Readonly<{
 }>;
 
 export const TRAINER_VISUAL_FIXTURE: DeterministicFixture = Object.freeze({
-  trainerName: "Özlem Yılmaz",
+  trainerName: "Özlem KAPLAN",
   role: "Eğitmen",
   notificationCount: 3,
   activeStudents: 4,

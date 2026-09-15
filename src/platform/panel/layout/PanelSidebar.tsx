@@ -1,44 +1,16 @@
-import { PanelIcon } from "../components/PanelIcon";
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import { PanelIcon } from "../components/PanelIcon";
 
-const navigation = [
-  ["home", "Ana Sayfa", "/panel/egitmen"],
-  ["user", "Profilim", "/panel/egitmen/profil"],
-  ["book", "Eğitimlerim", "/panel/egitmen/egitimlerim"],
-  ["presentation", "Sunumlarım", "/panel/egitmen/sunumlarim"],
-  ["folder", "Eğitmen Kaynakları", "/panel/egitmen/kaynaklarim"],
-  ["cube", "Eğitmen Paketleri", undefined],
-  ["users", "Öğrencilerim", "/panel/egitmen/ogrencilerim"],
-  ["calendar", "Müsaitlik Takvimim", "/panel/egitmen/musaitlik"],
-  ["wallet", "Kazançlarım", "/panel/egitmen/bakiyem"],
-] as const;
+type NavItem = readonly [string, string, string];
+const trainerNavigation: NavItem[] = [["home", "Ana Sayfa", "/panel/egitmen"], ["user", "Profilim", "/panel/egitmen/profil"], ["book", "Eğitimlerim", "/panel/egitmen/egitimlerim"], ["presentation", "Sunumlarım", "/panel/egitmen/sunumlarim"], ["folder", "Eğitmen Kaynakları", "/panel/egitmen/kaynaklarim"], ["users", "Öğrencilerim", "/panel/egitmen/ogrencilerim"], ["calendar", "Müsaitlik Takvimim", "/panel/egitmen/musaitlik"], ["wallet", "Kazançlarım", "/panel/egitmen/bakiyem"], ["wallet", "Ödeme hesabım", "/panel/egitmen/payout-hesabim"], ["bell", "Bildirimler", "/panel/bildirimler"]];
+const studentNavigation: NavItem[] = [["home", "Ana Sayfa", "/panel/ogrenci"], ["user", "Profilim", "/panel/ogrenci/profil"], ["package", "Paketler", "/panel/ogrenci/paketler"], ["cube", "Kargolarım", "/panel/ogrenci/kargolar"], ["bell", "Bildirimler", "/panel/bildirimler"]];
+const ownerNavigation: Array<{ heading?: string; item?: NavItem }> = [{ heading: "GENEL" }, { item: ["home", "Genel Bakış", "/panel/owner"] }, { heading: "FİNANS" }, { item: ["wallet", "Finans Özeti", "/panel/owner/finance"] }, { heading: "OPERASYON" }, { item: ["users", "Eğitmen Atamaları", "/panel/admin/atamalar"] }, { item: ["package", "Paket Yönetimi", "/panel/admin/paketler"] }, { item: ["users", "Eğitmenler", "/panel/admin/egitmenler"] }, { item: ["cube", "Ürünler", "/panel/admin/urunler"] }, { item: ["package", "Kargo", "/panel/admin/kargo"] }, { heading: "SİSTEM" }, { item: ["bolt", "Sağlayıcı Durumu", "/panel/owner/saglayicilar"] }, { item: ["search", "Ölçümleme", "/panel/owner/olcumleme"] }, { item: ["folder", "E-posta Şablonları", "/panel/owner/e-posta-sablonlari"] }, { item: ["bell", "Bildirimler", "/panel/bildirimler"] }];
 
-export function PanelSidebar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  return (
-    <aside className="panel-sidebar" aria-label="Eğitmen paneli menüsü">
-      <div className="panel-brand">
-        <img src="/logo-fixoku.png" alt="Fixoku" />
-      </div>
-      <button type="button" className="panel-mobile-menu" aria-expanded={menuOpen} aria-controls="trainer-panel-navigation" onClick={() => setMenuOpen((open) => !open)}>
-        <PanelIcon name="menu" />
-        <span>{menuOpen ? "Menüyü kapat" : "Menüyü aç"}</span>
-      </button>
-      <nav id="trainer-panel-navigation" className={`panel-nav ${menuOpen ? "is-mobile-open" : ""}`}>
-        {navigation.map(([icon, label, href], index) => (
-          href ? <NavLink key={label} to={href} end={href === "/panel/egitmen"} className={({ isActive }) => `panel-nav-item ${isActive ? "is-active" : ""}`} aria-current={undefined}>
-            <PanelIcon name={icon} />
-            <span>{label}</span>
-          </NavLink> : <button type="button" className="panel-nav-item is-disabled" key={label} disabled title="Bu ekran sonraki fazda etkinleştirilecek"><PanelIcon name={icon} /><span>{label}</span></button>
-        ))}
-      </nav>
-      <div className="panel-sidebar-divider" />
-      <button type="button" className="panel-logout" onClick={() => { void fetch("/api/auth/sign-out", { method: "POST", credentials: "same-origin" }).finally(() => { window.location.assign("/giris"); }); }}>
-        <PanelIcon name="logout" />
-        <span>Çıkış</span>
-      </button>
-      <div className="panel-sidebar-quote">Daha<br />aydınlık nesiller<br />için...<span className="panel-sidebar-quote-line" aria-hidden="true" /></div>
-    </aside>
-  );
+export function PanelSidebar({ role }: { role?: "OWNER" | "ADMIN" | "TRAINER" | "STUDENT" } = {}) {
+  const [menuOpen, setMenuOpen] = useState(false); const location = useLocation();
+  const isOwner = role === "OWNER" || role === "ADMIN" || (!role && (location.pathname.startsWith("/panel/owner") || location.pathname.startsWith("/panel/admin")));
+  const isStudent = role === "STUDENT" || (!role && location.pathname.startsWith("/panel/ogrenci"));
+  const nav: Array<{ heading?: string; item?: NavItem }> = isOwner ? ownerNavigation : (isStudent ? studentNavigation : trainerNavigation).map((item) => ({ item }));
+  return <aside className="panel-sidebar" aria-label={isOwner ? "Yönetici paneli menüsü" : isStudent ? "Öğrenci paneli menüsü" : "Eğitmen paneli menüsü"}><div className="panel-brand"><img src="/logo-fixoku.png" alt="Fixoku" /></div><button type="button" className="panel-mobile-menu" aria-expanded={menuOpen} aria-controls="panel-navigation" onClick={() => setMenuOpen((open) => !open)}><PanelIcon name="menu" /><span>{menuOpen ? "Menüyü kapat" : "Menüyü aç"}</span></button><nav id="panel-navigation" className={`panel-nav ${menuOpen ? "is-mobile-open" : ""}`}>{nav.map((entry, index) => entry.heading ? <p className="panel-nav-heading" key={`${entry.heading}-${index}`}>{entry.heading}</p> : entry.item && (() => { const [icon, label, href] = entry.item; return <NavLink key={`${label}-${href}`} to={href} end={href === "/panel/egitmen" || href === "/panel/owner" || href === "/panel/admin" || href === "/panel/ogrenci"} className={({ isActive }) => `panel-nav-item ${isActive ? "is-active" : ""}`} onClick={() => setMenuOpen(false)}><PanelIcon name={icon as any} /><span>{label}</span></NavLink>; })())}</nav><div className="panel-sidebar-divider" /><button type="button" className="panel-logout" onClick={() => { void fetch("/api/auth/sign-out", { method: "POST", credentials: "same-origin" }).finally(() => { window.location.assign("/giris"); }); }}><PanelIcon name="logout" /><span>Çıkış</span></button><div className="panel-sidebar-quote">Daha<br />aydınlık nesiller<br />için...<span className="panel-sidebar-quote-line" aria-hidden="true" /></div></aside>;
 }

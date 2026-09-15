@@ -169,7 +169,7 @@ function Footer({ showCta = true }) {
                   <path d="M3 7l9 6 9-6" stroke="currentColor" strokeWidth="1.8" />
                 </svg>
               </span>
-              <a href="mailto:info@fixoku.com">info@fixoku.com</a>
+              <a href="mailto:info@fixoku.com" data-analytics-placement="footer" data-cta-id="footer-email">info@fixoku.com</a>
             </div>
 
             <div className="footer-contact-item">
@@ -184,7 +184,7 @@ function Footer({ showCta = true }) {
               </span>
               <div className="footer-contact-details">
                 <span className="footer-contact-label">{contactPhones.mobile.label}</span>
-                <a href={contactPhones.mobile.telUri} aria-label="Fixoku cep telefonunu ara">
+                <a href={contactPhones.mobile.telUri} aria-label="Fixoku cep telefonunu ara" data-analytics-placement="footer" data-cta-id="footer-mobile-phone">
                   {contactPhones.mobile.display}
                 </a>
               </div>
@@ -202,7 +202,7 @@ function Footer({ showCta = true }) {
               </span>
               <div className="footer-contact-details">
                 <span className="footer-contact-label">{contactPhones.office.label}</span>
-                <a href={contactPhones.office.telUri} aria-label="Fixoku ofis telefonunu ara">
+                <a href={contactPhones.office.telUri} aria-label="Fixoku ofis telefonunu ara" data-analytics-placement="footer" data-cta-id="footer-office-phone">
                   {contactPhones.office.display}
                 </a>
               </div>
@@ -241,9 +241,17 @@ function Footer({ showCta = true }) {
           </div>
 
           <div className="footer-bottom-links">
-            <Link to="/kvkk">KVKK</Link>
-            <Link to="/gizlilik-politikasi">Gizlilik Politikası</Link>
+            <button type="button" className="footer-consent-link" onClick={() => window.dispatchEvent(new CustomEvent("fixoku:consent-open"))}>Çerez Tercihleri</button>
+            <Link to="/kvkk-aydinlatma-metni">KVKK</Link>
+            <Link to="/gizlilik-politikasi">Gizlilik</Link>
             <Link to="/cerez-politikasi">Çerez Politikası</Link>
+            <Link to="/mesafeli-satis-sozlesmesi">Mesafeli Satış</Link>
+            <Link to="/on-bilgilendirme-formu">Ön Bilgilendirme</Link>
+            <Link to="/iptal-iade-cayma-politikasi">İptal / İade / Cayma</Link>
+            <Link to="/teslimat-kargo-politikasi">Teslimat / Kargo</Link>
+            <Link to="/kullanim-kosullari">Kullanım Koşulları</Link>
+            <Link to="/uyelik-sozlesmesi">Üyelik Sözleşmesi</Link>
+            <Link to="/iletisim">İletişim</Link>
           </div>
         </div>
       </div>

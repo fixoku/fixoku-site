@@ -921,7 +921,7 @@
   border-radius: 50%;
   color: #fff;
   background: var(--institution-orange);
-  content: "âœ“";
+  content: "✓";
   font-size: 11px;
   font-weight: 950;
 }
@@ -3412,5 +3412,24 @@
     margin-top: 12px !important;
     font-size: clamp(1rem, 4.6vw, 1.25rem) !important;
     line-height: 1.14 !important;
+  }
+}
+
+/* Public release candidate: replace the empty hero slot with supplied artwork. */
+.institution-landing-page .institution-hero-media-row .shared-promo-video {
+  width: 100%;
+  height: var(--institution-hero-video-height);
+  min-height: 0;
+  aspect-ratio: auto;
+  border-radius: 28px;
+  align-self: end;
+}
+.institution-features-section .shared-promo-video {
+  margin-top: 68px;
+}
+@media (max-width: 900px) {
+  .institution-landing-page .institution-hero-media-row .shared-promo-video {
+    height: auto;
+    aspect-ratio: 16 / 10;
   }
 }

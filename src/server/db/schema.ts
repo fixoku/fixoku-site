@@ -1,7 +1,7 @@
-import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgEnum, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const membershipScopeType = pgEnum("membership_scope_type", ["GLOBAL", "INSTITUTION", "TRAINER", "STUDENT"]);
-export const membershipRole = pgEnum("membership_role", ["SUPER_ADMIN", "TRAINER", "STUDENT", "GUARDIAN"]);
+export const membershipRole = pgEnum("membership_role", ["OWNER", "SUPER_ADMIN", "TRAINER", "STUDENT", "GUARDIAN"]);
 export const membershipStatus = pgEnum("membership_status", ["ACTIVE", "SUSPENDED", "REVOKED"]);
 
 export const users = pgTable("platform_users", {
@@ -41,7 +41,7 @@ export const auditEvents = pgTable("platform_audit_events", {
 export const trainerProfiles = pgTable("trainer_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "restrict" }),
-  phone: text("phone"), city: text("city"), profession: text("profession"), institution: text("institution"), bio: text("bio"),
+  firstName: text("first_name"), lastName: text("last_name"), phone: text("phone"), city: text("city"), district: text("district"), profession: text("profession"), institution: text("institution"), educationBackground: text("education_background"), experience: text("experience"), specialties: text("specialties"), photoStorageKey: text("photo_storage_key"), bio: text("bio"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 export const trainingProgramAudience = pgEnum("training_program_audience", ["TRAINER", "STUDENT"]);
@@ -80,7 +80,7 @@ export const availabilitySlots = pgTable("availability_slots", {
 }, (table) => [uniqueIndex("availability_slots_trainer_start_uq").on(table.trainerUserId, table.startsAt)]);
 
 export const trainerEarningEntryType = pgEnum("trainer_earning_entry_type", ["SESSION", "BONUS", "ADJUSTMENT"]);
-export const trainerEarningStatus = pgEnum("trainer_earning_status", ["EARNED", "HELD", "PAID", "REVERSED"]);
+export const trainerEarningStatus = pgEnum("trainer_earning_status", ["PENDING", "EARNED", "PAYABLE", "HELD", "PAID", "REVERSED"]);
 /** Append-only source ledger. No payout or payment provider state is stored here. */
 export const trainerEarningLedger = pgTable("trainer_earning_ledger", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -92,7 +92,7 @@ export const trainerEarningLedger = pgTable("trainer_earning_ledger", {
   amountMinor: integer("amount_minor").notNull(),
   currency: text("currency").notNull().default("TRY"),
   description: text("description").notNull(),
-  sourceType: text("source_type").notNull(), sourceId: text("source_id").notNull(), idempotencyKey: text("idempotency_key").notNull(), holdReason: text("hold_reason"), paidAt: timestamp("paid_at", { withTimezone: true }),
+  sourceType: text("source_type").notNull(), sourceId: text("source_id").notNull(), idempotencyKey: text("idempotency_key").notNull(), holdReason: text("hold_reason"), paidAt: timestamp("paid_at", { withTimezone: true }), assignmentId: uuid("assignment_id"), enrollmentId: uuid("enrollment_id"), compensationSnapshotId: uuid("compensation_snapshot_id"),
   occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("trainer_earning_ledger_idempotency_key_uq").on(table.idempotencyKey)]);
@@ -102,8 +102,7 @@ export const studentProfileStatus = pgEnum("student_profile_status", ["ACTIVE", 
 export const studentProfiles = pgTable("student_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "restrict" }),
-  grade: text("grade"),
-  school: text("school"),
+  firstName: text("first_name"), lastName: text("last_name"), photoStorageKey: text("photo_storage_key"), dateOfBirth: date("date_of_birth"), grade: text("grade"), classBranch: text("class_branch"), school: text("school"), schoolType: text("school_type"), city: text("city"), district: text("district"), phone: text("phone"), guardianRelation: text("guardian_relation"), guardianName: text("guardian_name"), guardianPhone: text("guardian_phone"), guardianEmail: text("guardian_email"), addressLine: text("address_line"), postalCode: text("postal_code"), marketingConsent: boolean("marketing_consent").notNull().default(false),
   status: studentProfileStatus("status").notNull().default("ACTIVE"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -117,8 +116,8 @@ export const trainerStudentLinks = pgTable("trainer_student_links", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("trainer_student_links_trainer_student_uq").on(table.trainerUserId, table.studentUserId)]);
 export const enrollmentStatus = pgEnum("enrollment_status", ["ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"]);
-export const enrollments = pgTable("enrollments", { id: uuid("id").defaultRandom().primaryKey(), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: enrollmentStatus("status").notNull().default("ACTIVE"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("enrollments_student_program_uq").on(table.studentUserId, table.trainingProgramId)]);
-export const trainerAssignments = pgTable("trainer_assignments", { id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }), status: studentProfileStatus("status").notNull().default("ACTIVE"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("trainer_assignments_trainer_enrollment_uq").on(table.trainerUserId, table.enrollmentId)]);
+export const enrollments = pgTable("enrollments", { id: uuid("id").defaultRandom().primaryKey(), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: enrollmentStatus("status").notNull().default("ACTIVE"), progressPercent: integer("progress_percent").notNull().default(0), completedAt: timestamp("completed_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("enrollments_student_program_uq").on(table.studentUserId, table.trainingProgramId)]);
+export const trainerAssignments = pgTable("trainer_assignments", { id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }), status: studentProfileStatus("status").notNull().default("ACTIVE"), endedAt: timestamp("ended_at", { withTimezone: true }), endedReason: text("ended_reason"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("trainer_assignments_trainer_enrollment_uq").on(table.trainerUserId, table.enrollmentId)]);
 
 /** Guardian identity is distinct from the student they are authorized to view. */
 export const guardianProfileStatus = pgEnum("guardian_profile_status", ["ACTIVE", "ARCHIVED"]);
@@ -139,3 +138,148 @@ export const guardianStudentRelationships = pgTable("guardian_student_relationsh
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("guardian_student_relationships_guardian_student_uq").on(table.guardianUserId, table.studentProfileId)]);
+
+export const packageCatalogStatus = pgEnum("package_catalog_status", ["DRAFT", "PUBLISHED", "RETIRED"]);
+export const packageDeliveryMode = pgEnum("package_delivery_mode", ["SELF_PACED", "TRAINER_LED", "HYBRID"]);
+export const packages = pgTable("packages", { id: uuid("id").defaultRandom().primaryKey(), slug: text("slug").notNull().unique(), audience: trainingProgramAudience("audience").notNull(), status: packageCatalogStatus("status").notNull().default("DRAFT"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
+export const packageVersions = pgTable("package_versions", { id: uuid("id").defaultRandom().primaryKey(), packageId: uuid("package_id").notNull().references(() => packages.id, { onDelete: "restrict" }), versionNumber: integer("version_number").notNull(), title: text("title").notNull(), description: text("description").notNull(), priceMinor: integer("price_minor"), currency: text("currency"), status: packageCatalogStatus("status").notNull().default("DRAFT"), publishedAt: timestamp("published_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("package_versions_package_version_uq").on(table.packageId, table.versionNumber)]);
+export const packageEntitlementDefinitions = pgTable("package_entitlement_definitions", { id: uuid("id").defaultRandom().primaryKey(), packageVersionId: uuid("package_version_id").notNull().references(() => packageVersions.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), deliveryMode: packageDeliveryMode("delivery_mode").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("package_entitlement_definitions_version_program_uq").on(table.packageVersionId, table.trainingProgramId)]);
+
+/** Provider-neutral commerce authority. Order and line records are immutable purchase snapshots. */
+export const orderStatus = pgEnum("order_status", ["PENDING_PAYMENT", "PAID", "PARTIALLY_REFUNDED", "REFUNDED", "CANCELLED", "PAYMENT_REVIEW"]);
+export const orders = pgTable("orders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  buyerUserId: uuid("buyer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  beneficiaryStudentUserId: uuid("beneficiary_student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  beneficiaryStudentProfileId: uuid("beneficiary_student_profile_id").references(() => studentProfiles.id, { onDelete: "restrict" }),
+  status: orderStatus("status").notNull().default("PENDING_PAYMENT"),
+  currency: text("currency").notNull(),
+  subtotalMinor: integer("subtotal_minor").notNull(),
+  totalMinor: integer("total_minor").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(),
+  requestHash: text("request_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("orders_buyer_idempotency_uq").on(table.buyerUserId, table.idempotencyKey)]);
+export const orderItems = pgTable("order_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "restrict" }),
+  packageId: uuid("package_id").notNull().references(() => packages.id, { onDelete: "restrict" }),
+  packageVersionId: uuid("package_version_id").notNull().references(() => packageVersions.id, { onDelete: "restrict" }),
+  titleSnapshot: text("title_snapshot").notNull(),
+  descriptionSnapshot: text("description_snapshot").notNull(),
+  versionNumberSnapshot: integer("version_number_snapshot").notNull(),
+  deliveryModeSnapshot: packageDeliveryMode("delivery_mode_snapshot").notNull(),
+  unitPriceMinor: integer("unit_price_minor").notNull(),
+  totalMinor: integer("total_minor").notNull(),
+  currency: text("currency").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  entitlementDefinitionsSnapshot: text("entitlement_definitions_snapshot").notNull().default("[]"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("order_items_order_version_uq").on(table.orderId, table.packageVersionId)]);
+export const paymentIntentStatus = pgEnum("payment_intent_status", ["CREATED", "PENDING", "AUTHORIZED", "SUCCEEDED", "FAILED", "CANCELLED", "PARTIALLY_REFUNDED", "REFUNDED"]);
+export const paymentIntents = pgTable("payment_intents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id").notNull().unique().references(() => orders.id, { onDelete: "restrict" }),
+  status: paymentIntentStatus("status").notNull().default("CREATED"),
+  provider: text("provider"),
+  providerReference: text("provider_reference"),
+  amountMinor: integer("amount_minor").notNull(),
+  currency: text("currency").notNull(),
+  idempotencyKey: text("idempotency_key").notNull().unique(),
+  succeededAt: timestamp("succeeded_at", { withTimezone: true }),
+  failedAt: timestamp("failed_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const paymentTransactionStatus = pgEnum("payment_transaction_status", ["PENDING", "SUCCEEDED", "FAILED", "CANCELLED"]);
+export const paymentTransactionType = pgEnum("payment_transaction_type", ["AUTHORIZATION", "CAPTURE", "SETTLEMENT", "REFUND", "VOID"]);
+export const paymentTransactions = pgTable("payment_transactions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  paymentIntentId: uuid("payment_intent_id").notNull().references(() => paymentIntents.id, { onDelete: "restrict" }),
+  provider: text("provider").notNull(),
+  providerTransactionId: text("provider_transaction_id").notNull(),
+  transactionType: paymentTransactionType("transaction_type").notNull(),
+  status: paymentTransactionStatus("status").notNull(),
+  amountMinor: integer("amount_minor").notNull(),
+  currency: text("currency").notNull(),
+  metadataJson: text("metadata_json").notNull().default("{}"),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("payment_transactions_provider_ref_type_uq").on(table.provider, table.providerTransactionId, table.transactionType)]);
+export const paymentWebhookStatus = pgEnum("payment_webhook_status", ["RECEIVED", "VERIFIED", "APPLIED", "REJECTED", "RETRYABLE_ERROR"]);
+export const paymentWebhookEvents = pgTable("payment_webhook_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  provider: text("provider").notNull(),
+  providerEventId: text("provider_event_id").notNull(),
+  eventType: text("event_type").notNull(),
+  payloadHash: text("payload_hash").notNull(),
+  payloadSummaryJson: text("payload_summary_json").notNull().default("{}"),
+  status: paymentWebhookStatus("status").notNull().default("RECEIVED"),
+  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+  processedAt: timestamp("processed_at", { withTimezone: true }),
+  attemptCount: integer("attempt_count").notNull().default(0),
+  errorCode: text("error_code"),
+}, (table) => [uniqueIndex("payment_webhook_events_provider_event_uq").on(table.provider, table.providerEventId)]);
+export const packageEntitlementStatus = pgEnum("package_entitlement_status", ["ACTIVE", "REVOKED", "EXPIRED"]);
+export const packageEntitlements = pgTable("package_entitlements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  beneficiaryStudentUserId: uuid("beneficiary_student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  beneficiaryStudentProfileId: uuid("beneficiary_student_profile_id").references(() => studentProfiles.id, { onDelete: "restrict" }),
+  packageId: uuid("package_id").notNull().references(() => packages.id, { onDelete: "restrict" }),
+  packageVersionId: uuid("package_version_id").notNull().references(() => packageVersions.id, { onDelete: "restrict" }),
+  sourceOrderId: uuid("source_order_id").notNull().references(() => orders.id, { onDelete: "restrict" }),
+  sourceOrderItemId: uuid("source_order_item_id").notNull().references(() => orderItems.id, { onDelete: "restrict" }),
+  status: packageEntitlementStatus("status").notNull().default("ACTIVE"),
+  effectiveAt: timestamp("effective_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  issuanceKey: text("issuance_key").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("package_entitlements_source_student_uq").on(table.sourceOrderItemId, table.beneficiaryStudentUserId)]);
+export const packageEntitlementEnrollments = pgTable("package_entitlement_enrollments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  packageEntitlementId: uuid("package_entitlement_id").notNull().references(() => packageEntitlements.id, { onDelete: "restrict" }),
+  enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }),
+  trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }),
+  sourceOrderItemId: uuid("source_order_item_id").notNull().references(() => orderItems.id, { onDelete: "restrict" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("package_entitlement_enrollments_entitlement_program_uq").on(table.packageEntitlementId, table.trainingProgramId)]);
+
+export const trainerQualificationStatus = pgEnum("trainer_qualification_status", ["ACTIVE", "SUSPENDED", "REVOKED"]);
+export const trainerQualificationSource = pgEnum("trainer_qualification_source", ["PACKAGE_COMPLETION", "ADMIN_GRANT", "LEGACY_IMPORT"]);
+export const trainerQualifications = pgTable("trainer_qualifications", { id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: trainerQualificationStatus("status").notNull().default("ACTIVE"), source: trainerQualificationSource("source").notNull().default("ADMIN_GRANT"), grantedBy: uuid("granted_by").references(() => users.id, { onDelete: "restrict" }), grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(), validFrom: timestamp("valid_from", { withTimezone: true }).notNull().defaultNow(), validUntil: timestamp("valid_until", { withTimezone: true }), reason: text("reason"), qualifiedAt: timestamp("qualified_at", { withTimezone: true }).notNull().defaultNow(), revokedAt: timestamp("revoked_at", { withTimezone: true }), revokedBy: uuid("revoked_by").references(() => users.id, { onDelete: "restrict" }), revokedReason: text("revoked_reason"), suspendedAt: timestamp("suspended_at", { withTimezone: true }), statusChangedBy: uuid("status_changed_by").references(() => users.id, { onDelete: "restrict" }), statusReason: text("status_reason"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("trainer_qualifications_trainer_program_uq").on(table.trainerUserId, table.trainingProgramId)]);
+export const trainerQualificationHistory = pgTable("trainer_qualification_history", { id: uuid("id").defaultRandom().primaryKey(), qualificationId: uuid("qualification_id").notNull().references(() => trainerQualifications.id, { onDelete: "restrict" }), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: trainerQualificationStatus("status").notNull(), source: trainerQualificationSource("source").notNull(), changedBy: uuid("changed_by").references(() => users.id, { onDelete: "restrict" }), reason: text("reason"), changedAt: timestamp("changed_at", { withTimezone: true }).notNull().defaultNow() });
+export const trainerAssignmentRequestStatus = pgEnum("trainer_assignment_request_status", ["PENDING", "ASSIGNED", "CANCELLED"]);
+export const trainerAssignmentRequests = pgTable("trainer_assignment_requests", { id: uuid("id").defaultRandom().primaryKey(), enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }), status: trainerAssignmentRequestStatus("status").notNull().default("PENDING"), trainerAssignmentId: uuid("trainer_assignment_id").references(() => trainerAssignments.id, { onDelete: "restrict" }), requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(), assignedAt: timestamp("assigned_at", { withTimezone: true }), cancelledAt: timestamp("cancelled_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
+
+export const trainerCompensationType = pgEnum("trainer_compensation_type", ["FIXED_AMOUNT", "PERCENTAGE"]);
+export const trainerCompensationRules = pgTable("trainer_compensation_rules", { id: uuid("id").defaultRandom().primaryKey(), packageVersionId: uuid("package_version_id").notNull().references(() => packageVersions.id, { onDelete: "restrict" }), trainerUserId: uuid("trainer_user_id").references(() => users.id, { onDelete: "restrict" }), type: trainerCompensationType("type").notNull(), rateMinor: integer("rate_minor"), percentageBps: integer("percentage_bps"), calculationBase: text("calculation_base").notNull().default("ORDER_TOTAL"), currency: text("currency").notNull().default("TRY"), createdBy: uuid("created_by").references(() => users.id, { onDelete: "restrict" }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() });
+export const trainerCompensationSnapshots = pgTable("trainer_compensation_snapshots", { id: uuid("id").defaultRandom().primaryKey(), assignmentId: uuid("assignment_id").notNull().unique().references(() => trainerAssignments.id, { onDelete: "restrict" }), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }), packageVersionId: uuid("package_version_id").references(() => packageVersions.id, { onDelete: "restrict" }), type: trainerCompensationType("type").notNull(), rateMinor: integer("rate_minor"), percentageBps: integer("percentage_bps"), calculationBase: text("calculation_base").notNull(), currency: text("currency").notNull(), snapshottedAt: timestamp("snapshotted_at", { withTimezone: true }).notNull().defaultNow() });
+export const enrollmentSessionStatus = pgEnum("enrollment_session_status", ["SCHEDULED", "COMPLETED", "CANCELLED"]);
+export const enrollmentSessions = pgTable("enrollment_sessions", { id: uuid("id").defaultRandom().primaryKey(), enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }), assignmentId: uuid("assignment_id").references(() => trainerAssignments.id, { onDelete: "restrict" }), trainerUserId: uuid("trainer_user_id").references(() => users.id, { onDelete: "restrict" }), status: enrollmentSessionStatus("status").notNull().default("SCHEDULED"), progressPercent: integer("progress_percent").notNull().default(0), notes: text("notes"), startedAt: timestamp("started_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() });
+export const enrollmentCompletions = pgTable("enrollment_completions", { id: uuid("id").defaultRandom().primaryKey(), enrollmentId: uuid("enrollment_id").notNull().unique().references(() => enrollments.id, { onDelete: "restrict" }), assignmentId: uuid("assignment_id").references(() => trainerAssignments.id, { onDelete: "restrict" }), completedBy: uuid("completed_by").notNull().references(() => users.id, { onDelete: "restrict" }), completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(), idempotencyKey: text("idempotency_key").notNull().unique(), metadataJson: text("metadata_json").notNull().default("{}") });
+
+export const packageComponentType = pgEnum("package_component_type", ["TRAINING_PROGRAM", "TRAINER_SERVICE", "PHYSICAL_PRODUCT", "DIGITAL_DOWNLOAD", "DIGITAL_ACCESS", "TRAINER_EDUCATION", "TRAINER_CERTIFICATION_PATH"]);
+export const packageComponents = pgTable("package_components", { id: uuid("id").defaultRandom().primaryKey(), packageVersionId: uuid("package_version_id").notNull().references(() => packageVersions.id, { onDelete: "restrict" }), componentType: packageComponentType("component_type").notNull(), referenceId: uuid("reference_id"), titleSnapshot: text("title_snapshot").notNull(), quantity: integer("quantity").notNull().default(1), metadataJson: text("metadata_json").notNull().default("{}"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() });
+export const physicalProducts = pgTable("physical_products", { id: uuid("id").defaultRandom().primaryKey(), sku: text("sku").notNull().unique(), title: text("title").notNull(), productType: text("product_type").notNull().default("PHYSICAL"), isActive: boolean("is_active").notNull().default(true), weightGrams: integer("weight_grams"), dimensionsJson: text("dimensions_json"), stockLocation: text("stock_location").notNull(), onHand: integer("on_hand").notNull().default(0), reserved: integer("reserved").notNull().default(0), lowStockThreshold: integer("low_stock_threshold").notNull().default(0), costMinor: integer("cost_minor").notNull().default(0), currency: text("currency").notNull().default("TRY"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
+export const inventoryMovementType = pgEnum("inventory_movement_type", ["RECEIPT", "RESERVATION", "RELEASE", "SHIPMENT", "RETURN", "ADJUSTMENT", "DAMAGE"]);
+export const inventoryMovements = pgTable("inventory_movements", { id: uuid("id").defaultRandom().primaryKey(), physicalProductId: uuid("physical_product_id").notNull().references(() => physicalProducts.id, { onDelete: "restrict" }), movementType: inventoryMovementType("movement_type").notNull(), quantity: integer("quantity").notNull(), sourceType: text("source_type").notNull(), sourceId: text("source_id").notNull(), idempotencyKey: text("idempotency_key").notNull().unique(), actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "restrict" }), occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow() });
+export const shipmentStatus = pgEnum("shipment_status", ["WAITING", "PREPARING", "PACKED", "SHIPPED", "DELIVERED", "RETURNED", "CANCELLED"]);
+export const shipments = pgTable("shipments", { id: uuid("id").defaultRandom().primaryKey(), orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "restrict" }), beneficiaryStudentUserId: uuid("beneficiary_student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), addressSnapshotJson: text("address_snapshot_json").notNull(), carrier: text("carrier"), trackingNumber: text("tracking_number"), labelReference: text("label_reference"), shippingChargeMinor: integer("shipping_charge_minor").notNull().default(0), actualShippingCostMinor: integer("actual_shipping_cost_minor"), status: shipmentStatus("status").notNull().default("WAITING"), providerEnabled: boolean("provider_enabled").notNull().default(false), shippedAt: timestamp("shipped_at", { withTimezone: true }), deliveredAt: timestamp("delivered_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
+export const shipmentItems = pgTable("shipment_items", { id: uuid("id").defaultRandom().primaryKey(), shipmentId: uuid("shipment_id").notNull().references(() => shipments.id, { onDelete: "restrict" }), physicalProductId: uuid("physical_product_id").notNull().references(() => physicalProducts.id, { onDelete: "restrict" }), quantity: integer("quantity").notNull(), titleSnapshot: text("title_snapshot").notNull() });
+export const digitalFiles = pgTable("digital_files", { id: uuid("id").defaultRandom().primaryKey(), storageKey: text("storage_key").notNull().unique(), title: text("title").notNull(), version: text("version").notNull(), sha256: text("sha256"), sizeBytes: integer("size_bytes"), revokedAt: timestamp("revoked_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() });
+export const digitalEntitlements = pgTable("digital_entitlements", { id: uuid("id").defaultRandom().primaryKey(), fileId: uuid("file_id").notNull().references(() => digitalFiles.id, { onDelete: "restrict" }), beneficiaryStudentUserId: uuid("beneficiary_student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), sourceOrderItemId: uuid("source_order_item_id").references(() => orderItems.id, { onDelete: "restrict" }), grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(), expiresAt: timestamp("expires_at", { withTimezone: true }), revokedAt: timestamp("revoked_at", { withTimezone: true }), downloadCount: integer("download_count").notNull().default(0), downloadLimit: integer("download_limit") });
+export const digitalDownloadAudits = pgTable("digital_download_audits", { id: uuid("id").defaultRandom().primaryKey(), entitlementId: uuid("entitlement_id").notNull().references(() => digitalEntitlements.id, { onDelete: "restrict" }), actorUserId: uuid("actor_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), downloadedAt: timestamp("downloaded_at", { withTimezone: true }).notNull().defaultNow(), result: text("result").notNull(), ipHash: text("ip_hash") });
+export const panelNotifications = pgTable("panel_notifications", { id: uuid("id").defaultRandom().primaryKey(), recipientUserId: uuid("recipient_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), eventType: text("event_type").notNull(), title: text("title").notNull(), body: text("body").notNull(), metadataJson: text("metadata_json").notNull().default("{}"), readAt: timestamp("read_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), dedupeKey: text("dedupe_key").notNull().unique() });
+export const ownerFinanceLedger = pgTable("owner_finance_ledger", { id: uuid("id").defaultRandom().primaryKey(), entryType: text("entry_type").notNull(), sourceType: text("source_type").notNull(), sourceId: text("source_id").notNull(), amountMinor: integer("amount_minor").notNull(), currency: text("currency").notNull(), metadataJson: text("metadata_json").notNull().default("{}"), reversalOfId: uuid("reversal_of_id"), createdBy: uuid("created_by").references(() => users.id, { onDelete: "restrict" }), occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow() });
+export const trainerPayoutRegister = pgTable("trainer_payout_register", { id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), amountMinor: integer("amount_minor").notNull(), currency: text("currency").notNull(), periodStart: date("period_start").notNull(), periodEnd: date("period_end").notNull(), paymentDate: date("payment_date").notNull(), bankReference: text("bank_reference"), createdBy: uuid("created_by").notNull().references(() => users.id, { onDelete: "restrict" }), approvedBy: uuid("approved_by").references(() => users.id, { onDelete: "restrict" }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() });
+export const trainerPayoutAccounts = pgTable("trainer_payout_accounts", { id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().unique().references(() => users.id, { onDelete: "restrict" }), accountHolderName: text("account_holder_name").notNull(), bankName: text("bank_name").notNull(), iban: text("iban").notNull(), note: text("note"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
+export const notificationEmailOutbox = pgTable("notification_email_outbox", { id: uuid("id").defaultRandom().primaryKey(), recipientUserId: uuid("recipient_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), eventType: text("event_type").notNull(), recipientEmail: text("recipient_email").notNull(), subject: text("subject").notNull(), body: text("body").notNull(), status: text("status").notNull().default("QUEUED"), dedupeKey: text("dedupe_key").notNull().unique(), attemptCount: integer("attempt_count").notNull().default(0), lastError: text("last_error"), processingStartedAt: timestamp("processing_started_at", { withTimezone: true }), nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }), providerMessageId: text("provider_message_id"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), sentAt: timestamp("sent_at", { withTimezone: true }) });
+
+export const trainerApplications = pgTable("trainer_applications", { id: uuid("id").defaultRandom().primaryKey(), firstName: text("first_name").notNull(), lastName: text("last_name").notNull(), email: text("email").notNull(), phone: text("phone"), city: text("city"), educationBackground: text("education_background"), experience: text("experience"), description: text("description"), requestedProgram: text("requested_program"), legalAcknowledged: boolean("legal_acknowledged").notNull().default(false), status: text("status").notNull().default("RECEIVED"), reviewNote: text("review_note"), invitationTokenHash: text("invitation_token_hash"), invitationExpiresAt: timestamp("invitation_expires_at", { withTimezone: true }), invitationUsedAt: timestamp("invitation_used_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
+export const accountClosureRequests = pgTable("account_closure_requests", { id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }), reason: text("reason"), status: text("status").notNull().default("REQUESTED"), reviewNote: text("review_note"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });

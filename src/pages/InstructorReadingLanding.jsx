@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
 import TrainerStoriesSection from "../components/TrainerStoriesSection.jsx";
+import SharedPromoVideo from "../components/SharedPromoVideo.jsx";
 import {
   instructorApplicationProcess,
   instructorAudience,
@@ -186,18 +187,7 @@ function InstructorHeroArtwork() {
 }
 
 function InstructorVideoPlaceholder() {
-  return (
-    <div
-      className="instructor-video-placeholder"
-      role="img"
-      aria-label={instructorVideoDiscovery.placeholderLabel}
-    >
-      <span className="instructor-video-play" aria-hidden="true" />
-      <span className="instructor-video-label" aria-hidden="true">
-        Video içerikleri yakında
-      </span>
-    </div>
-  );
+  return <SharedPromoVideo context="instructor" title="Neden Fixoku?" label={instructorVideoDiscovery.placeholderLabel} />;
 }
 
 function InstructorSectionTitle({ id, lead, accent }) {

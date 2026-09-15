@@ -5,6 +5,7 @@ loadLocalEnv();
 const origin = process.env.APP_ORIGIN || "http://127.0.0.1:5173";
 const password = process.env.TEST_SEED_PASSWORD;
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+await pool.query("delete from rate_limit");
 const rows = (await pool.query("select u.auth_user_id,u.id,sp.id as profile_id from platform_users u left join student_profiles sp on sp.user_id=u.id where u.auth_user_id = any($1::text[])", [["phase1c-student-test-user", "phase1h-student-b-test-user", "phase1h-student-c-test-user", "phase1h-student-d-test-user"]])).rows;
 await pool.end();
 const ids = Object.fromEntries(rows.map((r) => [r.auth_user_id, r]));

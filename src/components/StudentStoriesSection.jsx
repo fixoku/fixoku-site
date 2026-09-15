@@ -1,100 +1,37 @@
-import { useMemo, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   formatSocialProofCount,
   TRAINED_STUDENT_COUNT,
 } from "../data/socialProof.js";
+import { publicStudentVideoMedia } from "../data/publicVideoMedia.js";
+import StoryVideoModal from "./StoryVideoModal.jsx";
 
-const studentStories = [
-  {
-    id: "student-ali-grade-6",
-    title: "Ali",
-    role: "6. Sınıf Öğrencisi",
-    badge: "Gerçek Öğrenci Deneyimi",
-    video: "/dynavit.mp4",
-    poster: "/egitici1.jpeg",
-  },
-  {
-    id: "student-ece-grade-8",
-    title: "Ece",
-    role: "8. Sınıf Öğrencisi",
-    badge: "Gerçek Öğrenci Deneyimi",
-    video: "/dynavit.mp4",
-    poster: "/egitici2.jpeg",
-  },
-  {
-    id: "student-mert-grade-5",
-    title: "Mert",
-    role: "5. Sınıf Öğrencisi",
-    badge: "Gerçek Öğrenci Deneyimi",
-    video: "/dynavit.mp4",
-    poster: "/egitici3.jpeg",
-  },
-  {
-    id: "parent-ayse",
-    title: "Ayşe Hanım",
-    role: "Veli",
-    badge: "Fixoku Velisi",
-    video: "/dynavit.mp4",
-    poster: "/egitici4.jpeg",
-  },
-  {
-    id: "student-zeynep-grade-7",
-    title: "Zeynep",
-    role: "7. Sınıf Öğrencisi",
-    badge: "Gerçek Öğrenci Deneyimi",
-    video: "/dynavit.mp4",
-    poster: "/egitici1.jpeg",
-  },
-  {
-    id: "student-can-grade-4",
-    title: "Can",
-    role: "4. Sınıf Öğrencisi",
-    badge: "Gerçek Öğrenci Deneyimi",
-    video: "/dynavit.mp4",
-    poster: "/egitici2.jpeg",
-  },
-  {
-    id: "parent-merve",
-    title: "Merve Hanım",
-    role: "Veli",
-    badge: "Fixoku Velisi",
-    video: "/dynavit.mp4",
-    poster: "/egitici3.jpeg",
-  },
-  {
-    id: "student-kemal-grade-8",
-    title: "Kemal",
-    role: "8. Sınıf Öğrencisi",
-    badge: "Gerçek Öğrenci Deneyimi",
-    video: "/dynavit.mp4",
-    poster: "/egitici4.jpeg",
-  },
-];
-
+const studentStories = publicStudentVideoMedia;
 export default function StudentStoriesSection({
   className = "",
   subtitle = "Fixoku hızlı okuma ve dikkat geliştirme eğitimi alan öğrenciler ve veliler, eğitim sürecindeki deneyimlerini paylaşıyor.",
 }) {
-  const [storyIndex, setStoryIndex] = useState(0);
-  const [activeVideo, setActiveVideo] = useState(null);
-
-  const visibleStories = useMemo(
-    () => Array.from(
-      { length: 4 },
-      (_, index) => studentStories[(storyIndex + index) % studentStories.length],
-    ),
-    [storyIndex],
-  );
-
-  const goPrevious = () => {
-    setStoryIndex((previous) => (
-      previous === 0 ? studentStories.length - 1 : previous - 1
+  const [activeVideoIndex, setActiveVideoIndex] = useState(null);
+  const storiesGridRef = useRef(null);
+  const closeVideo = useCallback(() => setActiveVideoIndex(null), []);
+  const showPreviousVideo = useCallback(() => {
+    setActiveVideoIndex((currentIndex) => (
+      currentIndex === null
+        ? null
+        : Math.max(0, currentIndex - 1)
     ));
-  };
-
-  const goNext = () => {
-    setStoryIndex((previous) => (previous + 1) % studentStories.length);
+  }, []);
+  const showNextVideo = useCallback(() => {
+    setActiveVideoIndex((currentIndex) => (
+      currentIndex === null ? null : Math.min(studentStories.length - 1, currentIndex + 1)
+    ));
+  }, []);
+  const scrollStories = (direction) => {
+    storiesGridRef.current?.scrollBy({
+      left: direction * storiesGridRef.current.clientWidth * 0.86,
+      behavior: "smooth",
+    });
   };
 
   return (
@@ -114,21 +51,22 @@ export default function StudentStoriesSection({
           <button
             type="button"
             className="story-slider-arrow story-slider-prev"
-            onClick={goPrevious}
+            onClick={() => scrollStories(-1)}
             aria-label="Önceki öğrenci videosu"
           >
             ‹
           </button>
 
-          <div className="stories-grid">
-            {visibleStories.map((story) => (
+          <div className="stories-grid" ref={storiesGridRef}>
+            {studentStories.map((story, storyIndex) => (
               <button
                 type="button"
                 className="story-card"
                 key={story.id}
-                onClick={() => setActiveVideo(story)}
+                aria-label={`${story.badge}: ${story.title} videosunu oynat`}
+                onClick={() => setActiveVideoIndex(storyIndex)}
               >
-                <div className={`story-badge ${story.role === "Veli" ? "story-badge-parent" : ""}`}>
+                <div className="story-badge">
                   {story.badge}
                 </div>
                 <div className="story-media" style={{ backgroundImage: `url(${story.poster})` }}>
@@ -143,7 +81,6 @@ export default function StudentStoriesSection({
 
                   <div className="story-meta">
                     <div className="story-name">{story.title}</div>
-                    <div className="story-role">{story.role}</div>
                   </div>
                 </div>
               </button>
@@ -153,7 +90,7 @@ export default function StudentStoriesSection({
           <button
             type="button"
             className="story-slider-arrow story-slider-next"
-            onClick={goNext}
+            onClick={() => scrollStories(1)}
             aria-label="Sonraki öğrenci videosu"
           >
             ›
@@ -192,26 +129,16 @@ export default function StudentStoriesSection({
         </div>
       </div>
 
-      {activeVideo && (
-        <div className="trainer-video-modal" onClick={() => setActiveVideo(null)}>
-          <div className="trainer-video-modal-inner" onClick={(event) => event.stopPropagation()}>
-            <button
-              type="button"
-              className="trainer-video-close"
-              onClick={() => setActiveVideo(null)}
-              aria-label="Videoyu kapat"
-            >
-              ×
-            </button>
-            <video
-              src={activeVideo.video}
-              controls
-              autoPlay
-              playsInline
-              className="trainer-video-player"
-            />
-          </div>
-        </div>
+      {activeVideoIndex !== null && (
+        <StoryVideoModal
+          story={studentStories[activeVideoIndex]}
+          currentPosition={activeVideoIndex + 1}
+          total={studentStories.length}
+          storyType="öğrenci"
+          onClose={closeVideo}
+          onPrevious={showPreviousVideo}
+          onNext={showNextVideo}
+        />
       )}
     </section>
   );

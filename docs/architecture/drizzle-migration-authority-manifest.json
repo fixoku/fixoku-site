@@ -1,0 +1,725 @@
+{
+  "generatedAt": "2026-09-14T23:47:33.179Z",
+  "drizzleOrmVersion": "0.45.2",
+  "drizzleKitVersion": "0.31.10",
+  "sourceJournalCount": 24,
+  "currentLedgerCount": 24,
+  "shadowLedgerCount": 24,
+  "currentLedgerMissing": [],
+  "currentHashMismatches": [],
+  "shadowLedgerMissing": [],
+  "manifest": [
+    {
+      "index": 0,
+      "tag": "0000_dear_donald_blake",
+      "journalTimestamp": 1788883697297,
+      "sqlFile": "0000_dear_donald_blake.sql",
+      "sourceHash": "d963d408cc7226b7dc8acbdfacd175add3b5a3e83b39fc66a4de250daddf0d74",
+      "expectedMajorObjects": [
+        "public.membership_role",
+        "public.membership_scope_type",
+        "public.membership_status",
+        "platform_audit_events",
+        "platform_memberships",
+        "platform_users",
+        "platform_audit_events.platform_audit_events_actor_user_id_platform_users_id_fk",
+        "platform_memberships.platform_memberships_user_id_platform_users_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.membership_role": true,
+        "public.membership_scope_type": true,
+        "public.membership_status": true,
+        "platform_audit_events": true,
+        "platform_memberships": true,
+        "platform_users": true,
+        "platform_audit_events.platform_audit_events_actor_user_id_platform_users_id_fk": true,
+        "platform_memberships.platform_memberships_user_id_platform_users_id_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 1,
+      "tag": "0001_dashing_edwin_jarvis",
+      "journalTimestamp": 1788884814470,
+      "sqlFile": "0001_dashing_edwin_jarvis.sql",
+      "sourceHash": "cedfecf1ec3b557a573bb6ec3d71eb141d719047048e21429fbfeac7b2b6f61d",
+      "expectedMajorObjects": [
+        "account",
+        "session",
+        "user",
+        "verification",
+        "account_userId_idx",
+        "session_userId_idx",
+        "verification_identifier_idx",
+        "account.account_user_id_user_id_fk",
+        "session.session_user_id_user_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "account": true,
+        "session": true,
+        "user": true,
+        "verification": true,
+        "account_userId_idx": true,
+        "session_userId_idx": true,
+        "verification_identifier_idx": true,
+        "account.account_user_id_user_id_fk": true,
+        "session.session_user_id_user_id_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 2,
+      "tag": "0002_wild_shriek",
+      "journalTimestamp": 1788885605268,
+      "sqlFile": "0002_wild_shriek.sql",
+      "sourceHash": "9da5d84dfee9679c6b1d8439370b4149619dbc9bc276a51408445ce74e1e6571",
+      "expectedMajorObjects": [
+        "platform_users.platform_users_auth_user_id_unique"
+      ],
+      "currentDbObjectPresence": {
+        "platform_users.platform_users_auth_user_id_unique": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 3,
+      "tag": "0003_auth-user-mapping",
+      "journalTimestamp": 1788885828443,
+      "sqlFile": "0003_auth-user-mapping.sql",
+      "sourceHash": "42abbdcd363d9167b385c93ae5062c184706ef7855489032d8e31dcfef9cd539",
+      "expectedMajorObjects": [],
+      "currentDbObjectPresence": {},
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 4,
+      "tag": "0004_rate-limit",
+      "journalTimestamp": 1788887203989,
+      "sqlFile": "0004_rate-limit.sql",
+      "sourceHash": "9463367e926e005a8acf481faf0f530ea7f09d33df5f2c955cd4e14d740cf3c9",
+      "expectedMajorObjects": [
+        "rate_limit"
+      ],
+      "currentDbObjectPresence": {
+        "rate_limit": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 5,
+      "tag": "0005_ratelimit-id",
+      "journalTimestamp": 1788887370541,
+      "sqlFile": "0005_ratelimit-id.sql",
+      "sourceHash": "0ea7fa237e6266061bf3faf59adf3074d8c433a35c1566f06327f4239bb1aff8",
+      "expectedMajorObjects": [
+        "rate_limit.rate_limit_pkey",
+        "rate_limit.rate_limit_key_unique"
+      ],
+      "currentDbObjectPresence": {
+        "rate_limit.rate_limit_pkey": true,
+        "rate_limit.rate_limit_key_unique": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 6,
+      "tag": "0006_dashing_bloodstorm",
+      "journalTimestamp": 1788898131070,
+      "sqlFile": "0006_dashing_bloodstorm.sql",
+      "sourceHash": "c59cf294757e716de9f30643efc1fe9ee9ebad0eb5adf69afb22fc687fde71c7",
+      "expectedMajorObjects": [
+        "trainer_profiles",
+        "trainer_profiles.trainer_profiles_user_id_platform_users_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "trainer_profiles": true,
+        "trainer_profiles.trainer_profiles_user_id_platform_users_id_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 7,
+      "tag": "0007_strong_klaw",
+      "journalTimestamp": 1788901200520,
+      "sqlFile": "0007_strong_klaw.sql",
+      "sourceHash": "abd10f5c1b73b97c1a5cf72c87ea512ea29d295f11a80cbd76cd352b5f3f19ce",
+      "expectedMajorObjects": [
+        "public.trainer_entitlement_status",
+        "public.training_program_audience",
+        "public.training_program_status",
+        "trainer_entitlements",
+        "training_programs",
+        "trainer_entitlements.trainer_entitlements_trainer_user_id_platform_users_id_fk",
+        "trainer_entitlements.trainer_entitlements_training_program_id_training_programs_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.trainer_entitlement_status": true,
+        "public.training_program_audience": true,
+        "public.training_program_status": true,
+        "trainer_entitlements": true,
+        "training_programs": true,
+        "trainer_entitlements.trainer_entitlements_trainer_user_id_platform_users_id_fk": true,
+        "trainer_entitlements.trainer_entitlements_training_program_id_training_programs_id_fk": false
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 8,
+      "tag": "0008_dazzling_fenris",
+      "journalTimestamp": 1788906705644,
+      "sqlFile": "0008_dazzling_fenris.sql",
+      "sourceHash": "5ac8562e516b62c9e79c9588cbc8630f83d03aaf4b813f4aefaca828f4490781",
+      "expectedMajorObjects": [
+        "public.presentation_status",
+        "presentations",
+        "presentations.presentations_training_program_id_training_programs_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.presentation_status": true,
+        "presentations": true,
+        "presentations.presentations_training_program_id_training_programs_id_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 9,
+      "tag": "0009_jittery_killmonger",
+      "journalTimestamp": 1788909651320,
+      "sqlFile": "0009_jittery_killmonger.sql",
+      "sourceHash": "49cd02dff8c0c55af21df42803386b3e90e0633579ef5d56beb8cb16475e4423",
+      "expectedMajorObjects": [
+        "public.resource_status",
+        "resources",
+        "resources.resources_training_program_id_training_programs_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.resource_status": true,
+        "resources": true,
+        "resources.resources_training_program_id_training_programs_id_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 10,
+      "tag": "0010_trainer_earning_ledger",
+      "journalTimestamp": 1788910000000,
+      "sqlFile": "0010_trainer_earning_ledger.sql",
+      "sourceHash": "9f28d4e4d77f895203fa23a811a77d51dd91b60c5d035f21310655c29b66b85c",
+      "expectedMajorObjects": [
+        "public.trainer_earning_entry_type",
+        "public.trainer_earning_status",
+        "trainer_earning_ledger",
+        "trainer_earning_ledger.trainer_earning_ledger_trainer_user_id_platform_users_id_fk",
+        "trainer_earning_ledger.trainer_earning_ledger_student_user_id_platform_users_id_fk",
+        "trainer_earning_ledger.trainer_earning_ledger_training_program_id_training_programs_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.trainer_earning_entry_type": true,
+        "public.trainer_earning_status": true,
+        "trainer_earning_ledger": true,
+        "trainer_earning_ledger.trainer_earning_ledger_trainer_user_id_platform_users_id_fk": true,
+        "trainer_earning_ledger.trainer_earning_ledger_student_user_id_platform_users_id_fk": true,
+        "trainer_earning_ledger.trainer_earning_ledger_training_program_id_training_programs_id_fk": false
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 11,
+      "tag": "0011_trainer_availability",
+      "journalTimestamp": 1788911000000,
+      "sqlFile": "0011_trainer_availability.sql",
+      "sourceHash": "48c95e22b25560a2aa739fdfa0f7463336cbf33b5238a00e501e9bb9abce13d5",
+      "expectedMajorObjects": [
+        "public.availability_slot_status",
+        "availability_slots",
+        "availability_slots.availability_slots_trainer_user_id_platform_users_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.availability_slot_status": true,
+        "availability_slots": true,
+        "availability_slots.availability_slots_trainer_user_id_platform_users_id_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 12,
+      "tag": "0012_student_roster",
+      "journalTimestamp": 1788912000000,
+      "sqlFile": "0012_student_roster.sql",
+      "sourceHash": "c10488c563f2c6148ecf7c4c4401ba5a4401162acf4abaf187a4dc03a49e291c",
+      "expectedMajorObjects": [
+        "public.student_profile_status",
+        "student_profiles",
+        "trainer_student_links",
+        "student_profiles.student_profiles_user_id_platform_users_id_fk",
+        "trainer_student_links.trainer_student_links_trainer_user_id_platform_users_id_fk",
+        "trainer_student_links.trainer_student_links_student_user_id_platform_users_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.student_profile_status": true,
+        "student_profiles": true,
+        "trainer_student_links": true,
+        "student_profiles.student_profiles_user_id_platform_users_id_fk": true,
+        "trainer_student_links.trainer_student_links_trainer_user_id_platform_users_id_fk": true,
+        "trainer_student_links.trainer_student_links_student_user_id_platform_users_id_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 13,
+      "tag": "0013_canonical_enrollment_assignment",
+      "journalTimestamp": 1788920000000,
+      "sqlFile": "0013_canonical_enrollment_assignment.sql",
+      "sourceHash": "226f81fbd9ec833ec3695612b82fc8d5532660043e67640a2afcdb5ccad88ff9",
+      "expectedMajorObjects": [
+        "public.enrollment_status",
+        "enrollments",
+        "trainer_assignments",
+        "enrollments.enrollments_student_user_id_platform_users_id_fk",
+        "enrollments.enrollments_training_program_id_training_programs_id_fk",
+        "trainer_assignments.trainer_assignments_trainer_user_id_platform_users_id_fk",
+        "trainer_assignments.trainer_assignments_enrollment_id_enrollments_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.enrollment_status": true,
+        "enrollments": true,
+        "trainer_assignments": true,
+        "enrollments.enrollments_student_user_id_platform_users_id_fk": true,
+        "enrollments.enrollments_training_program_id_training_programs_id_fk": true,
+        "trainer_assignments.trainer_assignments_trainer_user_id_platform_users_id_fk": true,
+        "trainer_assignments.trainer_assignments_enrollment_id_enrollments_id_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 14,
+      "tag": "0014_guardian_portal_foundation",
+      "journalTimestamp": 1788950000000,
+      "sqlFile": "0014_guardian_portal_foundation.sql",
+      "sourceHash": "fdb6965aad3d67948e49b8e4fe88a9f5011fcaf141d3563cdc51b909ed4712b4",
+      "expectedMajorObjects": [
+        "public.guardian_profile_status",
+        "public.guardian_relationship_status",
+        "guardian_profiles",
+        "guardian_student_relationships",
+        "guardian_profiles.guardian_profiles_user_id_platform_users_id_fk",
+        "guardian_student_relationships.guardian_student_relationships_guardian_user_id_platform_users_id_fk",
+        "guardian_student_relationships.guardian_student_relationships_student_profile_id_student_profiles_id_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.guardian_profile_status": true,
+        "public.guardian_relationship_status": true,
+        "guardian_profiles": true,
+        "guardian_student_relationships": true,
+        "guardian_profiles.guardian_profiles_user_id_platform_users_id_fk": true,
+        "guardian_student_relationships.guardian_student_relationships_guardian_user_id_platform_users_id_fk": false,
+        "guardian_student_relationships.guardian_student_relationships_student_profile_id_student_profiles_id_fk": false
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 15,
+      "tag": "0015_package_catalog_foundation",
+      "journalTimestamp": 1789000000000,
+      "sqlFile": "0015_package_catalog_foundation.sql",
+      "sourceHash": "2e24ec571c4d45ee963d7619f53bd492d7d29e1e4c7f639cb7f749c7055d0d3d",
+      "expectedMajorObjects": [
+        "public.package_catalog_status",
+        "public.package_delivery_mode",
+        "packages",
+        "package_versions",
+        "package_entitlement_definitions",
+        "package_versions_published_idx",
+        "package_versions.package_versions_package_id_fk",
+        "package_entitlement_definitions.package_entitlement_definitions_version_fk",
+        "package_entitlement_definitions.package_entitlement_definitions_program_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.package_catalog_status": true,
+        "public.package_delivery_mode": true,
+        "packages": true,
+        "package_versions": true,
+        "package_entitlement_definitions": true,
+        "package_versions_published_idx": true,
+        "package_versions.package_versions_package_id_fk": true,
+        "package_entitlement_definitions.package_entitlement_definitions_version_fk": true,
+        "package_entitlement_definitions.package_entitlement_definitions_program_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 16,
+      "tag": "0016_trainer_assignment_foundation",
+      "journalTimestamp": 1789001000000,
+      "sqlFile": "0016_trainer_assignment_foundation.sql",
+      "sourceHash": "15d40ff36ac6f3b58694d0f5d352ed2b7241be92efdca9467fbdce6884ec03ab",
+      "expectedMajorObjects": [
+        "public.trainer_qualification_status",
+        "public.trainer_assignment_request_status",
+        "trainer_qualifications",
+        "trainer_assignment_requests",
+        "trainer_qualifications.trainer_qualifications_trainer_fk",
+        "trainer_qualifications.trainer_qualifications_program_fk",
+        "trainer_assignment_requests.trainer_assignment_requests_enrollment_fk",
+        "trainer_assignment_requests.trainer_assignment_requests_assignment_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.trainer_qualification_status": true,
+        "public.trainer_assignment_request_status": true,
+        "trainer_qualifications": true,
+        "trainer_assignment_requests": true,
+        "trainer_qualifications.trainer_qualifications_trainer_fk": true,
+        "trainer_qualifications.trainer_qualifications_program_fk": true,
+        "trainer_assignment_requests.trainer_assignment_requests_enrollment_fk": true,
+        "trainer_assignment_requests.trainer_assignment_requests_assignment_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 17,
+      "tag": "0017_package_commerce_entitlement_foundation",
+      "journalTimestamp": 1789002000000,
+      "sqlFile": "0017_package_commerce_entitlement_foundation.sql",
+      "sourceHash": "fca56455595ea9ff96a74f98b4dddcac54bc3ccd47542599f002d55759a89836",
+      "expectedMajorObjects": [
+        "public.order_status",
+        "public.payment_intent_status",
+        "public.payment_transaction_status",
+        "public.payment_transaction_type",
+        "public.payment_webhook_status",
+        "public.package_entitlement_status",
+        "orders",
+        "order_items",
+        "payment_intents",
+        "payment_transactions",
+        "payment_webhook_events",
+        "package_entitlements",
+        "package_entitlement_enrollments",
+        "orders_beneficiary_idx",
+        "order_items_package_version_idx",
+        "payment_webhook_events_status_idx",
+        "package_entitlements_beneficiary_status_idx",
+        "orders.orders_buyer_user_fk",
+        "orders.orders_beneficiary_user_fk",
+        "orders.orders_beneficiary_profile_fk",
+        "order_items.order_items_order_fk",
+        "order_items.order_items_package_fk",
+        "order_items.order_items_package_version_fk",
+        "payment_intents.payment_intents_order_fk",
+        "payment_transactions.payment_transactions_intent_fk",
+        "payment_webhook_events.payment_webhook_events_attempt_count_chk",
+        "package_entitlements.package_entitlements_beneficiary_user_fk",
+        "package_entitlements.package_entitlements_beneficiary_profile_fk",
+        "package_entitlements.package_entitlements_package_fk",
+        "package_entitlements.package_entitlements_package_version_fk",
+        "package_entitlements.package_entitlements_order_fk",
+        "package_entitlements.package_entitlements_order_item_fk",
+        "package_entitlement_enrollments.package_entitlement_enrollments_entitlement_fk",
+        "package_entitlement_enrollments.package_entitlement_enrollments_enrollment_fk",
+        "package_entitlement_enrollments.package_entitlement_enrollments_program_fk",
+        "package_entitlement_enrollments.package_entitlement_enrollments_order_item_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.order_status": true,
+        "public.payment_intent_status": true,
+        "public.payment_transaction_status": true,
+        "public.payment_transaction_type": true,
+        "public.payment_webhook_status": true,
+        "public.package_entitlement_status": true,
+        "orders": true,
+        "order_items": true,
+        "payment_intents": true,
+        "payment_transactions": true,
+        "payment_webhook_events": true,
+        "package_entitlements": true,
+        "package_entitlement_enrollments": true,
+        "orders_beneficiary_idx": true,
+        "order_items_package_version_idx": true,
+        "payment_webhook_events_status_idx": true,
+        "package_entitlements_beneficiary_status_idx": true,
+        "orders.orders_buyer_user_fk": true,
+        "orders.orders_beneficiary_user_fk": true,
+        "orders.orders_beneficiary_profile_fk": true,
+        "order_items.order_items_order_fk": true,
+        "order_items.order_items_package_fk": true,
+        "order_items.order_items_package_version_fk": true,
+        "payment_intents.payment_intents_order_fk": true,
+        "payment_transactions.payment_transactions_intent_fk": true,
+        "payment_webhook_events.payment_webhook_events_attempt_count_chk": true,
+        "package_entitlements.package_entitlements_beneficiary_user_fk": true,
+        "package_entitlements.package_entitlements_beneficiary_profile_fk": true,
+        "package_entitlements.package_entitlements_package_fk": true,
+        "package_entitlements.package_entitlements_package_version_fk": true,
+        "package_entitlements.package_entitlements_order_fk": true,
+        "package_entitlements.package_entitlements_order_item_fk": true,
+        "package_entitlement_enrollments.package_entitlement_enrollments_entitlement_fk": true,
+        "package_entitlement_enrollments.package_entitlement_enrollments_enrollment_fk": true,
+        "package_entitlement_enrollments.package_entitlement_enrollments_program_fk": true,
+        "package_entitlement_enrollments.package_entitlement_enrollments_order_item_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 18,
+      "tag": "0018_owner_trainer_authority",
+      "journalTimestamp": 1789003000000,
+      "sqlFile": "0018_owner_trainer_authority.sql",
+      "sourceHash": "449a1920d5e33d953fa6ad4b245d14fc5c0c6b27ddb163305d905cc57b301018",
+      "expectedMajorObjects": [
+        "trainer_qualification_source",
+        "trainer_qualification_history",
+        "trainer_assignment_history",
+        "trainer_compensation_type",
+        "trainer_compensation_rules",
+        "trainer_compensation_snapshots",
+        "enrollment_session_status",
+        "enrollment_sessions",
+        "enrollment_completions"
+      ],
+      "currentDbObjectPresence": {
+        "trainer_qualification_source": true,
+        "trainer_qualification_history": true,
+        "trainer_assignment_history": true,
+        "trainer_compensation_type": true,
+        "trainer_compensation_rules": true,
+        "trainer_compensation_snapshots": true,
+        "enrollment_session_status": true,
+        "enrollment_sessions": true,
+        "enrollment_completions": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 19,
+      "tag": "0019_fulfillment_download_notifications_finance",
+      "journalTimestamp": 1789004000000,
+      "sqlFile": "0019_fulfillment_download_notifications_finance.sql",
+      "sourceHash": "b3712f3986cf8e82a4793079dc3edb72178c9ef902b0a435efc4f582e63432f6",
+      "expectedMajorObjects": [
+        "public.package_component_type",
+        "package_components",
+        "package_components_version_idx",
+        "physical_products",
+        "public.inventory_movement_type",
+        "inventory_movements",
+        "inventory_movements_product_time_idx",
+        "public.shipment_status",
+        "shipments",
+        "shipment_items",
+        "digital_files",
+        "digital_entitlements",
+        "digital_download_audits",
+        "panel_notifications",
+        "panel_notifications_recipient_idx",
+        "owner_finance_ledger",
+        "owner_finance_source_idx",
+        "trainer_payout_register",
+        "trainer_payout_trainer_period_idx",
+        "notification_email_outbox",
+        "notification_email_outbox_status_idx",
+        "package_components.package_components_version_fk",
+        "inventory_movements.inventory_movements_product_fk",
+        "inventory_movements.inventory_movements_actor_fk",
+        "shipments.shipments_order_fk",
+        "shipments.shipments_beneficiary_fk",
+        "shipment_items.shipment_items_shipment_fk",
+        "shipment_items.shipment_items_product_fk",
+        "digital_entitlements.digital_entitlements_file_fk",
+        "digital_entitlements.digital_entitlements_beneficiary_fk",
+        "digital_entitlements.digital_entitlements_order_item_fk",
+        "digital_download_audits.digital_download_audits_entitlement_fk",
+        "digital_download_audits.digital_download_audits_actor_fk",
+        "panel_notifications.panel_notifications_recipient_fk",
+        "owner_finance_ledger.owner_finance_reversal_fk",
+        "owner_finance_ledger.owner_finance_creator_fk"
+      ],
+      "currentDbObjectPresence": {
+        "public.package_component_type": true,
+        "package_components": true,
+        "package_components_version_idx": true,
+        "physical_products": true,
+        "public.inventory_movement_type": true,
+        "inventory_movements": true,
+        "inventory_movements_product_time_idx": true,
+        "public.shipment_status": true,
+        "shipments": true,
+        "shipment_items": true,
+        "digital_files": true,
+        "digital_entitlements": true,
+        "digital_download_audits": true,
+        "panel_notifications": true,
+        "panel_notifications_recipient_idx": true,
+        "owner_finance_ledger": true,
+        "owner_finance_source_idx": true,
+        "trainer_payout_register": true,
+        "trainer_payout_trainer_period_idx": true,
+        "notification_email_outbox": true,
+        "notification_email_outbox_status_idx": true,
+        "package_components.package_components_version_fk": true,
+        "inventory_movements.inventory_movements_product_fk": true,
+        "inventory_movements.inventory_movements_actor_fk": true,
+        "shipments.shipments_order_fk": true,
+        "shipments.shipments_beneficiary_fk": true,
+        "shipment_items.shipment_items_shipment_fk": true,
+        "shipment_items.shipment_items_product_fk": true,
+        "digital_entitlements.digital_entitlements_file_fk": true,
+        "digital_entitlements.digital_entitlements_beneficiary_fk": true,
+        "digital_entitlements.digital_entitlements_order_item_fk": true,
+        "digital_download_audits.digital_download_audits_entitlement_fk": true,
+        "digital_download_audits.digital_download_audits_actor_fk": true,
+        "panel_notifications.panel_notifications_recipient_fk": true,
+        "owner_finance_ledger.owner_finance_reversal_fk": true,
+        "owner_finance_ledger.owner_finance_creator_fk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 20,
+      "tag": "0020_operational_products_shipments",
+      "journalTimestamp": 1789005000000,
+      "sqlFile": "0020_operational_products_shipments.sql",
+      "sourceHash": "78e8ea71da3a77737d98420d54ff755b5a807d32f96b5a50bf0787f80ddef33b",
+      "expectedMajorObjects": [
+        "physical_products_active_idx",
+        "shipments_status_created_idx",
+        "physical_products.physical_products_type_chk"
+      ],
+      "currentDbObjectPresence": {
+        "physical_products_active_idx": true,
+        "shipments_status_created_idx": true,
+        "physical_products.physical_products_type_chk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 21,
+      "tag": "0021_download_delivery_email_outbox",
+      "journalTimestamp": 1789006000000,
+      "sqlFile": "0021_download_delivery_email_outbox.sql",
+      "sourceHash": "38eb1b7763919d0fdf086b75d024e3b15ab23d922880b535b670f0a8a65ab44a",
+      "expectedMajorObjects": [
+        "digital_entitlements_beneficiary_idx",
+        "notification_email_outbox_claim_idx",
+        "notification_email_outbox.notification_email_outbox_attempt_chk"
+      ],
+      "currentDbObjectPresence": {
+        "digital_entitlements_beneficiary_idx": true,
+        "notification_email_outbox_claim_idx": true,
+        "notification_email_outbox.notification_email_outbox_attempt_chk": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 22,
+      "tag": "0022_panel_profile_payout_parity",
+      "journalTimestamp": 1789242544364,
+      "sqlFile": "0022_panel_profile_payout_parity.sql",
+      "sourceHash": "62d5c7ebb3b92157b4bdcfc3a8f24aa0ba72a88ac34ebb8ac6d233d67fd5fef8",
+      "expectedMajorObjects": [
+        "trainer_payout_accounts",
+        "trainer_payout_accounts_updated_idx"
+      ],
+      "currentDbObjectPresence": {
+        "trainer_payout_accounts": true,
+        "trainer_payout_accounts_updated_idx": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    },
+    {
+      "index": 23,
+      "tag": "0023_account_lifecycle_foundation",
+      "journalTimestamp": 1789400000000,
+      "sqlFile": "0023_account_lifecycle_foundation.sql",
+      "sourceHash": "8cf5f609aca58a94539ad593156d190385476ae886db99e30890860bd51a7d78",
+      "expectedMajorObjects": [
+        "trainer_applications",
+        "trainer_applications_status_idx",
+        "account_closure_requests",
+        "account_closure_requests_user_idx",
+        "twoFactor",
+        "admin_invitations"
+      ],
+      "currentDbObjectPresence": {
+        "trainer_applications": true,
+        "trainer_applications_status_idx": true,
+        "account_closure_requests": true,
+        "account_closure_requests_user_idx": true,
+        "twoFactor": true,
+        "admin_invitations": true
+      },
+      "currentDbLedgerPresence": true,
+      "currentDbLedgerHashMatch": true,
+      "shadowDbLedgerPresence": true,
+      "shadowDbLedgerHashMatch": true
+    }
+  ]
+}

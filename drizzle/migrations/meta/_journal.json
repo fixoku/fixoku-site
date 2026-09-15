@@ -106,6 +106,69 @@
       "when": 1788950000000,
       "tag": "0014_guardian_portal_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1789000000000,
+      "tag": "0015_package_catalog_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1789001000000,
+      "tag": "0016_trainer_assignment_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789002000000,
+      "tag": "0017_package_commerce_entitlement_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789003000000,
+      "tag": "0018_owner_trainer_authority",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789004000000,
+      "tag": "0019_fulfillment_download_notifications_finance",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1789005000000,
+      "tag": "0020_operational_products_shipments",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1789006000000,
+      "tag": "0021_download_delivery_email_outbox",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1789242544364,
+      "tag": "0022_panel_profile_payout_parity",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789400000000,
+      "tag": "0023_account_lifecycle_foundation",
+      "breakpoints": true
     }
   ]
 }

@@ -25,8 +25,10 @@ export default async function handler(req, res) {
         .innerJoin(memberships, and(eq(memberships.userId, users.id), eq(memberships.role, "STUDENT"), eq(memberships.scopeType, "STUDENT"), eq(memberships.status, "ACTIVE")))
         .where(and(eq(trainerAssignments.trainerUserId, principal.user.id), eq(trainerAssignments.status, "ACTIVE"), eq(enrollments.studentUserId, studentId), eq(enrollments.status, "ACTIVE"))).limit(1);
       if (!rows.length) return json(res, 404, { error: "STUDENT_NOT_FOUND" });
-      const { user, profile, assignment } = rows[0];
-      return json(res, 200, { student: { id: user.id, name: user.displayName, email: user.email, grade: profile?.grade ?? null, school: profile?.school ?? null, status: profile?.status ?? "ACTIVE", linkedAt: assignment.createdAt } });
+      const { user, profile, assignment, enrollment } = rows[0];
+      const progress = (await pool.query("select id,status,progress_percent as \"progressPercent\",completed_at as \"completedAt\",created_at as \"startedAt\" from enrollment_sessions where enrollment_id=$1 order by created_at desc", [enrollment.id])).rows;
+      const program = (await pool.query("select title from training_programs where id=$1", [enrollment.trainingProgramId])).rows[0];
+      return json(res, 200, { student: { id: user.id, name: user.displayName, email: user.email, grade: profile?.grade ?? null, school: profile?.school ?? null, status: enrollment.status, linkedAt: assignment.createdAt, enrollments: [{ id: enrollment.id, status: enrollment.status, programTitle: program?.title ?? null, progressPercent: enrollment.progressPercent, completedAt: enrollment.completedAt, sessions: progress }] } });
     } finally { await pool.end(); }
   } catch { return json(res, 503, { error: "STUDENT_UNAVAILABLE" }); }
 }

@@ -1,0 +1,26 @@
+import assert from "node:assert/strict";
+import crypto from "node:crypto";
+import { deniedConsent, grantedConsent, consentModeValues, saveConsent, normalizeConsent } from "../src/martech/consent.js";
+import { createEvent, pushEvent } from "../src/martech/events.js";
+import { paytrRuntime, paytrToken, verifyPaytrCallback } from "../src/server/payments/paytr.js";
+
+const memoryStorage = new Map();
+const storage = { getItem: (key) => memoryStorage.get(key) ?? null, setItem: (key, value) => memoryStorage.set(key, value) };
+assert.deepEqual(normalizeConsent({}), deniedConsent());
+assert.equal(consentModeValues(deniedConsent()).analytics_storage, "denied");
+assert.equal(consentModeValues(grantedConsent()).ad_personalization, "granted");
+const receipt = saveConsent(grantedConsent(), { storage, source: "contract" });
+const target = { location: { href: "http://127.0.0.1:5173/contract", pathname: "/contract" }, localStorage: storage, dataLayer: [] };
+const event = createEvent("form_submit", { studentName: "Ali", dob: "2000-01-01", school: "X", grade: "6", class: "A", guardianRelationship: "parent", teacherNotes: "secret", iban: "TR", address: "x", message: "secret", phone: "+90", email: "a@example.test", form_id: "contract" }, { target, consent: receipt });
+for (const key of ["studentName", "dob", "school", "grade", "class", "guardianRelationship", "teacherNotes", "iban", "address", "message", "phone", "email"]) assert.equal(Object.hasOwn(event, key), false, `sensitive key leaked: ${key}`);
+const pushed = pushEvent("form_submit", { form_id: "contract" }, { target, consent: receipt });
+assert.equal(pushed.pushed, true);
+const paytrEnv = { PAYTR_ENABLED: "1", PAYTR_MERCHANT_ID: "mid", PAYTR_MERCHANT_KEY: "key", PAYTR_MERCHANT_SALT: "salt" };
+assert.equal(paytrRuntime({}).status, "CONFIG_REQUIRED");
+const token = paytrToken({ merchantOid: "order-1", userIp: "127.0.0.1", email: "contract@example.test", paymentAmount: "1000", userBasket: "[]", currency: "TL", testMode: "1" }, paytrEnv);
+assert.ok(token);
+const callback = { merchant_oid: "order-1", status: "success", total_amount: "1000" };
+callback.hash = crypto.createHmac("sha256", paytrEnv.PAYTR_MERCHANT_KEY).update(`${callback.merchant_oid}${paytrEnv.PAYTR_MERCHANT_SALT}${callback.status}${callback.total_amount}`).digest("base64");
+assert.equal(verifyPaytrCallback(callback, paytrEnv), true);
+assert.equal(verifyPaytrCallback({ ...callback, hash: "bad" }, paytrEnv), false);
+console.log(JSON.stringify({ consent: "PASS", martechPrivacy: "PASS", paytr: "PASS", sensitiveFields: 0 }));

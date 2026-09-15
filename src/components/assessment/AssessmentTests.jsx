@@ -242,7 +242,7 @@ export function AssessmentTestCards({
             </div>
 
             <div className="trusted-users-content">
-              <div className="trusted-stars" aria-label="5 yıldız değerlendirme">
+              <div className="trusted-stars" role="img" aria-label="5 yıldız değerlendirme">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <svg key={index} viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M12 2.4l2.9 6 6.6.9-4.8 4.7 1.1 6.6L12 17.5l-5.8 3.1 1.1-6.6-4.8-4.7 6.6-.9L12 2.4Z" />

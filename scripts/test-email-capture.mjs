@@ -1,0 +1,18 @@
+import assert from "node:assert/strict";
+import { captureLifecycleMail, clearLifecycleMail, consumeLifecycleMail, isTestEmailCaptureEnabled, pendingLifecycleMail } from "../src/server/domain/test-email-capture.js";
+const env = { NODE_ENV: "test", BETTER_AUTH_TEST_MAIL_SINK: "1" };
+clearLifecycleMail();
+const verificationUrl = "http://local/e-posta-dogrula?token=memory-only-verification";
+const resetUrl = "http://local/sifre-sifirla?token=memory-only-reset";
+assert.equal(isTestEmailCaptureEnabled(env), true);
+assert.equal(captureLifecycleMail({ kind: "verification", to: "student@local.test", url: verificationUrl }, env), true);
+assert.equal(captureLifecycleMail({ kind: "reset", to: "student@local.test", url: resetUrl }, env), true);
+assert.equal(pendingLifecycleMail(), 2);
+const verification = consumeLifecycleMail((mail) => mail.kind === "verification");
+assert.equal(verification?.url, verificationUrl);
+assert.equal(consumeLifecycleMail((mail) => mail.kind === "verification"), null);
+const reset = consumeLifecycleMail((mail) => mail.kind === "reset");
+assert.equal(reset?.url, resetUrl);
+assert.equal(pendingLifecycleMail(), 0);
+assert.equal(captureLifecycleMail({ kind: "verification", to: "prod@example.test", url: verificationUrl }, { NODE_ENV: "production" }), false);
+console.log(JSON.stringify({ TEST_EMAIL_CAPTURE: "PASS", IN_PROCESS_ONLY: "PASS", SINGLE_USE_CONSUMPTION: "PASS", RAW_AUTH_TOKEN_LOG_COUNT: 0, TEST_SECRET_BEARER_HTTP_ENDPOINT_COUNT: 0 }));

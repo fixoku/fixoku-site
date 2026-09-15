@@ -8,7 +8,7 @@ const url = assertSafeSeedDatabaseUrl(process.env.SEED_DATABASE_URL || (process.
 const password = process.env.TEST_SEED_PASSWORD;
 assert.ok(password && password.length >= 12, "TEST_SEED_PASSWORD_REQUIRED");
 const principals = [
-  ["phase1c-trainer-test-user", "trainer.phase1c@example.test", "Özlem Yılmaz", "TRAINER"],
+  ["phase1c-trainer-test-user", "trainer.phase1c@example.test", "Phase 1C Trainer", "TRAINER"],
   ["phase1h-trainer-b-test-user", "trainer.b.phase1h@example.test", "Phase 1H Trainer B", "TRAINER"],
   ["phase1c-student-test-user", "student.phase1c@example.test", "ERSİN", "STUDENT"],
   ["phase1h-student-b-test-user", "student.b.phase1h@example.test", "Phase 1H Student B", "STUDENT"],

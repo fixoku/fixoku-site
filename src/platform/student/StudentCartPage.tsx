@@ -6,7 +6,10 @@ import "../trainer/commerce/trainer-commerce.css";
 import "./student-portal.css";
 
 type CartItem = {
-  packageVersionId: string;
+  kind?: string;
+  familyOfferId?: string | null;
+  familyOfferRevisionNumber?: number | null;
+  packageVersionId?: string | null;
   title: string;
   subtitle: string;
   priceMinor: number;
@@ -74,13 +77,13 @@ export function StudentCartPage({
     void load();
   }, [query]);
 
-  const remove = async (packageVersionId: string) => {
+  const remove = async (item: CartItem) => {
     const response = await fetch("/api/student/cart", {
       method: "DELETE",
       credentials: "same-origin",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        packageVersionId,
+        ...(item.kind === "FAMILY_OFFER" ? { familyOfferId: item.familyOfferId } : { packageVersionId: item.packageVersionId }),
         ...(cart?.beneficiary.studentProfileId ? { studentProfileId: cart.beneficiary.studentProfileId } : {}),
       }),
     });
@@ -146,7 +149,7 @@ export function StudentCartPage({
                 {cart.items.map((item) => (
                   <article
                     className="trainer-cart-item"
-                    key={item.packageVersionId}
+                    key={item.familyOfferId || item.packageVersionId}
                   >
                     <span className="trainer-package-icon">
                       <TrainerIcon name="book" size={30} />
@@ -174,9 +177,9 @@ export function StudentCartPage({
                     <button
                       type="button"
                       onClick={() =>
-                        void remove(item.packageVersionId)
+                      void remove(item)
                       }
-                      aria-label={`${item.title} paketini kaldır`}
+                      aria-label={`${item.title} tamamen kaldır`}
                     >
                       Kaldır
                     </button>

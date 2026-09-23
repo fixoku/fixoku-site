@@ -192,6 +192,10 @@ function betterAuthApi() {
           import('./api/student/packages.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/student/cart')) {
+          import('./api/student/cart.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/student/entitlements')) {
           import('./api/student/entitlements.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return

@@ -11,10 +11,10 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect();
   try {
-    const offers = (await client.query("select id,title,status,current_revision_number,updated_at from family_offers where customer_user_id=$1 and status in ('DRAFT','SENT') order by updated_at desc", [principal.user.id])).rows;
+    const offers = (await client.query("select id,title,status,current_revision_number,updated_at from family_offers where customer_user_id=$1 and status='SENT' order by updated_at desc", [principal.user.id])).rows;
     const result = [];
     for (const offer of offers) {
-      const revision = (await client.query("select id,revision_number,pricing_snapshot from family_offer_revisions where offer_id=$1 and revision_number=$2 and status in ('DRAFT','SENT')", [offer.id, offer.current_revision_number])).rows[0];
+      const revision = (await client.query("select id,revision_number,pricing_snapshot from family_offer_revisions where offer_id=$1 and revision_number=$2 and status='SENT'", [offer.id, offer.current_revision_number])).rows[0];
       if (!revision) continue;
       const children = (await client.query("select id,local_key,first_name,last_name,grade,education_stage from family_offer_draft_children where revision_id=$1 order by created_at,id", [revision.id])).rows;
       const selections = (await client.query("select draft_child_id,title_snapshot,product_type,service_mode,sale_gross_minor,currency from family_offer_child_selections where revision_id=$1 order by created_at,id", [revision.id])).rows;

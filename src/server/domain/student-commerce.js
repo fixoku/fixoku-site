@@ -53,14 +53,18 @@ export async function readEligibleStudentCommerceVersion(client, principal, pack
 export async function readStudentCart(client, principal, requestedProfileId = null, accountInput = null) {
   let beneficiary;
   let rows;
+  let familyRows = [];
   if (requestedProfileId) {
     beneficiary = await resolveBeneficiary(client, principal, requestedProfileId);
     rows = (await client.query("select package_version_id as \"packageVersionId\", null::education_stage as \"catalogEducationStage\", null::text as \"catalogGrade\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id=$2 and ($3::uuid is null or beneficiary_child_profile_id=$3) order by created_at", [principal.user.id, beneficiary.studentProfileId, beneficiary.childProfileId || null])).rows;
   } else {
-    const accountRows = (await client.query("select package_version_id as \"packageVersionId\", catalog_education_stage as \"catalogEducationStage\", catalog_grade as \"catalogGrade\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null order by created_at", [principal.user.id])).rows;
+    const accountRows = (await client.query("select package_version_id as \"packageVersionId\", catalog_education_stage as \"catalogEducationStage\", catalog_grade as \"catalogGrade\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null and family_offer_id is null order by created_at", [principal.user.id])).rows;
+    familyRows = (await client.query("select family_offer_id as \"familyOfferId\", family_offer_revision_number as \"familyOfferRevisionNumber\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null and family_offer_id is not null order by created_at", [principal.user.id])).rows;
     // A request without a selected profile is always account-level. Never
     // silently surface a legacy profile-scoped cart in this mode.
-    beneficiary = await resolveAccountSegment(client, principal, {
+    if (!accountRows.length && familyRows.length && !accountInput?.catalogEducationStage && !accountInput?.educationStage) {
+      beneficiary = { studentUserId: principal.user.id, studentProfileId: null, childProfileId: null, studentName: principal.user.displayName || principal.user.email || "", educationStage: null, grade: null, accountLevel: true };
+    } else beneficiary = await resolveAccountSegment(client, principal, {
       ...(accountInput || {}),
       catalogEducationStage: accountRows[0]?.catalogEducationStage || accountInput?.catalogEducationStage,
       catalogGrade: accountRows[0]?.catalogGrade ?? accountInput?.catalogGrade,
@@ -69,12 +73,33 @@ export async function readStudentCart(client, principal, requestedProfileId = nu
   }
   const items = [];
   for (const row of rows) items.push(await readEligibleStudentCommerceVersion(client, principal, row.packageVersionId, beneficiary.accountLevel ? null : (beneficiary.childProfileId || beneficiary.studentProfileId), beneficiary.accountLevel ? { catalogEducationStage: row.catalogEducationStage || beneficiary.educationStage, catalogGrade: row.catalogGrade ?? beneficiary.grade } : null));
+  for (const row of familyRows) {
+    const family = await readFamilyOfferCartItem(client, principal.user.id, row.familyOfferId, row.familyOfferRevisionNumber);
+    items.push(family);
+  }
   const currencies = new Set(items.map((item) => item.currency)); if (currencies.size > 1) throw error("CART_CURRENCY_MISMATCH", 409);
   const subtotalMinor = items.reduce((sum, item) => sum + item.priceMinor, 0);
-  const bookCount = items.reduce((sum, item) => sum + countPhysicalBooks(item.components), 0);
+  const bookCount = items.reduce((sum, item) => sum + Number(item.bookCount || countPhysicalBooks(item.components || [])), 0);
   const shippingMinor = shippingForBookCount(bookCount);
-  const catalogSegments = items.map((item) => ({ packageVersionId: item.packageVersionId, educationStage: item.beneficiary.educationStage, grade: item.beneficiary.grade }));
+  const catalogSegments = items.filter((item) => item.packageVersionId).map((item) => ({ packageVersionId: item.packageVersionId, educationStage: item.beneficiary?.educationStage, grade: item.beneficiary?.grade }));
   return { beneficiary, items, catalogSegments, subtotalMinor, shippingMinor, totalMinor: subtotalMinor + shippingMinor, currency: items[0]?.currency || "TRY", requiresShipping: items.some((item) => item.requiresShipping) };
+}
+
+function familySnapshot(value) { return typeof value === "string" ? JSON.parse(value) : (value || {}); }
+
+export async function readFamilyOfferCartItem(client, customerUserId, offerId, revisionNumber) {
+  const offer = (await client.query("select id,title,customer_user_id,status,current_revision_number from family_offers where id=$1 and customer_user_id=$2", [offerId, customerUserId])).rows[0];
+  if (!offer) throw error("FAMILY_OFFER_NOT_FOUND", 404);
+  if (offer.status !== "SENT") throw error("FAMILY_OFFER_NOT_AVAILABLE", 409);
+  if (Number(offer.current_revision_number) !== Number(revisionNumber)) throw error("FAMILY_REVISION_STALE", 409);
+  const revision = (await client.query("select id,revision_number,status,pricing_snapshot from family_offer_revisions where offer_id=$1 and revision_number=$2", [offer.id, revisionNumber])).rows[0];
+  if (!revision || revision.status !== "SENT") throw error("FAMILY_REVISION_NOT_AVAILABLE", 409);
+  const pricing = familySnapshot(revision.pricing_snapshot);
+  const children = (await client.query("select id,local_key,first_name,last_name,grade,education_stage,existing_child_profile_id,existing_student_profile_id from family_offer_draft_children where revision_id=$1 order by created_at,id", [revision.id])).rows;
+  const selections = (await client.query("select draft_child_id,title_snapshot,product_type,service_mode,sale_gross_minor,currency from family_offer_child_selections where revision_id=$1 order by created_at,id", [revision.id])).rows;
+  const byChild = new Map(children.map((child) => [child.id, { childProfileId: child.existing_child_profile_id || child.existing_student_profile_id || null, firstName: child.first_name, lastName: child.last_name, grade: child.grade, educationStage: child.education_stage, products: [] }]));
+  for (const selection of selections) byChild.get(selection.draft_child_id)?.products.push({ title: selection.title_snapshot, productType: selection.product_type, serviceMode: selection.service_mode, quantity: 1, saleGrossMinor: Number(selection.sale_gross_minor), currency: selection.currency });
+  return { kind: "FAMILY_OFFER", familyOfferId: offer.id, familyOfferRevisionNumber: Number(revision.revision_number), packageId: null, packageVersionId: null, title: offer.title, subtitle: "Aile teklifi", priceMinor: Number(pricing.finalFamilyPriceMinor || 0), currency: pricing.currency || "TRY", shippingFeeMinor: 0, requiresShipping: Number(pricing.shippingMinor || 0) > 0, bookCount: Number(pricing.bookCount || 0), components: [...byChild.values()].flatMap((child) => child.products.map((product) => ({ ...product, childProfileId: child.childProfileId, childName: `${child.firstName} ${child.lastName}` }))), familyChildren: [...byChild.values()], normalTotalMinor: Number(pricing.normalTotalMinor || 0), finalFamilyPriceMinor: Number(pricing.finalFamilyPriceMinor || 0), shippingMinor: Number(pricing.shippingMinor || 0), totalMinor: Number(pricing.payablePreviewMinor ?? Number(pricing.finalFamilyPriceMinor || 0) + Number(pricing.shippingMinor || 0)) };
 }
 
 function addressSnapshot(input) {
@@ -121,6 +146,7 @@ export async function createStudentCommerceOrder(client, principal, input) {
   }
   const cart = await readStudentCart(client, principal, requestedProfileId, accountMode ? input : null);
   if (!cart.items.length) throw error("CART_EMPTY", 409);
+  if (cart.items.some((item) => item.kind === "FAMILY_OFFER")) throw error("FAMILY_OFFER_CHECKOUT_UNAVAILABLE", 409);
   const owned = (await client.query(`select package_version_id from package_entitlements where beneficiary_student_user_id=$1 and ${accountMode ? "beneficiary_student_profile_id is null and beneficiary_child_profile_id is null" : "($3::uuid is null or beneficiary_child_profile_id=$3)"} and status='ACTIVE' and package_version_id=any($2::uuid[])`, accountMode ? [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId)] : [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId), cart.beneficiary.childProfileId || null])).rows;
   if (owned.length) throw error("PACKAGE_ALREADY_OWNED", 409);
   const pending = (await client.query(`select distinct oi.package_version_id from orders o join order_items oi on oi.order_id=o.id where o.beneficiary_student_user_id=$1 and ${accountMode ? "o.beneficiary_student_profile_id is null and o.beneficiary_child_profile_id is null" : "($3::uuid is null or o.beneficiary_child_profile_id=$3)"} and o.status='PENDING_PAYMENT' and oi.package_version_id=any($2::uuid[])`, accountMode ? [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId)] : [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId), cart.beneficiary.childProfileId || null])).rows;

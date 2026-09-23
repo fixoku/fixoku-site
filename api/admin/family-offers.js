@@ -12,6 +12,7 @@ const json = (res, status, body) => { res.statusCode = status; res.setHeader("Co
 const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([key, value]) => [key, Array.isArray(value) ? value.join(", ") : String(value)]));
 const fail = (code, status = 400) => { throw Object.assign(new Error(code), { code, status }); };
 const uuid = (value, code) => { if (!isR6OfferUuid(value)) fail(code, 400); return String(value); };
+const snapshot = (value) => typeof value === "string" ? JSON.parse(value) : value;
 
 async function readBody(req) {
   if (req.body && typeof req.body === "object") return req.body;
@@ -69,7 +70,7 @@ async function readFamilyOffer(client, id, ownerId) {
   if (!revision) fail("FAMILY_REVISION_NOT_FOUND", 409);
   const children = (await client.query("select * from family_offer_draft_children where revision_id=$1 order by created_at,id", [revision.id])).rows;
   const selections = (await client.query("select * from family_offer_child_selections where revision_id=$1 order by created_at,id", [revision.id])).rows;
-  return { id: offer.id, ownerUserId: offer.owner_user_id, customerUserId: offer.customer_user_id, title: offer.title, status: offer.status, currentRevisionNumber: Number(offer.current_revision_number), revision: { id: revision.id, revisionNumber: Number(revision.revision_number), status: revision.status, children, selections, pricing: JSON.parse(revision.pricing_snapshot) } };
+  return { id: offer.id, ownerUserId: offer.owner_user_id, customerUserId: offer.customer_user_id, title: offer.title, status: offer.status, currentRevisionNumber: Number(offer.current_revision_number), revision: { id: revision.id, revisionNumber: Number(revision.revision_number), status: revision.status, children, selections, pricing: snapshot(revision.pricing_snapshot) } };
 }
 
 async function persistRevision(client, { offerId, ownerId, customerId, title, draft, expectedRevisionNumber = null }) {

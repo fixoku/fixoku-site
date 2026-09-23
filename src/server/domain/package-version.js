@@ -145,6 +145,25 @@ export async function publishPackageVersionsAtomically(client, { targets = null,
   if (denied || !principal?.memberships?.some((member) => member.status === "ACTIVE" && member.scopeType === "GLOBAL" && ["OWNER", "SUPER_ADMIN"].includes(member.role))) throw publicationError(denied?.body?.error || "FORBIDDEN", denied?.status || 403);
   const actorUserId = principal.user?.id;
   assertUuid(actorUserId, "AUDIT_ACTOR_INVALID");
+  const actorMembership = principal.memberships.find((member) =>
+    member.status === "ACTIVE"
+    && member.scopeType === "GLOBAL"
+    && member.scopeId == null
+    && ["OWNER", "SUPER_ADMIN"].includes(member.role)
+    && String(member.userId || "") === String(actorUserId),
+  );
+  if (!actorMembership) throw publicationError("AUDIT_ACTOR_MEMBERSHIP_MISMATCH", 403);
+  const sessionUserId = principal.session?.user?.id;
+  if (!sessionUserId) throw publicationError("AUTHENTICATED_ACTOR_REQUIRED", 403);
+  const actorAuthority = (await client.query(`
+    select u.id from platform_users u
+    join platform_memberships m on m.user_id=u.id
+    where u.id=$1 and u.auth_user_id=$2
+      and m.user_id=$1 and m.role in ('OWNER','SUPER_ADMIN')
+      and m.status='ACTIVE' and m.scope_type='GLOBAL' and m.scope_id is null
+    limit 1
+  `, [actorUserId, sessionUserId])).rows[0];
+  if (!actorAuthority) throw publicationError("AUDIT_ACTOR_MEMBERSHIP_MISMATCH", 403);
   const resolved = targets?.length ? targets : await resolveCore001PublicationTargets(client);
   if (!resolved.length) throw publicationError("CORE001_TARGET_SET_EMPTY");
   const normalized = resolved.map((target) => {

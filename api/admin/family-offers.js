@@ -57,7 +57,7 @@ async function catalog(client, children, selectionIds) {
       and p.status='PUBLISHED' and pv.status='PUBLISHED' and pv.purchase_enabled=true
       and p.education_stage = any($1::education_stage[]) and (pc.id=any($2::uuid[]) or prod.id=any($2::uuid[]))
   `, [stages, ids])).rows;
-  return rows.map((row) => ({ ...row, eligibleGrades: JSON.parse(row.eligibleGradesJson || "[]"), productStageScopes: row.productStageScopes || stages }));
+  return rows.map((row) => ({ ...row, eligibleGrades: JSON.parse(row.eligibleGradesJson || "[]"), productStageScopes: row.productStageScopes || [] }));
 }
 
 function selectionIds(input) { return (input?.selections || []).map((selection) => String(selection.canonicalProductOrComponentId ?? selection.productId ?? "")); }

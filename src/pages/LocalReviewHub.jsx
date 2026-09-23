@@ -15,13 +15,13 @@ const ownerLinks = [
 const operationLinks = [
   ["Admin", "/panel/admin"], ["Eğitmenler", "/panel/admin/egitmenler"],
   ["Paketler", "/panel/admin/paketler"], ["Atamalar", "/panel/admin/atamalar"],
-  ["Ürünler", "/panel/admin/urunler"], ["Kargo", "/panel/admin/kargo"],
+  ["Eğitmen Ticareti", "/panel/admin/egitmen-ticaret"], ["Ürünler", "/panel/admin/urunler"], ["Kargo", "/panel/admin/kargo"],
 ];
 const trainerLinks = [
   ["Ana Sayfa", "/panel/egitmen"], ["Profilim", "/panel/egitmen/profil"],
   ["Eğitimlerim", "/panel/egitmen/egitimlerim"], ["Sunumlarım", "/panel/egitmen/sunumlarim"],
-  ["Kaynaklarım", "/panel/egitmen/kaynaklarim"], ["Müsaitlik", "/panel/egitmen/musaitlik"],
-  ["Bakiye / Kazançlar", "/panel/egitmen/bakiyem"], ["Ödeme Hesabım", "/panel/egitmen/payout-hesabim"],
+  ["Kaynaklarım", "/panel/egitmen/kaynaklarim"], ["Eğitmen Paketleri", "/panel/egitmen/paketler"], ["Hakedişlerim", "/panel/egitmen/hakedislerim"],
+  ["Sepetim", "/panel/egitmen/sepet"], ["Checkout", "/panel/egitmen/checkout"],
   ["Bildirimler", "/panel/bildirimler"],
 ];
 const studentLinks = [
@@ -60,7 +60,7 @@ export default function LocalReviewHub() {
 
   const loadCurrent = useCallback(async () => {
     try {
-      const response = await fetch("/api/panel-context", { credentials: "same-origin" });
+      const response = await fetch("/api/panel-context", { credentials: "include", cache: "no-store" });
       if (!response.ok) { setCurrent(null); return; }
       const context = await response.json();
       const match = DEMO_IDENTITIES.find((identity) => identity.name === context.user?.name || identity.slug === context.user?.reviewSlug);
@@ -72,11 +72,14 @@ export default function LocalReviewHub() {
   const selectIdentity = useCallback(async (identity) => {
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/local-review/switch-user", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug: identity.slug }) });
+      const response = await fetch("/api/local-review/switch-user", { method: "POST", credentials: "include", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug: identity.slug }) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error === "LOCAL_REVIEW_DISABLED" ? "Yerel inceleme bu ortamda etkin değil." : "Kullanıcı değiştirilemedi.");
-      setCurrent(identity);
       const target = result.redirect || (identity.role === "OWNER" ? "/panel/owner" : identity.role === "TRAINER" ? "/panel/egitmen" : "/panel/ogrenci");
+      const contextResponse = await fetch(`/api/panel-context?panel=${encodeURIComponent(target)}`, { credentials: "include", cache: "no-store" });
+      const context = await contextResponse.json().catch(() => ({}));
+      if (!contextResponse.ok || context.authenticated !== true || context.user?.name !== identity.name || !context.roles?.includes(identity.role)) throw new Error("Gerçek oturum doğrulanamadı.");
+      setCurrent(identity);
       navigate(target, { replace: true });
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Kullanıcı değiştirilemedi."); }
     finally { setBusy(false); }

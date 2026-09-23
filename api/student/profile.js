@@ -1,11 +1,25 @@
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { getProfileMediaConfig, removeProfilePhoto, saveProfilePhoto } from "../../src/server/domain/profile-media.js";
+import { validateEducationSegment } from "../../src/server/domain/student-segment.js";
+import { resolveTurkeyLocation } from "../../src/data/turkeyLocations.js";
 
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.setHeader("X-Content-Type-Options", "nosniff"); res.end(JSON.stringify(body)); };
 const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : String(v)]));
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
-const GRADES = new Set(["Anaokulu", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]);
+function normalizeTrMobile(value){
+  let digits=String(value||"").replace(/\D/gu,"");
+  if(digits.length===12&&digits.startsWith("90"))digits=digits.slice(2);
+  if(digits.length===11&&digits.startsWith("0"))digits=digits.slice(1);
+  if(!/^5\d{9}$/u.test(digits))throw Object.assign(new Error("PHONE_INVALID"),{code:"PHONE_INVALID",status:400});
+  return `+90${digits}`;
+}
+function normalizeStudentSchool(segment,value){
+  if(segment.educationStage==="ADULT")return null;
+  const school=String(value||"").trim();
+  if(school.length<2||school.length>160)throw Object.assign(new Error("SCHOOL_REQUIRED"),{code:"SCHOOL_REQUIRED",status:400});
+  return school;
+}
 async function body(req) { if (req.body && typeof req.body === "object") return req.body; let raw = ""; for await (const chunk of req) raw += chunk; return raw ? JSON.parse(raw) : {}; }
 
 export default async function handler(req, res) {
@@ -35,10 +49,61 @@ export default async function handler(req, res) {
       else profile = (await c.query("select sp.*,u.display_name as user_name,u.email from student_profiles sp join platform_users u on u.id=sp.user_id join guardian_student_relationships gsr on gsr.student_profile_id=sp.id and gsr.guardian_user_id=$1 and gsr.status='ACTIVE' where sp.status='ACTIVE' order by sp.id limit 1", [principal.user.id])).rows[0];
       if (!profile) return json(res, requested ? 403 : 200, requested ? { error: "FORBIDDEN" } : { profile: null });
       if (isPhoto) { const media = await (await import("../../src/server/domain/profile-media.js")).readProfilePhoto(getProfileMediaConfig(), profile.photo_storage_key); if (!media) return json(res, 404, { error: "PHOTO_NOT_FOUND" }); res.statusCode = 200; res.setHeader("Content-Type", media.mime); res.setHeader("Cache-Control", "private, no-store"); res.setHeader("X-Content-Type-Options", "nosniff"); res.end(media.buffer); return; }
-      if (req.method === "GET") { const dob = profile.date_of_birth instanceof Date ? profile.date_of_birth.toISOString().slice(0, 10) : String(profile.date_of_birth || "").slice(0, 10); return json(res, 200, { profile: { id: profile.id, userId: profile.user_id, firstName: profile.first_name || profile.user_name?.split(/\s+/u)[0] || "", lastName: profile.last_name || profile.user_name?.split(/\s+/u).slice(1).join(" ") || "", photoStorageKey: profile.photo_storage_key || null, photoUrl: profile.photo_storage_key ? "/api/student/profile/photo" : null, dateOfBirth: dob, grade: profile.grade, classBranch: profile.class_branch, school: profile.school, schoolType: profile.school_type, city: profile.city, district: profile.district, email: profile.email, phone: profile.phone, guardianRelation: profile.guardian_relation, guardianName: profile.guardian_name, guardianPhone: profile.guardian_phone, guardianEmail: profile.guardian_email, addressLine: profile.address_line, postalCode: profile.postal_code, marketingConsent: Boolean(profile.marketing_consent) } }); }
-      const b = await body(req); const fields = ["first_name", "last_name", "date_of_birth", "grade", "class_branch", "school", "school_type", "city", "district", "phone", "guardian_relation", "guardian_name", "guardian_phone", "guardian_email", "address_line", "postal_code", "marketing_consent"];
-      const values = { first_name: String(b.firstName || "").trim(), last_name: String(b.lastName || "").trim(), date_of_birth: b.dateOfBirth || null, grade: b.grade || null, class_branch: b.classBranch || null, school: b.school || null, school_type: b.schoolType || null, city: b.city || null, district: b.district || null, phone: b.phone || null, guardian_relation: b.guardianRelation || null, guardian_name: b.guardianName || null, guardian_phone: b.guardianPhone || null, guardian_email: b.guardianEmail || null, address_line: b.addressLine || null, postal_code: b.postalCode || null, marketing_consent: b.marketingConsent === true };
-      const errors = {}; if (values.first_name.length < 1 || values.first_name.length > 80) errors.firstName = "Ad alanı zorunludur."; if (values.last_name.length < 1 || values.last_name.length > 80) errors.lastName = "Soyad alanı zorunludur."; if (values.grade && !GRADES.has(values.grade)) errors.grade = "Geçerli bir sınıf seçin."; if (values.date_of_birth && !/^\d{4}-\d{2}-\d{2}$/u.test(values.date_of_birth)) errors.dateOfBirth = "Tarih geçersiz."; if (Object.keys(errors).length) return json(res, 400, { error: "VALIDATION_ERROR", errors });
+      if (req.method === "GET") { const dob = profile.date_of_birth instanceof Date ? profile.date_of_birth.toISOString().slice(0, 10) : String(profile.date_of_birth || "").slice(0, 10); return json(res, 200, { profile: { id: profile.id, userId: profile.user_id, firstName: profile.first_name || profile.user_name?.split(/\s+/u)[0] || "", lastName: profile.last_name || profile.user_name?.split(/\s+/u).slice(1).join(" ") || "", photoStorageKey: profile.photo_storage_key || null, photoUrl: profile.photo_storage_key ? "/api/student/profile/photo" : null, dateOfBirth: dob, educationStage: profile.education_stage, grade: profile.grade, classBranch: profile.class_branch, school: profile.school, schoolType: profile.school_type, city: profile.city, district: profile.district, email: profile.email, phone: profile.phone, guardianRelation: profile.guardian_relation, guardianName: profile.guardian_name, guardianPhone: profile.guardian_phone, guardianEmail: profile.guardian_email, addressLine: profile.address_line, postalCode: profile.postal_code, marketingConsent: Boolean(profile.marketing_consent) } }); }
+      const b = await body(req);
+      let segment;
+      let phone;
+      let school;
+      let location;
+      try {
+        segment = validateEducationSegment(b.educationStage, b.grade);
+        phone = normalizeTrMobile(b.phone);
+        school = normalizeStudentSchool(segment, b.school);
+        location = resolveTurkeyLocation(b.city, b.district);
+        if (!location) throw Object.assign(new Error("LOCATION_INVALID"), { code: "LOCATION_INVALID", status: 400 });
+      } catch (error) {
+        const code = error.code || error.message;
+        if (code === "PHONE_INVALID") return json(res, 400, { error: "VALIDATION_ERROR", errors: { phone: "Geçerli bir Türkiye cep telefonu girin." } });
+        if (code === "SCHOOL_REQUIRED") return json(res, 400, { error: "VALIDATION_ERROR", errors: { school: "Okulunuzun adını yazın." } });
+        if (code === "LOCATION_INVALID") return json(res, 400, { error: "VALIDATION_ERROR", errors: { city: "İl ve ilçe eşleşmesi geçersiz." } });
+        return json(res, 400, { error: "VALIDATION_ERROR", errors: { educationStage: "Paket grubu ve sınıf eşleşmesi geçersiz." } });
+      }
+
+      const fields = [
+        "first_name",
+        "last_name",
+        "date_of_birth",
+        "education_stage",
+        "grade",
+        "school",
+        "city",
+        "district",
+        "phone",
+        "address_line",
+        "postal_code",
+        "marketing_consent",
+      ];
+
+      const values = {
+        first_name: String(b.firstName || "").trim(),
+        last_name: String(b.lastName || "").trim(),
+        date_of_birth: b.dateOfBirth || null,
+        education_stage: segment.educationStage,
+        grade: segment.grade,
+        school,
+        city: location.city,
+        district: location.district,
+        phone,
+        address_line: b.addressLine || null,
+        postal_code: b.postalCode || null,
+        marketing_consent: b.marketingConsent === true,
+      };
+
+      const errors = {};
+      if (values.first_name.length < 1 || values.first_name.length > 80) errors.firstName = "Ad alanı zorunludur.";
+      if (values.last_name.length < 1 || values.last_name.length > 80) errors.lastName = "Soyad alanı zorunludur.";
+      if (values.date_of_birth && !/^\d{4}-\d{2}-\d{2}$/u.test(values.date_of_birth)) errors.dateOfBirth = "Tarih geçersiz.";
+      if (Object.keys(errors).length) return json(res, 400, { error: "VALIDATION_ERROR", errors });
       let photoKey = profile.photo_storage_key || null; if (b.photoDataUrl) photoKey = (await saveProfilePhoto(getProfileMediaConfig(), profile.user_id, b.photoDataUrl)).key; if (b.removePhoto) photoKey = null;
       const set = fields.map((f, i) => `"${f}"=$${i + 1}`).join(", "); const params = fields.map((f) => values[f]); params.push(photoKey, profile.id);
       const saved = (await c.query(`update student_profiles set ${set}, photo_storage_key=$${params.length - 1}, updated_at=now() where id=$${params.length} returning *`, params)).rows[0];

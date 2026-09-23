@@ -1,6 +1,6 @@
 /* global process */
 import nodemailer from "nodemailer";
-import { renderEmailForEvent } from "./email-renderer.js";
+import { renderEmailForEvent, renderLifecycleEmail } from "./email-renderer.js";
 
 const RETRYABLE_CODES = new Set(["ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "EAI_AGAIN", "SMTP_CONNECTION"]);
 
@@ -15,10 +15,25 @@ export function getSmtpConfig(env = process.env) {
   const pass = String(env.SMTP_PASS || env.SMTP_PASSWORD || "");
   const from = String(env.MAIL_FROM || env.SMTP_FROM || "").trim();
   const secure = String(env.SMTP_SECURE || "false").toLowerCase();
-  if (!host || !Number.isInteger(port) || port < 1 || port > 65535 || !user || !pass || !from || !["true", "false"].includes(secure) || /[\r\n]/u.test(from)) return null;
+  if (!host || !Number.isInteger(port) || port < 1 || port > 65535 || !user || !pass || !from || !["true", "false"].includes(secure) || port === 465 && secure !== "true" || /[\r\n]/u.test(from)) return null;
   return { provider: "SMTP", from, transport: { host, port, secure: secure === "true", auth: { user, pass } } };
 }
 
+export async function sendTransactionalEmail({ kind, to, url, recipientName, env = process.env, transportFactory = (config) => nodemailer.createTransport(config), logger = console } = {}) {
+  const smtp = getSmtpConfig(env);
+  if (!smtp) throw new Error("SMTP_NOT_CONFIGURED");
+  const rendered = renderLifecycleEmail(kind, { url, recipientName }, { baseUrl: env.BETTER_AUTH_URL || env.APP_ORIGIN || "https://fixoku.com" });
+  const info = await transportFactory(smtp.transport).sendMail({
+    from: smtp.from,
+    to: String(to || ""),
+    replyTo: rendered.replyTo,
+    subject: rendered.subject,
+    text: rendered.text,
+    html: rendered.html,
+  });
+  logger.info?.("Transactional email delivered", { kind, recipient: String(to || "").replace(/^(.{1,2}).*(@.*)$/u, "$1***$2"), messageId: info?.messageId || null });
+  return { status: "SENT", messageId: info?.messageId || null };
+}
 export function classifyEmailError(error) {
   const code = String(error?.code || error?.responseCode || "EMAIL_DELIVERY_FAILED").toUpperCase();
   const retryable = RETRYABLE_CODES.has(code) || Number(error?.responseCode) >= 400 && Number(error?.responseCode) < 500;

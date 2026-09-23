@@ -1,5 +1,6 @@
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
+import { accountLifecyclePermission } from "../../src/server/auth/admin-permission-contracts.js";
 import { hashInvitationToken, issueInvitationMail, newInvitationToken } from "../../src/server/auth/invitations.js";
 
 const json = (r, s, b) => { r.statusCode = s; r.setHeader("Content-Type", "application/json; charset=utf-8"); r.setHeader("Cache-Control", "no-store"); r.setHeader("X-Content-Type-Options", "nosniff"); r.end(JSON.stringify(b)); };
@@ -9,11 +10,13 @@ async function read(req) { if (req.body && typeof req.body === "object") return 
 export default async function handler(req, res) {
   const principal = await resolvePrincipal(h(req));
   if (!principal?.user) return json(res, 401, { error: "UNAUTHENTICATED" });
-  const denied = requirePermission(principal, "user.manage");
+  if (req.method !== "GET" && req.method !== "POST") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
+  const path = new URL(req.url || "http://local", "http://local").pathname;
+  if (path.endsWith("/admin-invitations") && req.method !== "POST") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
+  const denied = requirePermission(principal, accountLifecyclePermission(req.method, path));
   if (denied) return json(res, denied.status, denied.body);
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
-    const path = new URL(req.url || "http://local", "http://local").pathname;
     if (req.method === "GET") {
       const apps = (await pool.query("select id,first_name as \"firstName\",last_name as \"lastName\",email,city,status,created_at as \"createdAt\",review_note as \"reviewNote\" from trainer_applications order by created_at desc")).rows;
       const closures = (await pool.query('select acr.id,acr.user_id as "userId",u.display_name as "accountName",u.email as "accountEmail",acr.status,acr.reason,acr.review_note as "reviewNote",acr.created_at as "createdAt",acr.updated_at as "updatedAt" from account_closure_requests acr join platform_users u on u.id=acr.user_id order by acr.created_at desc')).rows;

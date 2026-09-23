@@ -1,5 +1,6 @@
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../../src/server/auth/authorization.js";
+import { shipmentPermission } from "../../../src/server/auth/admin-permission-contracts.js";
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };
 const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([k, v]) => [k, String(v)]));
 async function read(req) { let raw = ""; for await (const chunk of req) raw += chunk; return raw ? JSON.parse(raw) : {}; }
@@ -7,9 +8,9 @@ const transitions = { WAITING: ["PREPARING", "CANCELLED"], PREPARING: ["PACKED",
 
 export default async function handler(req, res) {
   const principal = await resolvePrincipal(headers(req)); if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
-  const denied = requirePermission(principal, "user.manage"); if (denied) return json(res, denied.status, denied.body);
-  const id = String(req.query?.id || req.url?.split("/").pop()?.split("?")[0] || ""); if (!/^[0-9a-f-]{36}$/iu.test(id)) return json(res, 400, { error: "SHIPMENT_ID_INVALID" });
   if (req.method !== "GET" && req.method !== "POST" && req.method !== "PATCH") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
+  const denied = requirePermission(principal, shipmentPermission(req.method)); if (denied) return json(res, denied.status, denied.body);
+  const id = String(req.query?.id || req.url?.split("/").pop()?.split("?")[0] || ""); if (!/^[0-9a-f-]{36}$/iu.test(id)) return json(res, 400, { error: "SHIPMENT_ID_INVALID" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect();
   try {
     const shipment = (await client.query("select s.*,s.order_id as \"orderId\",s.beneficiary_student_user_id as \"beneficiaryStudentUserId\",s.address_snapshot_json as \"addressSnapshotJson\",s.tracking_number as \"trackingNumber\",s.label_reference as \"labelReference\",s.shipping_charge_minor as \"shippingChargeMinor\",s.actual_shipping_cost_minor as \"actualShippingCostMinor\",s.provider_enabled as \"providerEnabled\",s.shipped_at as \"shippedAt\",s.delivered_at as \"deliveredAt\" from shipments s where s.id=$1", [id])).rows[0]; if (!shipment) return json(res, 404, { error: "SHIPMENT_NOT_FOUND" });

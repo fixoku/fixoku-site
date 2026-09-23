@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   CONSENT_VERSION,
-  consentModeValues,
   deniedConsent,
   grantedConsent,
   readConsent,
@@ -10,22 +9,7 @@ import {
   normalizeConsent,
 } from "./consent.js";
 import "./consent.css";
-
-function initializeConsentMode() {
-  if (typeof window === "undefined") return;
-  window.dataLayer = Array.isArray(window.dataLayer) ? window.dataLayer : [];
-  window.gtag = window.gtag || ((...args) => window.dataLayer.push(args));
-  if (!window.__fixokuConsentModeInitialized) {
-    window.gtag("consent", "default", consentModeValues(deniedConsent()));
-    window.__fixokuConsentModeInitialized = true;
-  }
-}
-
-function updateConsentMode(categories) {
-  if (typeof window === "undefined") return;
-  initializeConsentMode();
-  window.gtag("consent", "update", consentModeValues(categories));
-}
+import { consentAllowsGoogle, initializeGoogleRuntime, loadGoogleTagManager, updateGoogleConsent } from "./googleTagManager.js";
 
 export default function ConsentManager() {
   const [receipt, setReceipt] = useState(null);
@@ -34,14 +18,13 @@ export default function ConsentManager() {
   const lastFocused = useRef(null);
 
   useEffect(() => {
-    initializeConsentMode();
+    initializeGoogleRuntime(window);
     const stored = readConsent();
     if (stored) {
       setReceipt(stored);
       setDraft(stored.categories);
-      updateConsentMode(stored.categories);
-    } else {
-      updateConsentMode(deniedConsent());
+      updateGoogleConsent(stored.categories, window);
+      if (consentAllowsGoogle(stored.categories)) loadGoogleTagManager({ target: window, consent: stored.categories });
     }
     const onOpen = () => {
       setDraft(readConsent()?.categories || deniedConsent());
@@ -75,7 +58,8 @@ export default function ConsentManager() {
     const next = saveConsent(normalizeConsent(categories), { source });
     setReceipt(next);
     setDraft(next.categories);
-    updateConsentMode(next.categories);
+    updateGoogleConsent(next.categories, window);
+    if (consentAllowsGoogle(next.categories)) loadGoogleTagManager({ target: window, consent: next.categories });
     window.dispatchEvent(new CustomEvent("fixoku:consent-updated", { detail: next }));
     setOpen(false);
   };

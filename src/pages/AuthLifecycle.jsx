@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { TURKEY_LOCATIONS, getTurkeyDistricts } from "../data/turkeyLocations.js";
+import { pushEvent } from "../martech/events.js";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Giris.css";
 import "./auth-lifecycle.css";
@@ -30,21 +32,163 @@ export function RoleLoginPage({ role = "STUDENT" }) {
   return <Shell title={copy.title} description="Hesabınızla güvenli şekilde devam edin."><form onSubmit={submit} noValidate><label htmlFor="role-email">E-posta<input id="role-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></label><label htmlFor="role-password">Parola<input id="role-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label><button type="submit" disabled={busy}>{busy ? "Giriş yapılıyor…" : "Giriş yap"}</button><Message error>{error}</Message></form><nav className="auth-links" aria-label="Hesap bağlantıları"><Link to="/sifremi-unuttum">Parolamı unuttum</Link>{copy.register && <Link to={copy.register}>{role === "STUDENT" ? "Öğrenci hesabı oluştur" : "Eğitmen başvurusu"}</Link>}<Link to="/giris">Diğer giriş seçenekleri</Link></nav></Shell>;
 }
 
-const studentFields = [["firstName", "Ad", "text"], ["lastName", "Soyad", "text"], ["email", "E-posta", "email"], ["phone", "Telefon", "tel"], ["password", "Parola", "password"], ["dateOfBirth", "Doğum tarihi", "date"], ["grade", "Sınıf", "text"], ["school", "Okul", "text"], ["schoolType", "Okul türü", "text"], ["city", "Şehir", "text"], ["district", "İlçe", "text"], ["guardianName", "Veli / yakın adı", "text"], ["guardianRelation", "Yakınlık", "text"], ["guardianPhone", "Veli telefonu", "tel"], ["guardianEmail", "Veli e-postası", "email"], ["addressLine", "Adres", "text"]];
-export function StudentRegistrationPage() {
-  const navigate = useNavigate(); const initial = Object.fromEntries(studentFields.map(([key]) => [key, ""])); const [form, setForm] = useState({ ...initial, terms: false, kvkk: false, marketingConsent: false }); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
-  const update = (key) => (e) => setForm((current) => ({ ...current, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
-  async function submit(event) { event.preventDefault(); if (!form.terms || !form.kvkk) { setError("Üyelik koşullarını ve KVKK aydınlatma metnini kabul etmeniz gerekir."); return; } setBusy(true); setError(""); try { const response = await fetch("/api/account-lifecycle/register", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", origin: window.location.origin }, body: JSON.stringify(form) }); if (!response.ok) throw new Error(response.status === 422 ? "Bu e-posta ile zaten bir hesap olabilir." : "Kayıt tamamlanamadı."); navigate("/e-posta-dogrula", { replace: true }); } catch (cause) { setError(cause instanceof Error ? cause.message : "Kayıt tamamlanamadı."); } finally { setBusy(false); } }
-  return <Shell title="Öğrenci Kaydı" description="Öğrenci hesabınız yalnızca Öğrenci yetkisiyle açılır."><form className="auth-registration-form" onSubmit={submit} noValidate>{studentFields.map(([key, label, type]) => <label key={key} htmlFor={"student-"+key}>{label}<input id={"student-"+key} type={type} value={form[key]} onChange={update(key)} required={["firstName", "lastName", "email", "phone", "password"].includes(key)} /></label>)}<label className="auth-check"><input type="checkbox" checked={form.terms} onChange={update("terms")} />Üyelik ve kullanım koşullarını kabul ediyorum.</label><label className="auth-check"><input type="checkbox" checked={form.kvkk} onChange={update("kvkk")} />KVKK aydınlatma metnini okudum.</label><label className="auth-check"><input type="checkbox" checked={form.marketingConsent} onChange={update("marketingConsent")} />Kampanya ve duyuruları almak istiyorum (isteğe bağlı).</label><button type="submit" disabled={busy}>{busy ? "Hesap oluşturuluyor…" : "Öğrenci hesabı oluştur"}</button><Message error>{error}</Message></form><p className="auth-secondary-link">Zaten hesabınız var mı? <Link to="/ogrenci-girisi">Öğrenci girişine dönün</Link></p></Shell>;
+const educationStages = [
+  { value: "PRIMARY", label: "İlkokul Öğrencisi", grades: [3, 4] },
+  { value: "MIDDLE", label: "Ortaokul Öğrencisi", grades: [5, 6, 7, 8] },
+  { value: "HIGH", label: "Lise Öğrencisi", grades: [9, 10, 11, 12] },
+  { value: "ADULT", label: "Yetişkin", grades: [] },
+];
+
+function normalizeMobileInput(value) {
+  return String(value || "").replace(/\D/gu, "").slice(0, 10);
 }
 
+export function StudentRegistrationPage() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    dateOfBirth: "",
+    educationStage: "",
+    grade: "",
+    school: "",
+    city: "",
+    district: "",
+    addressLine: "",
+    terms: false,
+    kvkk: false,
+    marketingConsent: false,
+  });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const selectedStage = educationStages.find((item) => item.value === form.educationStage);
+  const selectedDistricts = getTurkeyDistricts(form.city);
+
+  const update = (key) => (event) => {
+    const value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
+    setForm((current) => {
+      if (key === "educationStage") {
+        const adult = value === "ADULT";
+        return { ...current, educationStage: value, grade: "", ...(adult ? { school: "" } : {}) };
+      }
+      if (key === "phone") return { ...current, phone: normalizeMobileInput(value) };
+      return { ...current, [key]: value };
+    });
+  };
+
+  async function submit(event) {
+    event.preventDefault();
+    if (!form.terms || !form.kvkk) {
+      setError("Üyelik koşullarını ve KVKK aydınlatma metnini kabul etmeniz gerekir.");
+      return;
+    }
+    if (!/^5\d{9}$/u.test(form.phone)) {
+      setError("Telefon numarası 5 ile başlayan 10 haneli Türkiye cep telefonu olmalıdır.");
+      return;
+    }
+    if (form.educationStage !== "ADULT" && !form.school.trim()) {
+      setError("Okulunuzun adını yazın.");
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/account-lifecycle/register", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json", origin: window.location.origin },
+        body: JSON.stringify(form),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.message || (response.status === 422 ? "Bu e-posta ile zaten bir hesap olabilir." : "Kayıt tamamlanamadı."));
+      }
+      navigate("/e-posta-dogrula", { replace: true });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Kayıt tamamlanamadı.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <Shell title="Öğrenci Kaydı" description="Hesabınızı oluşturun; size uygun paketler seçtiğiniz gruba ve sınıfa göre otomatik gösterilir.">
+    <form className="auth-registration-form" onSubmit={submit} noValidate>
+      <label htmlFor="student-firstName">Ad<input id="student-firstName" value={form.firstName} onChange={update("firstName")} required /></label>
+      <label htmlFor="student-lastName">Soyad<input id="student-lastName" value={form.lastName} onChange={update("lastName")} required /></label>
+      <label htmlFor="student-email">E-posta<input id="student-email" type="email" value={form.email} onChange={update("email")} required /></label>
+
+      <label htmlFor="student-phone">Telefon
+        <div className="auth-phone-input">
+          <span>+90</span>
+          <input id="student-phone" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} pattern="5[0-9]{9}" placeholder="5XXXXXXXXX" value={form.phone} onChange={update("phone")} required />
+        </div>
+      </label>
+
+      <label htmlFor="student-password">Parola<input id="student-password" type="password" minLength={8} value={form.password} onChange={update("password")} required /></label>
+      <label htmlFor="student-dateOfBirth">Doğum tarihi<input id="student-dateOfBirth" type="date" value={form.dateOfBirth} onChange={update("dateOfBirth")} /></label>
+
+      <label htmlFor="student-education-stage">Size uygun paket grubunu seçin
+        <select id="student-education-stage" value={form.educationStage} onChange={update("educationStage")} required>
+          <option value="">Seçin</option>
+          {educationStages.map((stage) => <option key={stage.value} value={stage.value}>{stage.label}</option>)}
+        </select>
+        <small>Size doğru paketleri gösterebilmemiz için mevcut durumunuzu seçin.</small>
+      </label>
+
+      {selectedStage && selectedStage.value !== "ADULT" && <>
+        <label htmlFor="student-grade">Sınıf
+          <select id="student-grade" value={form.grade} onChange={update("grade")} required>
+            <option value="">Seçin</option>
+            {selectedStage.grades.map((grade) => <option key={grade} value={String(grade)}>{grade}. Sınıf</option>)}
+          </select>
+        </label>
+        <label htmlFor="student-school">Okulunuzun adı
+          <input id="student-school" value={form.school} onChange={update("school")} placeholder="Okulunuzun adı" required />
+        </label>
+      </>}
+
+      <label htmlFor="student-city">İl
+        <select
+          id="student-city"
+          value={form.city}
+          onChange={(event) => setForm((current) => ({ ...current, city: event.target.value, district: "" }))}
+          required
+        >
+          <option value="">İl seçin</option>
+          {TURKEY_LOCATIONS.map((province) => <option key={province.plate} value={province.name}>{province.name}</option>)}
+        </select>
+      </label>
+
+      <label htmlFor="student-district">İlçe
+        <select id="student-district" value={form.district} onChange={update("district")} disabled={!form.city} required>
+          <option value="">{form.city ? "İlçe seçin" : "Önce il seçin"}</option>
+          {selectedDistricts.map((district) => <option key={district} value={district}>{district}</option>)}
+        </select>
+      </label>
+      <label htmlFor="student-addressLine">Adres<input id="student-addressLine" value={form.addressLine} onChange={update("addressLine")} /></label>
+
+      <label className="auth-check"><input type="checkbox" checked={form.terms} onChange={update("terms")} />Üyelik ve kullanım koşullarını kabul ediyorum.</label>
+      <label className="auth-check"><input type="checkbox" checked={form.kvkk} onChange={update("kvkk")} />KVKK aydınlatma metnini okudum.</label>
+      <label className="auth-check"><input type="checkbox" checked={form.marketingConsent} onChange={update("marketingConsent")} />Kampanya ve duyuruları almak istiyorum (isteğe bağlı).</label>
+
+      <button type="submit" disabled={busy}>{busy ? "Hesap oluşturuluyor…" : "Öğrenci hesabı oluştur"}</button>
+      <Message error>{error}</Message>
+    </form>
+    <p className="auth-secondary-link">Zaten hesabınız var mı? <Link to="/ogrenci-girisi">Öğrenci girişine dönün</Link></p>
+  </Shell>;
+}
 export function PasswordForgotPage() { const [email, setEmail] = useState(""); const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); async function submit(e) { e.preventDefault(); setBusy(true); try { const response = await fetch("/api/auth/request-password-reset", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", origin: window.location.origin }, body: JSON.stringify({ email: email.trim(), redirectTo: "/sifre-sifirla" }) }); setMessage(response.ok ? "Eğer bu e-posta ile kayıtlı bir hesap varsa şifre sıfırlama bağlantısı gönderildi." : "İstek şu anda tamamlanamadı."); } catch { setMessage("İstek şu anda tamamlanamadı."); } finally { setBusy(false); } } return <Shell title="Parolamı Unuttum" description="Hesabınıza ait e-posta adresini yazın."><form onSubmit={submit} noValidate><label htmlFor="forgot-email">E-posta<input id="forgot-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label><button type="submit" disabled={busy}>{busy ? "Gönderiliyor…" : "Sıfırlama bağlantısı gönder"}</button><Message>{message}</Message></form><p className="auth-secondary-link"><Link to="/giris">Giriş sayfasına dönün</Link></p></Shell>; }
 
 export function PasswordResetPage() { const location = useLocation(); const navigate = useNavigate(); const token = new URLSearchParams(location.search).get("token") || ""; const [password, setPassword] = useState(""); const [confirm, setConfirm] = useState(""); const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); async function submit(e) { e.preventDefault(); if (!token) return setMessage("Sıfırlama bağlantısı eksik veya geçersiz."); if (password.length < 8 || password !== confirm) return setMessage("Parola en az 8 karakter olmalı ve iki alan eşleşmelidir."); setBusy(true); try { const response = await fetch("/api/auth/reset-password", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", origin: window.location.origin }, body: JSON.stringify({ token, newPassword: password }) }); if (!response.ok) throw new Error("Sıfırlama bağlantısı geçersiz, süresi dolmuş veya daha önce kullanılmış."); setMessage("Parolanız yenilendi. Yeni parolanızla giriş yapabilirsiniz."); setTimeout(() => navigate("/giris", { replace: true }), 900); } catch (cause) { setMessage(cause instanceof Error ? cause.message : "Parola yenilenemedi."); } finally { setBusy(false); } } return <Shell title="Yeni Parola Belirle" description="Güvenliğiniz için yeni ve benzersiz bir parola seçin."><form onSubmit={submit} noValidate><label htmlFor="reset-password">Yeni parola<input id="reset-password" type="password" autoComplete="new-password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required /></label><label htmlFor="reset-confirm">Yeni parola (tekrar)<input id="reset-confirm" type="password" autoComplete="new-password" minLength={8} value={confirm} onChange={(e) => setConfirm(e.target.value)} required /></label><button type="submit" disabled={busy}>{busy ? "Parola yenileniyor…" : "Parolayı yenile"}</button><Message>{message}</Message></form></Shell>; }
 
 export function EmailVerificationPage() { const location = useLocation(); const navigate = useNavigate(); const token = new URLSearchParams(location.search).get("token") || ""; const [message, setMessage] = useState(token ? "E-posta adresiniz doğrulanıyor…" : "E-posta adresinizi doğrulamak için gelen bağlantıyı açın."); useEffect(() => { if (!token) return; let active = true; fetch("/api/auth/verify-email?token="+encodeURIComponent(token)+"&callbackURL=%2Fpanel", { credentials: "same-origin" }).then((r) => { if (!active) return; setMessage(r.ok ? "E-posta adresiniz doğrulandı. Panelinize yönlendiriliyorsunuz." : "Doğrulama bağlantısı geçersiz, süresi dolmuş veya daha önce kullanılmış."); if (r.ok) setTimeout(() => navigate("/panel", { replace: true }), 900); }).catch(() => active && setMessage("E-posta doğrulaması tamamlanamadı.")); return () => { active = false; }; }, [token, navigate]); return <Shell title="E-posta Doğrulama" description="Hesabınızı kullanmaya devam etmek için e-posta adresinizi doğrulayın."><Message>{message}</Message><p className="auth-secondary-link"><Link to="/giris">Giriş merkezine dönün</Link></p></Shell>; }
 
-export function TrainerApplicationPage() { const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", education: "", experience: "", requestedProgram: "", description: "", kvkk: false }); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const update = (key) => (e) => setForm((current) => ({ ...current, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value })); async function submit(e) { e.preventDefault(); if (!form.kvkk) return setMessage("KVKK aydınlatma metnini kabul etmeniz gerekir."); setBusy(true); try { const r = await fetch("/api/trainer-applications", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(form) }); setMessage(r.ok ? "Başvurunuz alındı. İnceleme sonucu e-posta ile bildirilecektir." : "Başvurunuz kaydedilemedi."); } catch { setMessage("Başvurunuz kaydedilemedi."); } finally { setBusy(false); } } return <Shell title="Eğitmen Başvurusu" description="Başvurunuz incelenir; onay olmadan aktif eğitmen hesabı oluşturulmaz."><form className="auth-registration-form" onSubmit={submit} noValidate>{[["name", "Ad soyad"], ["email", "E-posta"], ["phone", "Telefon"], ["city", "Şehir"], ["education", "Mesleki / eğitim bilgileri"], ["experience", "Deneyim"], ["requestedProgram", "İlgilendiğiniz program"]].map(([key, label]) => <label key={key} htmlFor={"trainer-"+key}>{label}<input id={"trainer-"+key} type={key === "email" ? "email" : "text"} value={form[key]} onChange={update(key)} required={key !== "requestedProgram"} /></label>)}<label htmlFor="trainer-description">Açıklama<textarea id="trainer-description" value={form.description} onChange={update("description")} rows="4" /></label><label className="auth-check"><input type="checkbox" checked={form.kvkk} onChange={update("kvkk")} />KVKK aydınlatma metnini okudum.</label><button type="submit" disabled={busy}>{busy ? "Gönderiliyor…" : "Başvuruyu gönder"}</button><Message>{message}</Message></form><p className="auth-secondary-link"><Link to="/ogretmen-girisi">Eğitmen girişine dönün</Link></p></Shell>; }
+export function TrainerApplicationPage() { const trackingStarted = useRef(false); const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", education: "", experience: "", requestedProgram: "", description: "", kvkk: false }); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const update = (key) => (e) => { if (!trackingStarted.current) { trackingStarted.current = true; pushEvent("trainer_application_start", { form_id: "trainer_application" }); } return setForm((current) => ({ ...current, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value })); }; async function submit(e) { e.preventDefault(); if (!form.kvkk) return setMessage("KVKK aydınlatma metnini kabul etmeniz gerekir."); setBusy(true); setMessage(""); try { const r = await fetch("/api/trainer-applications", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(form) }); if (r.ok) { pushEvent("trainer_application_submit", { form_id: "trainer_application" }); pushEvent("generate_lead", { form_id: "trainer_application" }); } else { pushEvent("form_error", { form_id: "trainer_application", response_status: r.status }); } setMessage(r.ok ? "Başvurunuz alındı. İnceleme sonucu e-posta ile bildirilecektir." : "Başvurunuz kaydedilemedi."); } catch { pushEvent("form_error", { form_id: "trainer_application", response_status: "network" }); setMessage("Başvurunuz kaydedilemedi."); } finally { setBusy(false); } } return <Shell title="Eğitmen Başvurusu" description="Başvurunuz incelenir; onay olmadan aktif eğitmen hesabı oluşturulmaz."><form className="auth-registration-form" onSubmit={submit} noValidate>{[["name", "Ad soyad"], ["email", "E-posta"], ["phone", "Telefon"], ["city", "Şehir"], ["education", "Mesleki / eğitim bilgileri"], ["experience", "Deneyim"], ["requestedProgram", "İlgilendiğiniz program"]].map(([key, label]) => <label key={key} htmlFor={"trainer-"+key}>{label}<input id={"trainer-"+key} type={key === "email" ? "email" : "text"} value={form[key]} onChange={update(key)} required={key !== "requestedProgram"} /></label>)}<label htmlFor="trainer-description">Açıklama<textarea id="trainer-description" value={form.description} onChange={update("description")} rows="4" /></label><label className="auth-check"><input type="checkbox" checked={form.kvkk} onChange={update("kvkk")} />KVKK aydınlatma metnini okudum.</label><button type="submit" disabled={busy}>{busy ? "Gönderiliyor…" : "Başvuruyu gönder"}</button><Message>{message}</Message></form><p className="auth-secondary-link"><Link to="/ogretmen-girisi">Eğitmen girişine dönün</Link></p></Shell>; }
 
 export function AccountSecurityPage() { const [currentPassword, setCurrentPassword] = useState(""); const [newPassword, setNewPassword] = useState(""); const [confirm, setConfirm] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); async function change(e) { e.preventDefault(); if (newPassword.length < 8 || newPassword !== confirm) return setMessage("Yeni parola en az 8 karakter olmalı ve iki alan eşleşmelidir."); setBusy(true); try { const r = await fetch("/api/auth/change-password", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ currentPassword, newPassword, revokeOtherSessions: true }) }); setMessage(r.ok ? "Parolanız değiştirildi; diğer oturumlar kapatıldı." : "Parola değiştirilemedi."); } catch { setMessage("Parola değiştirilemedi."); } finally { setBusy(false); } } async function revoke() { setBusy(true); try { const r = await fetch("/api/auth/revoke-other-sessions", { method: "POST", credentials: "same-origin" }); setMessage(r.ok ? "Diğer oturumlar kapatıldı." : "Oturumlar kapatılamadı."); } catch { setMessage("Oturumlar kapatılamadı."); } finally { setBusy(false); } } return <Shell title="Hesap ve Güvenlik" description="Parolanızı ve açık oturumlarınızı yönetin."><form onSubmit={change} noValidate><label htmlFor="current-password">Mevcut parola<input id="current-password" type="password" autoComplete="current-password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required /></label><label htmlFor="new-password">Yeni parola<input id="new-password" type="password" autoComplete="new-password" minLength={8} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /></label><label htmlFor="confirm-password">Yeni parola (tekrar)<input id="confirm-password" type="password" autoComplete="new-password" minLength={8} value={confirm} onChange={(e) => setConfirm(e.target.value)} required /></label><button type="submit" disabled={busy}>Parolayı değiştir</button></form><button type="button" className="auth-secondary-button" onClick={() => void revoke()} disabled={busy}>Diğer oturumları kapat</button><Message>{message}</Message><p className="auth-secondary-link"><Link to="/panel">Panele dönün</Link></p></Shell>; }
 

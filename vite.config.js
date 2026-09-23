@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { createInstitutionApplicationHandler } from './api/institution-application.js'
 import fs from 'node:fs'
 
 if (fs.existsSync('.env.local')) {
@@ -11,11 +10,11 @@ if (fs.existsSync('.env.local')) {
 }
 
 function institutionApplicationApi() {
-  const handler = createInstitutionApplicationHandler()
-
   return {
     name: 'fixoku-institution-application-api',
-    configureServer(server) {
+    async configureServer(server) {
+      const { createInstitutionApplicationHandler } = await import('./api/institution-application.js')
+      const handler = createInstitutionApplicationHandler()
       server.middlewares.use('/api/institution-application', (request, response, next) => {
         handler(request, response).catch(next)
       })
@@ -72,6 +71,22 @@ function betterAuthApi() {
           import('./api/admin/trainers/[id].js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/admin/r6-qualifications')) {
+          import('./api/admin/r6-qualifications.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/admin/r6-custom-offers')) {
+          import('./api/admin/r6-custom-offers.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/admin/r6-training-groups/')) {
+          import('./api/admin/r6-training-groups/[id].js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/r6-training-groups' || request.url?.startsWith('/api/admin/r6-training-groups?')) {
+          import('./api/admin/r6-training-groups.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url === '/api/admin/trainers' || request.url?.startsWith('/api/admin/trainers?')) {
           import('./api/admin/trainers.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
@@ -112,8 +127,57 @@ function betterAuthApi() {
           import('./api/admin/packages/[id].js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/admin/trainer-packages')) {
+          import('./api/admin/trainer-packages.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/admin/student-commerce-packages')) {
+          import('./api/admin/student-commerce-packages.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url === '/api/admin/packages' || request.url?.startsWith('/api/admin/packages?')) {
           import('./api/admin/packages.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/orders' || request.url?.startsWith('/api/admin/orders?')) {
+          import('./api/admin/orders.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/users' || request.url?.startsWith('/api/admin/users?')) {
+          import('./api/admin/users.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/package-permissions' || request.url?.startsWith('/api/admin/package-permissions?')) {
+          import('./api/admin/package-permissions.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/student-account-capability' || request.url?.startsWith('/api/admin/student-account-capability?')) {
+          import('./api/admin/student-account-capability.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.match(/^\/api\/admin\/education-programs(?:\/[^/?]+)?(?:\?.*)?$/u)) {
+          if (request.url?.match(/^\/api\/admin\/education-programs\/[^/?]+/u)) { const parsed = new URL(request.url, 'http://local'); request.query = { id: parsed.pathname.split('/').pop() } }
+          import('./api/admin/education-programs.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/education-presentations' || request.url?.startsWith('/api/admin/education-presentations?')) {
+          import('./api/admin/education-presentations.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/education-resources' || request.url?.startsWith('/api/admin/education-resources?')) {
+          import('./api/admin/education-resources.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/audit-history' || request.url?.startsWith('/api/admin/audit-history?')) {
+          import('./api/admin/audit-history.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/students' || request.url?.startsWith('/api/admin/students?')) {
+          import('./api/admin/students.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url === '/api/admin/payments' || request.url?.startsWith('/api/admin/payments?')) {
+          import('./api/admin/payments.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
         if (request.url === '/api/admin/assignment-requests' || request.url?.startsWith('/api/admin/assignment-requests?')) {
@@ -128,6 +192,14 @@ function betterAuthApi() {
           import('./api/student/entitlements.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/student/cart')) {
+          import('./api/student/cart.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/student/orders')) {
+          import('./api/student/orders.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/student/downloads/')) {
           import('./api/student/downloads/[id].js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
@@ -140,8 +212,24 @@ function betterAuthApi() {
           import('./api/student/portal-context.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/student/assigned-trainer')) {
+          import('./api/student/assigned-trainer.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/student/profile')) {
           import('./api/student/profile.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/student/children')) {
+          import('./api/student/children.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/student/reviews')) {
+          import('./api/student/reviews.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/student/custom-offers')) {
+          import('./api/student/custom-offers.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
         if (request.url?.startsWith('/api/trainer/payout-account')) {
@@ -154,6 +242,50 @@ function betterAuthApi() {
         }
         if (request.url?.startsWith('/api/trainer/trainings')) {
           import('./api/trainer/trainings.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/packages')) {
+          import('./api/trainer/packages.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/cart')) {
+          import('./api/trainer/cart.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/addresses')) {
+          import('./api/trainer/addresses.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/orders')) {
+          import('./api/trainer/orders.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/bank-transfer')) {
+          import('./api/trainer/bank-transfer.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/videos')) {
+          import('./api/trainer/videos.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/video-media')) {
+          import('./api/trainer/video-media.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/curriculum-media')) {
+          import('./api/trainer/curriculum-media.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/curriculum')) {
+          import('./api/trainer/curriculum.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/admin/trainer-entitlements')) {
+          import('./api/admin/trainer-entitlements.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/admin/trainer-bank-transfers')) {
+          import('./api/admin/trainer-bank-transfers.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
         if (request.url?.startsWith('/api/trainer/presentations')) {
@@ -245,6 +377,10 @@ function betterAuthApi() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: { host: '127.0.0.1' },
+  define: {
+    'globalThis.__FIXOKU_GTM_ID__': JSON.stringify(process.env.GTM_CONTAINER_ID || 'GTM-T5GHCWX6'),
+  },
   plugins: [react(), institutionApplicationApi(), betterAuthApi()],
   build: {
     rolldownOptions: {

@@ -43,15 +43,31 @@ import { ProviderStatusPage } from "./platform/admin/ProviderStatusPage";
 import { AdminAssignmentPage } from "./platform/admin/AdminAssignmentPage";
 import { AdminPackagesPage } from "./platform/admin/AdminPackagesPage";
 import { AdminPackageDetailPage } from "./platform/admin/AdminPackageDetailPage";
-import { ProtectedPanelEntry, ProtectedPanelRouter, ProtectedTrainerDashboard, ProtectedTrainerProfile, ProtectedTrainerTrainings, ProtectedTrainerPresentations, ProtectedTrainerResources, ProtectedTrainerEarnings, ProtectedTrainerAvailability, ProtectedTrainerStudents, ProtectedTrainerStudentDetail, ProtectedStudentPortal, ProtectedStudentPackages, ProtectedAdminTrainers, ProtectedOwnerFinance, ProtectedAdminShipments, ProtectedAdminProducts, ProtectedAdminProductDetail, ProtectedStudentShipments, ProtectedStudentProfile, ProtectedTrainerPayoutAccount, ProtectedNotifications, ProtectedMeasurement, ProtectedEmailTemplates, ProtectedLegalPreparation, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
+import { AdminTrainerCommercePage } from "./platform/admin/AdminTrainerCommercePage";
+import { AdminStudentCommercePage } from "./platform/admin/AdminStudentCommercePage";
+import { AdminOrdersPage } from "./platform/admin/AdminOrdersPage";
+import { AdminPaymentsPage } from "./platform/admin/AdminPaymentsPage";
+import { AdminStudentsPage } from "./platform/admin/AdminStudentsPage";
+import { AdminAuditHistoryPage } from "./platform/admin/AdminAuditHistoryPage";
+import { AdminUserOperationsPage } from "./platform/admin/AdminUserOperationsPage";
+import { AdminQueryProvider } from "./platform/admin/AdminQueryProvider";
+import { ProtectedPanelEntry, ProtectedPanelRouter, ProtectedTrainerDashboard, ProtectedTrainerProfile, ProtectedTrainerTrainings, ProtectedTrainerAssignments, ProtectedTrainerCart, ProtectedTrainerCheckout, ProtectedTrainerVideo, ProtectedTrainerPresentations, ProtectedTrainerResources, ProtectedTrainerEarnings, ProtectedTrainerAvailability, ProtectedTrainerStudents, ProtectedTrainerStudentDetail, ProtectedStudentPortal, ProtectedStudentPackages, ProtectedStudentCart, ProtectedStudentCheckout, ProtectedAdminTrainers, ProtectedOwnerFinance, ProtectedAdminShipments, ProtectedAdminProducts, ProtectedAdminProductDetail, ProtectedStudentShipments, ProtectedStudentProfile, ProtectedStudentChildren, ProtectedNotifications, ProtectedMeasurement, ProtectedEmailTemplates, ProtectedLegalPreparation, ProtectedR6CustomOffers, ProtectedR6TrainingGroups, ProtectedR6Payouts, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
 
+const ManagementShell=({user,uiRole,children})=><PanelShell user={user} role={uiRole === "OWNER" ? "OWNER" : "ADMIN"}>{children}</PanelShell>;
 const OwnerShell=({user,children})=><PanelShell user={user} role="OWNER">{children}</PanelShell>;
-function ProtectedAdminDashboard(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user})=><OwnerShell user={user}><AdminDashboardPage /></OwnerShell>}</ProtectedPanelEntry>}
+function ProtectedAdminDashboard(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminDashboardPage /></ManagementShell>}</ProtectedPanelEntry>}
 function ProtectedOwnerDashboard(){return <ProtectedPanelEntry requiredRole="OWNER">{({user})=><OwnerShell user={user}><OwnerDashboardPage /></OwnerShell>}</ProtectedPanelEntry>}
-function ProtectedAdminAssignments(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user})=><OwnerShell user={user}><AdminAssignmentPage /></OwnerShell>}</ProtectedPanelEntry>}
-function ProtectedAdminPackages(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user})=><OwnerShell user={user}><AdminPackagesPage /></OwnerShell>}</ProtectedPanelEntry>}
-function ProtectedAdminPackageDetail(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user})=><OwnerShell user={user}><AdminPackageDetailPage /></OwnerShell>}</ProtectedPanelEntry>}
-function ProtectedProviderStatus(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user})=><OwnerShell user={user}><ProviderStatusPage /></OwnerShell>}</ProtectedPanelEntry>}
+function ProtectedAdminAssignments(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminAssignmentPage /></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminPackages(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminPackagesPage /></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminPackageDetail(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminPackageDetailPage /></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminTrainerCommerce(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminTrainerCommercePage /></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminStudentCommerce(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminStudentCommercePage /></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminOrders(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminOrdersPage /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminPayments(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminPaymentsPage /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminStudents(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminStudentsPage /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminAuditHistory(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminAuditHistoryPage /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminUserOperations(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminUserOperationsPage uiRole={uiRole} /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedProviderStatus({ ownerOnly = false }) { const requiredRole = ownerOnly ? "OWNER" : ["OWNER", "SUPER_ADMIN"]; return <ProtectedPanelEntry requiredRole={requiredRole}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><ProviderStatusPage /></ManagementShell>}</ProtectedPanelEntry>; }
 
 export default function AppRoutes() {
   return (
@@ -166,34 +182,55 @@ export default function AppRoutes() {
         ))}
         <Route path="/panel/egitmen" element={<ProtectedTrainerDashboard />} />
         <Route path="/panel/egitmen/profil" element={<ProtectedTrainerProfile />} />
+        <Route path="/panel/egitmen/paketler" element={<Navigate to="/panel/egitmen/egitimlerim" replace />} />
         <Route path="/panel/egitmen/egitimlerim" element={<ProtectedTrainerTrainings />} />
+        <Route path="/panel/egitmen/atamalarim" element={<ProtectedTrainerAssignments />} />
+        <Route path="/panel/egitmen/egitimlerim/:slug" element={<ProtectedTrainerVideo />} />
+        <Route path="/panel/egitmen/sepet" element={<ProtectedTrainerCart />} />
+        <Route path="/panel/egitmen/checkout" element={<ProtectedTrainerCheckout />} />
         <Route path="/panel/egitmen/sunumlarim" element={<ProtectedTrainerPresentations />} />
         <Route path="/panel/egitmen/kaynaklarim" element={<ProtectedTrainerResources />} />
         <Route path="/panel/egitmen/ogrencilerim" element={<ProtectedTrainerStudents />} />
         <Route path="/panel/egitmen/ogrencilerim/:id" element={<ProtectedTrainerStudentDetail />} />
         <Route path="/panel/egitmen/musaitlik" element={<ProtectedTrainerAvailability />} />
-        <Route path="/panel/egitmen/bakiyem" element={<ProtectedTrainerEarnings />} />
-        <Route path="/panel/egitmen/payout-hesabim" element={<ProtectedTrainerPayoutAccount />} />
+        <Route path="/panel/egitmen/hakedislerim" element={<ProtectedTrainerEarnings />} />
+        <Route path="/panel/egitmen/bakiyem" element={<Navigate to="/panel/egitmen/hakedislerim" replace />} />
+        <Route path="/panel/egitmen/kazanclarim" element={<Navigate to="/panel/egitmen/hakedislerim" replace />} />
+        <Route path="/panel/egitmen/payout-hesabim" element={<Navigate to="/panel/egitmen/hakedislerim?sekme=odeme-hesabim" replace />} />
+        <Route path="/panel/egitmen/odeme-hesabim" element={<Navigate to="/panel/egitmen/hakedislerim?sekme=odeme-hesabim" replace />} />
         <Route path="/panel/admin" element={<ProtectedAdminDashboard />} />
         <Route path="/panel/owner" element={<ProtectedOwnerDashboard />} />
         <Route path="/panel/admin/atamalar" element={<ProtectedAdminAssignments />} />
         <Route path="/panel/admin/paketler" element={<ProtectedAdminPackages />} />
         <Route path="/panel/admin/paketler/:id" element={<ProtectedAdminPackageDetail />} />
+        <Route path="/panel/admin/egitmen-ticaret" element={<ProtectedAdminTrainerCommerce />} />
+        <Route path="/panel/admin/ogrenci-ticaret" element={<ProtectedAdminStudentCommerce />} />
+        <Route path="/panel/admin/siparisler" element={<ProtectedAdminOrders />} />
+        <Route path="/panel/admin/odemeler" element={<ProtectedAdminPayments />} />
+        <Route path="/panel/admin/ogrenciler" element={<ProtectedAdminStudents />} />
+        <Route path="/panel/admin/denetim-gecmisi" element={<ProtectedAdminAuditHistory />} />
+        <Route path="/panel/admin/kullanici-islemleri" element={<ProtectedAdminUserOperations />} />
         <Route path="/panel/admin/egitmenler" element={<ProtectedAdminTrainers />} />
         <Route path="/panel/admin/egitmenler/:id" element={<ProtectedAdminTrainers />} />
         <Route path="/panel/admin/kargo" element={<ProtectedAdminShipments />} />
         <Route path="/panel/admin/urunler" element={<ProtectedAdminProducts />} />
         <Route path="/panel/admin/urunler/:id" element={<ProtectedAdminProductDetail />} />
         <Route path="/panel/admin/saglayicilar" element={<ProtectedProviderStatus />} />
-        <Route path="/panel/owner/saglayicilar" element={<ProtectedProviderStatus />} />
+        <Route path="/panel/owner/saglayicilar" element={<ProtectedProviderStatus ownerOnly />} />
         <Route path="/panel/owner/finance" element={<ProtectedOwnerFinance />} />
+        <Route path="/panel/owner/ozel-teklifler" element={<ProtectedR6CustomOffers />} />
+        <Route path="/panel/owner/egitim-gruplari" element={<ProtectedR6TrainingGroups />} />
+        <Route path="/panel/owner/hakedisler" element={<ProtectedR6Payouts />} />
         <Route path="/panel/owner/olcumleme" element={<ProtectedMeasurement />} />
         <Route path="/panel/owner/e-posta-sablonlari" element={<ProtectedEmailTemplates />} />
         <Route path="/panel/owner/yasal-hazirlik" element={<ProtectedLegalPreparation />} />
         <Route path="/panel/ogrenci" element={<ProtectedStudentPortal />} />
         <Route path="/panel/ogrenci/paketler" element={<ProtectedStudentPackages />} />
+        <Route path="/panel/ogrenci/sepet" element={<ProtectedStudentCart />} />
+        <Route path="/panel/ogrenci/checkout" element={<ProtectedStudentCheckout />} />
         <Route path="/panel/ogrenci/kargolar" element={<ProtectedStudentShipments />} />
         <Route path="/panel/ogrenci/profil" element={<ProtectedStudentProfile />} />
+        <Route path="/panel/ogrenci/profiller" element={<ProtectedStudentChildren />} />
         <Route path="/panel/bildirimler" element={<ProtectedNotifications />} />
         <Route path="/panel/notifications" element={<ProtectedNotifications />} />
         <Route

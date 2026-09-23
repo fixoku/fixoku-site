@@ -1,13 +1,110 @@
 import pg from "pg";
 import { auth } from "../src/server/auth/auth.js";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";
+import { validateEducationSegment } from "../src/server/domain/student-segment.js";
+import { resolveTurkeyLocation } from "../src/data/turkeyLocations.js";
 const json=(r,s,b)=>{r.statusCode=s;r.setHeader("Content-Type","application/json; charset=utf-8");r.setHeader("Cache-Control","no-store");r.setHeader("X-Content-Type-Options","nosniff");r.end(JSON.stringify(b));};
 const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,Array.isArray(v)?v.join(", "):String(v)]));
 async function read(req){if(req.body&&typeof req.body==='object')return req.body;let raw='';for await(const c of req)raw+=c;return raw?JSON.parse(raw):{};}
+function normalizeTrMobile(value){
+  let digits=String(value||"").replace(/\D/gu,"");
+  if(digits.length===12&&digits.startsWith("90"))digits=digits.slice(2);
+  if(digits.length===11&&digits.startsWith("0"))digits=digits.slice(1);
+  if(!/^5\d{9}$/u.test(digits))throw Object.assign(new Error("PHONE_INVALID"),{code:"PHONE_INVALID",status:400});
+  return `+90${digits}`;
+}
+function normalizeStudentSchool(segment,value){
+  if(segment.educationStage==="ADULT")return null;
+  const school=String(value||"").trim();
+  if(school.length<2||school.length>160)throw Object.assign(new Error("SCHOOL_REQUIRED"),{code:"SCHOOL_REQUIRED",status:400});
+  return school;
+}
 async function authCall(path,method,body,req){const h=headers(req);h.set('content-type','application/json');h.set('origin',process.env.APP_ORIGIN||'http://127.0.0.1:5173');const out=await auth.handler(new Request(`http://local/api/auth${path}`,{method,headers:h,body:body?JSON.stringify(body):undefined}));return out;}
 export default async function handler(req,res){const rawPath=new URL(req.url||'http://local', 'http://local').pathname; const path=rawPath.replace('/api/account-lifecycle','') || (rawPath === '/api/trainer-applications' ? '/trainer-application' : '/');
  try {
-  if(path==='/register'&&req.method==='POST'){const b=await read(req); if(!(b.acceptTerms ?? b.terms)||!(b.acceptKvkk ?? b.kvkk))return json(res,400,{message:'Kullanım koşulları ve KVKK aydınlatması zorunludur.'}); if(!String(b.password||'').trim()||String(b.password).length<8)return json(res,400,{message:'Parolanız en az 8 karakter olmalıdır.'}); const out=await authCall('/sign-up/email','POST',{name:`${String(b.firstName||'').trim()} ${String(b.lastName||'').trim()}`.trim(),email:String(b.email||'').trim().toLowerCase(),password:String(b.password),callbackURL:'/e-posta-dogrula'},req); const payload=await out.json().catch(()=>({})); if(!out.ok)return json(res,out.status===409?409:400,{message:out.status===409?'Bu e-posta adresi zaten kayıtlı.':'Kayıt tamamlanamadı.'}); const pool=new pg.Pool({connectionString:process.env.DATABASE_URL}); try{await pool.query('update student_profiles sp set phone=$1,guardian_name=$2,guardian_relation=$3,guardian_phone=$4,guardian_email=$5,city=$6,district=$7,address_line=$8,marketing_consent=$9,updated_at=now() from platform_users u where u.id=sp.user_id and u.auth_user_id=$10',[b.phone||null,b.guardianName||null,b.guardianRelation||null,b.guardianPhone||null,b.guardianEmail||null,b.city||null,b.district||null,b.addressLine||null,b.marketingConsent===true,payload.user?.id]);}finally{await pool.end();} return json(res,201,{success:true,emailVerification:true}); }
+  if(path==='/register'&&req.method==='POST'){
+    const b=await read(req);
+    if(!(b.acceptTerms ?? b.terms)||!(b.acceptKvkk ?? b.kvkk)){
+      return json(res,400,{message:'Kullanım koşulları ve KVKK aydınlatması zorunludur.'});
+    }
+    if(!String(b.password||'').trim()||String(b.password).length<8){
+      return json(res,400,{message:'Parolanız en az 8 karakter olmalıdır.'});
+    }
+
+    let segment;
+    let phone;
+    let school;
+    let location;
+    try{
+      segment=validateEducationSegment(b.educationStage,b.grade);
+      phone=normalizeTrMobile(b.phone);
+      school=normalizeStudentSchool(segment,b.school);
+      location=resolveTurkeyLocation(b.city,b.district);
+      if(!location)throw Object.assign(new Error("LOCATION_INVALID"),{code:"LOCATION_INVALID",status:400});
+    }catch(error){
+      const code=error.code||error.message;
+      if(code==='PHONE_INVALID')return json(res,400,{message:'Geçerli bir Türkiye cep telefonu girin.',error:code});
+      if(code==='SCHOOL_REQUIRED')return json(res,400,{message:'Okulunuzun adını yazın.',error:code});
+      if(code==='LOCATION_INVALID')return json(res,400,{message:'İl ve ilçe eşleşmesi geçersiz.',error:code});
+      return json(res,error.status||400,{message:'Paket grubu ve sınıf eşleşmesi geçersiz.',error:code});
+    }
+
+    const out=await authCall('/sign-up/email','POST',{
+      name:`${String(b.firstName||'').trim()} ${String(b.lastName||'').trim()}`.trim(),
+      email:String(b.email||'').trim().toLowerCase(),
+      password:String(b.password),
+      callbackURL:'/e-posta-dogrula'
+    },req);
+
+    const payload=await out.json().catch(()=>({}));
+    if(!out.ok){
+      return json(res,out.status===409?409:400,{
+        message:out.status===409?'Bu e-posta adresi zaten kayıtlı.':'Kayıt tamamlanamadı.'
+      });
+    }
+
+    const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});
+    try{
+      await pool.query(
+        `update student_profiles sp
+            set education_stage=$1::education_stage,
+                grade=$2,
+                phone=$3,
+                school=$4,
+                guardian_name=$5,
+                guardian_relation=$6,
+                guardian_phone=$7,
+                guardian_email=$8,
+                city=$9,
+                district=$10,
+                address_line=$11,
+                marketing_consent=$12,
+                updated_at=now()
+           from platform_users u
+          where u.id=sp.user_id
+            and u.auth_user_id=$13`,
+        [
+          segment.educationStage,
+          segment.grade,
+          phone,
+          school,
+          b.guardianName||null,
+          b.guardianRelation||null,
+          b.guardianPhone||null,
+          b.guardianEmail||null,
+          location.city,
+          location.district,
+          b.addressLine||null,
+          b.marketingConsent===true,
+          payload.user?.id
+        ]
+      );
+    }finally{
+      await pool.end();
+    }
+
+    return json(res,201,{success:true,emailVerification:true});
+  }
   if(path==='/verify-email'&&req.method==='GET'){const token=new URL(req.url||'http://local','http://local').searchParams.get('token')||'';const out=await authCall(`/verify-email?token=${encodeURIComponent(token)}&callbackURL=/ogrenci-girisi`,'GET',null,req);return json(res,out.ok?200:400,out.ok?{verified:true}:{message:'Doğrulama bağlantısı geçersiz veya süresi dolmuş.'});}
   if(path==='/password-reset-request'&&req.method==='POST'){const b=await read(req);await authCall('/request-password-reset','POST',{email:String(b.email||'').trim().toLowerCase(),redirectTo:'/sifre-sifirla'},req);return json(res,200,{message:'Eğer bu e-posta ile kayıtlı bir hesap varsa şifre sıfırlama bağlantısı gönderildi.'});}
   if(path==='/password-change'&&req.method==='POST'){ const b=await read(req); const out=await authCall('/change-password','POST',{currentPassword:String(b.currentPassword||''),newPassword:String(b.newPassword||''),revokeOtherSessions:true},req); return json(res,out.ok?200:400,out.ok?{success:true}:{message:'Mevcut parola doğrulanamadı veya yeni parola geçersiz.'}); }

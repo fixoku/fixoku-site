@@ -1,58 +1,331 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StudentPanelShell } from "./StudentPanelShell";
 import "./student-portal.css";
 
-type User = { id?: string; name: string; email?: string };
-type Context = { studentProfileId: string; student: { name: string; grade: string | null; school: string | null; status: string } };
-type Enrollment = { id: string; status: string; program: { title: string; slug: string; shortDescription?: string }; trainerNames?: string[] };
-type Body = { role: "STUDENT" | "GUARDIAN"; context: Context | null; students: { studentProfileId: string; name: string }[]; enrollments: Enrollment[] };
+type StudentProfile = {
+  firstName?: string;
+  lastName?: string;
+  grade?: string | null;
+  school?: string | null;
+};
 
-const formatDisplayName = (value: string) => value.trim().split(/\s+/u).map((part) => {
-  const lower = part.toLocaleLowerCase("tr-TR");
-  return lower.charAt(0).toLocaleUpperCase("tr-TR") + lower.slice(1);
-}).join(" ");
-const statusLabels: Record<string, string> = { ACTIVE: "Aktif", COMPLETED: "Tamamlandı", PAUSED: "Beklemede", PLANNED: "Planlandı" };
+type Enrollment = Record<string, unknown>;
 
-export function StudentPortalPage({ user, roles }: { user: User; roles: string[] }) {
-  const isGuardian = roles.includes("GUARDIAN") && !roles.includes("STUDENT");
-  const [body, setBody] = useState<Body | null>(null);
+type Badge = {
+  id: string;
+  label: string;
+  symbol: "speed" | "flow" | "focus" | "paragraph" | "understand" | "coach" | "exam";
+};
+
+type Trainer = {
+  trainerUserId: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  phone: string;
+  email: string;
+  city: string;
+  profession: string;
+  bio: string;
+  photoUrl: string | null;
+  badges: Badge[];
+};
+
+function firstString(row: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
+function enrollmentTitle(row: Enrollment) {
+  return firstString(row, [
+    "programTitle",
+    "trainingProgramTitle",
+    "title",
+    "name",
+    "programName",
+  ]) || "Eğitim";
+}
+
+function enrollmentStatus(row: Enrollment) {
+  return firstString(row, ["statusLabel", "status", "enrollmentStatus"]);
+}
+
+function extractEnrollments(body: Record<string, unknown>) {
+  const direct = body.enrollments;
+  if (Array.isArray(direct)) return direct as Enrollment[];
+
+  const educations = body.educations;
+  if (Array.isArray(educations)) return educations as Enrollment[];
+
+  const student = body.student;
+  if (student && typeof student === "object") {
+    const nested = (student as Record<string, unknown>).enrollments;
+    if (Array.isArray(nested)) return nested as Enrollment[];
+  }
+
+  return [];
+}
+
+function trainerInitials(trainer: Trainer) {
+  return `${trainer.firstName.charAt(0)}${trainer.lastName.charAt(0)}`.toLocaleUpperCase("tr-TR");
+}
+
+export function StudentPortalPage({
+  user,
+  roles = [],
+  guardian,
+}: {
+  user: { name: string; email?: string };
+  roles?: string[];
+  guardian?: boolean;
+}) {
+  const isGuardian = guardian ?? roles.includes("GUARDIAN");
+  const [profile, setProfile] = useState<StudentProfile>({});
+  const [portal, setPortal] = useState<Record<string, unknown>>({});
+  const [trainer, setTrainer] = useState<Trainer | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [selected, setSelected] = useState("");
-  const load = useCallback(async (id?: string) => {
-    setState("loading");
-    try {
-      const query = id ? `?studentProfileId=${encodeURIComponent(id)}` : "";
-      const response = await fetch(`/api/student/portal-context${query}`, { credentials: "same-origin" });
-      if (!response.ok) throw new Error("portal context");
-      const next = await response.json() as Body;
-      setBody(next);
-      setSelected(next.context?.studentProfileId ?? "");
-      setState("ready");
-    } catch {
-      setState("error");
-    }
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const query = window.location.search || "";
+
+    Promise.all([
+      fetch(`/api/student/profile${query}`, {
+        credentials: "same-origin",
+        cache: "no-store",
+      }),
+      fetch(`/api/student/portal-context${query}`, {
+        credentials: "same-origin",
+        cache: "no-store",
+      }),
+      fetch(`/api/student/assigned-trainer${query}`, {
+        credentials: "same-origin",
+        cache: "no-store",
+      }),
+    ])
+      .then(async ([profileResponse, portalResponse, trainerResponse]) => {
+        if (!profileResponse.ok || !portalResponse.ok) {
+          throw new Error("Öğrenci bilgileri yüklenemedi.");
+        }
+
+        const profileBody = await profileResponse.json();
+        const portalBody = await portalResponse.json();
+        const trainerBody = trainerResponse.ok
+          ? await trainerResponse.json()
+          : { trainer: null };
+
+        setProfile(profileBody.profile || {});
+        setPortal(portalBody || {});
+        setTrainer(trainerBody.trainer || null);
+        setState("ready");
+      })
+      .catch((error) => {
+        setMessage(error instanceof Error ? error.message : "Öğrenci paneli yüklenemedi.");
+        setState("error");
+      });
   }, []);
-  useEffect(() => { void load(); }, [load]);
-  const initials = useMemo(() => body?.context?.student.name.split(/\s+/u).map((part) => part[0]).join("").slice(0, 2).toLocaleUpperCase("tr-TR") || "Ö", [body]);
-  const shell = (content: ReactNode) => <StudentPanelShell user={user} guardian={isGuardian} studentProfileId={selected}>{content}</StudentPanelShell>;
 
-  if (state === "loading") return shell(<div className="student-portal__state" role="status" aria-live="polite">Öğrenci paneli yükleniyor…</div>);
-  if (state === "error") return shell(<div className="student-portal__state" role="alert"><h3>Panel verileri yüklenemedi</h3><p>Bilgilerinize şu anda ulaşılamıyor.</p><button className="student-portal__retry" type="button" onClick={() => void load(selected || undefined)}>Tekrar dene</button></div>);
+  const enrollments = useMemo(() => extractEnrollments(portal), [portal]);
 
-  const context = body?.context;
-  const students = body?.students ?? [];
-  const enrollments = body?.enrollments ?? [];
-  return shell(<>
-    <div className="student-portal__hero">
-      <div><h2>{isGuardian ? "Veli görünümü" : "Öğrenci Paneli"}</h2><p>{isGuardian ? "Bağlı öğrencinin eğitim bilgilerini buradan takip edebilirsiniz." : `Merhaba, ${formatDisplayName(user.name)}. Eğitimlerine buradan ulaşabilirsin.`}</p></div>
-      {isGuardian && students.length > 0 && <div className="student-portal__context"><small>Görüntülenen öğrenci</small><label htmlFor="student-context-select" className="student-portal__sr-only">Öğrenci seçin</label><select id="student-context-select" value={selected} onChange={(event) => { setSelected(event.target.value); void load(event.target.value); }}>{students.map((student) => <option key={student.studentProfileId} value={student.studentProfileId}>{formatDisplayName(student.name)}</option>)}</select></div>}
-    </div>
-    {isGuardian && context && <div className="student-portal__banner" role="status">Şu anda {formatDisplayName(context.student.name)}’in eğitim bilgilerini görüntülüyorsunuz.</div>}
-    {!context ? <div className="student-portal__state"><h3>{isGuardian ? "Bağlı öğrenci bulunamadı" : "Profiliniz henüz hazır değil"}</h3><p>{isGuardian ? "Yetkilendirilmiş bir öğrenci ilişkisi tanımlandığında burada görünecek." : "Eğitim bilgileriniz hazır olduğunda bu alanda görüntülenecek."}</p></div> : <div className="student-portal__grid">
-      <section className="student-portal__card" aria-labelledby="student-identity-title"><h3 id="student-identity-title">Öğrenci bilgileri</h3><div className="student-portal__identity"><div className="student-portal__avatar" aria-hidden="true">{initials}</div><div><strong>{formatDisplayName(context.student.name)}</strong><p>{context.student.grade || "Seviye belirtilmedi"}{context.student.school ? ` · ${context.student.school}` : ""}</p></div></div></section>
-      <section className="student-portal__card" aria-labelledby="student-access-title"><h3 id="student-access-title">{isGuardian ? "Eğitmeni" : "Eğitmenim"}</h3>{enrollments[0]?.trainerNames?.length ? <><strong className="student-portal__summary-trainer">{enrollments[0].trainerNames.map(formatDisplayName).join(", ")}</strong><p>{isGuardian ? "Seçili öğrencinin eğitimine eşlik eden eğitmen." : "Eğitimin boyunca sana eşlik eden eğitmen."}</p></> : <p>Eğitmen ataması henüz yapılmadı.</p>}</section>
-      <section className="student-portal__card student-portal__enrollments" aria-labelledby="enrollment-title"><h3 id="enrollment-title">Eğitimlerim</h3>{enrollments.length ? enrollments.map((enrollment) => <div className="student-portal__enrollment" key={enrollment.id}><div><strong>{enrollment.program.title}</strong><span>{enrollment.program.shortDescription || "Fixoku eğitim programı"}</span>{enrollment.trainerNames?.length ? <span className="student-portal__trainer">Eğitmenim: {enrollment.trainerNames.map(formatDisplayName).join(", ")}</span> : <span className="student-portal__trainer">Eğitmen ataması henüz yapılmadı.</span>}</div><span className="student-portal__status">{statusLabels[enrollment.status] || "Durum bekleniyor"}</span></div>) : <p>Henüz aktif bir eğitim kaydınız bulunmuyor.</p>}</section>
-    </div>}
-  </>);
+  const studentName =
+    `${profile.firstName || ""} ${profile.lastName || ""}`.trim() ||
+    user.name ||
+    "Öğrenci";
+
+  const studentMeta = [
+    profile.grade ? `${profile.grade}. Sınıf` : "",
+    profile.school || "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  if (state === "loading") {
+    return (
+      <StudentPanelShell user={user} guardian={isGuardian}>
+        <div className="student-portal__state" role="status">
+          Öğrenci paneli yükleniyor…
+        </div>
+      </StudentPanelShell>
+    );
+  }
+
+  if (state === "error") {
+    return (
+      <StudentPanelShell user={user} guardian={isGuardian}>
+        <div className="student-portal__state" role="alert">
+          <h3>Panel yüklenemedi</h3>
+          <p>{message}</p>
+          <button type="button" onClick={() => window.location.reload()}>
+            Tekrar dene
+          </button>
+        </div>
+      </StudentPanelShell>
+    );
+  }
+
+  return (
+    <StudentPanelShell user={user} guardian={isGuardian}>
+      <main className="student-dashboard-v2">
+        <header className="student-dashboard-v2__heading">
+          <h1>Merhaba, {studentName}</h1>
+          <p>Profilinizi, eğitmeninizi ve kayıtlı eğitimlerinizi buradan takip edebilirsiniz.</p>
+        </header>
+
+        <div className="student-dashboard-v2__top-grid">
+          <section className="student-dashboard-v2__student-card">
+            <div className="student-dashboard-v2__student-avatar" aria-hidden="true">
+              {(profile.firstName || studentName).charAt(0).toLocaleUpperCase("tr-TR")}
+              {(profile.lastName || studentName.split(" ").at(-1) || "").charAt(0).toLocaleUpperCase("tr-TR")}
+            </div>
+            <div>
+              <span className="student-dashboard-v2__eyebrow">ÖĞRENCİ BİLGİLERİ</span>
+              <h2>{studentName}</h2>
+              {studentMeta && <p>{studentMeta}</p>}
+            </div>
+          </section>
+
+          <section className="student-trainer-card">
+            <div className="student-trainer-card__title-row">
+              <div>
+                <span className="student-dashboard-v2__eyebrow">ATANAN ÖĞRETMEN</span>
+                <h2>Eğitmenim</h2>
+              </div>
+            </div>
+
+            {trainer ? (
+              <>
+                <div className="student-trainer-card__identity">
+                  {trainer.photoUrl ? (
+                    <img
+                      className="student-trainer-card__photo"
+                      src={trainer.photoUrl}
+                      alt={`${trainer.displayName} profil fotoğrafı`}
+                    />
+                  ) : (
+                    <div className="student-trainer-card__photo student-trainer-card__photo--fallback">
+                      {trainerInitials(trainer)}
+                    </div>
+                  )}
+
+                  <div className="student-trainer-card__identity-copy">
+                    <h3>{trainer.displayName}</h3>
+                    <p>
+                      {[trainer.profession, trainer.city].filter(Boolean).join(" · ") ||
+                        "FIXOKU Eğitmeni"}
+                    </p>
+
+                    {trainer.badges.length > 0 && (
+                      <div className="student-trainer-card__badges" aria-label="Eğitmen uzmanlıkları">
+                        {trainer.badges.map((badge) => (
+                          <span
+                            className="student-trainer-card__badge"
+                            key={badge.id}
+                            title={badge.label}
+                            aria-label={badge.label}
+                          >
+                            <SpecialtyIcon symbol={badge.symbol} />
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="student-trainer-card__details">
+                  {trainer.phone && (
+                    <a href={`tel:${trainer.phone}`} className="student-trainer-card__detail">
+                      <strong>Telefon</strong>
+                      <span>{trainer.phone}</span>
+                    </a>
+                  )}
+
+                  {trainer.email && (
+                    <a href={`mailto:${trainer.email}`} className="student-trainer-card__detail">
+                      <strong>E-posta</strong>
+                      <span>{trainer.email}</span>
+                    </a>
+                  )}
+
+                  {trainer.bio && (
+                    <div className="student-trainer-card__bio">
+                      <strong>Kısa Özgeçmiş</strong>
+                      <p>{trainer.bio}</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="student-trainer-card__empty">
+                Henüz size atanmış bir eğitmen bulunmuyor.
+              </p>
+            )}
+          </section>
+        </div>
+
+        <section className="student-dashboard-v2__enrollments">
+          <div className="student-dashboard-v2__section-heading">
+            <h2>Eğitimlerim</h2>
+            <span>{enrollments.length} kayıt</span>
+          </div>
+
+          {enrollments.length ? (
+            <div className="student-dashboard-v2__enrollment-list">
+              {enrollments.map((item, index) => (
+                <article className="student-dashboard-v2__enrollment" key={index}>
+                  <div>
+                    <h3>{enrollmentTitle(item)}</h3>
+                    <p>Kayıtlı eğitim</p>
+                  </div>
+                  {enrollmentStatus(item) && (
+                    <span className="student-dashboard-v2__status">
+                      {enrollmentStatus(item)}
+                    </span>
+                  )}
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="student-portal__state">
+              <h3>Kayıtlı eğitim bulunmuyor</h3>
+              <p>Atanan veya satın alınan eğitimler burada gösterilecektir.</p>
+            </div>
+          )}
+        </section>
+      </main>
+    </StudentPanelShell>
+  );
+}
+
+function SpecialtyIcon({ symbol }: { symbol: Badge["symbol"] }) {
+  const common = {
+    width: 22,
+    height: 22,
+    viewBox: "0 0 26 26",
+    fill: "none",
+    xmlns: "http://www.w3.org/2000/svg",
+    "aria-hidden": true,
+  } as const;
+
+  if (symbol === "speed") {
+    return <svg {...common}><path d="M4 15a9 9 0 1 1 18 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M13 14l5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><circle cx="13" cy="14" r="2" fill="currentColor"/></svg>;
+  }
+  if (symbol === "flow") {
+    return <svg {...common}><path d="M4 8h12M4 13h18M4 18h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="m18 6 4 2-4 2" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>;
+  }
+  if (symbol === "focus") {
+    return <svg {...common}><circle cx="13" cy="13" r="8" stroke="currentColor" strokeWidth="2"/><circle cx="13" cy="13" r="3" fill="currentColor"/><path d="M13 2v3M13 21v3M2 13h3M21 13h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
+  }
+  if (symbol === "paragraph") {
+    return <svg {...common}><path d="M7 5h12M7 10h12M7 15h8M7 20h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><circle cx="4" cy="5" r="1.3" fill="currentColor"/><circle cx="4" cy="10" r="1.3" fill="currentColor"/><circle cx="4" cy="15" r="1.3" fill="currentColor"/><circle cx="4" cy="20" r="1.3" fill="currentColor"/></svg>;
+  }
+  if (symbol === "understand") {
+    return <svg {...common}><path d="M5 7.5C7.5 5 10 4 13 4s5.5 1 8 3.5V20c-2.5-1.6-5-2.4-8-2.4S7.5 18.4 5 20V7.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M13 4v13.5" stroke="currentColor" strokeWidth="2"/></svg>;
+  }
+  if (symbol === "coach") {
+    return <svg {...common}><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="2"/><path d="M4 21c.5-5 2.5-7 5-7s4.5 2 5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="m17 10 2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  }
+  return <svg {...common}><path d="M5 5h16v16H5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M9 10h8M9 14h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="m15 18 2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 }

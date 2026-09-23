@@ -20,7 +20,7 @@ function applyMovement(product, input) {
 
 export default async function handler(req, res) {
   const principal = await resolvePrincipal(headers(req)); if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
-  const denied = requirePermission(principal, "user.manage"); if (denied) return json(res, denied.status, denied.body);
+  const denied = requirePermission(principal, "product.manage"); if (denied) return json(res, denied.status, denied.body);
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
     if (req.method === "GET") {

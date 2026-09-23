@@ -336,6 +336,8 @@ export default function InstitutionReadingLanding() {
       const result = await response.json().catch(() => null);
 
       if (response.ok && result?.ok === true) {
+        pushEvent("institution_application_submit", { form_id: "institution_application" });
+        pushEvent("generate_lead", { form_id: "institution_application" });
         pushEvent("form_success", { form_id: "institution_application" });
         setFormStatus({
           type: "success",

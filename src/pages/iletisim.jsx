@@ -123,7 +123,6 @@ function Iletisim() {
     }
 
     const message = buildWhatsappMessage(sanitized);
-    pushEvent("form_success", { form_id: "contact_form" });
     setPreview({
       message,
       whatsappUrl: `${contactPhones.mobile.whatsappUrl}?text=${encodeURIComponent(message)}`,

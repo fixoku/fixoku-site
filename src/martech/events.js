@@ -25,14 +25,16 @@ const ATTRIBUTION_STORAGE_KEY = "fixoku_attribution";
 // envelopes.  The guardian relationship field is sensitive even when callers use
 // the explicit `guardianRelationship` camel case key, so cover both that form and
 // a standalone `guardian` key as well.
-const SENSITIVE_KEYS = /^(message|note|free.?text|teacher.?notes?|dob|birth|school|grade|class|iban|address|student.?name|guardian(?:.?relationship)?|phone|email)$/i;
+const SENSITIVE_KEYS = /^(message|note|free.?text|teacher.?notes?|dob|birth|school|grade|class|iban|address|(?:student|full).?name|guardian(?:.?relationship)?|phone|email)$/i;
 
 function randomId() {
   if (typeof globalThis.crypto?.randomUUID === "function") return globalThis.crypto.randomUUID();
   return `evt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export function captureAttribution({ location = globalThis.location, storage } = {}) {
+export function captureAttribution({ location = globalThis.location, storage, consent } = {}) {
+  const receipt = consent || readConsent();
+  if (!hasConsent("analytics", receipt)) return {};
   const params = new URLSearchParams(location?.search || "");
   const values = {};
   for (const key of ATTRIBUTION_KEYS) {
@@ -46,8 +48,8 @@ export function captureAttribution({ location = globalThis.location, storage } =
   return values;
 }
 
-export function getAttribution({ location, storage } = {}) {
-  return captureAttribution({ location, storage });
+export function getAttribution({ location, storage, consent } = {}) {
+  return captureAttribution({ location, storage, consent });
 }
 
 function pageContext(target = globalThis) {
@@ -80,14 +82,14 @@ export function createEvent(event, properties = {}, { target = globalThis, sourc
   const categories = consentCategories(receipt);
   const clean = sanitizeProperties(properties);
   const envelope = {
+    ...clean,
     event,
     event_id: typeof clean.event_id === "string" ? clean.event_id : randomId(),
     event_time: new Date().toISOString(),
     ...pageContext(target),
     source,
     consent_state: { ...categories },
-    ...(includeAttribution && categories.analytics ? { attribution: getAttribution({ location: target?.location, storage: target?.localStorage }) } : {}),
-    ...clean,
+    ...(includeAttribution && categories.analytics ? { attribution: getAttribution({ location: target?.location, storage: target?.localStorage, consent: receipt }) } : {}),
   };
   if (envelope.items && Array.isArray(envelope.items)) envelope.items = envelope.items.map((item) => sanitizeProperties(item));
   return envelope;

@@ -125,4 +125,22 @@ export function renderEmailForEvent(eventType, data = {}, options = {}) {
   return renderEmail(template.id, data, options);
 }
 
+/** Render Better Auth lifecycle mail from the provider URL without logging or regenerating it. */
+export function renderLifecycleEmail(kind, input = {}, options = {}) {
+  const value = input && typeof input === "object" ? input : {};
+  const url = String(value.url || "");
+  if (!url) throw new Error("LIFECYCLE_URL_REQUIRED");
+  const reset = kind === "reset";
+  const subject = reset ? "FIXOKU | Şifre Sıfırlama" : "FIXOKU | E-posta Adresinizi Doğrulayın";
+  const title = reset ? "Şifrenizi güvenle sıfırlayın" : "E-posta adresinizi doğrulayın";
+  const body = reset ? "Şifre sıfırlama talebiniz alındı." : "FIXOKU hesabınızı korumak için e-posta adresinizi doğrulayın.";
+  const cta = reset ? "Şifremi sıfırla" : "E-posta adresimi doğrula";
+  const note = reset ? "Bu talebi siz oluşturmadıysanız e-postayı yok sayabilirsiniz." : "Doğrulama bağlantısı Better Auth tarafından belirlenen geçerlilik süresi içinde kullanılmalıdır.";
+  const greeting = "Merhaba " + String(value.recipientName || "Fixoku kullanıcısı") + ",";
+  const escapedUrl = escapeHtml(url);
+  const baseUrl = text(options.baseUrl, DEFAULT_BASE_URL).replace(/\/$/u, "");
+  const html = "<!doctype html><html lang=\"tr\"><body><h1>" + escapeHtml(title) + "</h1><p>" + escapeHtml(greeting) + "</p><p>" + escapeHtml(body) + "</p><p><a href=\"" + escapedUrl + "\">" + escapeHtml(cta) + "</a></p><p>" + escapeHtml(note) + "</p><p>FIXOKU · " + escapeHtml(baseUrl) + "</p></body></html>";
+  const plainText = title + "\n\n" + greeting + "\n\n" + body + "\n\n" + cta + ": " + url + "\n\n" + note + "\n\nFIXOKU · " + baseUrl;
+  return { subject, from: "", replyTo: "destek@fixoku.com", html, text: plainText };
+}
 export const EMAIL_TEMPLATE_COUNT = EMAIL_TEMPLATE_CATALOG.length;

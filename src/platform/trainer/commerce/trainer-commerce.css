@@ -1,0 +1,2396 @@
+.trainer-commerce-page{min-height:calc(100vh - var(--panel-topbar-height));padding:30px clamp(16px,4vw,64px) 60px;background:linear-gradient(135deg,#fff 0%,#fffaf5 100%);color:#202630}.trainer-commerce-heading{margin-bottom:26px}.trainer-commerce-heading a{color:#b6531b;text-decoration:none;font-weight:700}.trainer-commerce-heading h2{margin:14px 0 7px;font-size:42px;letter-spacing:-1px}.trainer-commerce-heading p{margin:0;color:#68717d;font-size:16px}.trainer-commerce-empty{max-width:580px;margin:30px auto;padding:48px 24px;border:1px dashed #e2cbbb;border-radius:16px;background:#fff;text-align:center;color:#bd591e}.trainer-commerce-empty h3{margin:14px 0 7px;color:#202630}.trainer-commerce-empty p{color:#68717d}.trainer-commerce-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid #eb6c1e;border-radius:8px;background:#eb6c1e;color:#fff;font:inherit;font-weight:800;text-decoration:none;cursor:pointer}.trainer-cart-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}.trainer-cart-list,.trainer-order-summary{padding:20px;border:1px solid #e7eaed;border-radius:14px;background:#fff;box-shadow:0 6px 20px #26323b0b}.trainer-cart-item{display:grid;grid-template-columns:52px minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:13px 0;border-bottom:1px solid #edf0f2}.trainer-cart-item:first-child{padding-top:0}.trainer-cart-item:last-child{padding-bottom:0;border:0}.trainer-cart-item .trainer-package-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:14px;background:#fff0e5;color:#ef6c1d}.trainer-cart-item h3{margin:0 0 5px;font-size:17px}.trainer-cart-item p{margin:0;color:#6d7781;font-size:13px}.trainer-cart-item>strong{white-space:nowrap}.trainer-cart-item>button{border:0;background:none;color:#bd591e;font:inherit;font-weight:700;cursor:pointer}.trainer-order-summary h3{margin:0 0 18px}.trainer-order-summary dl{display:grid;gap:12px;margin:0 0 20px}.trainer-order-summary dl div{display:flex;justify-content:space-between;gap:12px}.trainer-order-summary dt{color:#68717d}.trainer-order-summary dd{margin:0;font-weight:700}.trainer-order-summary dl div:last-child{padding-top:13px;border-top:1px solid #edf0f2;font-size:18px}.trainer-order-summary .trainer-commerce-primary{width:100%}.trainer-order-summary>a{display:block;margin-top:13px;text-align:center;color:#a9501d;font-weight:700;text-decoration:none}@media(max-width:800px){.trainer-cart-layout{grid-template-columns:1fr}.trainer-commerce-heading h2{font-size:34px}}@media(max-width:520px){.trainer-cart-item{grid-template-columns:44px minmax(0,1fr);gap:10px}.trainer-cart-item>strong{grid-column:2}.trainer-cart-item>button{grid-column:2;text-align:left}.trainer-cart-item .trainer-package-icon{width:44px;height:44px}}
+.trainer-video-layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:22px;align-items:start}.trainer-video-main,.trainer-video-list{padding:20px;border:1px solid #e7eaed;border-radius:14px;background:#fff;box-shadow:0 6px 20px #26323b0b}.trainer-video-frame{position:relative;overflow:hidden;border-radius:12px;background:#111;aspect-ratio:16/9}.trainer-video-frame video{display:block;width:100%;height:100%;object-fit:contain}.trainer-video-watermark{position:absolute;left:8%;top:42%;display:flex;gap:12px;align-items:center;color:#fff8;transform:rotate(-18deg);pointer-events:none;user-select:none;font-size:13px;font-weight:800;letter-spacing:.4px;text-shadow:0 1px 2px #000}.trainer-video-watermark span+span{font-weight:500}.trainer-video-note{margin:14px 0 0;color:#68717d;font-size:14px}.trainer-video-locked{height:100%;display:grid;place-items:center;align-content:center;gap:10px;color:#fff;text-align:center}.trainer-video-list h3{margin:0 0 12px}.trainer-video-item{display:grid;grid-template-columns:34px minmax(0,1fr) 20px;gap:10px;align-items:center;width:100%;padding:13px 4px;border:0;border-bottom:1px solid #edf0f2;background:transparent;text-align:left;color:#202630;cursor:pointer}.trainer-video-item:last-child{border-bottom:0}.trainer-video-item.is-selected{margin:0 -8px;padding-left:12px;padding-right:12px;border-radius:9px;background:#fff1e7}.trainer-video-item.is-locked{color:#89919a;cursor:not-allowed}.trainer-video-number{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#fff0e5;color:#bd591e;font-weight:800}.trainer-video-item.is-locked .trainer-video-number{background:#f0f2f4;color:#8d969e}.trainer-video-item strong,.trainer-video-item small{display:block}.trainer-video-item strong{font-size:14px;line-height:1.35}.trainer-video-item small{margin-top:4px;color:#7a838c;font-size:12px}.trainer-commerce-message{padding:12px 14px;border-radius:9px;background:#fff1e7;color:#934616}.trainer-commerce-secondary{min-height:42px;padding:0 15px;border:1px solid #d8dee4;border-radius:8px;background:#fff;color:#5e6872;font:inherit;font-weight:700;cursor:pointer}@media(max-width:900px){.trainer-video-layout{grid-template-columns:1fr}.trainer-video-list{order:2}}@media(max-width:520px){.trainer-video-main,.trainer-video-list{padding:13px}.trainer-video-watermark{left:3%;font-size:11px}}
+.trainer-bank-transfer-form{margin-bottom:20px;padding:20px;border:1px solid #e7eaed;border-radius:14px;background:#fff}.trainer-bank-transfer-form h3{margin-top:0}.trainer-bank-transfer-form p{color:#68717d}.trainer-bank-transfer-form .trainer-commerce-primary{margin-top:12px}
+.trainer-cart-list-heading{display:flex;justify-content:space-between;align-items:center;margin:-2px 0 12px;padding-bottom:12px;border-bottom:1px solid #edf0f2;color:#7a838c;font-size:12px;text-transform:uppercase;letter-spacing:.08em}.trainer-cart-list-heading div{display:flex;gap:10px;align-items:center}.trainer-cart-list-heading strong{color:#bd591e;font-size:12px}.trainer-cart-item-copy p{max-width:42rem;line-height:1.45}.trainer-cart-item-copy small{display:block;margin-top:7px;color:#87909a;font-size:12px}.trainer-cart-item-price{font-size:17px;color:#202630}.trainer-summary-eyebrow{display:block;margin-bottom:8px;color:#bd591e;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.trainer-order-summary{position:sticky;top:24px}
+
+/* FIXOKU VIDEO UAT 2026-09-18 */
+
+.trainer-video-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 26px;
+  align-items: center;
+  column-gap: 12px;
+}
+
+.trainer-video-item-status {
+  width: 26px;
+  min-width: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  text-align: center;
+}
+
+.trainer-video-playing-status {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  backdrop-filter: blur(5px);
+}
+
+.trainer-video-playing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f36b21;
+  flex: 0 0 7px;
+}
+
+/* FIXOKU VIDEO SECURITY WATERMARK V2 */
+
+.trainer-video-frame {
+  position: relative;
+}
+
+.trainer-video-watermark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  width: min(84%, 720px);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 16px 22px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.75);
+  pointer-events: none;
+  user-select: none;
+  animation: fixoku-watermark-cycle 15s linear infinite;
+}
+
+.trainer-video-watermark-name {
+  display: block;
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+
+.trainer-video-watermark-reference {
+  display: block;
+  font-size: clamp(14px, 1.45vw, 20px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.trainer-video-watermark-warning {
+  display: block;
+  max-width: 680px;
+  margin-top: 8px;
+  font-size: clamp(14px, 1.45vw, 19px);
+  font-weight: 700;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+@keyframes fixoku-watermark-cycle {
+  0%,
+  66.666% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  66.667%,
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 720px) {
+  .trainer-video-watermark {
+    width: 88%;
+    padding: 12px 14px;
+    gap: 4px;
+  }
+
+  .trainer-video-watermark-name {
+    font-size: 20px;
+  }
+
+  .trainer-video-watermark-reference,
+  .trainer-video-watermark-warning {
+    font-size: 13px;
+  }
+}
+
+/* FIXOKU VIDEO SECURITY WATERMARK V3 */
+
+.trainer-video-watermark {
+  gap: 5px;
+  padding: 12px 18px;
+  animation: fixoku-watermark-cycle-v3 20s linear infinite;
+}
+
+.trainer-video-watermark-name {
+  font-size: clamp(18px, 1.8vw, 26px);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.trainer-video-watermark-reference {
+  display: none !important;
+}
+
+.trainer-video-watermark-ban {
+  display: block;
+  margin-top: 4px;
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1;
+}
+
+.trainer-video-watermark-warning {
+  max-width: 620px;
+  margin-top: 2px;
+  font-size: clamp(12px, 1.15vw, 16px);
+  font-weight: 700;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+@keyframes fixoku-watermark-cycle-v3 {
+  0%,
+  24.999% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  25%,
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 720px) {
+  .trainer-video-watermark {
+    width: 88%;
+    padding: 10px 12px;
+  }
+
+  .trainer-video-watermark-name {
+    font-size: 18px;
+  }
+
+  .trainer-video-watermark-ban {
+    font-size: 22px;
+  }
+
+  .trainer-video-watermark-warning {
+    font-size: 12px;
+  }
+}
+
+/* FIXOKU VIDEO STATUS V4 */
+
+.trainer-video-watermark-warning > span {
+  display: inline;
+  margin-right: 4px;
+}
+
+.trainer-video-item small.is-complete {
+  color: #15803d;
+  font-weight: 700;
+}
+
+/* FIXOKU TRAINER CURRICULUM TAB V1 */
+
+.trainer-course-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 20px;
+  padding: 5px;
+  width: fit-content;
+  border: 1px solid #e7e9ee;
+  border-radius: 14px;
+  background: #f7f8fa;
+}
+
+.trainer-course-tabs button {
+  appearance: none;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 18px;
+  background: transparent;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trainer-course-tabs button.is-active {
+  background: #ffffff;
+  color: #f36b21;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.trainer-curriculum-panel {
+  width: 100%;
+  max-width: 1040px;
+}
+
+.trainer-curriculum-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.trainer-curriculum-toolbar > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.trainer-curriculum-toolbar strong {
+  font-size: 18px;
+  color: #111827;
+}
+
+.trainer-curriculum-toolbar > div span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.trainer-curriculum-protected {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trainer-curriculum-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #111827;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.12);
+  user-select: none;
+}
+
+.trainer-curriculum-stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.trainer-curriculum-watermark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  width: min(84%, 720px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 3px 10px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  animation: fixoku-curriculum-watermark 20s linear infinite;
+}
+
+.trainer-curriculum-watermark strong {
+  font-size: clamp(18px, 1.8vw, 25px);
+}
+
+.trainer-curriculum-watermark span {
+  font-size: clamp(12px, 1.1vw, 16px);
+  font-weight: 700;
+}
+
+@keyframes fixoku-curriculum-watermark {
+  0%,
+  24.999% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  25%,
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.trainer-curriculum-navigation {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.trainer-curriculum-navigation button {
+  min-height: 42px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #334155;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trainer-curriculum-navigation button:first-child {
+  justify-self: start;
+}
+
+.trainer-curriculum-navigation button:last-child {
+  justify-self: end;
+}
+
+.trainer-curriculum-navigation button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.trainer-curriculum-navigation span {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .trainer-course-tabs {
+    width: 100%;
+  }
+
+  .trainer-course-tabs button {
+    flex: 1;
+  }
+
+  .trainer-curriculum-toolbar {
+    align-items: flex-start;
+  }
+
+  .trainer-curriculum-watermark {
+    width: 88%;
+  }
+}
+
+/* FIXOKU CURRICULUM TAB STABILITY V2 */
+
+/* Uzun/kÄ±sa iÃ§erik arasÄ±nda scrollbar oluÅŸunca sayfa saÄŸa-sola oynamasÄ±n */
+html {
+  scrollbar-gutter: stable;
+}
+
+.trainer-video-page {
+  min-height: calc(100vh - 110px);
+}
+
+/* Ä°ki sekmenin Ã¶lÃ§Ã¼sÃ¼ aktif sekmeye gÃ¶re deÄŸiÅŸmesin */
+.trainer-course-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 260px;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.trainer-course-tabs button {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Ä°Ã§erik baÅŸlangÄ±Ã§ noktasÄ± iki sekmede de aynÄ± kalsÄ±n */
+.trainer-curriculum-panel,
+.trainer-video-layout {
+  margin-top: 0;
+}
+
+.trainer-curriculum-panel {
+  min-height: 620px;
+}
+
+@media (max-width: 720px) {
+  .trainer-course-tabs {
+    width: 100%;
+  }
+
+  .trainer-curriculum-panel {
+    min-height: 420px;
+  }
+}
+
+/* FIXOKU CURRICULUM VIEWER V3 */
+
+.trainer-course-tabs {
+  width: 340px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.trainer-course-tabs button {
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.trainer-curriculum-panel {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+}
+
+.trainer-curriculum-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.trainer-curriculum-summary strong {
+  color: #111827;
+  font-size: 18px;
+}
+
+.trainer-curriculum-summary span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.trainer-curriculum-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 20px;
+  align-items: start;
+}
+
+.trainer-curriculum-main {
+  min-width: 0;
+}
+
+.trainer-curriculum-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #0f172a;
+}
+
+.trainer-curriculum-stage > img,
+.trainer-curriculum-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0f172a;
+}
+
+.trainer-curriculum-stage > img {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.trainer-curriculum-navigation {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.trainer-curriculum-navigation > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.trainer-curriculum-navigation > div strong {
+  max-width: 100%;
+  color: #111827;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trainer-curriculum-navigation > div span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.trainer-curriculum-navigation button {
+  min-width: 108px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trainer-curriculum-navigation button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.trainer-curriculum-list {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.trainer-curriculum-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px 16px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.trainer-curriculum-list-heading strong {
+  color: #111827;
+  font-size: 15px;
+}
+
+.trainer-curriculum-list-heading span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.trainer-curriculum-list-scroll {
+  max-height: 575px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.trainer-curriculum-list-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trainer-curriculum-list-item:hover {
+  background: #fffaf7;
+}
+
+.trainer-curriculum-list-item.is-active {
+  background: #fff1e8;
+}
+
+.trainer-curriculum-list-item.is-video {
+  background: #fffaf5;
+}
+
+.trainer-curriculum-list-item.is-video.is-active {
+  background: #ffe9da;
+}
+
+.trainer-curriculum-item-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.trainer-curriculum-list-item.is-video .trainer-curriculum-item-icon {
+  background: #fff0e6;
+  color: #e85d0f;
+  font-size: 15px;
+}
+
+.trainer-curriculum-list-item > span:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trainer-curriculum-list-item strong {
+  overflow: hidden;
+  color: #1e293b;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trainer-curriculum-list-item small {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.trainer-curriculum-watermark {
+  z-index: 5;
+}
+
+@media (max-width: 980px) {
+  .trainer-curriculum-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .trainer-curriculum-list {
+    order: 2;
+  }
+
+  .trainer-curriculum-list-scroll {
+    max-height: 360px;
+  }
+}
+
+@media (max-width: 720px) {
+  .trainer-course-tabs {
+    width: 100%;
+  }
+
+  .trainer-course-tabs button {
+    white-space: nowrap;
+  }
+
+  .trainer-curriculum-navigation {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .trainer-curriculum-navigation > div {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .trainer-curriculum-navigation button {
+    grid-row: 2;
+    width: 100%;
+  }
+}
+
+/* FIXOKU CURRICULUM MODAL VIEWER V5 */
+
+/* Iki sekmede heading yuksekligi ayni kalsin */
+.trainer-tab-description {
+  min-height: 22px;
+}
+
+.trainer-tab-description.is-placeholder {
+  visibility: hidden;
+}
+
+.trainer-course-tabs {
+  width: 360px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.trainer-course-tabs button {
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+/* Normal Mufredat sekmesi: mevcut sayfa icinde onizleme */
+.trainer-curriculum-panel {
+  width: 100%;
+  max-width: none;
+}
+
+.trainer-curriculum-preview-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 18px;
+  align-items: start;
+}
+
+.trainer-curriculum-preview-stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.trainer-curriculum-preview-stage > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.trainer-curriculum-preview-shade {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.22);
+  pointer-events: none;
+}
+
+.trainer-curriculum-launch {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 8;
+  transform: translate(-50%, -50%);
+  min-width: 220px;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 18px 24px;
+  border: 0;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.trainer-curriculum-launch > span {
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f36b21;
+  color: #ffffff;
+  font-size: 18px;
+  padding-left: 3px;
+}
+
+.trainer-curriculum-launch strong {
+  font-size: 16px;
+}
+
+.trainer-curriculum-launch small {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+}
+
+.trainer-curriculum-list {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.trainer-curriculum-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.trainer-curriculum-list-heading strong {
+  color: #111827;
+  font-size: 14px;
+}
+
+.trainer-curriculum-list-heading span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.trainer-curriculum-list-preview .trainer-curriculum-list-scroll {
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.trainer-curriculum-list-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 68px;
+  padding: 8px 10px;
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trainer-curriculum-list-item:hover {
+  background: #fffaf7;
+}
+
+.trainer-curriculum-list-item.is-active {
+  background: #fff1e8;
+  box-shadow: inset 3px 0 0 #f36b21;
+}
+
+.trainer-curriculum-list-item.is-video {
+  background: #fffaf5;
+}
+
+.trainer-curriculum-list-item.is-video.is-active {
+  background: #ffe9da;
+}
+
+.trainer-curriculum-thumb {
+  position: relative;
+  width: 92px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  display: block;
+  border-radius: 8px;
+  background: #e2e8f0;
+}
+
+.trainer-curriculum-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.trainer-curriculum-thumb-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.84);
+  color: #ffffff;
+  font-size: 11px;
+  padding-left: 2px;
+}
+
+.trainer-curriculum-list-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.trainer-curriculum-list-copy strong {
+  overflow: hidden;
+  color: #1e293b;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trainer-curriculum-list-copy small {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+/* Gercek tam ekran sadece Mufredat icin */
+.trainer-curriculum-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483600;
+  display: grid;
+  grid-template-rows: 64px minmax(0, 1fr);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0b1020;
+  color: #ffffff;
+}
+
+.trainer-curriculum-fullscreen-header {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 18px 0 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111827;
+}
+
+.trainer-curriculum-fullscreen-header > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trainer-curriculum-fullscreen-header strong {
+  overflow: hidden;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trainer-curriculum-fullscreen-header span {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.trainer-curriculum-close {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.trainer-curriculum-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.trainer-curriculum-fullscreen-body {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 0;
+}
+
+.trainer-curriculum-fullscreen-main {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 64px;
+  background: #050914;
+}
+
+.trainer-curriculum-fullscreen-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050914;
+}
+
+.trainer-curriculum-fullscreen-stage > img,
+.trainer-curriculum-fullscreen-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #050914;
+}
+
+.trainer-curriculum-fullscreen-stage > img {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.trainer-curriculum-watermark-fullscreen {
+  z-index: 7;
+}
+
+.trainer-curriculum-fullscreen-footer {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: #111827;
+}
+
+.trainer-curriculum-fullscreen-footer button {
+  min-width: 112px;
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trainer-curriculum-fullscreen-footer button:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.trainer-curriculum-fullscreen-footer > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.trainer-curriculum-fullscreen-footer strong {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trainer-curriculum-fullscreen-footer span {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.trainer-curriculum-list-fullscreen {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0;
+  background: #ffffff;
+  color: #111827;
+}
+
+.trainer-curriculum-list-fullscreen .trainer-curriculum-list-heading {
+  flex: 0 0 auto;
+}
+
+.trainer-curriculum-list-fullscreen .trainer-curriculum-list-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+}
+
+@media (max-width: 980px) {
+  .trainer-curriculum-preview-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .trainer-curriculum-list-preview .trainer-curriculum-list-scroll {
+    max-height: 330px;
+  }
+
+  .trainer-curriculum-fullscreen-body {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+@media (max-width: 720px) {
+  .trainer-course-tabs {
+    width: 100%;
+  }
+
+  .trainer-curriculum-fullscreen {
+    grid-template-rows: 56px minmax(0, 1fr);
+  }
+
+  .trainer-curriculum-fullscreen-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) 230px;
+  }
+
+  .trainer-curriculum-fullscreen-main {
+    grid-template-rows: minmax(0, 1fr) 58px;
+  }
+
+  .trainer-curriculum-list-fullscreen {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .trainer-curriculum-list-fullscreen .trainer-curriculum-list-scroll {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .trainer-curriculum-list-fullscreen .trainer-curriculum-list-item {
+    min-width: 220px;
+    border-right: 1px solid #f1f5f9;
+  }
+
+  .trainer-curriculum-fullscreen-footer button {
+    min-width: 82px;
+    padding: 0 9px;
+  }
+}
+
+/* FIXOKU CURRICULUM SECURITY UX V6 */
+
+/* Ã–nizlemede tam Ã§Ã¶zÃ¼nÃ¼rlÃ¼klÃ¼ slayt kullanÄ±lÄ±yor; gereksiz blur/zoom yok */
+.trainer-curriculum-preview-stage > img {
+  image-rendering: auto;
+  object-fit: contain !important;
+  filter: none !important;
+}
+
+/* KullanÄ±cÄ±nÄ±n istediÄŸi: tam orta ile alt kenar arasÄ±nÄ±n ortasÄ± */
+.trainer-curriculum-launch {
+  top: 75% !important;
+}
+
+/* Kilitli iÃ§erikler saÄŸ rail'de anlaÅŸÄ±lÄ±r olsun */
+.trainer-curriculum-list-item.is-locked,
+.trainer-curriculum-list-item:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.48 !important;
+  background: #f8fafc !important;
+}
+
+.trainer-curriculum-list-item.is-complete small {
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+
+/* Video bitmeden Sonraki gerÃ§ekten pasif */
+.trainer-curriculum-navigation button:disabled,
+.trainer-curriculum-fullscreen-footer button:disabled {
+  opacity: 0.28 !important;
+  cursor: not-allowed !important;
+}
+
+/* Fullscreen video seek engeli iÅŸlevsel; native kontrol gÃ¶rÃ¼nÃ¼mÃ¼ korunur */
+.trainer-curriculum-fullscreen-video {
+  touch-action: manipulation;
+}
+
+@media (max-height: 760px) and (min-width: 721px) {
+  .trainer-curriculum-launch {
+    top: 72% !important;
+  }
+}
+
+/* FIXOKU WATERMARK POSITION V7 */
+
+/* MÃ¼fredatÄ± Ä°nceleyin butonu tekrar ekranÄ±n ortasÄ±nda */
+.trainer-curriculum-launch {
+  top: 50% !important;
+}
+
+/* GÃ¼venlik / kullanÄ±cÄ± watermark yazÄ±larÄ±:
+   ekran merkezi ile alt kenar arasÄ±nÄ±n ortasÄ±na */
+.trainer-curriculum-watermark-fullscreen {
+  top: 75% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Video EÄŸitimleri iÃ§indeki watermark da aynÄ± konumda */
+.trainer-video-watermark {
+  top: 75% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+
+/* FIXOKU VIDEO SEEK LOCK + SUCCESS ALERT V8 */
+
+/* BaÅŸarÄ±lÄ± tamamlama bildirimi */
+.trainer-commerce-message.is-success {
+  border: 1px solid #bbf7d0 !important;
+  background: #f0fdf4 !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+
+/* Chrome / Edge: zaman Ã§izelgesi hiÃ§bir durumda sÃ¼rÃ¼klenemez.
+   JS onSeeking korumasÄ± da ikinci katman olarak Ã§alÄ±ÅŸÄ±r. */
+.trainer-video-frame video::-webkit-media-controls-timeline,
+.trainer-curriculum-fullscreen-video::-webkit-media-controls-timeline {
+  pointer-events: none !important;
+}
+
+/* TamamlanmÄ±ÅŸ video dahil tÃ¼m eÄŸitim videolarÄ±nda timeline imleci pasif hissi versin. */
+.trainer-video-frame video,
+.trainer-curriculum-fullscreen-video {
+  --fixoku-seek-locked: 1;
+}
+
+/* FIXOKU VIDEO TOAST + THUMBNAILS V9 */
+
+/* BaÅŸarÄ± bildirimi video Ã¼zerinde gÃ¶rÃ¼nÃ¼r; sayfa yÃ¼ksekliÄŸini deÄŸiÅŸtirmez. */
+.trainer-video-completion-toast {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  z-index: 12;
+  transform: translate(-50%, -8px);
+  min-width: 280px;
+  max-width: min(520px, calc(100% - 32px));
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid rgba(134, 239, 172, 0.68);
+  border-radius: 14px;
+  background: rgba(240, 253, 244, 0.96);
+  color: #166534;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.2);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  animation: fixoku-video-completion-toast 4s ease-in-out both;
+}
+
+.trainer-video-completion-toast > span {
+  grid-row: 1 / 3;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.trainer-video-completion-toast strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.trainer-video-completion-toast small {
+  margin-top: 2px;
+  color: #15803d;
+  font-size: 11px;
+}
+
+@keyframes fixoku-video-completion-toast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+
+  12% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  78% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+}
+
+/* SaÄŸ video listesi MÃ¼fredat gibi gerÃ§ek video Ã¶nizlemesi gÃ¶sterir. */
+.trainer-video-item {
+  grid-template-columns: 92px 32px minmax(0, 1fr) 26px !important;
+  gap: 10px !important;
+}
+
+.trainer-video-thumb {
+  position: relative;
+  width: 92px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  display: block;
+  border-radius: 8px;
+  background: #e2e8f0;
+}
+
+.trainer-video-thumb > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.trainer-video-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.trainer-video-thumb-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #ffffff;
+  font-size: 11px;
+  padding-left: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .trainer-video-item {
+    grid-template-columns: 76px 28px minmax(0, 1fr) 24px !important;
+  }
+
+  .trainer-video-thumb {
+    width: 76px;
+  }
+
+  .trainer-video-completion-toast {
+    min-width: 0;
+    width: calc(100% - 28px);
+  }
+}
+
+/* FIXOKU VIDEO UI V12 CLEAN */
+
+/* Sekmeler sayfanin en ust bilgi blogu */
+.trainer-video-page .trainer-course-tabs {
+  margin: 0 0 14px !important;
+}
+
+/* Sag video karti:
+   ust = numara + baslik/durum + durum ikonu
+   alt = tam genislik onizleme */
+.trainer-video-item {
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) 26px !important;
+  grid-template-areas:
+    "number copy status"
+    "thumb thumb thumb" !important;
+  align-items: start !important;
+  gap: 8px 10px !important;
+  padding: 12px !important;
+}
+
+.trainer-video-number {
+  grid-area: number !important;
+  align-self: start !important;
+}
+
+.trainer-video-item-copy {
+  grid-area: copy !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.trainer-video-item-copy strong {
+  white-space: normal !important;
+  line-height: 1.24 !important;
+}
+
+.trainer-video-item-copy small {
+  line-height: 1.2 !important;
+}
+
+.trainer-video-item-status {
+  grid-area: status !important;
+  align-self: start !important;
+  justify-self: end !important;
+}
+
+.trainer-video-thumb {
+  grid-area: thumb !important;
+  width: 100% !important;
+  max-width: none !important;
+  aspect-ratio: 16 / 9 !important;
+  margin-top: 2px !important;
+  border-radius: 10px !important;
+}
+
+/* Video uzerindeki yesil bildirim 4 saniye; layout'u itmez */
+.trainer-video-completion-toast {
+  position: absolute !important;
+  left: 50% !important;
+  top: 18px !important;
+  z-index: 50 !important;
+  transform: translate(-50%, -10px);
+  min-width: 300px;
+  max-width: calc(100% - 32px);
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid rgba(134, 239, 172, 0.82);
+  border-radius: 14px;
+  background: rgba(240, 253, 244, 0.97);
+  color: #166534;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.22);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  animation: fixoku-video-toast-v12 4s ease-in-out both;
+}
+
+@keyframes fixoku-video-toast-v12 {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+
+  12% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  78% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+}
+
+@media (max-width: 720px) {
+  .trainer-video-item {
+    grid-template-columns: 30px minmax(0, 1fr) 24px !important;
+  }
+
+  .trainer-video-completion-toast {
+    min-width: 0;
+    width: calc(100% - 28px);
+  }
+}
+
+/* FIXOKU VIDEO RAIL V13 */
+
+/* Ana video + saÄŸ ders listesi yan yana olan gerÃ§ek section'Ä± dar rail ile sabitle. */
+.trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+  grid-template-columns: minmax(0, 1fr) 218px !important;
+  column-gap: 14px !important;
+  align-items: start !important;
+}
+
+/* SaÄŸ rail video adedi arttÄ±kÃ§a kendi iÃ§inde kayar; sayfayÄ± aÅŸaÄŸÄ± uzatmaz. */
+.trainer-video-list {
+  width: 218px !important;
+  max-width: 218px !important;
+  max-height: 520px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  padding: 12px 8px 12px 12px !important;
+}
+
+.trainer-video-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.trainer-video-list::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.32);
+  border-radius: 999px;
+}
+
+.trainer-video-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* KartlarÄ± daha kompakt yap. */
+.trainer-video-item {
+  padding: 9px !important;
+  gap: 6px 8px !important;
+  grid-template-columns: 28px minmax(0, 1fr) 20px !important;
+}
+
+.trainer-video-item-copy strong {
+  font-size: 11px !important;
+  line-height: 1.22 !important;
+}
+
+.trainer-video-item-copy small {
+  font-size: 9px !important;
+}
+
+.trainer-video-number {
+  font-size: 11px !important;
+}
+
+.trainer-video-item-status {
+  font-size: 12px !important;
+}
+
+.trainer-video-thumb {
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  max-height: 104px !important;
+  border-radius: 8px !important;
+}
+
+.trainer-video-thumb-play {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 9px !important;
+}
+
+@media (max-width: 980px) {
+  .trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+    grid-template-columns: minmax(0, 1fr) 196px !important;
+  }
+
+  .trainer-video-list {
+    width: 196px !important;
+    max-width: 196px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .trainer-video-list {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 420px !important;
+  }
+}
+
+/* FIXOKU VIDEO RAIL HEIGHT V14 */
+
+/* Grid satÄ±rÄ±nÄ±n yÃ¼ksekliÄŸini sol video kartÄ± belirler.
+   SaÄŸ liste aynÄ± yÃ¼ksekliÄŸe esner ve kendi iÃ§inde scroll olur. */
+.trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+  align-items: stretch !important;
+}
+
+.trainer-video-list {
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-self: stretch !important;
+}
+
+/* Rail kompakt kalÄ±r. */
+.trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+  grid-template-columns: minmax(0, 1fr) 218px !important;
+}
+
+@media (max-width: 980px) {
+  .trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+    grid-template-columns: minmax(0, 1fr) 196px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .trainer-video-list {
+    width: 100% !important;
+    max-width: none !important;
+    height: 420px !important;
+    max-height: 420px !important;
+  }
+}
+
+/* FIXOKU VIDEO RAIL V15 MEASURED */
+
+/* Desktop yÃ¼ksekliÄŸi React tarafÄ±ndan video frame yÃ¼ksekliÄŸi kadar inline verilir. */
+.trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+  align-items: start !important;
+}
+
+.trainer-video-list {
+  height: auto;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-self: start !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 760px) {
+  .trainer-video-list {
+    height: 420px !important;
+    max-height: 420px !important;
+  }
+}
+
+/* FIXOKU VIDEO RAIL EXACT ALIGN V16 */
+
+/* SaÄŸ rail'in alt sÄ±nÄ±rÄ±, soldaki .trainer-video-main kartÄ±nÄ±n alt sÄ±nÄ±rÄ±yla birebir aynÄ±.
+   Eski V14 height:100%!important kuralÄ±nÄ± custom property ile kesin olarak ezer. */
+.trainer-video-list {
+  height: var(--fixoku-video-rail-height, auto) !important;
+  max-height: var(--fixoku-video-rail-height, none) !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-self: start !important;
+}
+
+/* Grid satÄ±rÄ± iÃ§erikten dolayÄ± tekrar uzamasÄ±n. */
+.trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+  align-items: start !important;
+}
+
+/* Mobilde rail tekrar normal blok olur. */
+@media (max-width: 760px) {
+  .trainer-video-list {
+    height: 420px !important;
+    max-height: 420px !important;
+  }
+}
+
+/* FIXOKU VIDEO RAIL EXACT FRAME BOTTOM V17 */
+
+/* SaÄŸ panelin alt Ã§izgisi doÄŸrudan video gÃ¶rÃ¼ntÃ¼sÃ¼nÃ¼n alt Ã§izgisiyle hizalanÄ±r.
+   .trainer-video-main kartÄ±nÄ±n alttaki not satÄ±rÄ± yÃ¼ksekliÄŸe dahil deÄŸildir. */
+.trainer-video-list {
+  height: var(--fixoku-video-rail-height, auto) !important;
+  max-height: var(--fixoku-video-rail-height, none) !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-self: start !important;
+}
+
+.trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
+  align-items: start !important;
+}
+
+@media (max-width: 760px) {
+  .trainer-video-list {
+    height: 420px !important;
+    max-height: 420px !important;
+  }
+}
+
+/* FIXOKU VIDEO RAIL ROOT FIX V18 */
+
+/*
+  V17 piksel yuksekligi React tarafindan hesaplar.
+  box-sizing:border-box sayesinde rail'in border + padding dahil
+  ALT kenari, siyah ana video frame'inin alt kenariyla ayni yerde biter.
+*/
+.trainer-video-list {
+  box-sizing: border-box !important;
+  height: var(--fixoku-video-rail-height, auto) !important;
+  max-height: var(--fixoku-video-rail-height, none) !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-self: start !important;
+}
+
+.trainer-video-page .trainer-video-layout {
+  align-items: start !important;
+}
+
+@media (max-width: 760px) {
+  .trainer-video-list {
+    height: 420px !important;
+    max-height: 420px !important;
+  }
+}
+
+/* FIXOKU CHECKOUT REDESIGN V18 */
+
+.trainer-checkout-progress {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 8px;
+  border: 1px solid #e7eaed;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(38, 50, 59, 0.04);
+}
+
+.trainer-checkout-progress span {
+  position: relative;
+  min-width: 0;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px;
+  border-radius: 10px;
+  color: #68717d;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.trainer-checkout-progress span.is-active {
+  background: #fff2e8;
+  color: #a94810;
+}
+
+.trainer-checkout-progress b {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f2f4f6;
+  color: #68717d;
+  font-size: 12px;
+}
+
+.trainer-checkout-progress .is-active b {
+  background: #ef6c1d;
+  color: #fff;
+}
+
+.trainer-checkout-progress em {
+  overflow: hidden;
+  font-style: normal;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.trainer-checkout-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 350px !important;
+  gap: 22px !important;
+  align-items: start !important;
+}
+
+.trainer-checkout-main {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.trainer-checkout-step {
+  padding: 22px !important;
+  border: 1px solid #e7eaed !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 6px 20px rgba(38, 50, 59, 0.04);
+}
+
+.trainer-checkout-step h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  color: #202630;
+  font-size: 18px;
+}
+
+.trainer-checkout-step h3 > span {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #fff0e5;
+  color: #bd591e;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.trainer-checkout-step > label,
+.trainer-checkout-fields label {
+  display: grid;
+  gap: 7px;
+  color: #4d5761;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.trainer-checkout-step > label + .trainer-checkout-fields {
+  margin-top: 14px;
+}
+
+.trainer-checkout-step input[type="text"],
+.trainer-checkout-step input[type="date"],
+.trainer-checkout-step input:not([type]),
+.trainer-checkout-step select,
+.trainer-checkout-step textarea,
+.trainer-bank-transfer-form input,
+.trainer-bank-transfer-form select,
+.trainer-bank-transfer-form textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d9dee3;
+  border-radius: 9px;
+  outline: none;
+  background: #fff;
+  color: #202630;
+  font: inherit;
+  font-weight: 500;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.trainer-checkout-step textarea,
+.trainer-bank-transfer-form textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.trainer-checkout-step input:focus,
+.trainer-checkout-step select:focus,
+.trainer-checkout-step textarea:focus,
+.trainer-bank-transfer-form input:focus,
+.trainer-bank-transfer-form select:focus,
+.trainer-bank-transfer-form textarea:focus {
+  border-color: #ef8a4b;
+  box-shadow: 0 0 0 3px rgba(239, 108, 29, 0.10);
+}
+
+.trainer-checkout-fields {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+
+.trainer-checkout-fields label:last-child {
+  grid-column: 1 / -1;
+}
+
+.trainer-choice-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trainer-choice-row label {
+  min-height: 48px;
+  display: flex !important;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid #dfe4e8;
+  border-radius: 10px;
+  background: #fafbfc;
+  color: #36404a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trainer-choice-row label:has(input:checked) {
+  border-color: #f29a63;
+  background: #fff5ee;
+  color: #9d4512;
+}
+
+.trainer-choice-row input,
+.trainer-checkout-check input {
+  accent-color: #ef6c1d;
+}
+
+.trainer-checkout-check {
+  display: flex !important;
+  align-items: flex-start;
+  grid-template-columns: none !important;
+  gap: 9px !important;
+  margin-top: 14px;
+  font-weight: 600 !important;
+  line-height: 1.45;
+}
+
+.trainer-checkout-check input {
+  width: 17px !important;
+  height: 17px !important;
+  min-height: 0 !important;
+  flex: 0 0 17px;
+  margin-top: 2px;
+}
+
+.trainer-checkout-shipping {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 13px 0 0;
+  padding: 13px 14px;
+  border-radius: 10px;
+  background: #f8fafb;
+  color: #59636d;
+}
+
+.trainer-checkout-note {
+  margin: 13px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #fde0cd;
+  border-radius: 10px;
+  background: #fff8f3;
+  color: #8f481d;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.trainer-checkout-step .trainer-commerce-secondary,
+.trainer-checkout-step .trainer-commerce-primary {
+  margin-top: 14px;
+}
+
+.trainer-checkout-layout > .trainer-order-summary {
+  position: sticky !important;
+  top: 20px !important;
+  padding: 22px !important;
+  border: 1px solid #e7eaed;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(38, 50, 59, 0.05);
+}
+
+.trainer-checkout-layout > .trainer-order-summary h3 {
+  margin: 0 0 16px;
+  font-size: 19px;
+}
+
+.trainer-checkout-layout > .trainer-order-summary > p {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  margin: 0;
+  padding: 11px 0;
+  border-bottom: 1px solid #edf0f2;
+  color: #58626c;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.trainer-checkout-layout > .trainer-order-summary > p strong {
+  color: #202630;
+  white-space: nowrap;
+}
+
+.trainer-checkout-layout > .trainer-order-summary dl {
+  margin-top: 17px;
+}
+
+.trainer-bank-transfer-form {
+  margin-bottom: 20px !important;
+  padding: 22px !important;
+  border: 1px solid #e7eaed !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 6px 20px rgba(38, 50, 59, 0.04);
+}
+
+@media (max-width: 980px) {
+  .trainer-checkout-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .trainer-checkout-layout > .trainer-order-summary {
+    position: static !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .trainer-checkout-progress {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .trainer-checkout-progress::-webkit-scrollbar {
+    display: none;
+  }
+
+  .trainer-checkout-progress span {
+    min-width: 118px;
+  }
+
+  .trainer-checkout-fields,
+  .trainer-choice-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .trainer-checkout-fields label:last-child {
+    grid-column: auto;
+  }
+
+  .trainer-checkout-step {
+    padding: 16px !important;
+  }
+}
+
+/* FIXOKU_CHECKOUT_PROFILE_PREFILL_V1_BEGIN */
+
+.trainer-checkout-progress{
+  display:none!important;
+}
+
+.trainer-checkout-fields select,
+.fixoku-saved-address-select select{
+  width:100%;
+  box-sizing:border-box;
+  min-height:46px;
+  border:1px solid #dfe3e8;
+  border-radius:9px;
+  background:#fff;
+  color:#344052;
+  padding:11px 13px;
+  font:inherit;
+  outline:none;
+}
+
+.trainer-checkout-fields select:focus,
+.fixoku-saved-address-select select:focus{
+  border-color:#e8793d;
+  box-shadow:0 0 0 3px #fff0e7;
+}
+
+.fixoku-checkout-address-wide{
+  grid-column:1/-1;
+}
+
+.fixoku-checkout-address-wide textarea{
+  min-height:90px!important;
+}
+
+.trainer-checkout-fields--compact{
+  grid-template-columns:minmax(0,440px)!important;
+}
+
+.fixoku-checkout-prefill-note{
+  margin:0 0 16px;
+  padding:10px 12px;
+  border-radius:9px;
+  background:#f7f8fa;
+  color:#626d7a;
+  font-size:13px;
+}
+
+.fixoku-saved-address-select{
+  display:grid;
+  gap:7px;
+  margin-bottom:15px;
+  color:#293444;
+  font-weight:700;
+}
+
+.fixoku-bank-transfer{
+  display:grid;
+  gap:14px;
+  margin-top:14px;
+  padding:17px;
+  border:1px solid #eadfcf;
+  border-radius:13px;
+  background:#fffaf4;
+}
+
+.fixoku-bank-transfer__head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.fixoku-bank-transfer__head strong{
+  display:block;
+  margin-bottom:3px;
+  color:#18263a;
+  font-size:16px;
+}
+
+.fixoku-bank-transfer__head p{
+  margin:0;
+  color:#67717e;
+  font-size:13px;
+}
+
+.fixoku-bank-transfer__bank-name{
+  display:grid;
+  place-items:center;
+  min-width:86px;
+  min-height:46px;
+  padding:0 12px;
+  border-radius:10px;
+  background:#d71920;
+  color:#fff;
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+
+.fixoku-bank-transfer__rows{
+  display:grid;
+  gap:8px;
+}
+
+.fixoku-bank-transfer__row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:11px 12px;
+  border:1px solid #ece8e2;
+  border-radius:9px;
+  background:#fff;
+}
+
+.fixoku-bank-transfer__row>div{
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+
+.fixoku-bank-transfer__row small{
+  color:#7a838d;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.fixoku-bank-transfer__row strong{
+  overflow-wrap:anywhere;
+  color:#202c3d;
+}
+
+.fixoku-bank-transfer__row button{
+  flex:0 0 auto;
+  min-height:34px;
+  padding:0 11px;
+  border:1px solid #e0c4ae;
+  border-radius:8px;
+  background:#fff8f1;
+  color:#a94e1e;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.fixoku-bank-transfer__note{
+  margin:0;
+  color:#6a5a4d;
+  font-size:12px;
+  line-height:1.5;
+}
+
+@media(max-width:680px){
+  .fixoku-checkout-address-wide{
+    grid-column:auto;
+  }
+
+  .trainer-checkout-fields--compact{
+    grid-template-columns:1fr!important;
+  }
+
+  .fixoku-bank-transfer__row{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+
+/* FIXOKU_CHECKOUT_PROFILE_PREFILL_V1_END */
+
+
+/* FIXOKU_CHECKOUT_LAYOUT_V3_SAFE_BEGIN */
+
+.fixoku-checkout-three-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px 16px;
+}
+
+.fixoku-checkout-three-grid label,
+.fixoku-invoice-fields label{
+  display:grid;
+  gap:8px;
+  min-width:0;
+  color:#253043;
+  font-weight:700;
+}
+
+.fixoku-checkout-three-grid input,
+.fixoku-checkout-three-grid select,
+.fixoku-checkout-three-grid textarea,
+.fixoku-invoice-fields input{
+  width:100%;
+  box-sizing:border-box;
+  min-height:44px;
+  border:1px solid #dfe3e8;
+  border-radius:9px;
+  background:#fff;
+  color:#344052;
+  padding:10px 12px;
+  font:inherit;
+  outline:none;
+}
+
+.fixoku-checkout-three-grid textarea{
+  min-height:44px!important;
+  height:44px!important;
+  resize:vertical;
+}
+
+.fixoku-checkout-three-grid input:focus,
+.fixoku-checkout-three-grid select:focus,
+.fixoku-checkout-three-grid textarea:focus,
+.fixoku-invoice-fields input:focus{
+  border-color:#e8793d;
+  box-shadow:0 0 0 3px #fff0e7;
+}
+
+.fixoku-invoice-fields{
+  margin-top:20px;
+}
+
+.fixoku-invoice-fields--single{
+  display:grid;
+  grid-template-columns:minmax(0,440px);
+}
+
+.fixoku-invoice-fields--three{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px 16px;
+}
+
+.fixoku-shipping-preview{
+  display:grid;
+  grid-template-columns:82px minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+  margin-top:20px;
+  padding-top:18px;
+  border-top:1px solid #edf0f3;
+}
+
+.fixoku-shipping-preview__image-placeholder{
+  display:grid;
+  place-items:center;
+  width:82px;
+  height:82px;
+  border-radius:10px;
+  border:1px dashed #d4dbe4;
+  background:#f7f8fa;
+  color:#8a93a0;
+  font-size:11px;
+  font-weight:800;
+  text-align:center;
+}
+
+.fixoku-shipping-preview strong{
+  display:block;
+  margin-bottom:5px;
+  color:#263246;
+  font-size:15px;
+}
+
+.fixoku-shipping-preview p{
+  margin:0;
+  color:#64707e;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.fixoku-paytr-brand{
+  margin-top:16px;
+  padding:10px 12px;
+  border:1px solid #e9edf2;
+  border-radius:12px;
+  background:#fff;
+}
+
+.fixoku-paytr-brand img{
+  display:block;
+  width:min(100%,720px);
+  height:auto;
+  max-height:74px;
+  object-fit:contain;
+  object-position:left center;
+}
+
+@media(max-width:980px){
+  .fixoku-checkout-three-grid,
+  .fixoku-invoice-fields--three{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:640px){
+  .fixoku-checkout-three-grid,
+  .fixoku-invoice-fields--single,
+  .fixoku-invoice-fields--three{
+    grid-template-columns:1fr;
+  }
+
+  .fixoku-shipping-preview{
+    grid-template-columns:64px minmax(0,1fr);
+  }
+
+  .fixoku-shipping-preview__image-placeholder{
+    width:64px;
+    height:64px;
+  }
+}
+
+/* FIXOKU_CHECKOUT_LAYOUT_V3_SAFE_END */

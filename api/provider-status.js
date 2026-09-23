@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   let principal;
   try { principal = await resolvePrincipal(headers(req)); } catch { return json(res, 503, { error: "AUTHORITY_UNAVAILABLE" }); }
   if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
-  const denied = requirePermission(principal, "user.manage");
+  const denied = requirePermission(principal, "provider.read");
   if (denied) return json(res, denied.status, denied.body);
 
   const smtp = getSmtpConfig();

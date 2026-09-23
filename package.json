@@ -60,17 +60,33 @@
     "test:r2:residual": "node scripts/test-r2-residual-audit.mjs",
     "test:r2:auth": "node scripts/test-r2-auth-contracts.mjs",
     "test:account-closure-r2": "node scripts/test-account-closure-r2.mjs",
-    "build:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-bundled-node.ps1 scripts/build.mjs"
+    "build:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-bundled-node.ps1 scripts/build.mjs",
+    "test:martech:gtm": "node scripts/test-martech-gtm.mjs",
+    "test:mail-lifecycle": "node scripts/test-mail-lifecycle.mjs",
+    "test:student-commerce": "node scripts/test-student-commerce.mjs",
+    "test:student-commerce:db": "node scripts/test-student-commerce-db.mjs",
+    "test:commercial-calculations": "node scripts/test-commercial-calculations.mjs",
+    "test:package-domain-boundaries": "node scripts/test-package-domain-boundaries.mjs",
+    "test:r5b-owner-editor": "node scripts/test-r5b-owner-editor.mjs",
+    "test:r6-authority": "node scripts/test-r6-authority.mjs",
+    "test:r6-migration-rehearsal": "node scripts/test-r6-migration-rehearsal.mjs",
+    "test:r6-runtime-contracts": "node scripts/test-r6-runtime-contracts.mjs",
+    "test:r6-custom-offers": "node scripts/test-r6-custom-offers.mjs",
+    "test:r6d-closeout": "node scripts/test-r6d-closeout.mjs",
+  "test:r6-ui-runtime-contracts": "node scripts/test-r6-ui-runtime-contracts.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.3",
+    "@tanstack/react-query": "5.103.1",
+    "@tanstack/react-table": "9.2.4",
     "better-auth": "1.7.3",
     "drizzle-orm": "0.45.2",
     "nodemailer": "^9.0.3",
     "pg": "8.23.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.14.2"
+    "react-router-dom": "^7.14.2",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

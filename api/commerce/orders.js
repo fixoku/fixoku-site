@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   const client = await pool.connect();
   try {
-    const result = await createOrder(client, principal, { packageVersionId: payload.packageVersionId, studentProfileId: payload.studentProfileId, idempotencyKey: req.headers["idempotency-key"] || payload.idempotencyKey });
+    const result = await createOrder(client, principal, { packageVersionId: payload.packageVersionId, childProfileId: payload.childProfileId, studentProfileId: payload.studentProfileId, idempotencyKey: req.headers["idempotency-key"] || payload.idempotencyKey });
     return json(res, result.replay ? 200 : 201, {
       order: result.order,
       paymentIntent: result.paymentIntent,

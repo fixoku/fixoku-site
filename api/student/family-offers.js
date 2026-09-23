@@ -1,12 +1,12 @@
 import pg from "pg";
-import { resolvePrincipal, requireMembership } from "../../src/server/auth/authorization.js";
+import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.setHeader("X-Content-Type-Options", "nosniff"); res.end(JSON.stringify(body)); };
 const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([key, value]) => [key, Array.isArray(value) ? value.join(", ") : String(value)]));
 
 export default async function handler(req, res) {
   const principal = await resolvePrincipal(headers(req));
-  const denied = requireMembership(principal, ["STUDENT", "GUARDIAN"]);
+  const denied = requirePermission(principal, "package.read");
   if (denied) return json(res, denied.status, denied.body);
   if (req.method !== "GET") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect();

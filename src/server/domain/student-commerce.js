@@ -62,7 +62,7 @@ export async function readStudentCart(client, principal, requestedProfileId = nu
     familyRows = (await client.query("select family_offer_id as \"familyOfferId\", family_offer_revision_number as \"familyOfferRevisionNumber\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null and family_offer_id is not null order by created_at", [principal.user.id])).rows;
     // A request without a selected profile is always account-level. Never
     // silently surface a legacy profile-scoped cart in this mode.
-    if (!accountRows.length && familyRows.length && !accountInput?.catalogEducationStage && !accountInput?.educationStage) {
+    if (!accountRows.length && !accountInput?.catalogEducationStage && !accountInput?.educationStage) {
       beneficiary = { studentUserId: principal.user.id, studentProfileId: null, childProfileId: null, studentName: principal.user.displayName || principal.user.email || "", educationStage: null, grade: null, accountLevel: true };
     } else beneficiary = await resolveAccountSegment(client, principal, {
       ...(accountInput || {}),

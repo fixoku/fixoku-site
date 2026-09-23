@@ -4,9 +4,18 @@ import { createDb } from "../db/client.js";
 import { memberships, users } from "../db/schema.js";
 
 export const ROLE_PANEL = Object.freeze({ OWNER: "/panel/owner", SUPER_ADMIN: "/panel/admin", TRAINER: "/panel/egitmen", STUDENT: "/panel/ogrenci", GUARDIAN: "/panel/ogrenci" });
-const OPERATIONAL_ADMIN_PERMISSIONS = ["user.manage", "membership.manage", "audit.read", "package.manage", "order.read", "trainer.profile.read", "trainer.profile.update", "trainer.training.read", "trainer.presentation.read", "trainer.resource.read", "schedule.read", "availability.manage", "qualification.manage", "assignment.manage", "student.profile.read"];
+export const PACKAGE_PERMISSIONS = Object.freeze({ READ: "PACKAGE_READ", CREATE: "PACKAGE_CREATE", EDIT: "PACKAGE_EDIT", PRICE_EDIT: "PACKAGE_PRICE_EDIT", PUBLISH: "PACKAGE_PUBLISH" });
+export function packagePermissionFor(method, action = "") {
+  if (method === "GET") return PACKAGE_PERMISSIONS.READ;
+  if (action === "publish") return PACKAGE_PERMISSIONS.PUBLISH;
+  if (action === "createDraft" || method === "POST" && !action) return PACKAGE_PERMISSIONS.CREATE;
+  if (action === "componentsSave") return PACKAGE_PERMISSIONS.EDIT;
+  if (action === "retire") return PACKAGE_PERMISSIONS.PUBLISH;
+  return PACKAGE_PERMISSIONS.EDIT;
+}
+const OPERATIONAL_ADMIN_PERMISSIONS = ["user.manage", "membership.manage", "audit.read", "package.manage", "product.manage", "shipment.read", "shipment.manage", "provider.read", "trainer_package.read", "trainer_package.create", "trainer_package.update", "trainer_package.archive", "trainer_package.assign", "bank_transfer.review", "bank_transfer.approve", "order.read", "trainer.profile.read", "trainer.profile.update", "trainer.training.read", "trainer.presentation.read", "trainer.resource.read", "education.program.manage", "education.presentation.manage", "education.resource.manage", "schedule.read", "availability.manage", "qualification.manage", "assignment.manage", "student.profile.read", "offer.manage", "training_group.manage", "training_group.read", "review.read", "child_profile.manage", "payout_rule.manage"];
 const OWNER_FINANCE_PERMISSIONS = ["finance.read", "finance.export", "finance.adjust", "payout.manage", "profitability.read"];
-export const ROLE_PERMISSIONS = Object.freeze({ OWNER: [...OPERATIONAL_ADMIN_PERMISSIONS, ...OWNER_FINANCE_PERMISSIONS, "student.profile.update", "trainer.payout.read"], SUPER_ADMIN: OPERATIONAL_ADMIN_PERMISSIONS, TRAINER: ["trainer.read", "trainer.profile.read", "trainer.profile.update", "trainer.training.read", "trainer.presentation.read", "trainer.resource.read", "trainer.payout.read", "trainer.payout.update", "student.read", "schedule.read", "availability.manage", "earnings.read", "content.read", "qualification.read"], STUDENT: ["student.read", "student.profile.read", "student.profile.update", "enrollment.read", "package.read", "order.create", "content.read", "schedule.read"], GUARDIAN: ["student.read", "student.profile.read", "enrollment.read", "package.read", "order.create", "content.read", "schedule.read"] });
+export const ROLE_PERMISSIONS = Object.freeze({ OWNER: [...OPERATIONAL_ADMIN_PERMISSIONS, ...OWNER_FINANCE_PERMISSIONS, "student.profile.update", "trainer.payout.read"], SUPER_ADMIN: OPERATIONAL_ADMIN_PERMISSIONS, TRAINER: ["trainer.read", "trainer.profile.read", "trainer.profile.update", "trainer.training.read", "trainer.presentation.read", "trainer.resource.read", "trainer.payout.read", "trainer.payout.update", "student.read", "schedule.read", "availability.manage", "earnings.read", "content.read", "qualification.read", "training_group.read", "review.read", "order.create"], STUDENT: ["student.read", "student.profile.read", "student.profile.update", "child_profile.manage", "enrollment.read", "package.read", "order.create", "content.read", "schedule.read", "review.submit"], GUARDIAN: ["student.read", "student.profile.read", "child_profile.manage", "enrollment.read", "package.read", "order.create", "content.read", "schedule.read", "review.submit"] });
 const KNOWN_ROLES = new Set(Object.keys(ROLE_PANEL));
 const KNOWN_PERMISSIONS = new Set(Object.values(ROLE_PERMISSIONS).flat());
 
@@ -63,6 +72,21 @@ export function requirePermission(principal, permission, resource = undefined) {
   if (!KNOWN_PERMISSIONS.has(permission) || !principal.memberships.some((m) => validScopeType(m) && ROLE_PERMISSIONS[m.role].includes(permission))) return { status: 403, body: { error: "FORBIDDEN" } };
   if (resource?.role && !principal.memberships.some((m) => m.role === resource.role)) return { status: 403, body: { error: "FORBIDDEN" } };
   return null;
+}
+
+export async function requirePackagePermission(client, principal, permission) {
+  if (!Object.values(PACKAGE_PERMISSIONS).includes(permission)) return { status: 403, body: { error: "FORBIDDEN" } };
+  if (!principal) return { status: 401, body: { error: "UNAUTHENTICATED" } };
+  if (privilegedTwoFactorRequired(principal)) return { status: 403, body: { error: "TWO_FACTOR_REQUIRED" } };
+  const membership = principal.memberships?.find((candidate) => candidate.status === "ACTIVE" && validScopeType(candidate) && ["OWNER", "SUPER_ADMIN"].includes(candidate.role) && candidate.scopeType === "GLOBAL" && candidate.scopeId == null && String(candidate.userId || "") === String(principal.user?.id || ""));
+  if (!membership) return { status: 403, body: { error: "FORBIDDEN" } };
+  if (membership.role === "OWNER") return null;
+  try {
+    const row = (await client.query("select 1 from owner_admin_package_permissions where admin_user_id=$1 and permission=$2::package_permission_code and revoked_at is null limit 1", [principal.user.id, permission])).rows[0];
+    return row ? null : { status: 403, body: { error: "PACKAGE_PERMISSION_REQUIRED" } };
+  } catch {
+    return { status: 403, body: { error: "PACKAGE_PERMISSION_REQUIRED" } };
+  }
 }
 
 /** A multi-role principal receives an explicit chooser; role precedence is never implicit. */

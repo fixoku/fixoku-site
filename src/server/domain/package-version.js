@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { requirePermission } from "../auth/authorization.js";
+import { requirePackagePermission } from "../auth/authorization.js";
 
 const PROTECTED_FIELDS = ["title", "description", "price_minor", "currency"];
 
@@ -141,7 +141,7 @@ async function validatePublicationTargets(client, targets, lockedVersions) {
  * performed until every target is locked and validated.
  */
 export async function publishPackageVersionsAtomically(client, { targets = null, principal, correlationId = crypto.randomUUID() } = {}) {
-  const denied = requirePermission(principal, "package.manage");
+  const denied = await requirePackagePermission(client, principal, "PACKAGE_PUBLISH");
   if (denied || !principal?.memberships?.some((member) => member.status === "ACTIVE" && member.scopeType === "GLOBAL" && ["OWNER", "SUPER_ADMIN"].includes(member.role))) throw publicationError(denied?.body?.error || "FORBIDDEN", denied?.status || 403);
   const actorUserId = principal.user?.id;
   assertUuid(actorUserId, "AUDIT_ACTOR_INVALID");

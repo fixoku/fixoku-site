@@ -87,6 +87,10 @@ function betterAuthApi() {
           import('./api/admin/r6-training-groups.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/admin/family-offers')) {
+          import('./api/admin/family-offers.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url === '/api/admin/trainers' || request.url?.startsWith('/api/admin/trainers?')) {
           import('./api/admin/trainers.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return

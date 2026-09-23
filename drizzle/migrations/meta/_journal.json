@@ -253,6 +253,13 @@
       "when": 1790100000004,
       "tag": "0035_owner_admin_package_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790200000000,
+      "tag": "0036_family_offer_persistence",
+      "breakpoints": true
     }
   ]
 }

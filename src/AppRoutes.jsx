@@ -42,6 +42,7 @@ import { OwnerDashboardPage } from "./platform/admin/OwnerDashboardPage";
 import { ProviderStatusPage } from "./platform/admin/ProviderStatusPage";
 import { AdminAssignmentPage } from "./platform/admin/AdminAssignmentPage";
 import { AdminPackagesPage } from "./platform/admin/AdminPackagesPage";
+import { FamilyOfferPage } from "./platform/admin/FamilyOfferPage";
 import { AdminPackageDetailPage } from "./platform/admin/AdminPackageDetailPage";
 import { AdminTrainerCommercePage } from "./platform/admin/AdminTrainerCommercePage";
 import { AdminStudentCommercePage } from "./platform/admin/AdminStudentCommercePage";
@@ -200,6 +201,7 @@ export default function AppRoutes() {
         <Route path="/panel/egitmen/odeme-hesabim" element={<Navigate to="/panel/egitmen/hakedislerim?sekme=odeme-hesabim" replace />} />
         <Route path="/panel/admin" element={<ProtectedAdminDashboard />} />
         <Route path="/panel/owner" element={<ProtectedOwnerDashboard />} />
+        <Route path="/panel/owner/aile-teklifleri" element={<ProtectedPanelEntry requiredRole="OWNER">{({user})=><OwnerShell user={user}><FamilyOfferPage /></OwnerShell>}</ProtectedPanelEntry>} />
         <Route path="/panel/admin/atamalar" element={<ProtectedAdminAssignments />} />
         <Route path="/panel/admin/paketler" element={<ProtectedAdminPackages />} />
         <Route path="/panel/admin/paketler/:id" element={<ProtectedAdminPackageDetail />} />

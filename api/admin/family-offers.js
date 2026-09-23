@@ -4,6 +4,7 @@ import { resolvePrincipal, requireMembership } from "../../src/server/auth/autho
 import {
   assertFamilyOfferEditable,
   evaluateFamilyOfferDraft,
+  getEligibleFamilyOfferSelections,
   normalizeFamilyOfferDraftChildren,
 } from "../../src/server/domain/family-offers.js";
 import { isR6OfferUuid } from "../../src/server/domain/r6-offers.js";
@@ -36,7 +37,6 @@ async function customer(client, value) {
 async function catalog(client, children, selectionIds) {
   const stages = [...new Set(children.map((child) => child.educationStage))];
   const ids = [...new Set(selectionIds)];
-  if (!ids.length) fail("FAMILY_SELECTIONS_REQUIRED");
   const rows = (await client.query(`
     select p.id as "packageId", p.education_stage as "educationStage", p.eligible_grades_json as "eligibleGradesJson",
       p.audience, p.catalog_scope as "catalogScope", p.status as "packageStatus", pv.id as "packageVersionId",
@@ -56,8 +56,8 @@ async function catalog(client, children, selectionIds) {
     left join r6_package_component_pricing r6p on r6p.package_component_id=pc.id
     where pc.is_active=true and prod.is_active=true and p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE'
       and p.status='PUBLISHED' and pv.status='PUBLISHED' and pv.purchase_enabled=true
-      and p.education_stage = any($1::education_stage[]) and (pc.id=any($2::uuid[]) or prod.id=any($2::uuid[]))
-  `, [stages, ids])).rows;
+      and p.education_stage = any($1::education_stage[]) ${ids.length ? "and (pc.id=any($2::uuid[]) or prod.id=any($2::uuid[]))" : ""}
+  `, ids.length ? [stages, ids] : [stages])).rows;
   return rows.map((row) => ({ ...row, eligibleGrades: JSON.parse(row.eligibleGradesJson || "[]"), productStageScopes: row.productStageScopes || [] }));
 }
 
@@ -101,8 +101,20 @@ export default async function handler(req, res) {
   const principal = await resolvePrincipal(headers(req));
   const denied = requireMembership(principal, "OWNER");
   if (denied) return json(res, denied.status, denied.body);
+  if (req.method === "POST" && new URL(req.url || "/", "http://local").pathname.endsWith("/preview")) {
+    const body = await readBody(req); const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect();
+    try { const children = normalizeFamilyOfferDraftChildren(body.children); const rows = await catalog(client, children, selectionIds(body)); const preview = evaluateFamilyOfferDraft({ ...body, children }, rows); return json(res, 200, { preview }); } finally { client.release(); await pool.end(); }
+  }
   const id = offerIdFrom(req);
   if (id && !isR6OfferUuid(id)) return json(res, 400, { error: "FAMILY_OFFER_ID_INVALID" });
+  if (!id && req.method === "GET" && new URL(req.url || "/", "http://local").searchParams.get("catalog") === "1") {
+    const url = new URL(req.url || "/", "http://local");
+    const educationStage = String(url.searchParams.get("educationStage") || "").toUpperCase();
+    const grade = String(url.searchParams.get("grade") || "");
+    if (!["PRIMARY", "MIDDLE", "HIGH"].includes(educationStage) || !/^\d{1,2}$/u.test(grade)) return json(res, 400, { error: "FAMILY_CATALOG_SEGMENT_INVALID" });
+    const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect();
+    try { const rows = await catalog(client, [{ educationStage, grade }], []); const eligible = getEligibleFamilyOfferSelections({ localKey: "catalog", firstName: "Catalog", lastName: "Preview", grade, educationStage }, rows); return json(res, 200, { educationStage, grade, selections: eligible }); } finally { client.release(); await pool.end(); }
+  }
   if (!id && req.method === "GET") return json(res, 200, { offers: (await (async () => { const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect(); try { return (await client.query("select id,customer_user_id,title,status,current_revision_number,updated_at from family_offers where owner_user_id=$1 order by updated_at desc", [principal.user.id])).rows; } finally { client.release(); await pool.end(); } })()) });
   if (req.method === "GET") { const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect(); try { const result = await readFamilyOffer(client, id, principal.user.id); return result ? json(res, 200, { offer: result }) : json(res, 404, { error: "FAMILY_OFFER_NOT_FOUND" }); } finally { client.release(); await pool.end(); } }
   if (!["POST", "PATCH"].includes(req.method)) return json(res, 405, { error: "METHOD_NOT_ALLOWED" });

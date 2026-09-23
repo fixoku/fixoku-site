@@ -11,17 +11,20 @@ type Props = {
   eligibleSelections: Record<string, FamilyCatalogSelection[]>;
   preview: FamilyOfferPreview | null;
   onDraftChange: (draft: { children: FamilyChildDraft[]; selections: Selection[]; pricing: { discountAmountMinor?: number; discountPercentBps?: number; finalFamilyPriceMinor?: number } }) => void;
+  initialDraft?: { children: FamilyChildDraft[]; selections: Selection[]; pricing?: { discountAmountMinor?: number; discountPercentBps?: number; finalFamilyPriceMinor?: number } };
 };
 const grades = { PRIMARY: [3, 4], MIDDLE: [5, 6, 7, 8], HIGH: [9, 10, 11, 12] };
 const money = (minor: number, currency = "TRY") => new Intl.NumberFormat("tr-TR", { style: "currency", currency }).format(minor / 100);
 const newChild = (): FamilyChildDraft => ({ localKey: crypto.randomUUID(), firstName: "", lastName: "", grade: "", educationStage: "PRIMARY" });
 
 /** Isolated owner composition surface. No route, persistence, checkout or client price calculation. */
-export function FamilyOfferBuilder({ account, eligibleSelections, preview, onDraftChange }: Props) {
-  const [children, setChildren] = useState<FamilyChildDraft[]>(() => [newChild()]);
-  const [selections, setSelections] = useState<Selection[]>([]);
-  const [pricingMode, setPricingMode] = useState<"discountAmountMinor" | "discountPercentBps" | "finalFamilyPriceMinor">("finalFamilyPriceMinor");
-  const [pricingText, setPricingText] = useState("");
+export function FamilyOfferBuilder({ account, eligibleSelections, preview, onDraftChange, initialDraft }: Props) {
+  const [children, setChildren] = useState<FamilyChildDraft[]>(() => initialDraft?.children?.length ? initialDraft.children : [newChild()]);
+  const [selections, setSelections] = useState<Selection[]>(() => initialDraft?.selections || []);
+  const initialMode = initialDraft?.pricing?.discountAmountMinor != null ? "discountAmountMinor" : initialDraft?.pricing?.discountPercentBps != null ? "discountPercentBps" : "finalFamilyPriceMinor";
+  const [pricingMode, setPricingMode] = useState<"discountAmountMinor" | "discountPercentBps" | "finalFamilyPriceMinor">(initialMode);
+  const initialValue = initialDraft?.pricing?.[initialMode];
+  const [pricingText, setPricingText] = useState(initialValue == null ? "" : String(initialMode === "discountPercentBps" ? Number(initialValue) / 100 : Number(initialValue) / 100));
   const emit = (nextChildren: FamilyChildDraft[], nextSelections: Selection[], mode = pricingMode, text = pricingText) => {
     const normalized = text.trim().replace(",", ".");
     const value = normalized && /^\d+(?:\.\d{1,2})?$/u.test(normalized) ? Math.round(Number(normalized) * (mode === "discountPercentBps" ? 100 : 100)) : undefined;

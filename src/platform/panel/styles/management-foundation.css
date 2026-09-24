@@ -1,0 +1,101 @@
+/* Shared premium shell for the existing owner and admin panel screens. */
+.management-owner,
+.management-admin {
+  --mg-sidebar: #171b20;
+  --mg-sidebar-soft: #222831;
+  --mg-orange: #ed6a1a;
+  --mg-orange-deep: #b64b14;
+  --mg-ink: #172231;
+  --mg-muted: #667384;
+  --mg-soft: #f6f7f9;
+  --mg-surface: #fff;
+  --mg-border: #e5e9ee;
+  --mg-radius: 16px;
+  --mg-shadow: 0 10px 28px rgba(27,39,53,.06);
+  --panel-sidebar-width: clamp(236px, 18vw, 286px);
+  --panel-topbar-height: 82px;
+  color: var(--mg-ink);
+  background: var(--mg-soft);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.management-owner :is(button, input, select, textarea),
+.management-admin :is(button, input, select, textarea) { font: inherit; }
+
+.management-owner .panel-sidebar,
+.management-admin .panel-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: 100dvh;
+  padding: 22px 14px 18px;
+  color: #f8fafc;
+  background: radial-gradient(circle at 15% 94%, rgba(237,106,26,.23), transparent 29%), linear-gradient(160deg, #15191e 0%, var(--mg-sidebar) 65%, #121519 100%);
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+
+.management-owner .panel-brand,
+.management-admin .panel-brand { height: 84px; margin: 0 4px 18px; place-items: center start; }
+.management-owner .panel-brand img,
+.management-admin .panel-brand img { width: min(224px, 100%); max-height: 68px; object-fit: contain; object-position: left center; }
+.management-owner .panel-nav,
+.management-admin .panel-nav { gap: 4px; padding: 0; }
+.management-owner .panel-nav-item,
+.management-admin .panel-nav-item { min-height: 46px; gap: 12px; padding: 0 13px; color: #c8d0d9; border: 1px solid transparent; border-radius: 11px; font-size: 14px; font-weight: 650; }
+.management-owner .panel-nav-item:hover,
+.management-admin .panel-nav-item:hover { color: #fff; background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.08); }
+.management-owner .panel-nav-item.is-active,
+.management-admin .panel-nav-item.is-active { color: #fff; background: linear-gradient(105deg, #ef792c, #c95717); border-color: rgba(255,255,255,.12); box-shadow: 0 8px 18px rgba(160,58,14,.22); }
+.management-owner .panel-nav-heading,
+.management-admin .panel-nav-heading { margin: 18px 10px 6px; color: #8793a0; font-size: 10px; font-weight: 800; letter-spacing: .09em; }
+.management-owner .panel-sidebar-divider,
+.management-admin .panel-sidebar-divider { margin: 18px 10px 14px; background: rgba(255,255,255,.12); }
+.management-owner .panel-logout,
+.management-admin .panel-logout { min-height: 44px; margin: 0; padding-inline: 13px; color: #b7c0ca; border-radius: 11px; font-size: 14px; font-weight: 650; }
+.management-owner .panel-sidebar-quote,
+.management-admin .panel-sidebar-quote { margin: auto 20px 12px; color: #9ca7b3; font-size: 14px; line-height: 1.35; }
+
+.management-owner .panel-main,
+.management-admin .panel-main { min-width: 0; background: var(--mg-soft); }
+.management-owner .panel-topbar,
+.management-admin .panel-topbar { min-height: var(--panel-topbar-height); height: var(--panel-topbar-height); padding: 0 clamp(18px, 3vw, 44px); gap: 18px; background: rgba(255,255,255,.97); border-bottom: 1px solid var(--mg-border); }
+.management-owner .panel-topbar-title h1,
+.management-admin .panel-topbar-title h1 { margin: 0 0 3px; color: var(--mg-ink); font-size: 20px; font-weight: 760; letter-spacing: -.035em; }
+.management-owner .panel-topbar-title p,
+.management-admin .panel-topbar-title p { margin: 0; color: var(--mg-muted); font-size: 12px; line-height: 1.4; }
+.management-owner .panel-search,
+.management-admin .panel-search { width: clamp(190px, 22vw, 306px); height: 42px; margin: 0; padding: 0 13px; gap: 10px; border: 1px solid var(--mg-border); border-radius: 11px; background: #f8fafb; }
+.management-owner .panel-notification,
+.management-admin .panel-notification { width: 42px; height: 42px; display: grid; place-items: center; margin: 0; color: #536171; border: 1px solid var(--mg-border); border-radius: 11px; background: #fff; }
+.management-owner .panel-profile,
+.management-admin .panel-profile { min-width: 0; gap: 10px; padding-left: 12px; border-left: 1px solid var(--mg-border); }
+.management-owner .panel-profile-avatar,
+.management-admin .panel-profile-avatar { width: 40px; height: 40px; overflow: hidden; border-radius: 50%; }
+.management-owner .panel-profile-avatar img,
+.management-admin .panel-profile-avatar img { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+.management-owner .panel-main > .admin-panel,
+.management-admin .panel-main > .admin-panel,
+.management-owner .panel-main > .platform-foundation-panel,
+.management-admin .panel-main > .platform-foundation-panel { width: 100%; max-width: 1760px; margin-inline: auto; padding: 30px clamp(18px, 3vw, 56px) 44px; box-sizing: border-box; background: transparent; }
+.management-owner .admin-panel > h1,
+.management-admin .admin-panel > h1 { color: var(--mg-ink); font-size: clamp(28px, 3vw, 42px); letter-spacing: -.045em; }
+.management-owner .admin-panel > p,
+.management-admin .admin-panel > p { color: var(--mg-muted); font-size: 15px; line-height: 1.55; }
+.management-owner .panel-card,
+.management-admin .panel-card { border-color: var(--mg-border); border-radius: var(--mg-radius); box-shadow: var(--mg-shadow); }
+
+@media (max-width: 760px) {
+  .management-owner .panel-sidebar,
+  .management-admin .panel-sidebar { position: static; min-height: 0; padding: 10px 15px; }
+  .management-owner .panel-brand,
+  .management-admin .panel-brand { height: 72px; margin: 0; }
+  .management-owner .panel-brand img,
+  .management-admin .panel-brand img { width: 140px; max-height: 64px; }
+  .management-owner .panel-main > .admin-panel,
+  .management-admin .panel-main > .admin-panel,
+  .management-owner .panel-main > .platform-foundation-panel,
+  .management-admin .panel-main > .platform-foundation-panel { padding: 22px 16px 36px; }
+  .management-owner .panel-topbar,
+  .management-admin .panel-topbar { height: auto; min-height: 82px; padding: 16px 18px; }
+}

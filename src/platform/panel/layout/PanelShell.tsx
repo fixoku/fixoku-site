@@ -7,6 +7,7 @@ import "../styles/trainer-visual.css";
 import "../styles/trainer-parity.css";
 import "../styles/panel-layout-consistency.css";
 import "../styles/premium-foundation.css";
+import "../styles/management-foundation.css";
 
 export function PanelShell({
   children,
@@ -29,8 +30,10 @@ export function PanelShell({
           ? "STUDENT"
           : "TRAINER");
 
+  const shellClass = role === "TRAINER" ? "trainer-panel" : role === "OWNER" ? "management-owner" : role === "ADMIN" ? "management-admin" : "";
+
   return (
-    <div className={`platform-panel ${role === "TRAINER" ? "trainer-panel" : ""}`}>
+    <div className={`platform-panel ${shellClass}`}>
       <PanelSidebar role={role} />
 
       <div className="panel-main" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>

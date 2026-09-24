@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { TrainerIcon as PanelIcon } from "../components/TrainerIcon";
 import { PanelShell } from "../../panel/layout/PanelShell";
 import { TURKEY_LOCATIONS, getTurkeyDistricts } from "../../../data/turkeyLocations.js";
+import { resolveProfileImage } from "../../panel/profileAvatar";
 import "./trainer-profile.css";
 
 type Profile = {
@@ -335,7 +336,7 @@ export function TrainerProfilePage({
     photoDataUrl ||
     (profile.photoUrl
       ? `${profile.photoUrl}?v=${encodeURIComponent(profile.photoStorageKey || "")}`
-      : null);
+      : resolveProfileImage({ name: `${profile.firstName} ${profile.lastName}`.trim() || user.name, email: user.email }));
 
   useEffect(() => {
     setAvatarError(false);

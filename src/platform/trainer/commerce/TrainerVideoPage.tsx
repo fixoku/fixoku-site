@@ -42,13 +42,13 @@ function TrainerVideoThumbnail({
         />
       ) : (
         <span className="trainer-video-thumb-placeholder">
-          {locked ? "ğŸ”’" : index}
+          {locked ? "🔒" : index}
         </span>
       )}
 
       {src && (
         <span className="trainer-video-thumb-play">
-          â–¶
+          ▶
         </span>
       )}
     </span>
@@ -110,7 +110,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
         body: JSON.stringify({ videoIndex: selectedVideo.videoIndex, durationSeconds: duration, startSeconds: start, endSeconds: end, ended }),
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) { setMessage(body.error === "VIDEO_FORWARD_SEEK_REJECTED" ? "Videolar sÄ±rayla izlenmelidir; ileri sarma kapatÄ±ldÄ±." : "Video ilerlemesi kaydedilemedi."); return; }
+      if (!response.ok) { setMessage(body.error === "VIDEO_FORWARD_SEEK_REJECTED" ? "Videolar sırayla izlenmelidir; ileri sarma kapatıldı." : "Video ilerlemesi kaydedilemedi."); return; }
       lastSentRef.current = Math.max(lastSentRef.current, end);
       lastAllowedRef.current = Math.max(lastAllowedRef.current, end);
       if (body.progress?.completedAt && payload) {
@@ -133,7 +133,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
             }, 4050);
           }
         } else {
-          setMessage("Video tamamlandÄ± ancak video listesi yenilenemedi.");
+          setMessage("Video tamamlandı ancak video listesi yenilenemedi.");
         }
       }
     } catch { setMessage("Video ilerlemesi kaydedilemedi."); }
@@ -144,7 +144,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     if (!element) return;
     if (element.currentTime > lastAllowedRef.current + 2) {
       element.currentTime = lastAllowedRef.current;
-      setMessage("Ä°leri sarma kapalÄ±dÄ±r. Ä°zlemediÄŸiniz bÃ¶lÃ¼me geÃ§emezsiniz.");
+      setMessage("İleri sarma kapalıdır. İzlemediğiniz bölüme geçemezsiniz.");
       return;
     }
     if (element.currentTime - lastHeartbeatRef.current >= 2) {
@@ -169,8 +169,8 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
         const frameRect = frame.getBoundingClientRect();
         const railRect = rail.getBoundingClientRect();
 
-        // Hedef: saÄŸ panelin ALTI, ana video gÃ¶rÃ¼ntÃ¼sÃ¼nÃ¼n alt Ã§izgisi ile aynÄ±.
-        // Sol kartÄ±n alttaki bilgi/not satÄ±rÄ± bu yÃ¼ksekliÄŸe dahil edilmez.
+        // Hedef: sağ panelin ALTI, ana video görüntüsünün alt çizgisi ile aynı.
+        // Sol kartın alttaki bilgi/not satırı bu yüksekliğe dahil edilmez.
         const height = Math.round(frameRect.bottom - railRect.top);
 
         setVideoRailHeight(height > 0 ? height : null);
@@ -191,11 +191,11 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   }, [selected, activeTab, status]);
 
   const cardList = useMemo(() => payload?.videos || [], [payload]);
-  if (status === "loading") return <PanelShell user={user}><main className="trainer-commerce-page"><p role="status">Video eÄŸitimi yÃ¼kleniyorâ€¦</p></main></PanelShell>;
-  if (status === "error" || !payload) return <PanelShell user={user}><main className="trainer-commerce-page"><p role="alert">Video eÄŸitimi yÃ¼klenemedi.</p><button type="button" className="trainer-commerce-secondary" onClick={() => void load()}>Tekrar dene</button></main></PanelShell>;
+  if (status === "loading") return <PanelShell user={user}><main className="trainer-commerce-page"><p role="status">Video eğitimi yükleniyor…</p></main></PanelShell>;
+  if (status === "error" || !payload) return <PanelShell user={user}><main className="trainer-commerce-page"><p role="alert">Video eğitimi yüklenemedi.</p><button type="button" className="trainer-commerce-secondary" onClick={() => void load()}>Tekrar dene</button></main></PanelShell>;
   return <PanelShell user={user}>
     <main className="trainer-commerce-page trainer-video-page">
-      <div className="trainer-course-tabs" role="tablist" aria-label="EÄŸitim iÃ§eriÄŸi">
+      <div className="trainer-course-tabs" role="tablist" aria-label="Eğitim içeriği">
         <button
           type="button"
           role="tab"
@@ -203,7 +203,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
           className={activeTab === "videos" ? "is-active" : ""}
           onClick={() => setActiveTab("videos")}
         >
-          Video EÄŸitimleri
+          Video Eğitimleri
         </button>
 
         <button
@@ -213,42 +213,42 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
           className={activeTab === "curriculum" ? "is-active" : ""}
           onClick={() => setActiveTab("curriculum")}
         >
-          MÃ¼fredat
+          Müfredat
         </button>
       </div>
-      <div className="trainer-commerce-heading"><Link to="/panel/egitmen/egitimlerim">â† EÄŸitimlerim</Link><h2>{payload.package.title}</h2><p
+      <div className="trainer-commerce-heading"><Link to="/panel/egitmen/egitimlerim">← Eğitimlerim</Link><h2>{payload.package.title}</h2><p
         className={activeTab === "videos" ? "trainer-tab-description" : "trainer-tab-description is-placeholder"}
         aria-hidden={activeTab !== "videos"}
       >
-        Videolar sÄ±rayla aÃ§Ä±lÄ±r. Her videonun en az %95â€™ini izleyip sona ulaÅŸmanÄ±z gerekir.
+        Videolar sırayla açılır. Her videonun en az %95’ini izleyip sona ulaşmanız gerekir.
       </p></div>{activeTab === "videos" && <>
-      {message && <p className={`trainer-commerce-message${message.startsWith("Video tamamlandÄ±") ? " is-success" : ""}`} role="status">{message}</p>}
+      {message && <p className={`trainer-commerce-message${message.startsWith("Video tamamlandı") ? " is-success" : ""}`} role="status">{message}</p>}
       <section className="trainer-video-layout">
         <div ref={videoMainRef} className="trainer-video-main">
           <div ref={videoFrameRef} className="trainer-video-frame">
-            {selectedVideo?.src ? <video ref={videoRef} key={selectedVideo.src} controls controlsList="nodownload noplaybackrate noremoteplayback" disablePictureInPicture disableRemotePlayback playsInline preload="metadata" onContextMenu={(event) => event.preventDefault()} src={selectedVideo.src} onLoadedMetadata={(event) => { const current = event.currentTarget; const completed = Boolean(selectedVideo.progress?.completedAt); const start = completed ? 0 : Number(selectedVideo.progress?.lastPositionSeconds || 0); lastAllowedRef.current = start; lastSentRef.current = Math.min(start, Math.max(0, current.duration - 1)); current.currentTime = start; }} onTimeUpdate={(event) => { const current = event.currentTarget; if (!current.seeking) lastAllowedRef.current = Math.max(lastAllowedRef.current, current.currentTime); onTimeUpdate(); }} onSeeking={(event) => { const current = event.currentTarget; if (current.currentTime > lastAllowedRef.current + 0.15) current.currentTime = lastAllowedRef.current; }} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => { setIsPlaying(false); void sendProgress(true); }} /> : <div className="trainer-video-locked"><TrainerIcon name="lock" size={40}/><strong>Video kilitli</strong><span>Ã–nceki videoyu tamamladÄ±ÄŸÄ±nÄ±zda aÃ§Ä±lÄ±r.</span></div>}
-            {isPlaying && <div className="trainer-video-playing-status" role="status"><span className="trainer-video-playing-dot" aria-hidden="true" />Video OynatÄ±lÄ±yor</div>}
+            {selectedVideo?.src ? <video ref={videoRef} key={selectedVideo.src} controls controlsList="nodownload noplaybackrate noremoteplayback" disablePictureInPicture disableRemotePlayback playsInline preload="metadata" onContextMenu={(event) => event.preventDefault()} src={selectedVideo.src} onLoadedMetadata={(event) => { const current = event.currentTarget; const completed = Boolean(selectedVideo.progress?.completedAt); const start = completed ? 0 : Number(selectedVideo.progress?.lastPositionSeconds || 0); lastAllowedRef.current = start; lastSentRef.current = Math.min(start, Math.max(0, current.duration - 1)); current.currentTime = start; }} onTimeUpdate={(event) => { const current = event.currentTarget; if (!current.seeking) lastAllowedRef.current = Math.max(lastAllowedRef.current, current.currentTime); onTimeUpdate(); }} onSeeking={(event) => { const current = event.currentTarget; if (current.currentTime > lastAllowedRef.current + 0.15) current.currentTime = lastAllowedRef.current; }} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => { setIsPlaying(false); void sendProgress(true); }} /> : <div className="trainer-video-locked"><TrainerIcon name="lock" size={40}/><strong>Video kilitli</strong><span>Önceki videoyu tamamladığınızda açılır.</span></div>}
+            {isPlaying && <div className="trainer-video-playing-status" role="status"><span className="trainer-video-playing-dot" aria-hidden="true" />Video Oynatılıyor</div>}
             {completionToast && (
               <div className="trainer-video-completion-toast" role="status">
-                <span aria-hidden="true">âœ“</span>
-                <strong>Video tamamlandÄ±.</strong>
-                <small>SÄ±radaki video kilidi aÃ§Ä±ldÄ±.</small>
+                <span aria-hidden="true">✓</span>
+                <strong>Video tamamlandı.</strong>
+                <small>Sıradaki video kilidi açıldı.</small>
               </div>
             )}
             <div className="trainer-video-watermark" aria-hidden="true">
   <strong className="trainer-video-watermark-name">{payload.watermark.name}</strong>
 
-  <span className="trainer-video-watermark-warning"><span aria-hidden="true">â›”</span> Videonun FÄ°XOKU Web SayfasÄ± dÄ±ÅŸÄ±nda gÃ¶sterilmesi kesinlikle yasaktÄ±r.</span>
+  <span className="trainer-video-watermark-warning"><span aria-hidden="true">⛔</span> Videonun FİXOKU Web Sayfası dışında gösterilmesi kesinlikle yasaktır.</span>
 </div>
           </div>
-          <p className="trainer-video-note">Video ilerlemeniz sunucuda kaydedilir. SayfayÄ± kapatsanÄ±z bile tamamladÄ±ÄŸÄ±nÄ±z bÃ¶lÃ¼mler korunur.</p>
+          <p className="trainer-video-note">Video ilerlemeniz sunucuda kaydedilir. Sayfayı kapatsanız bile tamamladığınız bölümler korunur.</p>
         </div>
         <aside ref={videoRailRef} className="trainer-video-list" style={videoRailHeight ? ({ "--fixoku-video-rail-height": `${videoRailHeight}px` } as React.CSSProperties) : undefined} aria-label="Video dersleri"><h3>Video dersleri</h3>{cardList.map((item, index) => <button key={item.videoIndex} type="button" className={`trainer-video-item ${index === selected ? "is-selected" : ""} ${item.locked ? "is-locked" : ""}`} disabled={item.locked} onClick={() => { setMessage(""); setSelected(index); }}><TrainerVideoThumbnail
                 src={item.src}
                 locked={item.locked}
                 index={item.videoIndex}
               />
-              <span className="trainer-video-number">{item.locked ? <TrainerIcon name="lock" size={16}/> : item.videoIndex}</span><span className="trainer-video-item-copy"><strong>{item.title}</strong><small className={item.progress?.completedAt ? "is-complete" : ""}>{item.progress?.completedAt ? "TamamlandÄ±" : item.progress ? `${pct(item.progress.coverageBps)} izlendi` : "BaÅŸlamadÄ±"}</small></span><span className="trainer-video-item-status" aria-hidden="true">{item.progress?.completedAt ? "âœ“" : "â€º"}</span></button>)}</aside>
+              <span className="trainer-video-number">{item.locked ? <TrainerIcon name="lock" size={16}/> : item.videoIndex}</span><span className="trainer-video-item-copy"><strong>{item.title}</strong><small className={item.progress?.completedAt ? "is-complete" : ""}>{item.progress?.completedAt ? "Tamamlandı" : item.progress ? `${pct(item.progress.coverageBps)} izlendi` : "Başlamadı"}</small></span><span className="trainer-video-item-status" aria-hidden="true">{item.progress?.completedAt ? "✓" : "›"}</span></button>)}</aside>
       </section>
       </>}
 

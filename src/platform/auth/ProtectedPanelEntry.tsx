@@ -4,7 +4,6 @@ import { TrainerDashboardPreview } from "../trainer/dashboard/TrainerDashboardPr
 import { TrainerProfilePage } from "../trainer/profile/TrainerProfilePage";
 import { TrainerTrainingsPage } from "../trainer/trainings/TrainerTrainingsPage";
 import { TrainerAssignmentsPage } from "../trainer/trainings/TrainerAssignmentsPage";
-import { TrainerPresentationsPage } from "../trainer/presentations/TrainerPresentationsPage";
 import { TrainerResourcesPage } from "../trainer/resources/TrainerResourcesPage";
 import { TrainerStudentsPage } from "../trainer/students/TrainerStudentsPage";
 import { TrainerStudentDetailPage } from "../trainer/students/TrainerStudentDetailPage";
@@ -85,7 +84,6 @@ export function ProtectedTrainerAssignments() { return <ProtectedPanelEntry requ
 export function ProtectedTrainerCart() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerCartPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerCheckout() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerCheckoutPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerVideo() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerVideoPage user={user} />}</ProtectedPanelEntry>; }
-export function ProtectedTrainerPresentations() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerPresentationsPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerResources() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerResourcesPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerStudents() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerStudentsPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerStudentDetail() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerStudentDetailPage user={user} />}</ProtectedPanelEntry>; }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PanelIcon } from "../components/PanelIcon";
 import { TrainerIcon } from "../../trainer/components/TrainerIcon";
+import { resolveProfileImage } from "../profileAvatar";
 
 type PanelRole = "OWNER" | "ADMIN" | "TRAINER" | "STUDENT";
 
@@ -46,16 +47,44 @@ export function PanelTopbar({
   const [unread, setUnread] = useState(0);
   const [cart, setCart] = useState<TopbarCart>({ uniqueCount: 0, items: [] });
   const [cartOpen, setCartOpen] = useState(false);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [profilePhotoError, setProfilePhotoError] = useState(false);
 
   const trainerLinks = [
     ["Ana Sayfa", "/panel/egitmen"],
     ["Profilim", "/panel/egitmen/profil"],
     ["Eğitimlerim", "/panel/egitmen/egitimlerim"],
-    ["Sunumlarım", "/panel/egitmen/sunumlarim"],
     ["Eğitmen Kaynakları", "/panel/egitmen/kaynaklarim"],
     ["Öğrencilerim", "/panel/egitmen/ogrencilerim"],
     ["Hakedişlerim", "/panel/egitmen/hakedislerim"],
   ];
+
+  useEffect(() => {
+    if (role !== "TRAINER") {
+      setProfilePhotoUrl(null);
+      return;
+    }
+    let active = true;
+    fetch("/api/trainer/profile", { credentials: "same-origin", cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (active) setProfilePhotoUrl(data?.profile?.photoUrl || null);
+      })
+      .catch(() => {
+        if (active) setProfilePhotoUrl(null);
+      });
+    return () => { active = false; };
+  }, [role]);
+
+  const profileImage = resolveProfileImage({ name: user.name, email: user.email, photoUrl: profilePhotoUrl });
+  const initials = user.name
+    .split(/\s+/u)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  useEffect(() => setProfilePhotoError(false), [profileImage]);
 
   const Icon = role === "TRAINER" ? TrainerIcon : PanelIcon;
   const hasCommerceCart = role === "TRAINER" || role === "STUDENT";
@@ -333,12 +362,7 @@ export function PanelTopbar({
           aria-label={`${panelTitle} kullanıcı hesabı`}
         >
           <div className="panel-profile-avatar" aria-hidden="true">
-            {user.name
-              .split(/\s+/)
-              .map((part) => part[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
+            {profileImage && !profilePhotoError ? <img src={profileImage} alt="" onError={() => setProfilePhotoError(true)} /> : initials}
           </div>
           <div>
             <strong>{user.name}</strong>

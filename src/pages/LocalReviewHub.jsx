@@ -19,7 +19,7 @@ const operationLinks = [
 ];
 const trainerLinks = [
   ["Ana Sayfa", "/panel/egitmen"], ["Profilim", "/panel/egitmen/profil"],
-  ["Eğitimlerim", "/panel/egitmen/egitimlerim"], ["Sunumlarım", "/panel/egitmen/sunumlarim"],
+  ["Eğitimlerim", "/panel/egitmen/egitimlerim"],
   ["Kaynaklarım", "/panel/egitmen/kaynaklarim"], ["Eğitmen Paketleri", "/panel/egitmen/paketler"], ["Hakedişlerim", "/panel/egitmen/hakedislerim"],
   ["Sepetim", "/panel/egitmen/sepet"], ["Checkout", "/panel/egitmen/checkout"],
   ["Bildirimler", "/panel/bildirimler"],

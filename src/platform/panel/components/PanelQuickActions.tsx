@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 export function PanelQuickActions() {
   const navigate = useNavigate();
-  const targets = ["/panel/egitmen/paketler", "/panel/egitmen/sunumlarim", "/panel/egitmen/kaynaklarim"];
+  const targets = ["/panel/egitmen/paketler", "/panel/egitmen/egitimlerim", "/panel/egitmen/kaynaklarim"];
   return (
     <PanelCard className="panel-quick-card">
       <div className="panel-card-heading">

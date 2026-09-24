@@ -1193,7 +1193,7 @@ html {
   font-weight: 700 !important;
 }
 
-/* Video bitmeden Sonraki gerÃ§ekten pasif */
+/* Video bitmeden Sonraki gerçekten pasif */
 .trainer-curriculum-navigation button:disabled,
 .trainer-curriculum-fullscreen-footer button:disabled {
   opacity: 0.28 !important;
@@ -1213,13 +1213,13 @@ html {
 
 /* FIXOKU WATERMARK POSITION V7 */
 
-/* MÃ¼fredatÄ± Ä°nceleyin butonu tekrar ekranÄ±n ortasÄ±nda */
+/* Müfredatı İnceleyin butonu tekrar ekranın ortasında */
 .trainer-curriculum-launch {
   top: 50% !important;
 }
 
-/* GÃ¼venlik / kullanÄ±cÄ± watermark yazÄ±larÄ±:
-   ekran merkezi ile alt kenar arasÄ±nÄ±n ortasÄ±na */
+/* Güvenlik / kullanıcı watermark yazıları:
+   ekran merkezi ile alt kenar arasının ortasına */
 .trainer-curriculum-watermark-fullscreen {
   top: 75% !important;
   transform: translate(-50%, -50%) !important;
@@ -1242,7 +1242,7 @@ html {
   font-weight: 700 !important;
 }
 
-/* Chrome / Edge: zaman Ã§izelgesi hiÃ§bir durumda sÃ¼rÃ¼klenemez.
+/* Chrome / Edge: zaman çizelgesi hiçbir durumda sürüklenemez.
    JS onSeeking korumasÄ± da ikinci katman olarak Ã§alÄ±ÅŸÄ±r. */
 .trainer-video-frame video::-webkit-media-controls-timeline,
 .trainer-curriculum-fullscreen-video::-webkit-media-controls-timeline {
@@ -1551,7 +1551,7 @@ html {
   background: transparent;
 }
 
-/* KartlarÄ± daha kompakt yap. */
+/* Kartları daha kompakt yap. */
 .trainer-video-item {
   padding: 9px !important;
   gap: 6px 8px !important;
@@ -1628,7 +1628,7 @@ html {
   align-self: stretch !important;
 }
 
-/* Rail kompakt kalÄ±r. */
+/* Rail kompakt kalır. */
 .trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
   grid-template-columns: minmax(0, 1fr) 218px !important;
 }
@@ -1679,7 +1679,7 @@ html {
 /* FIXOKU VIDEO RAIL EXACT ALIGN V16 */
 
 /* SaÄŸ rail'in alt sÄ±nÄ±rÄ±, soldaki .trainer-video-main kartÄ±nÄ±n alt sÄ±nÄ±rÄ±yla birebir aynÄ±.
-   Eski V14 height:100%!important kuralÄ±nÄ± custom property ile kesin olarak ezer. */
+   Eski V14 height:100%!important kuralını custom property ile kesin olarak ezer. */
 .trainer-video-list {
   height: var(--fixoku-video-rail-height, auto) !important;
   max-height: var(--fixoku-video-rail-height, none) !important;
@@ -1689,7 +1689,7 @@ html {
   align-self: start !important;
 }
 
-/* Grid satÄ±rÄ± iÃ§erikten dolayÄ± tekrar uzamasÄ±n. */
+/* Grid satırı içerikten dolayı tekrar uzamasın. */
 .trainer-video-page section:has(> .trainer-video-main):has(> .trainer-video-list) {
   align-items: start !important;
 }

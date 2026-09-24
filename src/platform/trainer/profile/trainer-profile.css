@@ -831,3 +831,6 @@
 }
 
 /* FIXOKU_TRAINER_FIELD_BORDER_FIX_END */
+/* Trainer panel closure: keep the brand mark and slogan in one desktop composition. */
+.trainer-panel .trainer-profile-brand{display:flex;align-items:center;justify-content:center;gap:18px;padding:20px 18px;text-align:left}.trainer-panel .trainer-profile-brand img{display:block;flex:0 1 150px;max-width:150px;height:auto}.trainer-panel .trainer-profile-brand small{display:block;flex:0 1 auto;margin:0;font-size:13px;line-height:1.45;white-space:nowrap}
+@media(max-width:640px){.trainer-panel .trainer-profile-brand{gap:12px;padding:18px 14px}.trainer-panel .trainer-profile-brand img{flex-basis:120px;max-width:120px}.trainer-panel .trainer-profile-brand small{font-size:12px;white-space:normal}}

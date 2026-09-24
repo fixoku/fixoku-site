@@ -6,6 +6,7 @@ import "../styles/trainer-dashboard.css";
 import "../styles/trainer-visual.css";
 import "../styles/trainer-parity.css";
 import "../styles/panel-layout-consistency.css";
+import "../styles/premium-foundation.css";
 
 export function PanelShell({
   children,

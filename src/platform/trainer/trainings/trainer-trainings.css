@@ -4,7 +4,7 @@
 .trainings-heading .trainer-page-heading h2{margin:25px 0 1px;font-size:42px;line-height:1.12;letter-spacing:-1.4px;color:#101114}
 .trainings-heading .trainer-page-heading>p{margin:0;color:#68717d;font-size:16px;line-height:1.5}
 .trainings-heading .trainer-breadcrumb{font-size:13px}
-.trainings-hero-art{position:absolute;z-index:-1;right:-24px;top:-14px;width:590px;height:auto;max-width:55%;display:block}
+.trainings-hero-art{position:static;z-index:auto;width:100%;height:auto;max-width:100%;display:block;margin:18px 0 22px}
 .trainings-toolbar{display:flex;gap:8px;margin:0 0 14px;padding:0 7px;min-height:38px;position:relative}
 .trainings-toolbar button{min-height:38px;padding:8px 25px;border:1px solid #edf0f2;border-radius:24px;background:#f8f9fb;color:#606977;font-size:14px;white-space:nowrap;cursor:pointer}
 .trainings-toolbar button.is-active{border-color:#ff721e;background:#ff721e;color:#fff;font-weight:700}

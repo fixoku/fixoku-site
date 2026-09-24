@@ -4,7 +4,7 @@
 .presentations-heading .trainer-page-heading h2{margin:25px 0 3px;color:#101114;font-size:42px;line-height:1.12;letter-spacing:-1.4px}
 .presentations-heading .trainer-page-heading>p{margin:0;color:#68717d;font-size:16px;line-height:1.5}
 .presentations-heading .trainer-breadcrumb{font-size:13px}
-.presentations-hero-art{position:absolute;z-index:-1;right:-24px;top:-14px;display:block;width:590px;max-width:55%;height:auto}
+.presentations-hero-art{position:static;z-index:auto;display:block;width:100%;max-width:100%;height:auto;margin:18px 0 22px}
 .presentations-layout{display:grid;grid-template-columns:minmax(0,1fr) 324px;align-items:start;gap:14px}
 .presentations-content{min-width:0}
 .presentations-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}

@@ -102,7 +102,7 @@ export default async function handler(req, res) {
     if (mode === "thumb") {
       const slideNo = Number(item.slideNo);
 
-      if (!Number.isInteger(slideNo) || slideNo < 1 || slideNo > 186) {
+      if (!Number.isInteger(slideNo) || slideNo < 1 || slideNo > Number(manifest.slideCount || 0)) {
         return stop(res, 404);
       }
 

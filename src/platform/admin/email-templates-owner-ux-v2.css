@@ -1,0 +1,95 @@
+/* FIXOKU E-POSTA V2: email address section only. */
+/* The section is a normal full-width grid/flex item, not a narrow sidebar card. */
+.email-template-review .fixoku-email-v2-addresses,
+.email-template-review :is(section,article,div):has(> .fixoku-email-v2-addresses),
+.email-template-review > :is(section,article,div):has(.fixoku-email-v2-addresses) {
+  grid-column: 1 / -1 !important;
+  flex-basis: 100% !important;
+  align-self: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+.email-template-review .fixoku-email-v2-addresses {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 0 20px !important;
+  border: 1px solid #e2e9f2 !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 30px rgba(20, 48, 83, .055) !important;
+  overflow: hidden !important;
+}
+.email-template-review .fixoku-email-v2-addresses > summary {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 21px 24px !important;
+  background: linear-gradient(110deg,#ffffff 0%,#fafcff 100%) !important;
+  color: #132e4b !important;
+  font-size: 18px !important;
+  font-weight: 750 !important;
+  line-height: 1.35 !important;
+  border-bottom: 1px solid #e9edf4 !important;
+  cursor: pointer !important;
+}
+.email-template-review .fixoku-email-v2-addresses > summary::marker { color: #ee631e; }
+.email-template-review .fixoku-email-v2-addresses > summary::-webkit-details-marker { color: #ee631e; }
+.email-template-review .fixoku-email-v2-heading-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 38px !important;
+  height: 38px !important;
+  flex: none !important;
+  color: #ec601c !important;
+  background: #fff0e6 !important;
+  border: 1px solid #ffe1ce !important;
+  border-radius: 11px !important;
+}
+.email-template-review .fixoku-email-v2-addresses .email-identity-table {
+  box-sizing: border-box !important;
+  width: calc(100% - 44px) !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 20px 22px 0 !important;
+  border: 1px solid #e7edf4 !important;
+  border-radius: 12px !important;
+  overflow-x: auto !important;
+  background: #fff !important;
+}
+.email-template-review .fixoku-email-v2-addresses .email-identity-row {
+  display: grid !important;
+  grid-template-columns: minmax(225px,1.7fr) minmax(150px,1fr) minmax(185px,1.25fr) minmax(185px,1.25fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  min-width: 800px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 13px 18px !important;
+  border-bottom: 1px solid #ecf1f6 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+.email-template-review .fixoku-email-v2-addresses .email-identity-row:last-child { border-bottom: none !important; }
+.email-template-review .fixoku-email-v2-addresses .email-identity-header {
+  background: #f5f8fc !important;
+  color: #596f89 !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+.email-template-review .fixoku-email-v2-addresses .email-identity-row:not(.email-identity-header):hover { background: #fffaf7 !important; }
+.email-template-review .fixoku-email-v2-addresses .email-identity-row span {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  color: #253c59 !important;
+}
+.email-template-review .fixoku-email-v2-addresses .email-identity-row span:first-child {
+  font-weight: 680 !important;
+  color: #123254 !important;
+}
+@media(max-width:900px) {
+  .email-template-review .fixoku-email-v2-addresses > summary { padding: 16px !important; font-size: 16px !important; }
+  .email-template-review .fixoku-email-v2-addresses .email-identity-table { width: calc(100% - 24px) !important; margin: 12px 12px 0 !important; }
+}

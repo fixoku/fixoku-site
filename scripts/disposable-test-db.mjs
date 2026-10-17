@@ -40,30 +40,42 @@ export async function createDisposableDatabase(sourceUrl, options = {}) {
   const databaseName = uniqueDatabaseName();
   const adminPool = new pg.Pool({ connectionString: adminUrl.toString(), max: 1 });
   let databasePool;
+  let createdByThisCall = false;
+  let disposed = false;
+  async function cleanup() {
+    if (disposed) return;
+    if (databasePool) { await databasePool.end(); databasePool = null; }
+    // A name prefix is never authority to drop a database. Only a successful
+    // CREATE DATABASE performed by this exact call authorizes cleanup.
+    if (createdByThisCall) {
+      await adminPool.query("select pg_terminate_backend(pid) from pg_stat_activity where datname=$1 and pid <> pg_backend_pid()", [databaseName]);
+      await adminPool.query(`drop database ${quoteIdentifier(databaseName)}`);
+      createdByThisCall = false;
+    }
+    await adminPool.end();
+    disposed = true;
+  }
   try {
     await adminPool.query(`create database ${quoteIdentifier(databaseName)}`);
+    createdByThisCall = true;
     const databaseUrl = new URL(source.toString());
     databaseUrl.pathname = `/${databaseName}`;
     databasePool = new pg.Pool({ connectionString: databaseUrl.toString(), max: 4 });
+    const target = (await databasePool.query("select current_database() as database")).rows[0]?.database;
+    if (target !== databaseName || target === source.pathname.slice(1)) throw new Error("DISPOSABLE_DATABASE_TARGET_MISMATCH");
     const db = drizzle(databasePool);
     await migrate(db, { migrationsFolder: options.migrationsFolder || "drizzle/migrations" });
     return {
       databaseName,
       databaseUrl,
       pool: databasePool,
-      async dispose() {
-        await databasePool.end();
-        databasePool = null;
-        await adminPool.query("select pg_terminate_backend(pid) from pg_stat_activity where datname=$1 and pid <> pg_backend_pid()", [databaseName]);
-        await adminPool.query(`drop database if exists ${quoteIdentifier(databaseName)}`);
-        await adminPool.end();
-      },
+      dispose: cleanup,
     };
   } catch (error) {
-    if (databasePool) await databasePool.end().catch(() => {});
-    await adminPool.query("select pg_terminate_backend(pid) from pg_stat_activity where datname=$1 and pid <> pg_backend_pid()", [databaseName]).catch(() => {});
-    await adminPool.query(`drop database if exists ${quoteIdentifier(databaseName)}`).catch(() => {});
-    await adminPool.end().catch(() => {});
+    await cleanup().catch((cleanupError) => {
+      error.cleanupFailed = true;
+      error.cleanupCode = cleanupError.code || "DISPOSABLE_CLEANUP_FAILED";
+    });
     throw error;
   }
 }

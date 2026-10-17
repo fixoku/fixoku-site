@@ -1,0 +1,3935 @@
+{
+  "schemaVersion": "005G-R5",
+  "products": [
+    {
+      "key": "primary-fast-reading",
+      "title": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+      "sku": "FIXOKU-PRIMARY-AKICI-HIZLI-OKUMA",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "primary-mind-exercises",
+      "title": "İlkokul Zihin Egzersizleri Kitabı",
+      "sku": "FIXOKU-PRIMARY-ZIHIN-EGZERSIZLERI",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "middle-fast-reading",
+      "title": "Ortaokul Hızlı Okuma Kitabı",
+      "sku": "FIXOKU-MIDDLE-HIZLI-OKUMA",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "middle-mind-exercises",
+      "title": "Ortaokul Zihin Egzersizleri Kitabı",
+      "sku": "FIXOKU-MIDDLE-ZIHIN-EGZERSIZLERI",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "high-fast-reading",
+      "title": "Lise Hızlı Okuma Kitabı",
+      "sku": "FIXOKU-HIGH-HIZLI-OKUMA",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "high-mind-exercises",
+      "title": "Lise Zihin Egzersizleri Kitabı",
+      "sku": "FIXOKU-HIGH-ZIHIN-EGZERSIZLERI",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "adult-fast-reading",
+      "title": "Yetişkin Hızlı Okuma Kitabı",
+      "sku": "FIXOKU-ADULT-HIZLI-OKUMA",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "adult-mind-exercises",
+      "title": "Yetişkin Zihin Egzersizleri Kitabı",
+      "sku": "FIXOKU-ADULT-ZIHIN-EGZERSIZLERI",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "middle-paragraph",
+      "title": "Ortaokul Paragraf Kitabı",
+      "sku": "FIXOKU-STUDENT-ORTAOKUL-PARAGRAF",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    },
+    {
+      "key": "high-paragraph",
+      "title": "Lise Paragraf Kitabı",
+      "sku": "FIXOKU-STUDENT-LISE-PARAGRAF",
+      "productType": "PHYSICAL",
+      "source": "005G canonical physical product authority"
+    }
+  ],
+  "sources": [
+    {
+      "document": "ogrenci-paketleri.docx",
+      "path": "C:\\Users\\Seslendirme Ajansı\\Downloads\\ogrenci-paketleri.docx",
+      "sha256": "15a69c36ecdc4c4c065c540a14e999175a729b25265bd43fe220acc8d296e5cd"
+    },
+    {
+      "document": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "path": "C:\\Users\\Seslendirme Ajansı\\Downloads\\EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sha256": "246eb3f881ac11d8589d2488607880be1dbe899554562ae968fc1891044848e3"
+    }
+  ],
+  "packages": [
+    {
+      "domain": "STUDENT",
+      "stage": "PRIMARY",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-primary-platinum-egitim",
+      "title": "PLATINUM EĞİTİM",
+      "subtitle": "Akıllı Sistem + Birebir Eğitim",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 2,
+      "sourceBullets": [
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+        "İlkokul Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "productKey": "primary-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "productKey": "primary-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "primary-fast-reading",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "primary-mind-exercises",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "PRIMARY",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-primary-premium-egitim",
+      "title": "PREMIUM EĞİTİM",
+      "subtitle": "Akıllı Sistem + Küçük Grup Eğitimi",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 13,
+      "sourceBullets": [
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+        "İlkokul Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "productKey": "primary-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "productKey": "primary-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "primary-fast-reading",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "primary-mind-exercises",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "PRIMARY",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-primary-akilli-sistem",
+      "title": "AKILLI SİSTEM",
+      "subtitle": "Kitaplar + Yazılım",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 23,
+      "sourceBullets": [
+        "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+        "İlkokul Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+        "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "productKey": "primary-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "productKey": "primary-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "primary-fast-reading",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "primary-mind-exercises",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "PRIMARY",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-primary-dijital-yapay-zeka-sistemi",
+      "title": "DİJİTAL YAPAY ZEKÂ SİSTEMİ",
+      "subtitle": "Yapay zekâ Destekli Yazılım",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 37,
+      "sourceBullets": [
+        "21 günlük gelişim programı",
+        "126 ölçülebilir dijital egzersiz",
+        "9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+        "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "21 günlük gelişim programı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 ölçülebilir dijital egzersiz",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "PRIMARY",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-primary-gelisim",
+      "title": "GELİŞİM",
+      "subtitle": null,
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 46,
+      "sourceBullets": [
+        "Zihin Egzersizleri Kitabı",
+        "Ortaokul Zihin Egzersizleri Kitabı.",
+        "Seçici dikkat egzersizleri",
+        "Görsel algı ve hafıza çalışmaları",
+        "Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri",
+        "Sözel mantık çalışmaları",
+        "Görsel takip ve eşleştirme çalışmaları",
+        "Şekil ve örüntü çalışmaları",
+        "Dikkat ve odaklanma, görsel algı, bilişsel becerilerin gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Zihin Egzersizleri Kitabı",
+          "displayLabel": "Zihin Egzersizleri Kitabı",
+          "productKey": "primary-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Görsel algı ve hafıza çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Sözel mantık çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Görsel takip ve eşleştirme çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Şekil ve örüntü çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Dikkat ve odaklanma, görsel algı, bilişsel becerilerin gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "primary-mind-exercises",
+          "displayLabel": "Zihin Egzersizleri Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": [
+        {
+          "sourceText": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "correction": "Map to İlkokul Zihin Egzersizleri Kitabı physical product; preserve source bullet text."
+        }
+      ]
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "PRIMARY",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-primary-baslangic",
+      "title": "BAŞLANGIÇ",
+      "subtitle": null,
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 58,
+      "sourceBullets": [
+        "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+        "İlkokul Zihin Egzersizleri Kitabı.",
+        "Doğru ve akıcı okuma alışkanlığı",
+        "Okuma hızını geliştirme",
+        "Okuduğunu anlama becerileri",
+        "Seçici dikkat egzersizleri",
+        "Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri",
+        "Görsel takip ve eşleştirme çalışmaları",
+        "Akıcı okuma, anlama, dikkat ve odaklanma, görsel algı, kelime becerileri ve okuma alışkanlığını destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "productKey": "primary-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "productKey": "primary-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Doğru ve akıcı okuma alışkanlığı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Okuma hızını geliştirme",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Görsel takip ve eşleştirme çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Akıcı okuma, anlama, dikkat ve odaklanma, görsel algı, kelime becerileri ve okuma alışkanlığını destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "primary-fast-reading",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "primary-mind-exercises",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "MIDDLE",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-middle-platinum-egitim",
+      "title": "PLATINUM EĞİTİM",
+      "subtitle": "Akıllı Sistem + Birebir Eğitim",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 70,
+      "sourceBullets": [
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-fast-reading",
+          "displayLabel": "Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        },
+        {
+          "productKey": "middle-mind-exercises",
+          "displayLabel": "Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "MIDDLE",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-middle-premium-egitim",
+      "title": "PREMIUM EĞİTİM",
+      "subtitle": "Akıllı Sistem + Küçük Grup Eğitimi",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 80,
+      "sourceBullets": [
+        "Ortaokul Hızlı Okuma Kitabı",
+        "Ortaokul Zihin Egzersizleri Kitabı.",
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Hızlı Okuma Kitabı",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "productKey": "middle-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "productKey": "middle-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-fast-reading",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "middle-mind-exercises",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "MIDDLE",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-middle-akilli-sistem",
+      "title": "AKILLI SİSTEM",
+      "subtitle": "Kitaplar + Yazılım",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 90,
+      "sourceBullets": [
+        "Ortaokul Hızlı Okuma Kitabı",
+        "Ortaokul Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Hızlı Okuma Kitabı",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "productKey": "middle-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "productKey": "middle-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-fast-reading",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "middle-mind-exercises",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "MIDDLE",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-middle-dijital-yapay-zeka-sistemi",
+      "title": "DİJİTAL YAPAY ZEKÂ SİSTEMİ",
+      "subtitle": "Yapay zekâ Destekli Yazılım",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 104,
+      "sourceBullets": [
+        "21 günlük gelişim programı",
+        "126 ölçülebilir dijital egzersiz",
+        "9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "21 günlük gelişim programı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 ölçülebilir dijital egzersiz",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "MIDDLE",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-middle-gelisim",
+      "title": "GELİŞİM",
+      "subtitle": null,
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 113,
+      "sourceBullets": [
+        "Ortaokul Zihin Egzersizleri Kitabı.",
+        "Seçici dikkat egzersizleri",
+        "Görsel algı ve hafıza çalışmaları",
+        "Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri",
+        "Sözel mantık çalışmaları",
+        "Görsel takip ve eşleştirme çalışmaları",
+        "Şekil ve örüntü çalışmaları",
+        "Dikkat ve odaklanma, görsel algı, bilişsel becerilerin gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "productKey": "middle-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Görsel algı ve hafıza çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Sözel mantık çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Görsel takip ve eşleştirme çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Şekil ve örüntü çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Dikkat ve odaklanma, görsel algı, bilişsel becerilerin gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-mind-exercises",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "MIDDLE",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-middle-baslangic",
+      "title": "BAŞLANGIÇ",
+      "subtitle": null,
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 124,
+      "sourceBullets": [
+        "Ortaokul Hızlı Okuma Kitabı",
+        "Ortaokul Zihin Egzersizleri Kitabı.",
+        "Hızlı okuma alışkanlığı",
+        "Okuduğunu anlama becerilerini geliştirme",
+        "Seçici dikkat egzersizleri",
+        "Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri",
+        "Görsel takip ve eşleştirme çalışmaları",
+        "Zaman yönetimini geliştiren uygulamalar",
+        "Okuma, anlama, dikkat ve odaklanma, görsel algı, kelime becerileri ve okuma alışkanlığını destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Hızlı Okuma Kitabı",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "productKey": "middle-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "productKey": "middle-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma alışkanlığı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Okuduğunu anlama becerilerini geliştirme",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Görsel takip ve eşleştirme çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Zaman yönetimini geliştiren uygulamalar",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Okuma, anlama, dikkat ve odaklanma, görsel algı, kelime becerileri ve okuma alışkanlığını destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-fast-reading",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "middle-mind-exercises",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "HIGH",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-high-platinum-egitim",
+      "title": "PLATINUM EĞİTİM",
+      "subtitle": "Akıllı Sistem + Birebir Eğitim",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 136,
+      "sourceBullets": [
+        "Lise Hızlı Okuma Kitabı",
+        "Lise Zihin Egzersizleri Kitabı.",
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Hızlı Okuma Kitabı",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "productKey": "high-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Zihin Egzersizleri Kitabı.",
+          "displayLabel": "Lise Zihin Egzersizleri Kitabı.",
+          "productKey": "high-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "high-fast-reading",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "high-mind-exercises",
+          "displayLabel": "Lise Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "HIGH",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-high-premium-egitim",
+      "title": "PREMIUM EĞİTİM",
+      "subtitle": "Akıllı Sistem + Küçük Grup Eğitimi",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 148,
+      "sourceBullets": [
+        "Lise Hızlı Okuma Kitabı",
+        "Lise Zihin Egzersizleri Kitabı",
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Hızlı Okuma Kitabı",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "productKey": "high-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Zihin Egzersizleri Kitabı",
+          "displayLabel": "Lise Zihin Egzersizleri Kitabı",
+          "productKey": "high-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "high-fast-reading",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "high-mind-exercises",
+          "displayLabel": "Lise Zihin Egzersizleri Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "HIGH",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-high-akilli-sistem",
+      "title": "AKILLI SİSTEM",
+      "subtitle": "Kitaplar + Yazılım",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 158,
+      "sourceBullets": [
+        "Lise Hızlı Okuma Kitabı",
+        "Lise Zihin Egzersizleri Kitabı",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Hızlı Okuma Kitabı",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "productKey": "high-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Zihin Egzersizleri Kitabı",
+          "displayLabel": "Lise Zihin Egzersizleri Kitabı",
+          "productKey": "high-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "high-fast-reading",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "high-mind-exercises",
+          "displayLabel": "Lise Zihin Egzersizleri Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "HIGH",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-high-dijital-yapay-zeka-sistemi",
+      "title": "DİJİTAL YAPAY ZEKÂ SİSTEMİ",
+      "subtitle": "Yapay zekâ Destekli Yazılım",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 172,
+      "sourceBullets": [
+        "21 günlük gelişim programı",
+        "126 ölçülebilir dijital egzersiz",
+        "9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "21 günlük gelişim programı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 ölçülebilir dijital egzersiz",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "HIGH",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-high-baslangic",
+      "title": "BAŞLANGIÇ",
+      "subtitle": "Hızlı Okuma Dikkat ve Odaklanma Kitabı",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 182,
+      "sourceBullets": [
+        "Lise Hızlı Okuma Kitabı",
+        "Lise Zihin Egzersizleri Kitabı",
+        "Hızlı okuma alışkanlığı",
+        "Okuduğunu anlama becerilerini geliştirme",
+        "Seçici dikkat egzersizleri",
+        "Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri",
+        "Görsel takip ve eşleştirme çalışmaları",
+        "Zaman yönetimini geliştiren uygulamalar",
+        "Okuma, anlama, dikkat ve odaklanma, görsel algı, kelime becerileri ve okuma alışkanlığını destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Hızlı Okuma Kitabı",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "productKey": "high-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Zihin Egzersizleri Kitabı",
+          "displayLabel": "Lise Zihin Egzersizleri Kitabı",
+          "productKey": "high-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma alışkanlığı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Okuduğunu anlama becerilerini geliştirme",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Görsel takip ve eşleştirme çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Zaman yönetimini geliştiren uygulamalar",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Okuma, anlama, dikkat ve odaklanma, görsel algı, kelime becerileri ve okuma alışkanlığını destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "high-fast-reading",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "high-mind-exercises",
+          "displayLabel": "Lise Zihin Egzersizleri Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "ADULT",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-adult-platinum-egitim",
+      "title": "PLATINUM EĞİTİM",
+      "subtitle": "Akıllı Sistem + Birebir Eğitim",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 198,
+      "sourceBullets": [
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "Yetişkin Hızlı Okuma Kitabı",
+        "Yetişkin Zihin Egzersizleri Kitabı",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Hızlı Okuma Kitabı",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "productKey": "adult-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Zihin Egzersizleri Kitabı",
+          "displayLabel": "Yetişkin Zihin Egzersizleri Kitabı",
+          "productKey": "adult-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "adult-fast-reading",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "adult-mind-exercises",
+          "displayLabel": "Yetişkin Zihin Egzersizleri Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "ADULT",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-adult-premium-egitim",
+      "title": "PREMIUM EĞİTİM",
+      "subtitle": "Akıllı Sistem + Küçük Grup Eğitimi",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 209,
+      "sourceBullets": [
+        "Yetişkin Hızlı Okuma Kitabı",
+        "Yetişkin Zihin Egzersizleri Kitabı",
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Hızlı Okuma Kitabı",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "productKey": "adult-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Zihin Egzersizleri Kitabı",
+          "displayLabel": "Yetişkin Zihin Egzersizleri Kitabı",
+          "productKey": "adult-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmen değerlendirmesi ve veli görüşmeleri.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "adult-fast-reading",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "adult-mind-exercises",
+          "displayLabel": "Yetişkin Zihin Egzersizleri Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "ADULT",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-adult-akilli-sistem",
+      "title": "AKILLI SİSTEM",
+      "subtitle": "Kitaplar + Yazılım",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 219,
+      "sourceBullets": [
+        "Yetişkin Hızlı Okuma Kitabı",
+        "Yetişkin Zihin Egzersizleri Kitabı",
+        "Yapay zekâ destekli yazılım ile 21 günlük program.",
+        "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+        "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Hızlı Okuma Kitabı",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "productKey": "adult-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Zihin Egzersizleri Kitabı",
+          "displayLabel": "Yetişkin Zihin Egzersizleri Kitabı",
+          "productKey": "adult-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli yazılım ile 21 günlük program.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 egzersiz, 9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "adult-fast-reading",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "adult-mind-exercises",
+          "displayLabel": "Yetişkin Zihin Egzersizleri Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "ADULT",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-adult-dijital-yapay-zeka-sistemi",
+      "title": "DİJİTAL YAPAY ZEKÂ SİSTEMİ",
+      "subtitle": "Yapay zekâ Destekli Yazılım",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 233,
+      "sourceBullets": [
+        "21 günlük gelişim programı",
+        "126 ölçülebilir dijital egzersiz",
+        "9 beceri alanında gelişim takibi ve raporlama.",
+        "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+        "Yazılımda 1 yıl serbest çalışma imkânı.",
+        "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+        "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "21 günlük gelişim programı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "126 ölçülebilir dijital egzersiz",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "9 beceri alanında gelişim takibi ve raporlama.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Günlük yazılım çalışmaları sonrası otomatik veli bilgilendirmesi.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yazılımda 1 yıl serbest çalışma imkânı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri- Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri- Okuduğunu anlama becerileri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Akıcı okuma, hızlı okuma, okuduğunu anlama, dikkat ve odaklanma gelişimini destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "ADULT",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-adult-baslangic",
+      "title": "BAŞLANGIÇ",
+      "subtitle": "Hızlı Okuma Dikkat ve Odaklanma Kitabı",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 243,
+      "sourceBullets": [
+        "Yetişkin Hızlı Okuma Kitabı",
+        "Yetişkin Zihin Egzersizleri Kitabı",
+        "Hızlı okuma alışkanlığı",
+        "Okuduğunu anlama becerilerini geliştirme",
+        "Seçici dikkat egzersizleri",
+        "Dikkat ve odaklanma teknikleri",
+        "Göz ve Görme alanı egzersizleri",
+        "Görsel takip ve eşleştirme çalışmaları",
+        "Zaman yönetimini geliştiren uygulamalar",
+        "Okuma, anlama, dikkat ve odaklanma, görsel algı, kelime becerileri ve okuma alışkanlığını destekleyen çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Hızlı Okuma Kitabı",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "productKey": "adult-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Zihin Egzersizleri Kitabı",
+          "displayLabel": "Yetişkin Zihin Egzersizleri Kitabı",
+          "productKey": "adult-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma alışkanlığı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Okuduğunu anlama becerilerini geliştirme",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Seçici dikkat egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Dikkat ve odaklanma teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Göz ve Görme alanı egzersizleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Görsel takip ve eşleştirme çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Zaman yönetimini geliştiren uygulamalar",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Okuma, anlama, dikkat ve odaklanma, görsel algı, kelime becerileri ve okuma alışkanlığını destekleyen çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "adult-fast-reading",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "adult-mind-exercises",
+          "displayLabel": "Yetişkin Zihin Egzersizleri Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "MIDDLE",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-middle-paragraf-egitim",
+      "title": "ORTAOKUL PARAGRAF EĞİTİM",
+      "subtitle": "Paragraf Kitabı + Birebir Eğitim",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 263,
+      "sourceBullets": [
+        "Paragraf Kitabı",
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "Maarif modele uyumlu – Bağlam temelli sorular",
+        "Paragraf Kitabı ile sınav odaklı soru çözme teknikleri",
+        "Soru kökü analizi – çıkarım ve yorumlama yöntemleri",
+        "Konu, ana düşünce ve yardımcı düşünce",
+        "Paragraf tamamlama ve yer değiştirme",
+        "Sözel mantık, düşünme becerileri ve yorumlama çalışmaları",
+        "Hızlı okuma tekniği ile paragraf çözme tüyoları",
+        "Sınav odaklı eğitim ile paragraf çözme becerileri gelişimini destekleyen ve süre yönetimini kolaylaştıran çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Paragraf Kitabı",
+          "displayLabel": "Paragraf Kitabı",
+          "productKey": "middle-paragraph",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Maarif modele uyumlu – Bağlam temelli sorular",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragraf Kitabı ile sınav odaklı soru çözme teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Soru kökü analizi – çıkarım ve yorumlama yöntemleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Konu, ana düşünce ve yardımcı düşünce",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragraf tamamlama ve yer değiştirme",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Sözel mantık, düşünme becerileri ve yorumlama çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma tekniği ile paragraf çözme tüyoları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Sınav odaklı eğitim ile paragraf çözme becerileri gelişimini destekleyen ve süre yönetimini kolaylaştıran çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-paragraph",
+          "displayLabel": "Paragraf Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "MIDDLE",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-middle-paragraf-kitabi",
+      "title": "ORTAOKUL PARAGRAF KİTABI",
+      "subtitle": "Paragraf Kitabı",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 276,
+      "sourceBullets": [
+        "Paragraf Kitabı",
+        "Maarif modele uyumlu – Bağlam temelli sorular",
+        "Paragraf Kitabı ile sınav odaklı soru çözme teknikleri",
+        "Soru kökü analizi – çıkarım ve yorumlama yöntemleri",
+        "Konu, ana düşünce ve yardımcı düşünce",
+        "Paragraf tamamlama ve yer değiştirme",
+        "Paragrafta önemli bilgileri ayırt etmeye yönelik teknikler",
+        "Sözel mantık, düşünme becerileri ve yorumlama çalışmaları",
+        "Hızlı okuma tekniği ile paragraf çözme tüyoları",
+        "LGS odaklı eğitim ile paragraf çözme becerileri gelişimini destekleyen ve süre yönetimini kolaylaştıran çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Paragraf Kitabı",
+          "displayLabel": "Paragraf Kitabı",
+          "productKey": "middle-paragraph",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Maarif modele uyumlu – Bağlam temelli sorular",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragraf Kitabı ile sınav odaklı soru çözme teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Soru kökü analizi – çıkarım ve yorumlama yöntemleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Konu, ana düşünce ve yardımcı düşünce",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragraf tamamlama ve yer değiştirme",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragrafta önemli bilgileri ayırt etmeye yönelik teknikler",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Sözel mantık, düşünme becerileri ve yorumlama çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma tekniği ile paragraf çözme tüyoları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "LGS odaklı eğitim ile paragraf çözme becerileri gelişimini destekleyen ve süre yönetimini kolaylaştıran çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-paragraph",
+          "displayLabel": "Paragraf Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "HIGH",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-high-paragraf-egitim",
+      "title": "LİSEL PARAGRAF EĞİTİM",
+      "subtitle": "Paragraf Kitabı + Birebir Eğitim",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 296,
+      "sourceBullets": [
+        "Paragraf Kitabı",
+        "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+        "Maarif modele uyumlu – Bağlam temelli sorular",
+        "Paragraf Kitabı ile sınav odaklı soru çözme teknikleri",
+        "Soru kökü analizi – çıkarım ve yorumlama yöntemleri",
+        "Konu, ana düşünce ve yardımcı düşünce",
+        "Paragraf tamamlama ve yer değiştirme",
+        "Sözel mantık, düşünme becerileri ve yorumlama çalışmaları",
+        "Hızlı okuma tekniği ile paragraf çözme tüyoları",
+        "TYT- AYT odaklı eğitim ile paragraf çözme becerileri gelişimini destekleyen ve süre yönetimini kolaylaştıran çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Paragraf Kitabı",
+          "displayLabel": "Paragraf Kitabı",
+          "productKey": "high-paragraph",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Uzman eğitmen ile online veya yüz yüze canlı eğitim.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Maarif modele uyumlu – Bağlam temelli sorular",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragraf Kitabı ile sınav odaklı soru çözme teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Soru kökü analizi – çıkarım ve yorumlama yöntemleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Konu, ana düşünce ve yardımcı düşünce",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragraf tamamlama ve yer değiştirme",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Sözel mantık, düşünme becerileri ve yorumlama çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma tekniği ile paragraf çözme tüyoları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "TYT- AYT odaklı eğitim ile paragraf çözme becerileri gelişimini destekleyen ve süre yönetimini kolaylaştıran çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "high-paragraph",
+          "displayLabel": "Paragraf Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": [
+        {
+          "sourceText": "LİSEL PARAGRAF EĞİTİM",
+          "correction": "Approved title correction from source package authority."
+        }
+      ]
+    },
+    {
+      "domain": "STUDENT",
+      "stage": "HIGH",
+      "catalogScope": "STUDENT_COMMERCE",
+      "slug": "student-high-paragraf-kitabi",
+      "title": "LİSE PARAGRAF KİTABI",
+      "subtitle": "Paragraf Kitabı",
+      "sourceDocument": "ogrenci-paketleri.docx",
+      "sourceParagraphIndex": 308,
+      "sourceBullets": [
+        "Paragraf Kitabı",
+        "Maarif modele uyumlu – Bağlam temelli sorular",
+        "Paragraf Kitabı ile sınav odaklı soru çözme teknikleri",
+        "Soru kökü analizi – çıkarım ve yorumlama yöntemleri",
+        "Konu, ana düşünce ve yardımcı düşünce",
+        "Paragraf tamamlama ve yer değiştirme",
+        "Paragrafta önemli bilgileri ayırt etmeye yönelik teknikler",
+        "Sözel mantık, düşünme becerileri ve yorumlama çalışmaları",
+        "Hızlı okuma tekniği ile paragraf çözme tüyoları",
+        "TYT- AYT odaklı eğitim ile paragraf çözme becerileri gelişimini destekleyen ve süre yönetimini kolaylaştıran çalışmalar."
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Paragraf Kitabı",
+          "displayLabel": "Paragraf Kitabı",
+          "productKey": "high-paragraph",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Maarif modele uyumlu – Bağlam temelli sorular",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragraf Kitabı ile sınav odaklı soru çözme teknikleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Soru kökü analizi – çıkarım ve yorumlama yöntemleri",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Konu, ana düşünce ve yardımcı düşünce",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragraf tamamlama ve yer değiştirme",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Paragrafta önemli bilgileri ayırt etmeye yönelik teknikler",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Sözel mantık, düşünme becerileri ve yorumlama çalışmaları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Hızlı okuma tekniği ile paragraf çözme tüyoları",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "TYT- AYT odaklı eğitim ile paragraf çözme becerileri gelişimini destekleyen ve süre yönetimini kolaylaştıran çalışmalar.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "high-paragraph",
+          "displayLabel": "Paragraf Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "TRAINER",
+      "catalogScope": "TRAINER_COMMERCE",
+      "slug": "ilkokul-akici-hizli-okuma-egitimi",
+      "title": "İLKOKUL AKICI VE HIZLI OKUMA EĞİTİMİ",
+      "subtitle": null,
+      "sourceDocument": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sourceParagraphIndex": 1,
+      "sourceBullets": [
+        "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+        "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+        "İlkokul Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli öğrenci yazılımı",
+        "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+        "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+        "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+        "Eğitmenler için Kurumlar ile görüşme sunumu",
+        "Eğitmenler için veli seminer sunumu",
+        "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+        "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+        "Eğitmenlere özel tasarlanan web sitesi paneli",
+        "Toplu alımlarda indirim imkânı",
+        "Fixoku öğrenci yönlendirme imkânı"
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "İlkokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "productKey": "primary-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli öğrenci yazılımı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için Kurumlar ile görüşme sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için veli seminer sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 10,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 11,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan web sitesi paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 12,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Toplu alımlarda indirim imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 13,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Fixoku öğrenci yönlendirme imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "primary-fast-reading",
+          "displayLabel": "İlkokul Akıcı ve Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "primary-mind-exercises",
+          "displayLabel": "İlkokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "TRAINER",
+      "catalogScope": "TRAINER_COMMERCE",
+      "slug": "ortaokul-hizli-okuma-egitimi",
+      "title": "ORTAOKUL HIZLI OKUMA EĞİTİMİ",
+      "subtitle": null,
+      "sourceDocument": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sourceParagraphIndex": 18,
+      "sourceBullets": [
+        "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+        "Ortaokul Hızlı Okuma Kitabı",
+        "Ortaokul Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli öğrenci yazılımı",
+        "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+        "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+        "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+        "Eğitmenler için Kurumlar ile görüşme sunumu",
+        "Eğitmenler için veli seminer sunumu",
+        "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+        "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+        "Eğitmenlere özel tasarlanan web sitesi paneli",
+        "Toplu alımlarda indirim imkânı",
+        "Fixoku öğrenci yönlendirme imkânı"
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Hızlı Okuma Kitabı",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "productKey": "middle-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "productKey": "middle-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli öğrenci yazılımı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için Kurumlar ile görüşme sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için veli seminer sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 10,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 11,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan web sitesi paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 12,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Toplu alımlarda indirim imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 13,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Fixoku öğrenci yönlendirme imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-fast-reading",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "middle-mind-exercises",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "TRAINER",
+      "catalogScope": "TRAINER_COMMERCE",
+      "slug": "lise-hizli-okuma-egitimi",
+      "title": "LİSE HIZLI OKUMA EĞİTİMİ",
+      "subtitle": null,
+      "sourceDocument": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sourceParagraphIndex": 39,
+      "sourceBullets": [
+        "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+        "Lise Hızlı Okuma Kitabı",
+        "Yapay zekâ destekli öğrenci yazılımı",
+        "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+        "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+        "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+        "Eğitmenler için Kurumlar ile görüşme sunumu",
+        "Eğitmenler için veli seminer sunumu",
+        "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+        "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+        "Eğitmenlere özel tasarlanan web sitesi paneli",
+        "Toplu alımlarda indirim imkânı",
+        "Fixoku öğrenci yönlendirme imkânı"
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Hızlı Okuma Kitabı",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "productKey": "high-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli öğrenci yazılımı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için Kurumlar ile görüşme sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için veli seminer sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 10,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan web sitesi paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 11,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Toplu alımlarda indirim imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 12,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Fixoku öğrenci yönlendirme imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "high-fast-reading",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "TRAINER",
+      "catalogScope": "TRAINER_COMMERCE",
+      "slug": "yetiskin-hizli-okuma-egitimi",
+      "title": "YETİŞKİN HIZLI OKUMA EĞİTİMİ",
+      "subtitle": null,
+      "sourceDocument": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sourceParagraphIndex": 54,
+      "sourceBullets": [
+        "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+        "Yetişkin Hızlı Okuma Kitabı",
+        "Yapay zekâ destekli öğrenci yazılımı",
+        "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+        "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+        "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+        "Eğitmenler için Kurumlar ile görüşme sunumu",
+        "Eğitmenler için veli seminer sunumu",
+        "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+        "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+        "Eğitmenlere özel tasarlanan web sitesi paneli",
+        "Toplu alımlarda indirim imkânı",
+        "Fixoku öğrenci yönlendirme imkânı"
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Hızlı Okuma Kitabı",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "productKey": "adult-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli öğrenci yazılımı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için Kurumlar ile görüşme sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için veli seminer sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 10,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan web sitesi paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 11,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Toplu alımlarda indirim imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 12,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Fixoku öğrenci yönlendirme imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "adult-fast-reading",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "TRAINER",
+      "catalogScope": "TRAINER_COMMERCE",
+      "slug": "ortaokul-lise-yetiskin-hizli-okuma-egitimi",
+      "title": "(ORTAOKUL – LİSE- YETİŞKİN) HIZLI OKUMA EĞİTİMİ",
+      "subtitle": null,
+      "sourceDocument": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sourceParagraphIndex": 76,
+      "sourceBullets": [
+        "3 Eğitim İçin Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+        "Ortaokul Hızlı Okuma Kitabı",
+        "Ortaokul Zihin Egzersizleri Kitabı.",
+        "Lise Hızlı Okuma Kitabı",
+        "Yetişkin Hızlı Okuma Kitabı",
+        "Ortaokul, Lise ve Yetişkin Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.",
+        "Yapay zekâ destekli öğrenci yazılımı",
+        "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+        "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+        "3 Eğitim için Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+        "Eğitmenler için Kurumlar ile görüşme sunumu",
+        "Eğitmenler için veli seminer sunumu",
+        "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+        "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+        "Eğitmenlere özel tasarlanan web sitesi paneli",
+        "Toplu alımlarda indirim imkânı",
+        "Fixoku öğrenci yönlendirme imkânı"
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "3 Eğitim İçin Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Hızlı Okuma Kitabı",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "productKey": "middle-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "productKey": "middle-mind-exercises",
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise Hızlı Okuma Kitabı",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "productKey": "high-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Yetişkin Hızlı Okuma Kitabı",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "productKey": "adult-fast-reading",
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Ortaokul, Lise ve Yetişkin Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Yapay zekâ destekli öğrenci yazılımı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "3 Eğitim için Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 10,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için Kurumlar ile görüşme sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 11,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için veli seminer sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 12,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 13,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan yazılım eğitim paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 14,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan web sitesi paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 15,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Toplu alımlarda indirim imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 16,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Fixoku öğrenci yönlendirme imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-fast-reading",
+          "displayLabel": "Ortaokul Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "middle-mind-exercises",
+          "displayLabel": "Ortaokul Zihin Egzersizleri Kitabı.",
+          "quantity": 1
+        },
+        {
+          "productKey": "high-fast-reading",
+          "displayLabel": "Lise Hızlı Okuma Kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "adult-fast-reading",
+          "displayLabel": "Yetişkin Hızlı Okuma Kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "TRAINER",
+      "catalogScope": "TRAINER_COMMERCE",
+      "slug": "ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs",
+      "title": "ORTAOKUL PARAGRAF TEKNİKLERİ EĞİTMEN EĞİTİMİ (LGS)",
+      "subtitle": null,
+      "sourceDocument": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sourceParagraphIndex": 95,
+      "sourceBullets": [
+        "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+        "Ortaokul paragraf kitabı",
+        "E Devlet kayıtlı Üniversite onaylı paragraf Eğitmen Sertifikası",
+        "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+        "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+        "Eğitmenler için Kurumlar ile görüşme sunumu",
+        "Eğitmenler için veli seminer sunumu",
+        "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+        "Eğitmenlere özel tasarlanan web sitesi paneli",
+        "Toplu alımlarda indirim imkânı",
+        "Fixoku öğrenci yönlendirme imkânı"
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul paragraf kitabı",
+          "displayLabel": "Ortaokul paragraf kitabı",
+          "productKey": "middle-paragraph",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "E Devlet kayıtlı Üniversite onaylı paragraf Eğitmen Sertifikası",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için Kurumlar ile görüşme sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için veli seminer sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan web sitesi paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Toplu alımlarda indirim imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 10,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Fixoku öğrenci yönlendirme imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-paragraph",
+          "displayLabel": "Ortaokul paragraf kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "TRAINER",
+      "catalogScope": "TRAINER_COMMERCE",
+      "slug": "lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt",
+      "title": "LİSE PARAGRAF TEKNİKLERİ EĞİTMEN EĞİTİMİ (TYT -AYT)",
+      "subtitle": null,
+      "sourceDocument": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sourceParagraphIndex": 108,
+      "sourceBullets": [
+        "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+        "Lise paragraf kitabı",
+        "E Devlet kayıtlı Üniversite onaylı paragraf Eğitmen Sertifikası",
+        "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+        "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+        "Eğitmenler için Kurumlar ile görüşme sunumu",
+        "Eğitmenler için veli seminer sunumu",
+        "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+        "Eğitmenlere özel tasarlanan web sitesi paneli",
+        "Toplu alımlarda indirim imkânı",
+        "Fixoku öğrenci yönlendirme imkânı"
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Canlı ve video ile Profesyonel Eğitmen Eğitimi",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise paragraf kitabı",
+          "displayLabel": "Lise paragraf kitabı",
+          "productKey": "high-paragraph",
+          "isActive": true
+        },
+        {
+          "displayOrder": 2,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "E Devlet kayıtlı Üniversite onaylı paragraf Eğitmen Sertifikası",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 3,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 4,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Gün Gün Öğrencilerle Ders İşleyiş müfredatı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 5,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için Kurumlar ile görüşme sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 6,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenler için veli seminer sunumu",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 7,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 8,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Eğitmenlere özel tasarlanan web sitesi paneli",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 9,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Toplu alımlarda indirim imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        },
+        {
+          "displayOrder": 10,
+          "componentType": "TEXT_ITEM",
+          "sourceText": "Fixoku öğrenci yönlendirme imkânı",
+          "displayLabel": null,
+          "productKey": null,
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "high-paragraph",
+          "displayLabel": "Lise paragraf kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": []
+    },
+    {
+      "domain": "TRAINER",
+      "catalogScope": "TRAINER_COMMERCE",
+      "slug": "ortaokul-lise-paragraf-egitmen-egitimi-ikili-set",
+      "title": "ORTAOKUL + LİSE PARAGRAF EĞİTMEN EĞİTİMİ İKİLİ SET",
+      "subtitle": "Ortaokul ve lise paragraf eğitmen eğitimi",
+      "sourceDocument": "EĞİTMEN EĞİTİMİ İÇERİK.docx",
+      "sourceParagraphIndex": null,
+      "sourceBullets": [
+        "Ortaokul paragraf kitabı",
+        "Lise paragraf kitabı",
+        "Birebir eğitmen eğitimi"
+      ],
+      "components": [
+        {
+          "displayOrder": 0,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Ortaokul paragraf kitabı",
+          "displayLabel": "Ortaokul paragraf kitabı",
+          "productKey": "middle-paragraph",
+          "isActive": true
+        },
+        {
+          "displayOrder": 1,
+          "componentType": "PHYSICAL_PRODUCT",
+          "sourceText": "Lise paragraf kitabı",
+          "displayLabel": "Lise paragraf kitabı",
+          "productKey": "high-paragraph",
+          "isActive": true
+        }
+      ],
+      "physicalProducts": [
+        {
+          "productKey": "middle-paragraph",
+          "displayLabel": "Ortaokul paragraf kitabı",
+          "quantity": 1
+        },
+        {
+          "productKey": "high-paragraph",
+          "displayLabel": "Lise paragraf kitabı",
+          "quantity": 1
+        }
+      ],
+      "sourceCorrections": [
+        "Current authority total 12.500 TL; qualification bundle MIDDLE_PARAGRAPH + HIGH_PARAGRAPH."
+      ]
+    }
+  ]
+}
+

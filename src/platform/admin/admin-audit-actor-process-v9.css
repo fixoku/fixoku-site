@@ -1,0 +1,15 @@
+/* V9 - independent actor and process selectors; text contrast and role clarity */
+.fixoku-audit-v2 .fa9-filter-title { display:flex;align-items:center;gap:12px;padding:14px 22px 10px;background:#fff;}
+.fixoku-audit-v2 .fa9-filter-title strong { font-size:15px; font-weight:800; color:#19344e; display:block; }
+.fixoku-audit-v2 .fa9-filter-title small {display:block;color:#6b8098;font-size:12px;margin-top:3px;}
+.fixoku-audit-v2 .fa9-filter-index {display:grid;place-items:center;width:27px;height:27px;flex:0 0 27px;border-radius:8px;background:#eaf1f9;color:#2c638c;font-size:14px;font-weight:900;}
+.fixoku-audit-v2 .fa9-actor-tabs {display:flex;flex-wrap:wrap;overflow:visible;padding:0 20px 15px;gap:8px;}
+.fixoku-audit-v2 .fa9-actor-tabs .fa2-tab {font-size:13px;padding:9px 12px;}
+.fixoku-audit-v2 .fa9-process-bar {display:flex;align-items:center;justify-content:space-between;gap:16px;background:#f5f8fc;border-top:1px solid #e3eaf2;border-bottom:1px solid #e3eaf2;padding:4px 20px;}
+.fixoku-audit-v2 .fa9-process-bar .fa9-filter-title {padding:10px 0;background:transparent;}
+.fixoku-audit-v2 .fa9-process-bar .fa9-filter-index {background:#e1f2e9;color:#1e7754;}
+.fixoku-audit-v2 .fa9-domain-select {width:min(360px,100%);}
+.fixoku-audit-v2 .fa9-domain-select select {min-width:240px;width:100%;height:44px;border-radius:11px;border:1px solid #cfdae7;background:#fff;font-size:14px;padding:0 12px;font-weight:700;color:#243e56;}
+.fixoku-audit-v2 .fa9-sr-only {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+.fixoku-audit-v2 .fa9-actor-tabs .fa2-tab.active {color:#234d73;background:#e8f1fc;border-color:#c8ddf0;}
+@media(max-width:790px) {.fixoku-audit-v2 .fa9-process-bar{flex-wrap:wrap;padding:12px 16px}.fixoku-audit-v2 .fa9-domain-select{width:100%}.fixoku-audit-v2 .fa9-domain-select select{min-width:0}}

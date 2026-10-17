@@ -16,14 +16,28 @@ const fail = (code, status = 409) => Object.assign(new Error(code), { code, stat
 
 export async function mapTrainerPackageVersion(client, { packageId, packageVersionId }) {
   const found = (await client.query(
-    "select slug from packages where id=$1 and audience='TRAINER' and catalog_scope='TRAINER_COMMERCE'",
-    [packageId],
+    `select p.slug,pv.title,
+       exists(
+         select 1 from package_components pc
+         where pc.package_version_id=$2
+           and pc.component_type='TRAINER_SERVICE'
+           and pc.is_active=true
+       ) as has_training_service
+     from packages p
+     join package_versions pv on pv.id=$2 and pv.package_id=p.id
+     where p.id=$1 and p.audience='TRAINER' and p.catalog_scope='TRAINER_COMMERCE'`,
+    [packageId, packageVersionId],
   )).rows[0];
   const codes = TRAINER_PACKAGE_QUALIFICATIONS[found?.slug];
-  // Fixtures and legacy physical trainer products can remain purchasable while
-  // carrying no education qualification mapping. They receive the normal
-  // entitlement and no expertise grant; canonical education slugs are strict.
-  if (!codes) return [];
+  // Standalone books/software may be sold in the trainer domain without
+  // granting teaching authority. An education package must have an explicit
+  // canonical mapping; silently settling one without expertise is unsafe.
+  const educationSignal = Boolean(found?.has_training_service)
+    || /(?:eğitmen|egitmen|eğitim|egitim)/iu.test(`${found?.slug || ""} ${found?.title || ""}`);
+  if (!codes) {
+    if (educationSignal) throw fail("TRAINER_EXPERTISE_MAPPING_MISSING");
+    return [];
+  }
   const existing = (await client.query(`
     select q.id,q.code,q.title,q.service_type as "serviceType",q.education_stage as "educationStage"
     from r6_trainer_package_qualification_map m
@@ -67,14 +81,74 @@ export async function grantTrainerOrderExpertise(client, { trainerUserId, orderI
   return created;
 }
 
+/**
+ * A qualification is effective only when its evidence is still valid.
+ * PURCHASE requires a settled order and an active entitlement to the mapped
+ * education package; package-based OWNER_MANUAL requires an active Owner gift.
+ * An explicit (non-package) Owner grant remains allowed when granted_by is set.
+ * This predicate is shared by the profile badges and the teaching permission gate.
+ */
+export function effectiveTrainerQualificationPredicate(alias = "g") {
+  if (!/^[a-z][a-z0-9_]*$/i.test(alias)) throw new Error("INVALID_SQL_ALIAS");
+  return `
+    ${alias}.status='ACTIVE'
+    and ${alias}.revoked_at is null
+    and (${alias}.valid_until is null or ${alias}.valid_until > now())
+    and (
+      (
+        ${alias}.source='PURCHASE'
+        and exists (
+          select 1
+          from trainer_package_order_items oi
+          join trainer_package_orders o on o.id=oi.order_id
+          join trainer_package_entitlements e on e.source_order_id=o.id
+          join r6_trainer_package_qualification_map m
+            on m.package_version_id=oi.package_version_id
+            and m.qualification_id=${alias}.qualification_id
+          where oi.id=${alias}.source_order_item_id
+            and o.id=${alias}.source_order_id
+            and o.trainer_user_id=${alias}.trainer_user_id
+            and o.status='PAID'
+            and e.trainer_user_id=${alias}.trainer_user_id
+            and e.package_id=oi.package_id
+            and e.package_version_id=oi.package_version_id
+            and e.status='ACTIVE'
+            and e.revoked_at is null
+        )
+      )
+      or (
+        ${alias}.source='OWNER_MANUAL'
+        and ${alias}.source_ref like 'ENTITLEMENT:%'
+        and exists (
+          select 1
+          from trainer_package_entitlements e
+          join r6_trainer_package_qualification_map m
+            on m.package_version_id=e.package_version_id
+            and m.qualification_id=${alias}.qualification_id
+          where ${alias}.source_ref='ENTITLEMENT:' || e.id::text
+            and e.trainer_user_id=${alias}.trainer_user_id
+            and e.status='ACTIVE'
+            and e.revoked_at is null
+            and e.source='MANUAL_GIFT'
+        )
+      )
+      or (
+        ${alias}.source='OWNER_MANUAL'
+        and ${alias}.source_ref not like 'ENTITLEMENT:%'
+        and ${alias}.granted_by is not null
+      )
+    )
+  `;
+}
+
 export async function hasActiveTrainerExpertise(client, trainerUserId, qualificationId) {
   const result = await client.query(`
     select exists(
       select 1 from platform_memberships m
       join r6_trainer_qualification_grants g on g.trainer_user_id=m.user_id
       where m.user_id=$1 and m.role='TRAINER' and m.status='ACTIVE'
-        and g.qualification_id=$2 and g.status='ACTIVE'
-        and (g.valid_until is null or g.valid_until>now())
+        and g.qualification_id=$2
+        and ${effectiveTrainerQualificationPredicate("g")}
     ) as eligible
   `, [trainerUserId, qualificationId]);
   return result.rows[0]?.eligible === true;

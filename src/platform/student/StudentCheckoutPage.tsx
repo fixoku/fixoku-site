@@ -4,6 +4,7 @@ import { StudentPanelShell } from "./StudentPanelShell";
 import PaytrCheckout from "../commerce/PaytrCheckout.jsx";
 import CheckoutLegalConsents from "../commerce/CheckoutLegalConsents.jsx";
 import { BankTransferPayment } from "../commerce/BankTransferPayment";
+import { TrainerPhysicalProducts } from "../trainer/commerce/TrainerPhysicalProducts";
 import {
   TURKEY_LOCATIONS,
   getTurkeyDistricts,
@@ -23,6 +24,14 @@ type Cart = {
     title: string;
     priceMinor: number;
     currency: string;
+    products?: Array<{
+      packageComponentId?: string | null;
+      sku?: string | null;
+      title?: string | null;
+      productType?: string | null;
+      quantity?: number | null;
+      imageReference?: string | null;
+    }>;
   }>;
   subtotalMinor: number;
   shippingMinor: number;
@@ -85,6 +94,10 @@ export function StudentCheckoutPage({
   const [legalReady, setLegalReady] =
     useState(false);
 
+  // Stable for retries, unique for a new checkout/payment choice. No personal data in the key.
+  const [checkoutKey, setCheckoutKey] =
+    useState(() => `student-checkout-${crypto.randomUUID()}`);
+
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("PAYTR");
 
@@ -108,6 +121,8 @@ export function StudentCheckoutPage({
       companyName: "",
       taxOffice: "",
       taxNumber: "",
+      phone: "",
+      addressLine: "",
     });
 
   const districts =
@@ -187,6 +202,8 @@ export function StudentCheckoutPage({
           lastName:
             String(profile.lastName || ""),
           sameAsShipping: true,
+          phone: String(profile.phone || ""),
+          addressLine: String(profile.addressLine || ""),
         }));
 
         setState("ready");
@@ -226,6 +243,14 @@ export function StudentCheckoutPage({
       return;
     }
 
+    if (!cart?.requiresShipping && paymentMethod === "PAYTR") {
+      const digits = billing.phone.replace(/\D/gu, "");
+      if (!billing.firstName.trim() || !billing.lastName.trim() || digits.length < 10 || digits.length > 15 || !billing.addressLine.trim()) {
+        setMessage("Kartla dijital ödeme için ad, soyad, telefon ve fatura/iletişim adresini tamamlayın.");
+        return;
+      }
+    }
+
     const response = await fetch(
       "/api/student/orders",
       {
@@ -235,12 +260,7 @@ export function StudentCheckoutPage({
           "content-type":
             "application/json",
           "idempotency-key":
-            `student-checkout-${studentProfileId}-${paymentMethod}-${cart?.items
-              .map(
-                (item) =>
-                  item.title,
-              )
-              .join("-")}`,
+            checkoutKey,
         },
         body: JSON.stringify({
           ...(studentProfileId ? { studentProfileId } : { catalogEducationStage: cart?.beneficiary.educationStage, catalogGrade: cart?.beneficiary.grade }),
@@ -260,8 +280,9 @@ export function StudentCheckoutPage({
 
     if (!response.ok) {
       setMessage(
-        body.error ||
-          "Sipariş oluşturulamadı.",
+        body.error === "PAYTR_CUSTOMER_INFO_REQUIRED"
+          ? "Kartla ödeme için ad, soyad, telefon ve fatura/iletişim adresini kontrol edin."
+          : body.error || "Sipariş oluşturulamadı.",
       );
       return;
     }
@@ -653,6 +674,16 @@ export function StudentCheckoutPage({
                   Fatura ve Kargo Bilgileri
                 </h3>
 
+                {!cart.requiresShipping && paymentMethod === "PAYTR" && (
+                  <div className="fixoku-checkout-three-grid" aria-label="Dijital ödeme iletişim bilgileri">
+                    <p>Bu bilgiler kart ödemesi ve fatura içindir; fiziksel kargo teslimatı yapılmaz.</p>
+                    <label>Ad<input required autoComplete="given-name" value={billing.firstName} onChange={(event) => setBilling({ ...billing, firstName: event.target.value })} /></label>
+                    <label>Soyad<input required autoComplete="family-name" value={billing.lastName} onChange={(event) => setBilling({ ...billing, lastName: event.target.value })} /></label>
+                    <label>Telefon<input required type="tel" autoComplete="tel" value={billing.phone} onChange={(event) => setBilling({ ...billing, phone: event.target.value })} /></label>
+                    <label>Fatura / iletişim adresi<textarea required rows={2} value={billing.addressLine} onChange={(event) => setBilling({ ...billing, addressLine: event.target.value })} /></label>
+                  </div>
+                )}
+
                 <div className="trainer-choice-row">
                   <label>
                     <input
@@ -794,18 +825,32 @@ export function StudentCheckoutPage({
                 )}
 
 
+                {/* FIXOKU_021F_PARITY: gerçek kargo ürünleri, sepet API verisinden */}
                 {cart.requiresShipping && (
-                  <div className="fixoku-shipping-preview">
-                    <div className="fixoku-shipping-preview__image-placeholder">
-                      Ürün görseli
-                    </div>
-                    <div>
-                      <strong>Fiziksel ürün</strong>
-                      <p>
-                        Ödeme tamamlandıktan sonra Hazırlanıyor durumuna alınır.
-                      </p>
-                    </div>
-                  </div>
+                  <section className="fixoku-checkout-included" aria-label="Pakete dahil kargo ile gönderilecek kitaplar">
+                    <h4>Pakete dahil kargo ile gönderilecek kitaplar</h4>
+                    {cart.items.map((item, index) => {
+                      const books = (item.products || [])
+                        .filter((product) => product.productType === "PHYSICAL")
+                        .map((product) => ({
+                          componentId: product.packageComponentId || undefined,
+                          sku: product.sku || "",
+                          title: product.title || "Ürün bilgisi yüklenemedi",
+                          quantity: Number(product.quantity || 1),
+                          imageReference: product.imageReference,
+                        }));
+                      return books.length ? (
+                        <div className="fixoku-checkout-included-package" key={`${item.title}-${index}`}>
+                          {cart.items.length > 1 && <p className="fixoku-checkout-included-package-name">{item.title}</p>}
+                          <TrainerPhysicalProducts items={books} />
+                        </div>
+                      ) : null;
+                    })}
+                    {!cart.items.some((item) => (item.products || []).some((product) => product.productType === "PHYSICAL")) && (
+                      <p role="status" className="student-checkout-included-note">Pakete dahil ürün ayrıntıları henüz yüklenemedi. Siparişi oluşturmadan önce paket içeriğini kontrol edin.</p>
+                    )}
+                    <p className="fixoku-checkout-included-note">Ürünler paket fiyatına dahildir. Kargo bedeli ayrıca sipariş özetinde gösterilir.</p>
+                  </section>
                 )}
               </section>
 
@@ -832,6 +877,7 @@ export function StudentCheckoutPage({
                           "PAYTR",
                         );
                         setOrderId("");
+                        setCheckoutKey(`student-checkout-${crypto.randomUUID()}`);
                       }}
                     />
                     Kredi / banka kartı
@@ -850,6 +896,7 @@ export function StudentCheckoutPage({
                           "BANK_TRANSFER",
                         );
                         setOrderId("");
+                        setCheckoutKey(`student-checkout-${crypto.randomUUID()}`);
                       }}
                     />
                     Havale / EFT
@@ -892,26 +939,30 @@ export function StudentCheckoutPage({
                   Onay
                 </h3>
 
-                <CheckoutLegalConsents
-                  digitalOrService={
-                    !cart.requiresShipping
-                  }
-                  onChange={(
-                    consents: {
-                      preInformation: boolean;
-                      distanceSales: boolean;
-                      privacy: boolean;
-                    },
-                  ) =>
-                    setLegalReady(
-                      Boolean(
-                        consents.preInformation &&
-                          consents.distanceSales &&
-                          consents.privacy,
-                      ),
-                    )
-                  }
-                />
+                <div className="trainer-legal-approval student-checkout-legal" aria-label="Yasal belgeler ve onaylar">
+                  <p className="student-checkout-legal__intro">Yasal Belgeler ve Onaylar</p>
+                  <div className="trainer-legal-approval__required">
+                    <CheckoutLegalConsents
+                      digitalOrService={!cart.requiresShipping}
+                      onChange={(consents: { preInformation: boolean; distanceSales: boolean; privacy: boolean }) =>
+                        setLegalReady(Boolean(consents.preInformation && consents.distanceSales && consents.privacy))
+                      }
+                    />
+                  </div>
+                  <div className="trainer-legal-approval__additional" aria-label="İncelenecek hukuki metinler">
+                    {[
+                      ["Ön Bilgilendirme Formu", "/on-bilgilendirme-formu"],
+                      ["Mesafeli Satış Sözleşmesi", "/mesafeli-satis-sozlesmesi"],
+                      ["İptal, İade ve Cayma Politikası", "/iptal-iade-cayma-politikasi"],
+                      ["Teslimat ve Kargo Politikası", "/teslimat-kargo-politikasi"],
+                      ["Dijital İçerik ve Hizmet Koşulları", "/dijital-icerik-ve-hizmet-kosullari"],
+                      ["KVKK Aydınlatma Metni", "/kvkk-aydinlatma-metni"],
+                    ].map(([title, href]) => (
+                      <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="trainer-legal-approval__link trainer-legal-approval__chip">{title} ↗</a>
+                    ))}
+                  </div>
+                  <p className="student-checkout-legal__note">Bu görünüm yasal belge içeriklerini değiştirmez. Siparişe özel belge sürümleri ve hukuki onay kayıtları canlı satış öncesinde ayrıca doğrulanmalıdır.</p>
+                </div>
 
                 <button
                   className="trainer-commerce-primary"

@@ -15977,3 +15977,204 @@ iframe {
     display: none !important;
   }
 }
+
+/* FIXOKU 022T: contact form guard rails only */
+.contact-page .contact-input-help {
+  display: block;
+  margin-top: 6px;
+  color: rgba(255,255,255,.78);
+  font-size: 12px;
+  font-weight: 650;
+}
+.contact-page .contact-form input[aria-invalid="true"] {
+  outline: 2px solid #ffab86;
+  outline-offset: 2px;
+}
+.contact-page .contact-whatsapp-icon {
+  display: block;
+  width: 27px;
+  height: 27px;
+  color: white;
+}
+.contact-page .contact-honeypot {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+.contact-page .contact-captcha-area { margin: 12px 0; min-height: 36px; }
+.contact-page .contact-captcha-area p {
+  margin: 0;
+  color: #ffe0b7;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.contact-page .contact-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.contact-page .contact-email-send { flex: 1 1 195px; }
+.contact-page .contact-preview-actions a { flex: 1 1 195px; }
+.contact-page .contact-preview-actions button[disabled] {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.contact-page .contact-mail-status {
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin: 10px 0;
+  line-height: 1.5;
+  font-size: 13px;
+}
+.contact-page .contact-mail-status-error {
+  background: rgba(255,95,95,.14);
+  color: #fff0ee;
+  border: 1px solid rgba(255,140,120,.5);
+}
+.contact-page .contact-mail-status-success {
+  background: rgba(27,163,103,.2);
+  color: #e2ffef;
+  border: 1px solid rgba(79,210,144,.6);
+}
+
+/* FIXOKU 022U - shared public article hero and contact confirmation */
+/* ONLY the shared content/article heroes: other hero designs stay untouched. */
+@media (min-width: 900px) {
+  body .content-hero {
+    height: auto !important;
+    min-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  body .content-hero .content-hero-inner {
+    width: min(calc(100% - 64px), 1360px) !important;
+    max-width: 1360px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-top: 43px !important;
+    padding-bottom: 43px !important;
+    min-height: 0 !important;
+  }
+  body .content-hero .content-hero-inner h1 {
+    max-width: none !important;
+    font-size: clamp(33px, 3.3vw, 54px) !important;
+    line-height: 1.12 !important;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+    margin-bottom: 14px !important;
+  }
+  body .content-hero .content-hero-inner .content-summary,
+  body .content-hero .content-hero-inner > p {
+    max-width: 1200px !important;
+    line-height: 1.55 !important;
+    margin-bottom: 14px !important;
+  }
+  body .content-hero .content-hero-inner .content-breadcrumbs,
+  body .content-hero .content-hero-inner nav[aria-label] {
+    margin-bottom: 14px !important;
+  }
+}
+@media (min-width: 600px) and (max-width: 899px) {
+  body .content-hero { min-height: 0 !important; height: auto !important; padding-block: 0 !important; }
+  body .content-hero .content-hero-inner {
+    width: calc(100% - 48px) !important;
+    max-width: none !important;
+    margin-inline: auto !important;
+    min-height: 0 !important;
+    padding-block: 36px !important;
+  }
+  body .content-hero .content-hero-inner h1 {
+    max-width: none !important;
+    font-size: clamp(30px, 4.5vw, 42px) !important;
+    line-height: 1.15 !important;
+  }
+  body .content-hero .content-hero-inner .content-summary { max-width: none !important; }
+}
+@media (max-width: 599px) {
+  body .content-hero { min-height: 0 !important; height: auto !important; padding-block: 0 !important; }
+  body .content-hero .content-hero-inner {
+    width: calc(100% - 32px) !important;
+    max-width: none !important;
+    margin-inline: auto !important;
+    min-height: 0 !important;
+    padding-top: 28px !important;
+    padding-bottom: 30px !important;
+  }
+  body .content-hero .content-hero-inner h1 {
+    max-width: none !important;
+    font-size: clamp(26px, 7.3vw, 36px) !important;
+    line-height: 1.16 !important;
+    overflow-wrap: break-word;
+  }
+  body .content-hero .content-hero-inner .content-summary { max-width: none !important; }
+}
+/* Align the confirmation actions, including WhatsApp SVG, without moving the form. */
+.contact-page .contact-preview { width: 100%; min-width: 0; }
+.contact-page .contact-preview-message { min-height: 150px; max-height: 320px; }
+.contact-page .contact-preview-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+}
+.contact-page .contact-preview-actions .contact-email-send,
+.contact-page .contact-preview-actions .contact-whatsapp-continue {
+  box-sizing: border-box;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 54px !important;
+  margin: 0 !important;
+  padding: 11px 12px !important;
+  border: 0;
+  flex: unset !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 15px !important;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+}
+.contact-page .contact-preview-actions .contact-whatsapp-continue {
+  background: linear-gradient(135deg,#25d366,#128c7e) !important;
+  color: #fff !important;
+  white-space: normal;
+}
+.contact-page .contact-whatsapp-continue .contact-whatsapp-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  color: #fff;
+}
+.contact-page .contact-whatsapp-continue .contact-whatsapp-label {
+  color: inherit;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-weight: 850;
+  white-space: normal;
+}
+.contact-page .contact-whatsapp-continue .contact-whatsapp-arrow {
+  color: inherit;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  flex-shrink: 0;
+}
+.contact-page .contact-preview-actions .contact-edit-btn {
+  grid-column: 1 / -1;
+  justify-self: end;
+  width: auto;
+  min-width: 124px;
+  min-height: 44px;
+  padding: 8px 20px;
+  margin: 0;
+}
+@media (max-width: 620px) {
+  .contact-page .contact-preview-actions { grid-template-columns: minmax(0,1fr) !important; }
+  .contact-page .contact-preview-actions .contact-edit-btn { grid-column: 1; }
+}

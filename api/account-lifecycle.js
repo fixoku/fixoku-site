@@ -1,4 +1,6 @@
 import pg from "pg";
+import { newInvitationToken, hashInvitationToken } from "../src/server/auth/invitations.js";
+import { sendTransactionalEmail, getSmtpConfig } from "../src/server/domain/email-outbox.js";
 import { auth } from "../src/server/auth/auth.js";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";
 import { validateEducationSegment } from "../src/server/domain/student-segment.js";
@@ -20,7 +22,7 @@ function normalizeStudentSchool(segment,value){
   return school;
 }
 async function authCall(path,method,body,req){const h=headers(req);h.set('content-type','application/json');h.set('origin',process.env.APP_ORIGIN||'http://127.0.0.1:5173');const out=await auth.handler(new Request(`http://local/api/auth${path}`,{method,headers:h,body:body?JSON.stringify(body):undefined}));return out;}
-export default async function handler(req,res){const rawPath=new URL(req.url||'http://local', 'http://local').pathname; const path=rawPath.replace('/api/account-lifecycle','') || (rawPath === '/api/trainer-applications' ? '/trainer-application' : '/');
+export default async function handler(req,res){const rawPath=new URL(req.url||'http://local', 'http://local').pathname; const path=rawPath === '/api/trainer-applications' ? '/trainer-application' : (rawPath.replace('/api/account-lifecycle','') || '/');
  try {
   if(path==='/register'&&req.method==='POST'){
     const b=await read(req);
@@ -105,13 +107,69 @@ export default async function handler(req,res){const rawPath=new URL(req.url||'h
 
     return json(res,201,{success:true,emailVerification:true});
   }
-  if(path==='/verify-email'&&req.method==='GET'){const token=new URL(req.url||'http://local','http://local').searchParams.get('token')||'';const out=await authCall(`/verify-email?token=${encodeURIComponent(token)}&callbackURL=/ogrenci-girisi`,'GET',null,req);return json(res,out.ok?200:400,out.ok?{verified:true}:{message:'Doğrulama bağlantısı geçersiz veya süresi dolmuş.'});}
+  if(path==='/verify-email'&&req.method==='GET'){const token=new URL(req.url||'http://local','http://local').searchParams.get('token')||'';const out=await authCall(`/verify-email?token=${encodeURIComponent(token)}`,'GET',null,req);return json(res,out.ok?200:400,out.ok?{verified:true}:{message:'Doğrulama bağlantısı geçersiz veya süresi dolmuş.'});}
   if(path==='/password-reset-request'&&req.method==='POST'){const b=await read(req);await authCall('/request-password-reset','POST',{email:String(b.email||'').trim().toLowerCase(),redirectTo:'/sifre-sifirla'},req);return json(res,200,{message:'Eğer bu e-posta ile kayıtlı bir hesap varsa şifre sıfırlama bağlantısı gönderildi.'});}
   if(path==='/password-change'&&req.method==='POST'){ const b=await read(req); const out=await authCall('/change-password','POST',{currentPassword:String(b.currentPassword||''),newPassword:String(b.newPassword||''),revokeOtherSessions:true},req); return json(res,out.ok?200:400,out.ok?{success:true}:{message:'Mevcut parola doğrulanamadı veya yeni parola geçersiz.'}); }
   if(path==='/sessions'&&req.method==='GET'){ const out=await authCall('/list-sessions','GET',null,req); return json(res,out.ok?200:401,out.ok?await out.json():{message:'Oturum bulunamadı.'}); }
   if(path==='/sessions/revoke-others'&&req.method==='POST'){ const out=await authCall('/revoke-other-sessions','POST',{},req); return json(res,out.ok?200:401,out.ok?{success:true}:{message:'Oturumlar güncellenemedi.'}); }
   if(path==='/password-reset'&&req.method==='POST'){const b=await read(req);const out=await authCall('/reset-password','POST',{token:String(b.token||''),newPassword:String(b.password||'')},req);return json(res,out.ok?200:400,out.ok?{success:true}:{message:'Bağlantı geçersiz veya süresi dolmuş.'});}
-  if(path==='/trainer-application'&&req.method==='POST'){const b=await read(req);if(!b.legalAcknowledged)return json(res,400,{message:'KVKK ve başvuru koşulları kabul edilmelidir.'});const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});try{const row=(await pool.query('insert into trainer_applications(first_name,last_name,email,phone,city,education_background,experience,description,requested_program,legal_acknowledged) values($1,$2,$3,$4,$5,$6,$7,$8,$9,true) returning id,status',[String(b.firstName||b.name||'').trim().split(/\s+/u)[0],String(b.lastName||b.name||'').trim().split(/\s+/u).slice(1).join(' '),String(b.email||'').trim().toLowerCase(),b.phone||null,b.city||null,b.educationBackground||null,b.experience||null,b.description||null,b.requestedProgram||null])).rows[0];return json(res,201,{application:{id:row.id,status:'BAŞVURU ALINDI'}});}finally{await pool.end();}}
+  if(path==='/trainer-application'&&req.method==='POST'){
+    const b=await read(req);
+    if(b.legalAcknowledged!==true)return json(res,400,{message:'KVKK aydınlatması hakkında bilgilendirme gerekli.'});
+    const name=String(b.name||`${b.firstName||''} ${b.lastName||''}`).trim().replace(/\s+/gu,' ');
+    const parts=name.split(' ').filter(Boolean);
+    const email=String(b.email||'').trim().toLowerCase();
+    const rawPhone=String(b.phone||'').trim();
+    if(parts.length<2||name.length>160)return json(res,400,{message:'Ad ve soyad zorunludur.'});
+    if(email.length>254||!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email)))return json(res,400,{message:'Geçerli bir e-posta adresi girin.'});
+    let phone=null;
+    if(rawPhone){
+      try { phone=normalizeTrMobile(rawPhone); }
+      catch { return json(res,400,{message:'Telefon girildiyse 5 ile başlayan geçerli bir Türkiye cep telefonu numarası yazın.'}); }
+    }
+    if (process.env.FIXOKU_TRAINER_CANDIDATE_ENABLED !== '1') {
+    const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});
+    try {
+      const row=(await pool.query(
+        `insert into trainer_applications(first_name,last_name,email,phone,legal_acknowledged)
+         values($1,$2,$3,$4,true) returning id,status`,
+        [parts[0],parts.slice(1).join(' '),email,phone]
+      )).rows[0];
+      return json(res,201,{application:{id:row.id,status:'BAŞVURU ALINDI'}});
+    }finally{await pool.end();}
+    }
+    // Do not accept an application as a usable account without deliverable email verification.
+    if (!getSmtpConfig() || (process.env.NODE_ENV==='production' && getSmtpConfig().provider!=='SMTP')) return json(res,503,{message:'E-posta doğrulama hizmeti henüz hazır değil.'});
+    if (!process.env.APP_ORIGIN) return json(res,503,{message:'APP_ORIGIN tanımlı değil.'});
+    const rootUrl=String(process.env.APP_ORIGIN||(process.env.NODE_ENV==='production'?'https://fixoku.com':'http://127.0.0.1:5186')).replace(/\/$/u,'');
+    const parsedOrigin=new URL(rootUrl);
+    if (!['https:','http:'].includes(parsedOrigin.protocol) || (process.env.NODE_ENV==='production' && parsedOrigin.protocol!=='https:') || parsedOrigin.username || parsedOrigin.password) return json(res,503,{message:'Hesap bağlantısı yapılandırması eksik.'});
+    const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});
+    try {
+      const existing=(await pool.query('select id from platform_users where lower(email)=lower($1) limit 1',[email])).rows[0];
+      if(existing) return json(res,409,{message:'Bu e-posta ile zaten bir hesap bulunuyor.'});
+      const previous=(await pool.query(`select id,invitation_expires_at as expires_at,candidate_user_id
+        from trainer_applications where lower(email)=lower($1) and status not in ('REJECTED') order by created_at desc limit 1`,[email])).rows[0];
+      if(previous?.candidate_user_id) return json(res,409,{message:'Bu e-posta adresiyle hesap işlemi zaten başlatılmış.'});
+      if(previous?.expires_at && new Date(previous.expires_at).getTime()>Date.now()+50*60*1000)
+        return json(res,201,{success:true,emailVerification:true});
+      const token=newInvitationToken();
+      const hash=hashInvitationToken(token);
+      const row=previous
+        ? (await pool.query(`update trainer_applications set first_name=$1,last_name=$2,phone=$3,legal_acknowledged=true,
+              invitation_token_hash=$4,invitation_expires_at=now()+interval '1 hour',invitation_used_at=null,updated_at=now()
+              where id=$5 and candidate_user_id is null returning id,status`,[parts[0],parts.slice(1).join(' '),phone,hash,previous.id])).rows[0]
+        : (await pool.query(`insert into trainer_applications(first_name,last_name,email,phone,legal_acknowledged,invitation_token_hash,invitation_expires_at)
+              values($1,$2,$3,$4,true,$5,now()+interval '1 hour') returning id,status`,[parts[0],parts.slice(1).join(' '),email,phone,hash])).rows[0];
+      if(!row) return json(res,409,{message:'Başvuru durumu güncellendi, tekrar deneyin.'});
+      const url=`${rootUrl}/ogretmen-aday-aktivasyon?token=${encodeURIComponent(token)}`;
+      try { await sendTransactionalEmail({kind:'verification',to:email,url,recipientName:name}); }
+      catch { await pool.query('update trainer_applications set invitation_token_hash=null,invitation_expires_at=null where id=$1 and candidate_user_id is null',[row.id]);
+        return json(res,503,{message:'Doğrulama e-postası gönderilemedi. Daha sonra tekrar deneyin.'}); }
+      return json(res,201,{success:true,emailVerification:true,application:{id:row.id,status:'E-POSTA BEKLENİYOR'}});
+    }finally{await pool.end();}
+  }
+
   if(path==='/closure'&&req.method==='POST'){const p=await resolvePrincipal(headers(req));if(!p?.user)return json(res,401,{message:'Oturum gerekli.'});const b=await read(req);const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});try{const row=(await pool.query('insert into account_closure_requests(user_id,reason) values($1,$2) returning id,status,created_at',[p.user.id,b.reason||null])).rows[0];return json(res,201,{request:{id:row.id,status:row.status}});}finally{await pool.end();}}
   return json(res,405,{message:'İşlem desteklenmiyor.'});
  } catch (error) { return json(res,error instanceof SyntaxError ? 400 : 503,{message:error instanceof SyntaxError ? 'Geçersiz istek.' : 'İşlem şu anda tamamlanamadı.'});}}

@@ -9,7 +9,9 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { PanelShell } from "../../panel/layout/PanelShell";
+import { TrainerPhysicalProducts, type TrainerPhysicalProduct } from "./TrainerPhysicalProducts";
 import { BankTransferPayment } from "../../commerce/BankTransferPayment";
+import PaytrCheckout from "../../commerce/PaytrCheckout.jsx";
 import {
   TURKEY_LOCATIONS,
   getTurkeyDistricts,
@@ -46,6 +48,7 @@ type Cart = {
     title: string;
     priceGrossMinor: number;
     currency: string;
+    physicalItems?: TrainerPhysicalProduct[];
   }>;
   subtotalMinor: number;
   shippingMinor: number;
@@ -129,6 +132,38 @@ const initial: Address = {
   addressLine: "",
 };
 
+
+// Convert Owner Markdown source to a legible plain-text view without changing the archived original.
+function legalPlainText(markdown: string) {
+  return markdown
+    .replace(/^#{1,6}\s+/gmu, "")
+    .replace(/`/gu, "")
+    .replace(/^---\s*$/gmu, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/gu, "$1")
+    .trim();
+}
+// Real order and customer values are bold in the preview, with the source template unchanged.
+function legalPreviewBody(markdown: string) {
+  return legalPlainText(markdown).split(/(\*\*[\s\S]*?\*\*)/gu).map((piece,index)=>
+    piece.startsWith("**") && piece.endsWith("**")
+      ? <strong key={index}>{piece.slice(2,-2)}</strong>
+      : <span key={index}>{piece}</span>
+  );
+}
+
+// Mevcut Fixoku yasal sayfalarini kullanir; yeni sozlesme metni uretmez.
+type TrainerLegalDocument = { title: string; path: string; code: string };
+const trainerLegalDocuments: readonly TrainerLegalDocument[] = [
+  { code: "PRE_INFO", title: "Ön Bilgilendirme Formu", path: "/on-bilgilendirme-formu" },
+  { code: "DISTANCE", title: "Mesafeli Satış Sözleşmesi", path: "/mesafeli-satis-sozlesmesi" },
+  { code: "WITHDRAWAL", title: "İptal, İade ve Cayma Politikası", path: "/iptal-iade-cayma-politikasi" },
+  { code: "DELIVERY", title: "Teslimat ve Kargo Politikası", path: "/teslimat-kargo-politikasi" },
+  { code: "DIGITAL", title: "Dijital İçerik ve Hizmet Koşulları", path: "/dijital-icerik-ve-hizmet-kosullari" },
+  { code: "MEMBERSHIP", title: "Üyelik Sözleşmesi", path: "/uyelik-sozlesmesi" },
+  { code: "TERMS", title: "Kullanım Koşulları", path: "/kullanim-kosullari" },
+  { code: "KVKK", title: "KVKK Aydınlatma Metni", path: "/kvkk-aydinlatma-metni" },
+] as const;
+
 export function TrainerCheckoutPage({
   user,
 }: {
@@ -171,6 +206,43 @@ export function TrainerCheckoutPage({
   const [message, setMessage] =
     useState("");
 
+  // Yerel onizleme: kullanicinin onceki sayfalardaki isaretli tercih gorunumunu korur.
+  // Bu isaretler tek basina hukuken gecerli riza/ispat kaydi yerine gecmez.
+  const [preInfoAcknowledged, setPreInfoAcknowledged] = useState(false);
+  const [distanceAcknowledged, setDistanceAcknowledged] = useState(false);
+  const [activeLegalDocument, setActiveLegalDocument] = useState<TrainerLegalDocument | null>(null);
+  const [legalBodies, setLegalBodies] = useState<Record<string, { markdown: string; sourceSha256: string; version: string }>>({});
+  const [legalLoading, setLegalLoading] = useState(false);
+  const [legalError, setLegalError] = useState("");
+  const [legalPreview, setLegalPreview] = useState<{code:string;markdown:string;ready:boolean;missingFields:string[];legalReviewRequired:boolean}|null>(null);
+  useEffect(() => {
+    void Promise.all(["PRE_INFO", "DISTANCE"].map(async code => {
+      const r = await fetch(`/api/trainer/legal-documents?code=${code}`, { credentials: "same-origin", cache: "no-store" });
+      if (!r.ok) throw new Error("Yasal belgeler yüklenemedi.");
+      return r.json();
+    })).then(rows => setLegalBodies(current => ({ ...current, ...Object.fromEntries(rows.map(row => [row.code, row])) }))).catch(() => setLegalError("Sözleşme metinleri yüklenemedi. Sipariş oluşturmadan önce sayfayı yenileyin."));
+  }, []);
+  async function openLegalDocument(document: TrainerLegalDocument) {
+    setActiveLegalDocument(document);
+    setLegalPreview(null);
+    setLegalError("");
+    setLegalLoading(true);
+    try {
+      const r = await fetch(`/api/trainer/legal-documents?code=${encodeURIComponent(document.code)}`, {
+        method: "POST", credentials: "same-origin", cache: "no-store",
+        headers: {"content-type":"application/json"},
+        body: JSON.stringify({shippingAddress: address, paymentMethod}),
+      });
+      const next = await r.json().catch(()=>({}));
+      if (!r.ok) throw new Error(String(next.error || "LEGAL_PREVIEW_UNAVAILABLE"));
+      setLegalPreview(next);
+    } catch(error) {
+      setLegalError(error instanceof Error ? error.message : "Sözleşme hazırlanamadı.");
+    } finally { setLegalLoading(false); }
+  }
+
+
+
   const [state, setState] =
     useState("loading");
 
@@ -178,6 +250,27 @@ export function TrainerCheckoutPage({
     useState(
       params.get("orderId") || "",
     );
+
+  const [checkoutKey] = useState(() => `trainer-checkout-${crypto.randomUUID()}`);
+  const [confirmedOrder, setConfirmedOrder] = useState<{
+    id: string; status: string; paymentMethod: string; totalMinor: number;
+    createdAt?: string; items?: Array<{title: string}>;
+  } | null>(null);
+  const [confirmationState, setConfirmationState] = useState<'loading'|'verified'|'error'>('loading');
+  useEffect(() => {
+    if (!orderId) { setConfirmedOrder(null); setConfirmationState('loading'); return; }
+    let active = true;
+    setConfirmationState('loading');
+    void fetch('/api/trainer/orders', { credentials: 'same-origin', cache: 'no-store' })
+      .then(async response => {
+        if (!response.ok) throw new Error('ORDER_LIST_UNAVAILABLE');
+        const result = await response.json() as {orders?: Array<{id:string;status:string;paymentMethod:string;totalMinor:number;createdAt?:string;items?:Array<{title:string}>}>};
+        const match = result.orders?.find(item => item.id === orderId);
+        if (!match) throw new Error('ORDER_NOT_FOUND');
+        if (active) { setConfirmedOrder(match); setConfirmationState('verified'); }
+      }).catch(() => { if (active) setConfirmationState('error'); });
+    return () => { active = false; };
+  }, [orderId]);
 
   const [transfer, setTransfer] =
     useState({
@@ -191,6 +284,16 @@ export function TrainerCheckoutPage({
       reference: "",
       receiptReference: "",
     });
+
+
+  useEffect(() => {
+    if (!activeLegalDocument) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActiveLegalDocument(null);
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, [activeLegalDocument]);
 
   const districts =
     getTurkeyDistricts(
@@ -457,6 +560,14 @@ export function TrainerCheckoutPage({
     event.preventDefault();
     setMessage("");
 
+    if (!preInfoAcknowledged || !distanceAcknowledged) {
+      setMessage("Sipariş oluşturmak için ön bilgilendirme ve mesafeli satış koşullarını onaylamanız gerekir.");
+      return;
+    }
+
+    if (!legalBodies.PRE_INFO?.sourceSha256 || !legalBodies.DISTANCE?.sourceSha256) {
+      setMessage("Yasal belgelerin kaynak sürümü doğrulanamadı. Sayfayı yenileyin."); return;
+    }
     if (!cart?.items.length) {
       setMessage(
         "Sepetiniz boş.",
@@ -494,7 +605,7 @@ export function TrainerCheckoutPage({
             "content-type":
               "application/json",
             "idempotency-key":
-              `trainer-checkout-${address.id || Date.now()}`,
+              checkoutKey,
           },
           body:
             JSON.stringify({
@@ -505,6 +616,7 @@ export function TrainerCheckoutPage({
                 postalCode: "",
               },
               billing,
+              legalAcceptance: { preInformation: preInfoAcknowledged, distanceSales: distanceAcknowledged, documentHashes: { PRE_INFO: legalBodies.PRE_INFO.sourceSha256, DISTANCE: legalBodies.DISTANCE.sourceSha256 } },
             }),
         },
       );
@@ -589,6 +701,9 @@ export function TrainerCheckoutPage({
           .toUpperCase()}`
       : null;
 
+  if (orderId && confirmationState === 'loading') return <PanelShell user={user}><main className="trainer-commerce-page"><p role="status">Sipariş kaydı doğrulanıyor...</p></main></PanelShell>;
+  if (orderId && (confirmationState === 'error' || !confirmedOrder)) return <PanelShell user={user}><main className="trainer-commerce-page"><p role="alert">Sipariş kaydı doğrulanamadı. Ödeme durumu için hesabınızdaki siparişleri kontrol edin.</p><Link to="/panel/egitmen/egitimlerim">Eğitimlerim</Link></main></PanelShell>;
+
   return (
     <PanelShell user={user}>
       <main className="trainer-commerce-page">
@@ -597,7 +712,7 @@ export function TrainerCheckoutPage({
             ← Sepete dön
           </Link>
 
-          <h2>Ödemeye Geçin</h2>
+          <h2>{confirmedOrder ? "Siparişiniz Alındı" : "Ödemeye Geçin"}</h2>
 
           <p>
             Teslimat, fatura ve ödeme
@@ -614,8 +729,28 @@ export function TrainerCheckoutPage({
           </p>
         )}
 
-        {orderId &&
-          paymentMethod ===
+        {confirmedOrder && <section className="trainer-checkout-step" aria-labelledby="trainer-order-success-heading">
+          <h2 id="trainer-order-success-heading">Siparişiniz alındı</h2>
+          <p>Numara: <strong>{confirmedOrder.id}</strong></p>
+          <p>Toplam: <strong>{money(Number(confirmedOrder.totalMinor || 0))}</strong></p>
+          <p>Durum: <strong>{confirmedOrder.status === 'PAID' ? 'Ödendi' : confirmedOrder.paymentMethod === 'BANK_TRANSFER' ? 'Havale/EFT doğrulaması bekleniyor' : 'Ödeme bekleniyor'}</strong></p>
+          {confirmedOrder.paymentMethod === 'PAYTR' && confirmedOrder.status === 'PENDING_PAYMENT' && (
+            <PaytrCheckout
+              orderId={confirmedOrder.id}
+              legalReady={true}
+              summary={{
+                title: (confirmedOrder.items || []).map((item) => item.title).filter(Boolean).join(', ') || 'Eğitmen eğitim paketi',
+                price: money(Number(confirmedOrder.totalMinor || 0)),
+                delivery: 'Satın alınan eğitim ve varsa fiziksel ürünler',
+              }}
+            />
+          )}
+          {confirmedOrder.paymentMethod === 'PAYTR' && confirmedOrder.status !== 'PAID' && confirmedOrder.status !== 'PENDING_PAYMENT' && <p>Bu siparişin ödeme durumu yeniden incelenmelidir. Ödeme yetkilendirmesi henüz yapılmadı.</p>}
+          <Link to="/panel/egitmen/egitimlerim">Eğitimlerime dön</Link>
+        </section>}
+
+        {confirmedOrder &&
+          confirmedOrder.paymentMethod ===
             "BANK_TRANSFER" && (
             <>
               <section className="trainer-checkout-step">
@@ -785,7 +920,7 @@ export function TrainerCheckoutPage({
             </>
           )}
 
-        <form
+        {!confirmedOrder && <form
           className="trainer-checkout-layout"
           onSubmit={(event) =>
             void submit(event)
@@ -1188,17 +1323,18 @@ export function TrainerCheckoutPage({
               )}
 
 
-              <div className="fixoku-shipping-preview">
-                <div className="fixoku-shipping-preview__image-placeholder">
-                  Ürün görseli
-                </div>
-                <div>
-                  <strong>Fiziksel ürün</strong>
-                  <p>
-                    Ödeme tamamlandıktan sonra Hazırlanıyor durumuna alınır.
-                  </p>
-                </div>
-              </div>
+              {Boolean(cart?.items.some((item) => (item.physicalItems?.length || 0) > 0)) && (
+                <section className="fixoku-checkout-included" aria-label="Pakete dahil kargo ile gönderilecek kitaplar">
+                  <h4>Pakete dahil kargo ile gönderilecek kitaplar</h4>
+                  {cart?.items.map((item, index) => Boolean(item.physicalItems?.length) && (
+                    <div className="fixoku-checkout-included-package" key={`${item.title}-${index}`}>
+                      {(cart?.items.length || 0) > 1 && <p className="fixoku-checkout-included-package-name">{item.title}</p>}
+                      <TrainerPhysicalProducts items={item.physicalItems || []} />
+                    </div>
+                  ))}
+                  <p className="fixoku-checkout-included-note">Bu ürünler paket fiyatına dahildir. Ayrıca ürün bedeli eklenmez.</p>
+                </section>
+              )}
             </section>
 
             <section className="trainer-checkout-step">
@@ -1274,14 +1410,53 @@ export function TrainerCheckoutPage({
                 Onay
               </h3>
 
-              <label className="trainer-checkout-check">
-                <input
-                  required
-                  type="checkbox"
-                />
-                Ön bilgilendirme ve mesafeli
-                satış koşullarını okudum.
-              </label>
+              <div className="trainer-legal-approval" aria-label="Yasal metinler ve onaylar">
+                <div className="trainer-legal-approval__required">
+                  <div className="trainer-legal-approval__line">
+                    <label className="trainer-legal-approval__tick" htmlFor="trainer-pre-info-consent">
+                      <input
+                        id="trainer-pre-info-consent"
+                        required
+                        type="checkbox"
+                        checked={preInfoAcknowledged}
+                        onChange={(event) => setPreInfoAcknowledged(event.target.checked)}
+                      />
+                      <span>Okudum, bilgilendirildim:</span>
+                    </label>
+                    <button type="button" className="trainer-legal-approval__link" onClick={() => void openLegalDocument(trainerLegalDocuments[0]!)}>
+                      Ön Bilgilendirme Formu
+                    </button>
+                  </div>
+                  <div className="trainer-legal-approval__line">
+                    <label className="trainer-legal-approval__tick" htmlFor="trainer-distance-consent">
+                      <input
+                        id="trainer-distance-consent"
+                        required
+                        type="checkbox"
+                        checked={distanceAcknowledged}
+                        onChange={(event) => setDistanceAcknowledged(event.target.checked)}
+                      />
+                      <span>Okudum, kabul ediyorum:</span>
+                    </label>
+                    <button type="button" className="trainer-legal-approval__link" onClick={() => void openLegalDocument(trainerLegalDocuments[1]!)}>
+                      Mesafeli Satış Sözleşmesi
+                    </button>
+                  </div>
+                </div>
+                <div className="trainer-legal-approval__additional" aria-label="Diğer yasal bilgilendirmeler">
+                  {trainerLegalDocuments.slice(2).map((document) => (
+                    <button
+                      type="button"
+                      key={document.code}
+                      className="trainer-legal-approval__link trainer-legal-approval__chip"
+                      onClick={() => void openLegalDocument(document)}
+                    >
+                      {document.title}
+                    </button>
+                  ))}
+                </div>
+                {legalError && <p role="alert" className="trainer-legal-error">{legalError}</p>}
+              </div>
 
               <button
                 className="trainer-commerce-primary"
@@ -1341,7 +1516,51 @@ export function TrainerCheckoutPage({
               </div>
             </dl>
           </aside>
-        </form>
+        </form>}
+        {activeLegalDocument && (
+          <div
+            className="trainer-legal-dialog-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setActiveLegalDocument(null);
+            }}
+          >
+            <section
+              className="trainer-legal-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="trainer-legal-dialog-title"
+            >
+              <header className="trainer-legal-dialog__header">
+                <div>
+                  <small>FİXOKU · Yasal Bilgilendirme</small>
+                  <h3 id="trainer-legal-dialog-title">{activeLegalDocument.title}</h3>
+                </div>
+                <button type="button" className="trainer-legal-dialog__close" aria-label="Pencereyi kapat" onClick={() => setActiveLegalDocument(null)}>✕</button>
+              </header>
+              <div className="trainer-legal-dialog__content" tabIndex={0}>
+                <div className="trainer-legal-dialog__buyer">
+                  <strong>Bu alışverişe ait bilgiler</strong>
+                  <p><b>Alıcı:</b> {`${address.firstName} ${address.lastName}`.trim() || user.name} · {user.email}</p>
+                  <p><b>Teslimat:</b> {[address.addressLine, address.district, address.city].filter(Boolean).join(", ")}</p>
+                  <p><b>Sipariş toplamı:</b> {money(cart?.totalMinor || 0)} · <b>Kargo:</b> {money(cart?.shippingMinor || 0)}</p>
+                  <p><b>Paketler:</b> {cart?.items.map(item => item.title).join(" · ") || "Sepette ürün yok"}</p>
+                  <small>Kesin sözleşme kaydı, sipariş oluşturulurken bu bilgiler ve belge sürümüyle hazırlanır.</small>
+                </div>
+                {legalLoading ? <p>Belge hazırlanıyor...</p> : legalPreview?.code === activeLegalDocument.code ? (
+                  <>
+                    {!legalPreview.ready && <p role="alert" className="trainer-commerce-message">Bu metin henüz satış onayına hazır değil. {legalPreview.missingFields.length ? `Eksik alanlar: ${legalPreview.missingFields.join(", ")}.` : "Owner kaynak belgesindeki hukuki doğrulamalar bekleniyor."}</p>}
+                    <pre className="trainer-legal-dialog__plain">{legalPreviewBody(legalPreview.markdown)}</pre>
+                  </>
+                ) : <p role="alert">{legalError || "Sipariş bilgileriyle sözleşme hazırlanamadı."}</p>}
+              </div>
+              <footer className="trainer-legal-dialog__footer">
+                <span>Owner belge kütüphanesindeki kaynak metin; onay durumuna ilişkin ibareler değiştirilmemiştir.</span>
+                <div><button type="button" className="trainer-legal-dialog__done" onClick={() => setActiveLegalDocument(null)}>Kapat</button></div>
+              </footer>
+            </section>
+          </div>
+        )}
       </main>
     </PanelShell>
   );

@@ -27,9 +27,18 @@ export default async function handler(req, res) {
   if (id && !UUID_PATTERN.test(id)) return json(res, 400, { error: "CHILD_ID_INVALID" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect();
   try {
+    // Only an Owner-sent, current family offer grants access to this workspace.
+    // A draft or an offer for another account must never enable child profiles.
+    const familyEnabled = Boolean((await client.query(`
+      select 1 from family_offers fo
+      join family_offer_revisions fr on fr.offer_id=fo.id
+       and fr.revision_number=fo.current_revision_number and fr.status='SENT'
+      where fo.customer_user_id=$1 and fo.status='SENT'
+      limit 1`, [principal.user.id])).rowCount);
+    if (!familyEnabled) return json(res, 403, { error: "FAMILY_OFFER_REQUIRED" });
     if (req.method === "GET") {
       const rows = (await client.query(`select c.id,c.owner_user_id as "ownerUserId",c.legacy_student_profile_id as "legacyStudentProfileId",c.first_name as "firstName",c.last_name as "lastName",c.date_of_birth as "dateOfBirth",c.education_stage as "educationStage",c.grade,c.status,c.is_default as "isDefault",a.selected_at as "selectedAt" from r6_student_child_profiles c left join r6_student_active_profiles a on a.child_profile_id=c.id and a.owner_user_id=c.owner_user_id where c.owner_user_id=$1 and c.status='ACTIVE' order by c.is_default desc,c.created_at,c.id`, [principal.user.id])).rows;
-      return json(res, 200, { children: rows, capability: { allowMultipleStudents: principal.user.allowMultipleStudents === true, canCreate: rows.length === 0 || principal.user.allowMultipleStudents === true } });
+      return json(res, 200, { children: rows, capability: { allowMultipleStudents: (principal.user.allowMultipleStudents === true || familyEnabled), canCreate: rows.length === 0 || (principal.user.allowMultipleStudents === true || familyEnabled) } });
     }
     if (req.method === "POST") {
       const input = validate(await readBody(req));
@@ -41,11 +50,11 @@ export default async function handler(req, res) {
         if (!owned) { await client.query("rollback"); return json(res, 403, { error: "CHILD_OWNERSHIP_DENIED" }); }
       }
       const count = Number((await client.query("select count(*)::int as count from r6_student_child_profiles where owner_user_id=$1 and status='ACTIVE'", [principal.user.id])).rows[0]?.count || 0);
-      if (!canCreateChildProfile({ activeChildCount: count, allowMultipleStudents: account.allow_multiple_students })) {
+      if (!canCreateChildProfile({ activeChildCount: count, allowMultipleStudents: (account.allow_multiple_students || familyEnabled) })) {
         await client.query("rollback");
         return json(res, 403, { error: "MULTIPLE_STUDENTS_NOT_ALLOWED" });
       }
-      if (count === 0 && !account.allow_multiple_students && !input.legacyStudentProfileId) {
+      if (count === 0 && !account.allow_multiple_students && !familyEnabled && !input.legacyStudentProfileId) {
         const legacy = (await client.query("select id from student_profiles where user_id=$1 and status='ACTIVE' limit 1", [principal.user.id])).rows[0];
         if (legacy) { await client.query("rollback"); return json(res, 403, { error: "MULTIPLE_STUDENTS_NOT_ALLOWED" }); }
       }

@@ -1,7 +1,62 @@
+import fs from "node:fs";
+import path from "node:path";
 import pg from "pg";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
-import { assertTrainerPrincipal, mergeWatchedRanges, watchedCoverageBps, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
-const json=(res,status,body)=>{res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(body));};const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,String(v)]));async function body(req){let raw="";for await(const chunk of req)raw+=chunk;return raw?JSON.parse(raw):{};}
-const titles=["Akıcı Okuma Eğitiminin Temelleri","Başlangıç Seviye Ölçümleme","Ders Öncesi Uygulama Hazırlıkları","Kelime ve Satır Takibi Teknikleri","Anlama ve Yorumlama Uygulamaları","Programı Uygulamaya Alma"];
-const mask=email=>{const [name,domain]=String(email||"").split("@");return name&&domain?`${name.slice(0,2)}***@${domain}`:"Kullanıcı";};
-export default async function handler(req,res){const principal=await resolvePrincipal(headers(req));if(!principal)return json(res,401,{error:"UNAUTHENTICATED"});const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});const client=await pool.connect();try{const user=await assertTrainerPrincipal(principal);const parsed=new URL(req.url,"http://local");const packageId=parsed.searchParams.get("packageId");const slug=parsed.searchParams.get("slug");const validPackageId=TRAINER_COMMERCE_UUID.test(String(packageId||""))?packageId:null;const pkg=(await client.query("select p.id,p.slug,pv.title from packages p join package_versions pv on pv.package_id=p.id where p.audience='TRAINER' and p.status='PUBLISHED' and pv.status='PUBLISHED' and (($1::uuid is not null and p.id=$1) or ($2::text is not null and p.slug=$2)) order by pv.version_number desc limit 1",[validPackageId,slug||null])).rows[0];if(!pkg)return json(res,404,{error:"PACKAGE_NOT_FOUND"});const entitled=(await client.query("select id from trainer_package_entitlements where trainer_user_id=$1 and package_id=$2 and status='ACTIVE'",[user.id,pkg.id])).rows[0];if(!entitled)return json(res,403,{error:"ENTITLEMENT_REQUIRED"});if(req.method==="GET"){const rows=(await client.query('select video_index as "videoIndex",duration_seconds as "durationSeconds",watched_ranges_json as "watchedRangesJson",coverage_bps as "coverageBps",last_position_seconds as "lastPositionSeconds",ended_seen as "endedSeen",completed_at as "completedAt" from trainer_video_progress where trainer_user_id=$1 and package_id=$2 order by video_index',[user.id,pkg.id])).rows;const byIndex=new Map(rows.map(row=>[Number(row.videoIndex),row]));const videos=titles.map((title,index)=>{const videoIndex=index+1;const previous=videoIndex===1?true:Boolean(byIndex.get(videoIndex-1)?.completedAt);const progress=byIndex.get(videoIndex)||null;return {videoIndex,title,locked:!previous,src:previous?`/api/trainer/video-media?packageId=${pkg.id}&video=${videoIndex}`:null,progress};});return json(res,200,{package:{id:pkg.id,slug:pkg.slug,title:pkg.title},videos,watermark:{name:user.displayName,reference:mask(user.email)}});}if(req.method!=="POST")return json(res,405,{error:"METHOD_NOT_ALLOWED"});const input=await body(req);const videoIndex=Number(input.videoIndex);const duration=Math.floor(Number(input.durationSeconds));const start=Math.floor(Number(input.startSeconds));const end=Math.floor(Number(input.endSeconds));if(!Number.isInteger(videoIndex)||videoIndex<1||videoIndex>6||!Number.isInteger(duration)||duration<=0||!Number.isFinite(start)||!Number.isFinite(end)||end<=start||end-start>20||start>=duration||end>duration+1)return json(res,400,{error:"VIDEO_HEARTBEAT_INVALID"});if(videoIndex>1&&!((await client.query("select 1 from trainer_video_progress where trainer_user_id=$1 and package_id=$2 and video_index=$3 and completed_at is not null",[user.id,pkg.id,videoIndex-1])).rowCount))return json(res,403,{error:"VIDEO_LOCKED"});await client.query("begin");const current=(await client.query("select * from trainer_video_progress where trainer_user_id=$1 and package_id=$2 and video_index=$3 for update",[user.id,pkg.id,videoIndex])).rows[0];if(current&&Math.abs(Number(current.duration_seconds)-duration)>3)throw Object.assign(new Error("VIDEO_DURATION_CONFLICT"),{status:409});const previousPosition=Number(current?.last_position_seconds||0);if(start>previousPosition+2)throw Object.assign(new Error("VIDEO_FORWARD_SEEK_REJECTED"),{status:409});const previousRanges=current?JSON.parse(current.watched_ranges_json||"[]"):[];const ranges=mergeWatchedRanges([...previousRanges,[Math.max(0,start),Math.min(duration,end)]]);const coverage=watchedCoverageBps(ranges,duration);const nearNaturalEnd=end>=duration-2;const endedSeen=Boolean(current?.ended_seen||(input.ended===true&&nearNaturalEnd));const completed=coverage>=9500&&endedSeen;const row=(await client.query(`insert into trainer_video_progress(trainer_user_id,package_id,video_index,duration_seconds,watched_ranges_json,coverage_bps,last_position_seconds,ended_seen,completed_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9) on conflict(trainer_user_id,package_id,video_index) do update set duration_seconds=trainer_video_progress.duration_seconds,watched_ranges_json=excluded.watched_ranges_json,coverage_bps=greatest(trainer_video_progress.coverage_bps,excluded.coverage_bps),last_position_seconds=greatest(trainer_video_progress.last_position_seconds,excluded.last_position_seconds),ended_seen=trainer_video_progress.ended_seen or excluded.ended_seen,completed_at=case when trainer_video_progress.completed_at is not null then trainer_video_progress.completed_at when excluded.coverage_bps>=9500 and (trainer_video_progress.ended_seen or excluded.ended_seen) then now() else null end,updated_at=now() returning video_index as "videoIndex",coverage_bps as "coverageBps",ended_seen as "endedSeen",completed_at as "completedAt"`,[user.id,pkg.id,videoIndex,duration,JSON.stringify(ranges),coverage,Math.min(duration,end),endedSeen,completed?new Date():null])).rows[0];await client.query("commit");return json(res,200,{progress:row,nextUnlocked:Boolean(row.completedAt&&videoIndex<6)});}catch(error){try{await client.query("rollback");}catch{ /* rollback best effort */ }return json(res,error.status||409,{error:error.code||error.message||"VIDEO_PROGRESS_FAILED"});}finally{client.release();await pool.end();}}
+import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
+import { getRealTrainerLessons } from "./video-config.js";
+import { previewProgress, previewUnlocked, previewRecord } from "./video-preview-progress.js";
+// RELEASE-017T: local preview-only, in-memory and nonpersistent progress. NEVER writes DB progress.
+const respond = (res, status, body) => {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.end(JSON.stringify(body));
+};
+const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([key, value]) => [key, Array.isArray(value) ? value.join(", ") : String(value)]));
+const mask = (email) => { const [name, domain] = String(email || "").split("@"); return name && domain ? `${name.slice(0, 2)}***@${domain}` : "Kullanıcı"; };
+async function readJson(req) {
+  let raw = "";
+  for await (const chunk of req) { raw += chunk; if (raw.length > 8192) throw Object.assign(new Error("BODY_TOO_LONG"), { status: 400 }); }
+  try { return raw ? JSON.parse(raw) : {}; } catch { throw Object.assign(new Error("INVALID_JSON"), { status: 400 }); }
+}
+function allMediaPresent(slug, lessons) {
+  return lessons.every((item) => {
+    const video = path.resolve("private", "trainer-curriculum-intake", "release-015l-egitmen-dersleri", slug, item.filename);
+    const poster = path.resolve("private", "trainer-video-posters", slug, item.poster);
+    return fs.existsSync(video) && fs.statSync(video).isFile() && fs.existsSync(poster) && fs.statSync(poster).isFile();
+  });
+}
+export default async function handler(req, res) {
+  if (req.method !== "GET" && req.method !== "POST") return respond(res, 405, { error: "METHOD_NOT_ALLOWED" });
+  let principal;
+  try { principal = await resolvePrincipal(headers(req)); } catch { return respond(res, 401, { error: "UNAUTHENTICATED" }); }
+  if (!principal) return respond(res, 401, { error: "UNAUTHENTICATED" });
+  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  try {
+    const user = await assertTrainerPrincipal(principal);
+    const parsed = new URL(req.url, "http://local");
+    const packageId = parsed.searchParams.get("packageId");
+    const slug = parsed.searchParams.get("slug");
+    const validId = TRAINER_COMMERCE_UUID.test(String(packageId || "")) ? packageId : null;
+    const pkg = (await pool.query(`select p.id,p.slug,pv.title from packages p join package_versions pv on pv.package_id=p.id where p.audience='TRAINER' and p.status='PUBLISHED' and pv.status='PUBLISHED' and (($1::uuid is not null and p.id=$1) or ($2::text is not null and p.slug=$2)) order by pv.version_number desc limit 1`, [validId, slug || null])).rows[0];
+    if (!pkg) return respond(res, 404, { error: "PACKAGE_NOT_FOUND" });
+    const entitled = (await pool.query("select id from trainer_package_entitlements where trainer_user_id=$1 and package_id=$2 and status='ACTIVE'", [user.id, pkg.id])).rows[0];
+    if (!entitled) return respond(res, 403, { error: "ENTITLEMENT_REQUIRED" });
+    const lessons = getRealTrainerLessons(pkg.slug);
+    if (lessons.length && !allMediaPresent(pkg.slug, lessons)) return respond(res, 503, { error: "REAL_VIDEO_ASSETS_MISSING" });
+    if (req.method === "GET") {
+      const videos = lessons.map((lesson) => {
+        const locked = !previewUnlocked(user.id, pkg.id, lesson.videoIndex);
+        const route = `/api/trainer/video-media?packageId=${encodeURIComponent(pkg.id)}&video=${lesson.videoIndex}`;
+        return { videoIndex: lesson.videoIndex, title: lesson.title, locked, src: locked ? null : route, posterSrc: `${route}&poster=1`, progress: previewProgress(user.id, pkg.id, lesson.videoIndex) };
+      });
+      return respond(res, 200, { package: { id: pkg.id, slug: pkg.slug, title: pkg.title }, videos, videoStatus: lessons.length ? "LOCAL_SESSION_SEQUENTIAL_PREVIEW" : "REAL_LESSONS_NOT_ADDED", progressTrackingEnabled: false, previewSessionOnly: true, watermark: { name: user.displayName, reference: mask(user.email) } });
+    }
+    if (!lessons.length) return respond(res, 404, { error: "REAL_LESSONS_NOT_ADDED" });
+    const data = await readJson(req);
+    const result = previewRecord(user.id, pkg.id, data, lessons.length);
+    return respond(res, 200, { ...result, progressScope: "VOLATILE_LOCAL_PREVIEW" });
+  } catch (error) { return respond(res, error.status || 403, { error: error.code || error.message || "TRAINER_VIDEO_ACCESS_DENIED" }); }
+  finally { await pool.end(); }
+}

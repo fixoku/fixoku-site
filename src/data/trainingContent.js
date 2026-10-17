@@ -147,8 +147,8 @@ export const trainingArticles = [
     cta: {
       title: "İlkokul öğrencisi için uygun başlangıç düzeyini değerlendirin",
       text: "Okuma davranışı ve çalışma hedefi hakkında bilgi paylaşarak akıcı okuma programının kapsamını inceleyebilirsiniz.",
-      primary: { label: "Bilgi Alın", to: "/iletisim" },
-      secondary: { label: "Tüm Eğitimlere Dönün", to: TRAINING_HUB_PATH },
+      primary: { label: "Bilgi Alın", to: "/egitim-paketleri" },
+      secondary: { label: "Eğitim Paketlerini İnceleyin", to: "/egitim-paketleri" },
     },
   },
   {
@@ -220,8 +220,8 @@ export const trainingArticles = [
     cta: {
       title: "Yaşa uygun hızlı okuma yaklaşımını inceleyin",
       text: "Öğrencinin sınıf düzeyi ve okuma alışkanlığı hakkında bilgi vererek programın uygunluğunu değerlendirebilirsiniz.",
-      primary: { label: "Bilgi Alın", to: "/iletisim" },
-      secondary: { label: "Tüm Eğitimlere Dönün", to: TRAINING_HUB_PATH },
+      primary: { label: "Bilgi Alın", to: "/egitim-paketleri" },
+      secondary: { label: "Eğitim Paketlerini İnceleyin", to: "/egitim-paketleri" },
     },
   },
   {
@@ -293,8 +293,8 @@ export const trainingArticles = [
     cta: {
       title: "Ortaokul düzeyine uygun çalışma planını değerlendirin",
       text: "Öğrencinin sınıfı, kullandığı metinler ve zorlandığı alanlar üzerinden program hakkında bilgi alabilirsiniz.",
-      primary: { label: "Bilgi Alın", to: "/iletisim" },
-      secondary: { label: "Tüm Eğitimlere Dönün", to: TRAINING_HUB_PATH },
+      primary: { label: "Bilgi Alın", to: "/egitim-paketleri" },
+      secondary: { label: "Eğitim Paketlerini İnceleyin", to: "/egitim-paketleri" },
     },
   },
   {
@@ -366,8 +366,8 @@ export const trainingArticles = [
     cta: {
       title: "Lise düzeyindeki okuma hedeflerini değerlendirin",
       text: "Ders, sınav ve kişisel okuma hedeflerine göre programın çalışma yaklaşımı hakkında bilgi alabilirsiniz.",
-      primary: { label: "Bilgi Alın", to: "/iletisim" },
-      secondary: { label: "Tüm Eğitimlere Dönün", to: TRAINING_HUB_PATH },
+      primary: { label: "Bilgi Alın", to: "/egitim-paketleri" },
+      secondary: { label: "Eğitim Paketlerini İnceleyin", to: "/egitim-paketleri" },
     },
   },
   {
@@ -448,8 +448,8 @@ export const trainingArticles = [
     cta: {
       title: "Paragraf çalışma yaklaşımını ayrıntılı değerlendirin",
       text: "Öğrencinin düzeyi ve zorlandığı soru türleri hakkında bilgi paylaşarak program kapsamını inceleyebilirsiniz.",
-      primary: { label: "Bilgi Alın", to: "/iletisim" },
-      secondary: { label: "Tüm Eğitimlere Dönün", to: TRAINING_HUB_PATH },
+      primary: { label: "Bilgi Alın", to: "/egitim-paketleri" },
+      secondary: { label: "Eğitim Paketlerini İnceleyin", to: "/egitim-paketleri" },
     },
   },
   {
@@ -521,8 +521,8 @@ export const trainingArticles = [
     cta: {
       title: "Okuma yükünüze uygun çalışma yaklaşımını değerlendirin",
       text: "Sıklıkla okuduğunuz metin türlerini ve hedefinizi paylaşarak yetişkin programı hakkında bilgi alabilirsiniz.",
-      primary: { label: "Bilgi Alın", to: "/iletisim" },
-      secondary: { label: "Tüm Eğitimlere Dönün", to: TRAINING_HUB_PATH },
+      primary: { label: "Bilgi Alın", to: "/egitim-paketleri" },
+      secondary: { label: "Eğitim Paketlerini İnceleyin", to: "/egitim-paketleri" },
     },
   },
   {
@@ -603,8 +603,8 @@ export const trainingArticles = [
     cta: {
       title: "Sınav türüne uygun okuma çalışmasını değerlendirin",
       text: "Hazırlandığınız sınavı, mevcut çalışma düzeninizi ve zorlandığınız metin türlerini paylaşarak bilgi alabilirsiniz.",
-      primary: { label: "Bilgi Alın", to: "/iletisim" },
-      secondary: { label: "Tüm Eğitimlere Dönün", to: TRAINING_HUB_PATH },
+      primary: { label: "Bilgi Alın", to: "/egitim-paketleri" },
+      secondary: { label: "Eğitim Paketlerini İnceleyin", to: "/egitim-paketleri" },
     },
   },
 ];

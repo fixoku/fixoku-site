@@ -1,0 +1,44 @@
+﻿/* RELEASE-020A: precise, visual-only student roster additions. */
+.trainer-panel .roster20 .student-list-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.trainer-panel .roster20 .student-list-head p{margin:5px 0 0;color:#637489;font-size:13px}
+.trainer-panel .roster20-list{display:grid;gap:12px;padding:4px 0}
+.trainer-panel .roster20-person{background:#fff;border:1px solid #e6ebf2;border-radius:14px;padding:16px 18px}
+.trainer-panel .roster20-person-head{display:flex;align-items:center;gap:13px;min-width:0}
+.trainer-panel .roster20-avatar{display:grid;place-items:center;flex:none;width:54px;height:54px;border-radius:13px;background:#ecedff;color:#5d4ab3;font-size:18px;font-weight:800;overflow:hidden}
+.trainer-panel .roster20-avatar img{width:100%;height:100%;object-fit:cover}
+.trainer-panel .roster20-person-head>div{display:grid;gap:3px;min-width:0;flex:1}
+.trainer-panel .roster20-person-head strong{font-size:17px;color:#142338}
+.trainer-panel .roster20-person-head>div>span{color:#586f87;font-size:13px;overflow-wrap:anywhere}
+.trainer-panel .roster20-status{border-radius:25px;padding:6px 10px;background:#fff2e9;color:#c34a0c;font-weight:750;font-size:12px;white-space:nowrap}
+.trainer-panel .roster20-status.done{color:#067958;background:#e4f7ee}
+.trainer-panel .roster20-courses{display:grid;gap:8px;margin:12px 0 0 67px}
+.trainer-panel .roster20-course{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#f7f9fc;border-radius:10px;padding:10px 12px}
+.trainer-panel .roster20-course strong{font-size:14px;color:#1f3045}
+.trainer-panel .roster20-course small{color:#667c92;font-size:12px}
+.trainer-panel .roster20-kind{font-size:11px;font-weight:800;color:#bc5a17;background:#ffebdc;border-radius:6px;padding:4px 7px}
+.trainer-panel .roster20-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0}
+.trainer-panel .roster20-actions a,.trainer-panel .roster20-actions button{border:1px solid #f2b98f;border-radius:10px;padding:11px 15px;color:#ba4b0e;background:#fffaf6;text-decoration:none;font-weight:750;cursor:pointer}
+.trainer-panel .trainer-assignments-overview{display:flex;flex-direction:column;justify-content:center;min-height:155px;padding:20px;border:1px solid #f1e0d6;border-radius:17px;background:#fff;box-shadow:0 8px 24px rgba(26,38,52,.04)}
+.trainer-panel .trainer-assignments-overview h3{margin:0 0 14px;font-size:16px;color:#213149}
+.trainer-panel .trainer-assignments-overview .counts{display:flex;flex-wrap:wrap;gap:10px 22px}
+.trainer-panel .trainer-assignments-overview .counts span{display:grid;gap:3px;font-size:12px;color:#62748a}
+.trainer-panel .trainer-assignments-overview .counts strong{font-size:22px;color:#172638}
+.trainer-panel .trainer-assignments-overview a{font-size:13px;font-weight:800;color:#c54b0a;margin-top:12px;text-decoration:none}
+@media(max-width:800px){.trainer-panel .roster20-course{align-items:flex-start}.trainer-panel .roster20-courses{margin-left:0}.trainer-panel .roster20-person-head{flex-wrap:wrap}.trainer-panel .roster20-status{margin-left:67px}.trainer-panel .trainer-assignments-overview{min-height:130px}}
+/* FIXOKU 020D - one-line desktop student roster. Visual only. */
+@media(min-width:1120px){
+  .trainer-panel .roster20 .roster20-person{display:grid;grid-template-columns:54px minmax(145px,.7fr) minmax(245px,1.4fr) auto;align-items:center;gap:12px;min-height:88px;padding:12px 14px}
+  .trainer-panel .roster20 .roster20-person-head{display:contents}
+  .trainer-panel .roster20 .roster20-avatar{grid-column:1;grid-row:1}
+  .trainer-panel .roster20 .roster20-person-head>div{grid-column:2;grid-row:1;min-width:0}
+  .trainer-panel .roster20 .roster20-person-head>div>span{font-size:13px;line-height:1.4}
+  .trainer-panel .roster20 .roster20-courses{grid-column:3;grid-row:1;min-width:0;margin:0;display:grid;gap:4px}
+  .trainer-panel .roster20 .roster20-course{padding:7px 9px;min-width:0;gap:5px 9px;background:#f7f9fc}
+  .trainer-panel .roster20 .roster20-course strong{font-size:13px}
+  .trainer-panel .roster20 .roster20-course small{font-size:11px}
+  .trainer-panel .roster20 .roster20-status{grid-column:4;grid-row:1;margin-left:0;text-align:center;justify-self:end;max-width:125px;white-space:normal;font-size:12px}
+}
+@media(max-width:1119px){
+  .trainer-panel .roster20 .roster20-person{padding:13px}
+  .trainer-panel .roster20 .roster20-courses{margin-top:9px}
+}

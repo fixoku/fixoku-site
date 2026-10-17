@@ -1,0 +1,35 @@
+.fx-ep-root{min-height:100vh;background:linear-gradient(180deg,#fff 0,#f7fbff 16rem,#f5faff 100%);color:#0b2d68}
+.fx-ep-page{--ep-accent:#ff5718;width:min(1220px,calc(100% - 28px));margin:0 auto;padding:150px 0 55px;font-family:"Segoe UI",Arial,sans-serif}
+.fx-ep-theme-purple{--ep-accent:#8128bd}.fx-ep-theme-dark,.fx-ep-theme-paragraph{--ep-accent:#20272f}
+.fx-ep-hero{text-align:center;margin:4px 0 22px}.fx-ep-hero h1{font-size:clamp(32px,4vw,46px);line-height:1.06;font-weight:800;letter-spacing:-1px;color:#071d48;margin:0}.fx-ep-hero p{color:#274d86;font-size:17px;margin:0}.fx-ep-underline{height:4px;width:54px;border-radius:9px;background:var(--ep-accent);margin:10px auto}
+.fx-ep-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0 0 18px}.fx-ep-tab{font:inherit;font-size:13px;font-weight:700;line-height:1.3;padding:12px 8px;min-height:49px;background:#fff;color:#244b86;border:1px solid #cbd9e9;border-radius:9px;cursor:pointer;transition:background .16s,border-color .16s}.fx-ep-tab:focus-visible,.fx-ep-button:focus-visible{outline:3px solid #0b2d68;outline-offset:3px}.fx-ep-tab.fx-ep-selected{color:#fff;background:var(--ep-accent);border-color:var(--ep-accent)}
+.fx-ep-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch}
+.fx-ep-card{min-width:0;background:#fff;display:flex;flex-direction:column;border:1px solid #e1e9f1;border-radius:13px;box-shadow:0 5px 18px rgba(19,55,96,.07);padding:12px;overflow:hidden}.fx-ep-card-content{flex:1;min-width:0;display:flex;flex-direction:column}.fx-ep-media{width:100%;height:166px;overflow:hidden;border-radius:9px;background:#eef3f8;margin:0 0 13px}.fx-ep-media img{width:100%;height:100%;display:block;object-fit:cover}.fx-ep-media-empty{display:grid;place-items:center;text-align:center;color:#74869c;font-size:13px;padding:20px;border:1px dashed #cfdae7}
+.fx-ep-card h2{font-size:clamp(20px,2.2vw,25px);font-weight:800;letter-spacing:-.6px;line-height:1.09;margin:0;color:#09285f}.fx-ep-subtitle{font-size:15px;line-height:1.35;color:#31588f;margin:6px 0 15px;min-height:20px;font-weight:600}.fx-ep-features{list-style:none;margin:0;padding:0;display:grid;gap:9px}.fx-ep-features li{display:grid;grid-template-columns:20px 1fr;gap:9px;color:#214b84;font-size:13px;line-height:1.35;align-items:start}.fx-ep-check{width:20px;height:20px;display:grid;place-items:center;line-height:1;border-radius:50%;background:var(--ep-accent);color:#fff;font-size:12px;font-weight:800}
+.fx-ep-bottom{margin-top:auto;padding-top:20px}.fx-ep-price{text-align:center;color:#071d48;font-size:26px;font-weight:800;margin:0 0 12px;letter-spacing:-.5px}.fx-ep-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.fx-ep-button{font:inherit;font-size:14px;font-weight:700;min-height:43px;padding:8px 12px;border-radius:7px;display:flex;justify-content:center;align-items:center;text-align:center;text-decoration:none;cursor:pointer}.fx-ep-buy{background:var(--ep-accent);color:#fff;border:2px solid var(--ep-accent)}.fx-ep-details{background:#fff;color:var(--ep-accent);border:2px solid var(--ep-accent)}.fx-ep-disabled{background:#f0f3f7;color:#718096;border:1px solid #dbe3eb;cursor:default}
+
+.fx-ep-message{background:#fff;border:1px solid #dae5f0;border-radius:12px;color:#31588f;padding:34px 22px;text-align:center;font-size:15px}
+.fx-ep-modal-backdrop{position:fixed;inset:0;background:rgba(10,26,48,.68);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9999}.fx-ep-modal{background:#fff;color:#173860;width:min(620px,100%);max-height:85vh;overflow:auto;border-radius:16px;padding:27px;box-shadow:0 16px 60px rgba(0,0,0,.23)}.fx-ep-modal-head{display:flex;gap:20px;justify-content:space-between;align-items:flex-start}.fx-ep-modal-head h2{font-size:25px;margin:0}.fx-ep-modal-head button{padding:8px 11px;border:1px solid #d4dfeb;border-radius:9px;background:#fff;cursor:pointer}.fx-ep-modal-subtitle{font-weight:700}.fx-ep-modal ul{padding-left:20px}.fx-ep-modal li{margin:9px 0;line-height:1.4}.fx-ep-modal-price{font-size:25px;font-weight:800;text-align:right}.fx-ep-modal-hint{font-size:13px;color:#637b96}.fx-ep-modal .fx-ep-buy{width:fit-content;margin-left:auto}
+@media(max-width:1020px){.fx-ep-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.fx-ep-page{width:min(100% - 22px,1220px);padding:130px 0 38px}.fx-ep-hero{margin-bottom:17px}.fx-ep-hero p{font-size:15px}.fx-ep-tabs{display:flex;overflow:auto;padding:0 0 6px;scroll-snap-type:x proximity}.fx-ep-tab{min-width:170px;scroll-snap-align:start}.fx-ep-grid{grid-template-columns:1fr}.fx-ep-media{height:auto;aspect-ratio:2.08/1}}
+
+.fx-ep-preview-note{background:#fff5e9;border:1px solid #f1d0a4;border-radius:9px;color:#935b1e;padding:12px 16px;font-size:13px;margin:0 0 13px;text-align:center}.fx-ep-buy:disabled{cursor:not-allowed;opacity:.78}
+
+/* V1B: Owner katalogundaki mevcut kapak dosyalarini kullanan gorsel fallback. */
+.fx-ep-media .fx-ep-media-empty{width:100%;height:100%;box-sizing:border-box;}
+@media(min-width:721px) and (max-width:1020px){.fx-ep-page{padding-top:145px;}}
+
+/* V1C: Pack content is driven by Owner active text components; no preview-only demo text. */
+.fx-ep-features-block{margin-top:7px}
+.fx-ep-features{gap:8px}
+.fx-ep-more{margin:11px 0 0;padding:0;background:transparent;border:0;color:#23578c;cursor:pointer;font:inherit;font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;text-align:left}
+.fx-ep-more:focus-visible{outline:2px solid #265d96;outline-offset:3px}
+/* V1D: all categories share the same vertical card, 3/2/1 column grid, and media height.
+   Paragraph artworks are landscape composites: preserve the full books and faces. */
+.fx-ep-theme-paragraph .fx-ep-media{background:#f5f7fb}
+.fx-ep-theme-paragraph .fx-ep-media img{object-fit:contain;object-position:center}
+
+.fx-ep-counter{font-size:15px;font-weight:700;color:#274d86;margin:2px 0 14px;text-align:right}
+
+/* FIXOKU_022I_PRESERVE_CASE_OPTIONAL_SUBTITLE : public education packages title casing */
+.fx-ep-card h2, .fx-ep-modal-head h2, .fx-ep-subtitle, .fx-ep-modal-subtitle { text-transform: none !important; }

@@ -2,7 +2,25 @@ import Breadcrumbs from "../components/content/Breadcrumbs.jsx";
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
 
+const relatedLegalLinks = {
+  "/kvkk-aydinlatma-metni": [
+    { path: "/acik-riza", label: "Açık Rıza" },
+    { path: "/cocuk-ve-kanuni-temsilci-bilgilendirme", label: "Çocuk ve Kanuni Temsilci Bilgilendirme" },
+    { path: "/egitmen-kvkk-aydinlatma", label: "Eğitmen KVKK Aydınlatma" },
+    { path: "/veri-sahibi-basvuru-formu", label: "Veri Sahibi Başvuru Formu" },
+  ],
+  "/on-bilgilendirme-formu": [
+    { path: "/dijital-icerik-ve-hizmet-kosullari", label: "Dijital İçerik ve Hizmet Koşulları" },
+    { path: "/satici-bilgileri", label: "Satıcı Bilgileri" },
+    { path: "/musteri-sikayetleri-ve-uyusmazlik", label: "Müşteri Şikâyetleri ve Uyuşmazlık" },
+  ],
+  "/gizlilik-politikasi": [
+    { path: "/ticari-elektronik-ileti", label: "Ticari Elektronik İleti Bilgilendirmesi" },
+  ],
+};
+
 export default function LegalPage({ page }) {
+  const related = relatedLegalLinks[page.path] ?? [];
   return (
     <div className="page quick-reading-page legal-page">
       <Header />
@@ -17,6 +35,7 @@ export default function LegalPage({ page }) {
             />
             <div className="content-eyebrow">{page.eyebrow}</div>
             <h1>{page.heading}</h1>
+  <p className="legal-updated-at">{"Son güncelleme: " + page.updatedAt}</p>
             <p className="content-summary">{page.summary}</p>
             <div className="content-reading-time" aria-label={`Tahmini okuma süresi ${page.readingTime}`}>
               <span aria-hidden="true">◷</span>
@@ -42,6 +61,16 @@ export default function LegalPage({ page }) {
                 )}
               </section>
             ))}
+              {related.length > 0 && (
+                <nav className="content-section legal-related-documents" aria-label="İlgili hukuki belgeler">
+                  <h2>İlgili hukuki belgeler</h2>
+                  <ul>
+                    {related.map(({ path, label }) => (
+                      <li key={path}><a href={path}>{label}</a></li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
           </article>
         </div>
       </main>

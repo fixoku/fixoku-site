@@ -1,0 +1,19 @@
+/* FIXOKU_020P: owner trainer packages only. Reuse shared student catalogue classes. */
+.fx-trainer-shared-020n .fixoku-trainer-modules-020p{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0 10px;align-items:center;}
+.fx-trainer-shared-020n .fixoku-trainer-modules-020p span{display:inline-flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid #e4e8f0;border-radius:7px;color:#526178;background:#f8fafc;font-size:11px;font-weight:700;}
+.fx-trainer-shared-020n .fixoku-trainer-modules-020p svg{width:15px;height:15px;color:#e85a0c;flex:none;}
+.fx-trainer-shared-020n .fixoku-trainer-modules-020p.is-compact{gap:4px;margin:0;}
+.fx-trainer-shared-020n .fixoku-trainer-modules-020p.is-compact span{padding:3px 4px;font-size:9px;}
+.fx-trainer-shared-020n .fixoku-trainer-modules-020p.is-compact svg{width:12px;height:12px;}
+.fx-trainer-shared-020n .fx40-package-art{overflow:hidden;width:74px;height:74px;min-width:74px;aspect-ratio:1;}
+.fx-trainer-shared-020n .fx40-package-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;}
+.fx-trainer-shared-020n .admin-package-cover-upload .admin-book-cover{width:132px;height:132px;flex:none;overflow:hidden;border-radius:10px;}
+.fx-trainer-shared-020n .admin-package-cover-upload .admin-book-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+.fx-trainer-shared-020n .fixoku-trainer-resource-panel-020p{padding:13px;border:1px solid #e5eaf0;border-radius:12px;background:#fafbfd;}
+.fx-trainer-shared-020n .fixoku-trainer-resource-panel-020p>strong{font-size:13px;color:#11294c;}
+.fx-trainer-shared-020n .fixoku-trainer-resource-panel-020p p{margin:5px 0 0;font-size:11px;line-height:1.5;color:#728197;}
+.fx-trainer-shared-020n .admin-content-row.is-inactive{opacity:.60;}
+.fx-trainer-shared-020n .admin-content-row-main{min-width:0;}
+.fx-trainer-shared-020n .admin-content-row-main input{width:100%;min-width:0;}
+.fx-trainer-shared-020n .admin-preview-dialog .fx41j-preview-cover img{width:100%;max-height:220px;object-fit:contain;}
+@media(max-width:720px){.fx-trainer-shared-020n .admin-package-cover-upload .admin-book-cover{width:92px;height:92px;}}

@@ -26,7 +26,9 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    disableSignUp: true,
+    // HTTP adapters deny public signup; controlled server flows remain enabled.
+    disableSignUp: false,
+    requireEmailVerification: true,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }: { user: { email: string }; url: string }) => {
     if (captureLifecycleMail({ kind: "reset", to: user.email, url })) return;

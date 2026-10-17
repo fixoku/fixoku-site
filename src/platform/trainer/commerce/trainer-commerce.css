@@ -808,6 +808,31 @@ html {
   font-size: 11px;
 }
 
+.trainer-curriculum-preview-caption {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 2px 0;
+}
+
+.trainer-curriculum-preview-caption strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #1e293b;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trainer-curriculum-preview-caption span {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
 .trainer-curriculum-list {
   overflow: hidden;
   border: 1px solid #e2e8f0;
@@ -953,11 +978,67 @@ html {
   background: #111827;
 }
 
-.trainer-curriculum-fullscreen-header > div {
+.trainer-curriculum-fullscreen-header > div:first-child {
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.trainer-curriculum-fullscreen-tools {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.trainer-curriculum-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.trainer-curriculum-zoom-controls button {
+  min-width: 34px;
+  min-height: 30px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.trainer-curriculum-zoom-controls button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.trainer-curriculum-zoom-controls button:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.trainer-curriculum-zoom-controls span {
+  min-width: 52px;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.trainer-curriculum-zoom-controls .trainer-curriculum-fit {
+  min-width: 58px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0 7px 7px 0;
+  font-size: 11px;
 }
 
 .trainer-curriculum-fullscreen-header strong {
@@ -1012,14 +1093,29 @@ html {
   position: relative;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: auto;
+  overscroll-behavior: contain;
   background: #050914;
 }
 
-.trainer-curriculum-fullscreen-stage > img,
+.trainer-curriculum-fullscreen-stage.is-pannable {
+  cursor: grab;
+}
+
+.trainer-curriculum-fullscreen-stage.is-pannable.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.trainer-curriculum-fullscreen-slide-canvas {
+  min-width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trainer-curriculum-fullscreen-slide-canvas > img,
 .trainer-curriculum-fullscreen-video {
   display: block;
   width: 100%;
@@ -1028,7 +1124,7 @@ html {
   background: #050914;
 }
 
-.trainer-curriculum-fullscreen-stage > img {
+.trainer-curriculum-fullscreen-slide-canvas > img {
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
@@ -1163,6 +1259,39 @@ html {
   .trainer-curriculum-fullscreen-footer button {
     min-width: 82px;
     padding: 0 9px;
+  }
+
+  .trainer-curriculum-fullscreen-header {
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .trainer-curriculum-fullscreen-header strong {
+    font-size: 14px;
+  }
+
+  .trainer-curriculum-fullscreen-tools {
+    gap: 5px;
+  }
+
+  .trainer-curriculum-zoom-controls {
+    gap: 2px;
+    min-height: 34px;
+  }
+
+  .trainer-curriculum-zoom-controls button {
+    min-width: 28px;
+    min-height: 28px;
+    padding-inline: 4px;
+  }
+
+  .trainer-curriculum-zoom-controls span {
+    min-width: 44px;
+    font-size: 11px;
+  }
+
+  .trainer-curriculum-zoom-controls .trainer-curriculum-fit {
+    min-width: 48px;
   }
 }
 
@@ -2394,3 +2523,120 @@ html {
 }
 
 /* FIXOKU_CHECKOUT_LAYOUT_V3_SAFE_END */
+
+/* FIXOKU RELEASE-019C | Owner katalog urunleri ve gorunur satin alma eylemleri */
+.trainer-panel .trainer-commerce-primary,
+.trainer-panel .trainer-cart-page .trainer-order-summary .trainer-commerce-primary,
+.trainer-panel .trainer-checkout-step .trainer-commerce-primary {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  border:1px solid #e65e0a !important;
+  border-radius:10px !important;
+  background:#ed650d !important;
+  color:#fff !important;
+  font-weight:800 !important;
+  font-size:15px !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+  text-decoration:none !important;
+  cursor:pointer;
+}
+.trainer-panel .trainer-commerce-primary:hover:not(:disabled){background:#cd5203 !important;border-color:#cd5203 !important;}
+.trainer-panel .trainer-commerce-primary:focus-visible{outline:3px solid #fab87d !important;outline-offset:3px;}
+.trainer-panel .trainer-commerce-primary:disabled{background:#f8e6da !important;border-color:#edcfbf !important;color:#85543e !important;cursor:not-allowed;}
+.fixoku-trainer-physical-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:10px 0 0;}
+.fixoku-trainer-physical-item{display:flex;align-items:center;gap:12px;min-width:0;padding:10px;border:1px solid #e7ebef;border-radius:12px;background:#fff;}
+.fixoku-trainer-physical-image{width:64px;height:70px;flex:0 0 64px;display:grid;place-items:center;border-radius:9px;background:#f8f8f9;color:#95a0ad;overflow:hidden;}
+.fixoku-trainer-physical-image img{display:block;width:100%;height:100%;object-fit:contain;}
+.fixoku-trainer-physical-image span{font-size:24px;color:#b5bfc9;}
+.fixoku-trainer-physical-name{min-width:0;}
+.fixoku-trainer-physical-name strong{display:block;font-size:14px;font-weight:750;color:#1f2937;line-height:1.4;overflow-wrap:anywhere;}
+.fixoku-trainer-physical-name small{display:block;margin-top:5px;color:#667488;font-size:12px;}
+.fixoku-trainer-physical-list.is-compact{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+.fixoku-trainer-physical-list.is-compact .fixoku-trainer-physical-image{width:48px;height:52px;flex-basis:48px;}
+.fixoku-trainer-cart-included{margin-top:13px;}
+.fixoku-trainer-cart-included>b{display:block;font-size:12px;color:#586778;}
+.fixoku-checkout-included{margin-top:20px;padding-top:18px;border-top:1px solid #e7ebef;}
+.fixoku-checkout-included h4{margin:0 0 10px;font-size:16px;color:#1e293b;}
+.fixoku-checkout-included-package{margin:0 0 12px;}
+.fixoku-checkout-included-package-name{margin:0 0 6px !important;font-size:13px;font-weight:700;color:#48566b;}
+.fixoku-checkout-included-note{margin:12px 0 0 !important;font-size:12px;color:#5d6a7b;}
+@media(max-width:600px){.fixoku-trainer-physical-list{grid-template-columns:1fr;}.fixoku-trainer-physical-list.is-compact{grid-template-columns:1fr;}}
+/* END RELEASE-019C */
+
+/* FIXOKU RELEASE-019D: checkout book covers, full ratio and no cropping */
+.trainer-panel .fixoku-checkout-included .fixoku-trainer-physical-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(208px,1fr));
+  align-items:stretch;
+  gap:12px;
+}
+.trainer-panel .fixoku-checkout-included .fixoku-trainer-physical-item{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  min-height:112px;
+  gap:12px;
+  padding:10px 12px;
+}
+.trainer-panel .fixoku-checkout-included .fixoku-trainer-physical-image{
+  width:62px;
+  min-width:62px;
+  height:92px;
+  min-height:92px;
+  flex:0 0 62px;
+  border-radius:5px;
+  background:transparent;
+  overflow:hidden;
+}
+.trainer-panel .fixoku-checkout-included .fixoku-trainer-physical-image img{
+  display:block;
+  width:100% !important;
+  max-width:100% !important;
+  height:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:3px;
+}
+.trainer-panel .fixoku-checkout-included .fixoku-trainer-physical-name strong{font-size:13px;line-height:1.35;}
+@media(max-width:560px){.trainer-panel .fixoku-checkout-included .fixoku-trainer-physical-list{grid-template-columns:1fr;}}
+/* END RELEASE-019D checkout */
+
+
+/* FIXOKU 019E: Yasal dokuman modal ve onay ekrani. Odeme ve katalog kurallari degismez. */
+.trainer-panel .trainer-legal-approval { display:grid;gap:13px;margin:4px 0 17px; }
+.trainer-panel .trainer-legal-approval__intro { font-size:13px;line-height:1.5;color:#667588;margin:0; }
+.trainer-panel .trainer-legal-approval__required {display:grid;gap:9px;}
+.trainer-panel .trainer-legal-approval__line {display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;background:#fffaf6;border:1px solid #f7dfce;padding:11px 13px;border-radius:10px;}
+.trainer-panel .trainer-legal-approval__tick {display:inline-flex;align-items:center;gap:9px;cursor:pointer;color:#263443;font-size:14px;font-weight:650;}
+.trainer-panel .trainer-legal-approval__tick input {accent-color:#f36a19;width:17px;height:17px;margin:0;flex:none;cursor:pointer;}
+.trainer-panel .trainer-legal-approval__link {padding:0;border:0;background:transparent;color:#c45414;text-decoration:underline;text-underline-offset:3px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-align:left;}
+.trainer-panel .trainer-legal-approval__link:hover {color:#993c0c;}
+.trainer-panel .trainer-legal-approval__link:focus-visible, .trainer-panel .trainer-legal-dialog :is(button,a):focus-visible {outline:2px solid #ec671e;outline-offset:3px;}
+.trainer-panel .trainer-legal-approval__additional {display:flex;align-items:center;flex-wrap:wrap;gap:7px;}
+.trainer-panel .trainer-legal-approval__chip {display:inline-flex;align-items:center;text-decoration:none;border:1px solid #dce3eb;background:#fff;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:600;color:#3f5269;}
+.trainer-panel .trainer-legal-approval__chip:hover {border-color:#fdc9a7;color:#bb4c10;background:#fff8f4;}
+.trainer-legal-dialog-backdrop {position:fixed;inset:0;background:rgba(9,22,37,.67);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.trainer-legal-dialog {width:min(1080px,100%);height:min(88vh,850px);display:flex;flex-direction:column;overflow:hidden;background:#fff;border-radius:18px;box-shadow:0 25px 90px rgba(0,0,0,.3);color:#17283e;}
+.trainer-legal-dialog__header {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;background:#fff;border-bottom:1px solid #e6eaf0;}
+.trainer-legal-dialog__header small {font-size:11px;color:#e96818;letter-spacing:.07em;font-weight:700;}
+.trainer-legal-dialog__header h3 {font-size:20px;margin:4px 0 0;line-height:1.2;}
+.trainer-legal-dialog__close {border:1px solid #dde2ea;border-radius:9px;background:#f7f8fa;min-width:39px;min-height:39px;color:#1c293a;font-size:17px;cursor:pointer;}
+.trainer-legal-dialog__frame {flex:1;min-height:0;width:100%;border:0;background:#fff;}
+.trainer-legal-dialog__footer {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;padding:12px 18px;border-top:1px solid #e6eaf0;background:#fff;}
+.trainer-legal-dialog__footer span {font-size:12px;color:#68788b;}
+.trainer-legal-dialog__footer>div {display:flex;align-items:center;gap:9px;}
+.trainer-legal-dialog__open {font-size:13px;color:#af4c17;text-decoration:underline;padding:9px;}
+.trainer-legal-dialog__done {color:#fff;border:0;background:#f36b19;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;}
+@media(max-width:680px) { .trainer-legal-dialog-backdrop {padding:8px;}.trainer-legal-dialog {height:min(94vh,1000px);border-radius:12px;}.trainer-legal-dialog__header h3 {font-size:16px;}.trainer-legal-approval__line {flex-direction:column;align-items:flex-start;}.trainer-legal-dialog__footer span {display:none;} }
+
+/* FIXOKU 019G: TEXT-ONLY OWNER LEGAL DOCUMENT DIALOG */
+.trainer-legal-dialog__content { flex:1;min-height:0;overflow:auto;padding:20px 24px;background:#fff; }
+.trainer-legal-dialog__buyer { background:#fff8f2;border:1px solid #f5dcc8;border-radius:12px;padding:16px;margin-bottom:17px;color:#26364a;font-size:14px;line-height:1.5; }
+.trainer-legal-dialog__buyer p { margin:6px 0; }
+.trainer-legal-dialog__buyer small { color:#75675d; }
+.trainer-legal-dialog__plain { font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#1c2a3a; }
+.trainer-legal-error {color:#a62117;font-size:13px;font-weight:600;margin-top:8px;}

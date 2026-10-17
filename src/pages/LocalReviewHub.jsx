@@ -1,56 +1,58 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./local-review-hub.css";
 import { DEMO_IDENTITIES, localReviewEnabled } from "./local-review-data.js";
 
-const ownerLinks = [
-  ["Genel Bakış", "/panel/owner"],
-  ["Finans Özeti", "/panel/owner/finance"],
-  ["Sağlayıcı Durumu", "/panel/owner/saglayicilar"],
-  ["Ölçümleme", "/panel/owner/olcumleme"],
-  ["E-posta Şablonları", "/panel/owner/e-posta-sablonlari"],
-  ["Yasal Hazırlık", "/panel/owner/yasal-hazirlik"],
-  ["Bildirimler", "/panel/bildirimler"],
-];
-const operationLinks = [
-  ["Admin", "/panel/admin"], ["Eğitmenler", "/panel/admin/egitmenler"],
-  ["Paketler", "/panel/admin/paketler"], ["Atamalar", "/panel/admin/atamalar"],
-  ["Eğitmen Ticareti", "/panel/admin/egitmen-ticaret"], ["Ürünler", "/panel/admin/urunler"], ["Kargo", "/panel/admin/kargo"],
-];
-const trainerLinks = [
-  ["Ana Sayfa", "/panel/egitmen"], ["Profilim", "/panel/egitmen/profil"],
-  ["Eğitimlerim", "/panel/egitmen/egitimlerim"],
-  ["Kaynaklarım", "/panel/egitmen/kaynaklarim"], ["Eğitmen Paketleri", "/panel/egitmen/paketler"], ["Hakedişlerim", "/panel/egitmen/hakedislerim"],
-  ["Sepetim", "/panel/egitmen/sepet"], ["Checkout", "/panel/egitmen/checkout"],
-  ["Bildirimler", "/panel/bildirimler"],
-];
-const studentLinks = [
-  ["Ana Sayfa", "/panel/ogrenci"], ["Profilim", "/panel/ogrenci/profil"],
-  ["Paketlerim / Paketler", "/panel/ogrenci/paketler"], ["Eğitimim", "/panel/ogrenci"],
-  ["Kargolarım", "/panel/ogrenci/kargolar"], ["Bildirimler", "/panel/bildirimler"],
-];
-const legalLinks = [
-  ["KVKK", "/kvkk"], ["Gizlilik", "/gizlilik-politikasi"], ["Çerez Politikası", "/cerez-politikasi"],
-  ["Açık Rıza", "/acik-riza"], ["Ticari Elektronik İleti", "/ticari-elektronik-ileti"],
-  ["Kullanım Koşulları", "/kullanim-kosullari"], ["Üyelik Sözleşmesi", "/uyelik-sozlesmesi"],
-  ["Mesafeli Satış", "/mesafeli-satis-sozlesmesi"], ["Ön Bilgilendirme", "/on-bilgilendirme-formu"],
-  ["İptal / İade / Cayma", "/iptal-iade-cayma-politikasi"], ["Teslimat / Kargo", "/teslimat-kargo-politikasi"],
-  ["Dijital İçerik ve Hizmet Koşulları", "/dijital-icerik-ve-hizmet-kosullari"],
-  ["Veri Sahibi Başvuru Formu", "/veri-sahibi-basvuru-formu"],
+const REVIEW_GROUPS = [
+  { label: "Yönetim", names: ["Ersin", "Fixoku Test Super Admin"] },
+  { label: "Eğitmenler", names: ["Özlem KAPLAN", "Elif USTA"] },
+  { label: "Öğrenciler", names: ["Hatice Kubra USTA", "Ali Asaf USTA"] },
 ];
 
-function LinkSection({ title, links }) {
-  const headingId = `local-review-${title.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9çğıöşü]+/gu, "-")}`;
-  return <section className="local-review-section" aria-labelledby={headingId}><h2 id={headingId}>{title}</h2><div className="local-review-links">{links.map(([label, to]) => <Link className="local-review-link" key={`${label}-${to}`} to={to}>{label}<span aria-hidden="true">›</span></Link>)}</div></section>;
+function getReviewGroups() {
+  const found = REVIEW_GROUPS.flatMap((group) => group.names.map((name) =>
+    DEMO_IDENTITIES.find((identity) =>
+      String(identity.name || "").toLocaleLowerCase("tr-TR") === name.toLocaleLowerCase("tr-TR")
+    )
+  ));
+  // Older local fixtures can have different display names. Preserve their original order.
+  const ordered = found.every(Boolean) ? found : DEMO_IDENTITIES.slice(0, 6);
+  return REVIEW_GROUPS.map((group, index) => ({
+    label: group.label,
+    identities: ordered.slice(index * 2, index * 2 + 2),
+  }));
+}
+
+function IdentityAvatar({ identity, current }) {
+  const possible = [
+    identity.profilePhotoUrl, identity.profileImageUrl, identity.avatarUrl,
+    identity.photoUrl, identity.imageUrl, identity.avatar, identity.photo,
+    current?.slug === identity.slug ? current.profilePhotoUrl : null,
+    current?.slug === identity.slug ? current.avatarUrl : null,
+  ];
+  const avatarUrl = possible.find((url) => typeof url === "string" && /^(\/|https:\/\/)/.test(url.trim()));
+  const [imageFailed, setImageFailed] = useState(false);
+  return <span className="review-six-avatar" aria-hidden="true">
+    {avatarUrl && !imageFailed
+      ? <img src={avatarUrl} alt="" loading="lazy" onError={() => setImageFailed(true)} />
+      : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" focusable="false" aria-hidden="true"><circle cx="32" cy="24" r="12" fill="currentColor" opacity=".9"/><path d="M12 53c0-11 9-19 20-19s20 8 20 19v3H12v-3Z" fill="currentColor" opacity=".75"/></svg>}
+  </span>;
 }
 
 function IdentityCard({ identity, current, busy, onSelect }) {
   const active = current?.slug === identity.slug;
-  return <button type="button" className={`local-review-identity ${active ? "is-current" : ""}`} aria-pressed={active} disabled={busy} onClick={() => onSelect(identity)}>
-    <span className="local-review-avatar" aria-hidden="true">{identity.initials}</span><span className="local-review-identity-copy"><strong>{identity.name}</strong><small>{identity.roleLabel}</small></span><span className="local-review-select">{active ? "Görüntüleniyor" : "Görüntüle"}<span aria-hidden="true">→</span></span>
+  return <button
+    type="button"
+    className={`review-six-card ${active ? "is-active" : ""}`}
+    aria-pressed={active}
+    disabled={busy}
+    onClick={() => onSelect(identity)}
+  >
+    <IdentityAvatar identity={identity} current={current} />
+    <span className="review-six-card-copy"><strong>{identity.name}</strong><small>{identity.roleLabel}</small></span>
+    <span className="review-six-card-action">{active ? "Aktif hesap" : "Panele Gir"}<span aria-hidden="true">→</span></span>
   </button>;
 }
-
 export default function LocalReviewHub() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,22 +87,27 @@ export default function LocalReviewHub() {
     finally { setBusy(false); }
   }, [navigate]);
 
-  const quickSections = useMemo(() => {
-    if (!current) return [];
-    if (current.role === "OWNER") return [["Sahip / Yönetim", ownerLinks], ["Operasyon", operationLinks]];
-    if (current.role === "TRAINER") return [["Eğitmen Paneli", trainerLinks]];
-    return [["Öğrenci Paneli", studentLinks]];
-  }, [current]);
-
-  if (!localReviewEnabled()) return <main className="local-review-unavailable"><h1>Sayfa bulunamadı</h1><p>Yerel inceleme yalnızca bu bilgisayardaki geliştirme ortamında kullanılabilir.</p></main>;
-  return <main className="local-review-page"><div className="local-review-shell">
-    <header className="local-review-header"><div><span className="local-review-eyebrow">Fixoku</span><h1>Fixoku Yerel İnceleme</h1><p>Kontrol etmek istediğiniz kullanıcıyı seçin. Şifre girmeniz gerekmez.</p></div><Link className="local-review-home" to="/">Ana sayfaya dön</Link></header>
-    <section className="local-review-current" aria-live="polite"><div><span>Şu an görüntülenen kullanıcı:</span><strong>{current?.name || "Henüz bir kullanıcı seçilmedi"}</strong>{current?.role && <small>Rol: {current.role === "OWNER" ? "Sahip / Yönetici" : current.role === "TRAINER" ? "Usta Öğretici" : "Öğrenci"}</small>}</div><button type="button" onClick={() => document.getElementById("local-review-identities")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Kullanıcı değiştir</button></section>
-    {error && <p className="local-review-error" role="alert">{error}</p>}
-    <section id="local-review-identities" className="local-review-identities" aria-labelledby="local-review-identities-title"><div className="local-review-section-heading"><div><span className="local-review-eyebrow">Kullanıcı seçimi</span><h2 id="local-review-identities-title">Bir kullanıcıyla devam edin</h2></div><span className="local-review-local-badge">Yerel inceleme</span></div><div className="local-review-identity-grid">{DEMO_IDENTITIES.map((identity) => <IdentityCard key={identity.slug} identity={identity} current={current} busy={busy} onSelect={selectIdentity} />)}</div></section>
-    {quickSections.map(([title, links]) => <LinkSection key={title} title={title} links={links} />)}
-    <div className="local-review-columns"><LinkSection title="Genel Site" links={[["Ana Sayfa", "/"], ["İletişim", "/iletisim"]]} /><section className="local-review-section"><h2>Çerezler</h2><button type="button" className="local-review-cookie" onClick={() => window.dispatchEvent(new CustomEvent("fixoku:consent-open"))}>Çerezleri yeniden göster <span aria-hidden="true">›</span></button></section></div>
-    <LinkSection title="Yasal" links={legalLinks} />
-    <footer className="local-review-footer"><span>Bu alan yalnızca yerel kullanıcı incelemesi içindir.</span><Link to="/giris">Giriş sayfası</Link></footer>
-  </div></main>;
+  if (!localReviewEnabled()) {
+    return <main className="local-review-unavailable"><h1>Sayfa bulunamadı</h1><p>Yerel inceleme yalnızca geliştirme ortamında kullanılabilir.</p></main>;
+  }
+  return <main className="local-review-page review-six-page">
+    <div className="local-review-shell review-six-shell">
+      <header className="review-six-header"><h1>Fixoku Yerel İnceleme</h1></header>
+      {error && <p className="local-review-error" role="alert">{error}</p>}
+      <div className="review-six-groups">
+        {getReviewGroups().map((group) => <section key={group.label} className="review-six-group" aria-label={group.label}>
+          <h2>{group.label}</h2>
+          <div className="review-six-row">
+            {group.identities.map((identity) => <IdentityCard
+              key={identity.slug}
+              identity={identity}
+              current={current}
+              busy={busy}
+              onSelect={selectIdentity}
+            />)}
+          </div>
+        </section>)}
+      </div>
+    </div>
+  </main>;
 }

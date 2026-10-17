@@ -5,7 +5,10 @@ import { validateEducationSegment } from "./student-segment.js";
 import { countPhysicalBooks, shippingForBookCount } from "./book-shipping.js";
 
 function error(code, status = 400) { return Object.assign(new Error(code), { code, status }); }
-const parseJson = (value, yedek) => { try { return JSON.parse(value || ""); } catch { return yedek; } };
+const parseJson = (value, yedek) => {
+  if (value && typeof value === "object") return value;
+  try { return JSON.parse(value || ""); } catch { return yedek; }
+};
 
 async function resolveAccountSegment(client, principal, input = {}) {
   let educationStage = input?.catalogEducationStage || input?.educationStage || null;
@@ -39,7 +42,11 @@ export async function readEligibleStudentCommerceVersion(client, principal, pack
   const beneficiary = await resolvePurchaseBeneficiary(client, principal, requestedProfileId, accountInput);
   if (!beneficiary.educationStage) throw error("STUDENT_SEGMENT_REQUIRED", 409);
   const segment = validateEducationSegment(beneficiary.educationStage, beneficiary.grade);
-  const rows = (await client.query(`select p.id as "packageId",p.slug,p.catalog_scope as "catalogScope",p.education_stage as "educationStage",p.shipping_price_minor as "shippingFeeMinor",p.physical_product as "requiresShipping",pv.id as "packageVersionId",pv.version_number as "versionNumber",pv.title,pv.short_description as subtitle,pv.description,pv.features_json as "featuresJson",pv.price_minor as "priceMinor",pv.price_gross_minor as "priceGrossMinor",pv.vat_rate_bps as "packageVatRateBps",pv.currency,pc.id as "packageComponentId",pc.reference_id as "productId",pc.quantity,pc.display_order as "displayOrder",prod.sku,prod.title as "productTitle",prod.product_type as "productType",prod.r6_product_type as "r6ProductType",prod.list_gross_minor as "productListGrossMinor",prod.vat_rate_bps as "productVatRateBps",r6p.list_gross_minor as "componentListGrossMinor",r6p.effective_sale_gross_minor as "componentSaleGrossMinor",r6p.vat_rate_bps as "componentVatRateBps",r6p.net_minor as "componentNetMinor",r6p.vat_minor as "componentVatMinor" from packages p join package_versions pv on pv.package_id=p.id left join package_components pc on pc.package_version_id=pv.id and pc.reference_id is not null and pc.is_active=true left join physical_products prod on prod.id=pc.reference_id left join r6_package_component_pricing r6p on r6p.package_component_id=pc.id where pv.id=$1 and p.catalog_scope='STUDENT_COMMERCE' and p.audience='STUDENT' and p.status='PUBLISHED' and pv.status='PUBLISHED' and pv.purchase_enabled=true and p.education_stage=$2::education_stage and ($2::text='ADULT' or p.eligible_grades_json::jsonb @> to_jsonb($3::int)) order by pc.display_order,pc.id`, [packageVersionId, segment.educationStage, segment.grade])).rows;
+  // The optional r6_product_type subtype does not exist in some local schemas.
+  // Resolve its presence using a read-only catalog lookup; never infer a sale type.
+  const subtypeColumn = (await client.query("select exists (select 1 from information_schema.columns where table_name='physical_products' and column_name='r6_product_type' and table_schema = any(current_schemas(false))) as present")).rows[0]?.present === true;
+  const subtypeSql = subtypeColumn ? 'prod.r6_product_type' : 'null::text';
+  const rows = (await client.query(`select p.id as "packageId",p.slug,p.catalog_scope as "catalogScope",p.education_stage as "educationStage",p.shipping_price_minor as "shippingFeeMinor",p.physical_product as "requiresShipping",pv.id as "packageVersionId",pv.version_number as "versionNumber",pv.title,pv.short_description as subtitle,pv.description,pv.features_json as "featuresJson",pv.price_minor as "priceMinor",pv.price_gross_minor as "priceGrossMinor",pv.vat_rate_bps as "packageVatRateBps",pv.currency,(select coalesce(json_agg(json_build_object('id',ped.id,'trainingProgramId',ped.training_program_id,'deliveryMode',ped.delivery_mode) order by ped.training_program_id),'[]'::json) from package_entitlement_definitions ped where ped.package_version_id=pv.id) as "entitlementDefinitionsJson",pc.id as "packageComponentId",pc.reference_id as "productId",pc.quantity,pc.display_order as "displayOrder",prod.sku,prod.title as "productTitle",prod.product_type as "productType",${subtypeSql} as "r6ProductType",prod.list_gross_minor as "productListGrossMinor",prod.vat_rate_bps as "productVatRateBps",r6p.list_gross_minor as "componentListGrossMinor",r6p.effective_sale_gross_minor as "componentSaleGrossMinor",r6p.vat_rate_bps as "componentVatRateBps",r6p.net_minor as "componentNetMinor",r6p.vat_minor as "componentVatMinor" from packages p join package_versions pv on pv.package_id=p.id left join package_components pc on pc.package_version_id=pv.id and pc.reference_id is not null and pc.is_active=true left join physical_products prod on prod.id=pc.reference_id left join r6_package_component_pricing r6p on r6p.package_component_id=pc.id where pv.id=$1 and p.catalog_scope='STUDENT_COMMERCE' and p.audience='STUDENT' and p.status='PUBLISHED' and pv.status='PUBLISHED' and pv.purchase_enabled=true and p.education_stage=$2::education_stage and ($2::text='ADULT' or p.eligible_grades_json::jsonb @> to_jsonb($3::int)) order by pc.display_order,pc.id`, [packageVersionId, segment.educationStage, segment.grade])).rows;
   if (!rows.length) throw error("PACKAGE_VERSION_UNAVAILABLE", 409);
   const first = rows[0]; const currency = normalizeCurrency(first.currency);
   if (!Number.isSafeInteger(first.priceMinor) || first.priceMinor < 0 || !currency) throw error("PRICE_REQUIRED", 409);
@@ -47,7 +54,13 @@ export async function readEligibleStudentCommerceVersion(client, principal, pack
   if (!components.length) throw error("PACKAGE_PRODUCTS_REQUIRED", 409);
   const requiresShipping = components.some((item) => item.productType === "PHYSICAL");
   // Shipping is a cart-level charge. Keep item cards free of per-package freight.
-  return { ...first, currency, priceMinor: Number(first.priceMinor), shippingFeeMinor: 0, requiresShipping, features: parseJson(first.featuresJson, []), components, beneficiary };
+	  return { ...first, currency, priceMinor: Number(first.priceMinor), shippingFeeMinor: 0, requiresShipping, features: parseJson(first.featuresJson, []), entitlementDefinitions: parseJson(first.entitlementDefinitionsJson, []), components, beneficiary };
+}
+
+export async function studentCartSupportsFamilyOffers(client) {
+  // The normal package cart must also work before the optional family-cart migration.
+  const result = await client.query("select count(distinct column_name)::integer as found from information_schema.columns where table_schema = any(current_schemas(false)) and table_name='student_cart_items' and column_name in ('family_offer_id','family_offer_revision_number')");
+  return Number(result.rows[0]?.found || 0) === 2;
 }
 
 export async function readStudentCart(client, principal, requestedProfileId = null, accountInput = null) {
@@ -58,8 +71,10 @@ export async function readStudentCart(client, principal, requestedProfileId = nu
     beneficiary = await resolveBeneficiary(client, principal, requestedProfileId);
     rows = (await client.query("select package_version_id as \"packageVersionId\", null::education_stage as \"catalogEducationStage\", null::text as \"catalogGrade\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id=$2 and ($3::uuid is null or beneficiary_child_profile_id=$3) order by created_at", [principal.user.id, beneficiary.studentProfileId, beneficiary.childProfileId || null])).rows;
   } else {
-    const accountRows = (await client.query("select package_version_id as \"packageVersionId\", catalog_education_stage as \"catalogEducationStage\", catalog_grade as \"catalogGrade\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null and family_offer_id is null order by created_at", [principal.user.id])).rows;
-    familyRows = (await client.query("select family_offer_id as \"familyOfferId\", family_offer_revision_number as \"familyOfferRevisionNumber\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null and family_offer_id is not null order by created_at", [principal.user.id])).rows;
+    const accountRows = (await client.query("select package_version_id as \"packageVersionId\", catalog_education_stage as \"catalogEducationStage\", catalog_grade as \"catalogGrade\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null and package_version_id is not null order by created_at", [principal.user.id])).rows;
+    if (await studentCartSupportsFamilyOffers(client)) {
+      familyRows = (await client.query("select family_offer_id as \"familyOfferId\", family_offer_revision_number as \"familyOfferRevisionNumber\" from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null and family_offer_id is not null order by created_at", [principal.user.id])).rows;
+    }
     // A request without a selected profile is always account-level. Never
     // silently surface a legacy profile-scoped cart in this mode.
     if (!accountRows.length && !accountInput?.catalogEducationStage && !accountInput?.educationStage) {
@@ -109,19 +124,31 @@ function addressSnapshot(input) {
   return value;
 }
 
-function billingSnapshot(input, shippingAddress, displayName = "") {
+function billingSnapshot(input, shippingAddress, displayName = "", requireDigitalPaytrContact = false) {
   const billing = input && typeof input === "object" ? input : {};
   const type = String(billing.type || "INDIVIDUAL").toUpperCase();
   if (!['INDIVIDUAL', 'CORPORATE'].includes(type)) throw error("BILLING_TYPE_INVALID");
+  // Digital-only PayTR orders have no shipping address, but PayTR requires a
+  // persisted name, phone and address. Do not fabricate a physical delivery.
+  const paytrContact = requireDigitalPaytrContact ? {
+    firstName: String(billing.firstName || "").trim(),
+    lastName: String(billing.lastName || "").trim(),
+    phone: String(billing.phone || "").trim(),
+    addressLine: String(billing.addressLine || "").trim(),
+  } : null;
+  if (paytrContact) {
+    const phoneDigits = paytrContact.phone.replace(/\D/gu, "");
+    if (!paytrContact.firstName || !paytrContact.lastName || phoneDigits.length < 10 || phoneDigits.length > 15 || paytrContact.phone.length > 20 || !paytrContact.addressLine || paytrContact.addressLine.length > 400 || (paytrContact.firstName + " " + paytrContact.lastName).length > 60) throw error("PAYTR_CUSTOMER_INFO_REQUIRED", 422);
+  }
   if (type === "CORPORATE") {
     const value = { type, companyName: String(billing.companyName || "").trim(), taxOffice: String(billing.taxOffice || "").trim(), taxNumber: String(billing.taxNumber || "").trim(), sameAsShipping: Boolean(billing.sameAsShipping) };
     if (!value.companyName || !value.taxOffice || !value.taxNumber) throw error("CORPORATE_BILLING_REQUIRED");
-    return value;
+    return paytrContact ? { ...value, ...paytrContact } : value;
   }
   const nameParts = String(displayName || "").trim().split(/\s+/u).filter(Boolean);
   const value = { type, firstName: String(billing.firstName || (billing.sameAsShipping ? shippingAddress?.firstName : "") || nameParts[0] || "").trim(), lastName: String(billing.lastName || (billing.sameAsShipping ? shippingAddress?.lastName : "") || nameParts.slice(1).join(" ") || "").trim(), identityNumber: String(billing.identityNumber || "").trim(), sameAsShipping: Boolean(billing.sameAsShipping) };
   if (!value.firstName || !value.lastName) throw error("INDIVIDUAL_BILLING_REQUIRED");
-  return value;
+  return paytrContact ? { ...value, ...paytrContact } : value;
 }
 
 export async function createStudentCommerceOrder(client, principal, input) {
@@ -152,7 +179,7 @@ export async function createStudentCommerceOrder(client, principal, input) {
   const pending = (await client.query(`select distinct oi.package_version_id from orders o join order_items oi on oi.order_id=o.id where o.beneficiary_student_user_id=$1 and ${accountMode ? "o.beneficiary_student_profile_id is null and o.beneficiary_child_profile_id is null" : "($3::uuid is null or o.beneficiary_child_profile_id=$3)"} and o.status='PENDING_PAYMENT' and oi.package_version_id=any($2::uuid[])`, accountMode ? [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId)] : [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId), cart.beneficiary.childProfileId || null])).rows;
   if (pending.length) throw error("ORDER_ALREADY_EXISTS", 409);
   const shippingAddress = cart.requiresShipping ? addressSnapshot(input.shippingAddress) : null;
-  const billing = billingSnapshot(input.billing, shippingAddress, principal.user?.displayName);
+  const billing = billingSnapshot(input.billing, shippingAddress, principal.user?.displayName, paymentMethod === "PAYTR" && !cart.requiresShipping);
   const requestHash = accountMode
     ? sha256({ paymentMethod, accountUserId: principal.user.id, catalogSegments: cart.catalogSegments, packageVersionIds: cart.items.map((item) => item.packageVersionId), shippingAddress, billing })
     : sha256({ paymentMethod, studentProfileId: cart.beneficiary.studentProfileId, packageVersionIds: cart.items.map((item) => item.packageVersionId), shippingAddress, billing });
@@ -168,7 +195,10 @@ export async function createStudentCommerceOrder(client, principal, input) {
       const vatRateBps = Number(item.components.find((component) => component.productType !== "PHYSICAL")?.vatRateBps || item.components[0]?.vatRateBps || 0);
       const vatMinor = Math.round(saleGrossMinor * vatRateBps / (10000 + vatRateBps));
       const netMinor = saleGrossMinor - vatMinor;
-      const itemRow = (await client.query(`insert into order_items(order_id,package_id,package_version_id,beneficiary_child_profile_id,title_snapshot,description_snapshot,version_number_snapshot,delivery_mode_snapshot,unit_price_minor,total_minor,list_gross_minor,sale_gross_minor,discount_minor,discount_percent_bps,vat_net_minor,vat_minor,vat_rate_bps,currency,quantity,entitlement_definitions_snapshot,components_snapshot_json) values($1,$2,$3,$4,$5,$6,$7,'SELF_PACED',$8,$8,$9,$10,$11,$12,$13,$14,$15,$16,1,'[]',$17) returning id`, [order.id, item.packageId, item.packageVersionId, item.beneficiary.childProfileId || null, item.title, item.description, item.versionNumber, saleGrossMinor, listGrossMinor, saleGrossMinor, discountMinor, listGrossMinor ? Math.round(discountMinor * 10000 / listGrossMinor) : 0, netMinor, vatMinor, vatRateBps, item.currency, JSON.stringify(item.components)])).rows[0];
+	      const definitions = Array.isArray(item.entitlementDefinitions) ? item.entitlementDefinitions : [];
+	      const deliveryModes = [...new Set(definitions.map((definition) => String(definition.deliveryMode || "").toUpperCase()).filter(Boolean))];
+	      const deliveryMode = deliveryModes.length === 1 ? deliveryModes[0] : definitions.length ? "HYBRID" : "SELF_PACED";
+	      const itemRow = (await client.query(`insert into order_items(order_id,package_id,package_version_id,beneficiary_child_profile_id,title_snapshot,description_snapshot,version_number_snapshot,delivery_mode_snapshot,unit_price_minor,total_minor,list_gross_minor,sale_gross_minor,discount_minor,discount_percent_bps,vat_net_minor,vat_minor,vat_rate_bps,currency,quantity,entitlement_definitions_snapshot,components_snapshot_json) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11,$12,$13,$14,$15,$16,$17,1,$18,$19) returning id`, [order.id, item.packageId, item.packageVersionId, item.beneficiary.childProfileId || null, item.title, item.description, item.versionNumber, deliveryMode, saleGrossMinor, listGrossMinor, saleGrossMinor, discountMinor, listGrossMinor ? Math.round(discountMinor * 10000 / listGrossMinor) : 0, netMinor, vatMinor, vatRateBps, item.currency, JSON.stringify(definitions), JSON.stringify(item.components)])).rows[0];
       for (const [lineOrder, component] of item.components.entries()) {
         const gross = Number(component.saleGrossMinor || component.listGrossMinor || 0) * Number(component.quantity || 1);
         const lineVatRate = Number(component.vatRateBps || 0); const lineVat = Number(component.vatMinor || Math.round(gross * lineVatRate / (10000 + lineVatRate))); const lineNet = Number(component.netMinor || (gross - lineVat));

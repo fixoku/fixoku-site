@@ -267,6 +267,20 @@
       "when": 1790200000001,
       "tag": "0037_family_offer_cart_item",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1791852606000,
+      "tag": "0038_trainer_video_progress_indices",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792203392163,
+      "tag": "0039_trainer_candidate_activation",
+      "breakpoints": true
     }
   ]
 }

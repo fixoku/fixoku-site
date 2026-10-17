@@ -186,11 +186,49 @@ export default async function handler(request, response) {
             )
           : false;
 
+        // FIXOKU_020X: badges represent earned trainer *purchases*, not standalone
+        // Owner-granted teaching permissions. A historical purchase entered by
+        // Owner is eligible only with an explicit purchase date and assignedBy.
+        // Free gifts / manual expertise grants do not confer a purchased badge.
+        const badges = (await pool.query(
+          `select distinct qd.code as id, qd.title as label
+           from trainer_package_entitlements e
+           join packages p on p.id=e.package_id
+             and p.audience='TRAINER'
+             and p.catalog_scope='TRAINER_COMMERCE'
+           join r6_trainer_package_qualification_map m
+             on m.package_version_id=e.package_version_id
+           join r6_qualification_definitions qd on qd.id=m.qualification_id
+           where e.trainer_user_id=$1
+             and e.status='ACTIVE'
+             and e.revoked_at is null
+             and (
+               (e.source='PAYMENT' and exists (
+                 select 1 from trainer_package_orders o
+                 join trainer_package_order_items oi
+                   on oi.order_id=o.id
+                 where o.id=e.source_order_id
+                   and o.trainer_user_id=e.trainer_user_id
+                   and o.status='PAID'
+                   and oi.package_id=e.package_id
+                   and oi.package_version_id=e.package_version_id
+               ))
+               or (
+                 e.source='LEGACY_PURCHASE'
+                 and e.historical_purchase_at is not null
+                 and e.assigned_by is not null
+               )
+             )
+           order by label`,
+          [user.id],
+        )).rows;
+
         return json(response, 200, {
           profile: {
             ...profile,
             photoUrl: photoAvailable ? profile.photoUrl : null,
           },
+          badges,
         });
       }
 

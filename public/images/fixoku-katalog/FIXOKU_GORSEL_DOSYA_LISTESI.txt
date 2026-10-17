@@ -1,0 +1,62 @@
+﻿FIXOKU V41F GORSEL DOSYALARI — web görsel ölçüleri
+
+Kök klasör: public\images\fixoku-katalog\
+Tavsiye: WebP, 2 MB altı, şeffaf zeminli kitap kapağı olabilir.
+Kitap resimleri: 800 x 1000 piksel.
+Yazılım resmi: 1200 x 900 piksel.
+Eğitim hizmetleri: 1000 x 1000 piksel.
+Paket kapakları: 1200 x 675 piksel.
+NOT: Bunlar kitabın fiziksel ölçüsü DEĞİLDİR.
+
+=== Kitap ===
+İlkokul Akıcı ve Hızlı Okuma Kitabı | 800x1000 | urunler/ilkokul-akici-hizli-okuma-kitabi.webp
+İlkokul Zihin Egzersizleri Kitabı | 800x1000 | urunler/ilkokul-zihin-egzersizleri-kitabi.webp
+Ortaokul Hızlı Okuma Kitabı | 800x1000 | urunler/ortaokul-hizli-okuma-kitabi.webp
+Ortaokul Zihin Egzersizleri Kitabı | 800x1000 | urunler/ortaokul-zihin-egzersizleri-kitabi.webp
+Lise Hızlı Okuma Kitabı | 800x1000 | urunler/lise-hizli-okuma-kitabi.webp
+Yetişkin Hızlı Okuma Kitabı | 800x1000 | urunler/yetiskin-hizli-okuma-kitabi.webp
+Ortaokul Paragraf Kitabı | 800x1000 | urunler/ortaokul-paragraf-kitabi.webp
+Lise Paragraf Kitabı | 800x1000 | urunler/lise-paragraf-kitabi.webp
+
+=== Yazılım ===
+Fixoku Yapay Zekâ Destekli Yazılım | 1200x900 | urunler/fixoku-yapay-zeka-destekli-yazilim.webp
+
+=== Eğitim ===
+İlkokul Küçük Grup Eğitimi | 1000x1000 | urunler/ilkokul-kucuk-grup-egitimi.webp
+İlkokul Birebir Eğitimi | 1000x1000 | urunler/ilkokul-birebir-egitimi.webp
+Ortaokul Küçük Grup Eğitimi | 1000x1000 | urunler/ortaokul-kucuk-grup-egitimi.webp
+Ortaokul Birebir Eğitimi | 1000x1000 | urunler/ortaokul-birebir-egitimi.webp
+Lise Küçük Grup Eğitimi | 1000x1000 | urunler/lise-kucuk-grup-egitimi.webp
+Lise Birebir Eğitimi | 1000x1000 | urunler/lise-birebir-egitimi.webp
+Yetişkin Küçük Grup Eğitimi | 1000x1000 | urunler/yetiskin-kucuk-grup-egitimi.webp
+Yetişkin Birebir Eğitimi | 1000x1000 | urunler/yetiskin-birebir-egitimi.webp
+Ortaokul Paragraf Birebir Eğitimi | 1000x1000 | urunler/ortaokul-paragraf-birebir-egitimi.webp
+Lise Paragraf Birebir Eğitimi | 1000x1000 | urunler/lise-paragraf-birebir-egitimi.webp
+
+=== Paket Kapağı ===
+student-adult-akilli-sistem | 1200x675 | paketler/student-adult-akilli-sistem.webp
+student-adult-baslangic | 1200x675 | paketler/student-adult-baslangic.webp
+student-adult-dijital-yapay-zeka-sistemi | 1200x675 | paketler/student-adult-dijital-yapay-zeka-sistemi.webp
+student-adult-platinum-egitim | 1200x675 | paketler/student-adult-platinum-egitim.webp
+student-adult-premium-egitim | 1200x675 | paketler/student-adult-premium-egitim.webp
+student-high-akilli-sistem | 1200x675 | paketler/student-high-akilli-sistem.webp
+student-high-baslangic | 1200x675 | paketler/student-high-baslangic.webp
+student-high-dijital-yapay-zeka-sistemi | 1200x675 | paketler/student-high-dijital-yapay-zeka-sistemi.webp
+student-high-paragraf-egitim | 1200x675 | paketler/student-high-paragraf-egitim.webp
+student-high-paragraf-kitabi | 1200x675 | paketler/student-high-paragraf-kitabi.webp
+student-high-platinum-egitim | 1200x675 | paketler/student-high-platinum-egitim.webp
+student-high-premium-egitim | 1200x675 | paketler/student-high-premium-egitim.webp
+student-middle-akilli-sistem | 1200x675 | paketler/student-middle-akilli-sistem.webp
+student-middle-baslangic | 1200x675 | paketler/student-middle-baslangic.webp
+student-middle-dijital-yapay-zeka-sistemi | 1200x675 | paketler/student-middle-dijital-yapay-zeka-sistemi.webp
+student-middle-gelisim | 1200x675 | paketler/student-middle-gelisim.webp
+student-middle-paragraf-egitim | 1200x675 | paketler/student-middle-paragraf-egitim.webp
+student-middle-paragraf-kitabi | 1200x675 | paketler/student-middle-paragraf-kitabi.webp
+student-middle-platinum-egitim | 1200x675 | paketler/student-middle-platinum-egitim.webp
+student-middle-premium-egitim | 1200x675 | paketler/student-middle-premium-egitim.webp
+student-primary-akilli-sistem | 1200x675 | paketler/student-primary-akilli-sistem.webp
+student-primary-baslangic | 1200x675 | paketler/student-primary-baslangic.webp
+student-primary-dijital-yapay-zeka-sistemi | 1200x675 | paketler/student-primary-dijital-yapay-zeka-sistemi.webp
+student-primary-gelisim | 1200x675 | paketler/student-primary-gelisim.webp
+student-primary-platinum-egitim | 1200x675 | paketler/student-primary-platinum-egitim.webp
+student-primary-premium-egitim | 1200x675 | paketler/student-primary-premium-egitim.webp

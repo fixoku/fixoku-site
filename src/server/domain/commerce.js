@@ -144,11 +144,11 @@ export async function buildLegalSnapshots(client, { orderId, buyerUserId }) {
   return { preInformation: { ...base, documentType: "PRE_INFORMATION" }, distanceSalesAgreement: { ...base, documentType: "DISTANCE_SALES_AGREEMENT", acceptanceRequired: true } };
 }
 
-export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = null, provider = "DEV_ONLY_LOCAL", providerEventId = `dev-settlement:${orderId}`, amountMinor = undefined, currency = undefined }) {
+export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = null, provider = "DEV_ONLY_LOCAL", providerEventId = `dev-settlement:${orderId}`, amountMinor = undefined, currency = undefined, manageTransaction = true }) {
   if (!UUID_PATTERN.test(String(orderId || ""))) throw error("INVALID_ORDER_ID", 400);
-  const client = await pool.connect();
+  const client = manageTransaction ? await pool.connect() : pool;
   try {
-    await client.query("begin");
+    if (manageTransaction) await client.query("begin");
     await client.query("select pg_advisory_xact_lock(hashtext($1))", [orderId]);
     const order = (await client.query("select * from orders where id=$1 for update", [orderId])).rows[0];
     if (!order) throw error("ORDER_NOT_FOUND", 404);
@@ -156,12 +156,17 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
     if (currency !== undefined && String(currency).toUpperCase() !== String(order.currency).toUpperCase()) throw error("PAYMENT_CURRENCY_MISMATCH", 409);
     const payment = (await client.query("select * from payment_intents where order_id=$1 for update", [orderId])).rows[0];
     if (!payment) throw error("PAYMENT_INTENT_NOT_FOUND", 409);
+    if (provider === "BANK_TRANSFER") {
+      if (order.payment_method !== "BANK_TRANSFER") throw error("BANK_TRANSFER_METHOD_REQUIRED", 409);
+      if (!["PENDING_PAYMENT", "PAYMENT_REVIEW", "PAID"].includes(order.status)) throw error("BANK_TRANSFER_NOT_REVIEWABLE", 409);
+      if (Number(payment.amount_minor) !== Number(order.total_minor) || payment.currency !== order.currency) throw error("PAYMENT_INTENT_MISMATCH", 409);
+    }
     const payloadHash = sha256({ provider, providerEventId, orderId, amountMinor: order.total_minor, currency: order.currency });
     const existingEvent = (await client.query("select * from payment_webhook_events where provider=$1 and provider_event_id=$2 for update", [provider, providerEventId])).rows[0];
     if (existingEvent && existingEvent.payload_hash !== payloadHash) throw error("WEBHOOK_PAYLOAD_CONFLICT", 409);
     if (existingEvent?.status === "APPLIED" || order.status === "PAID") {
       const entitlements = (await client.query("select id from package_entitlements where source_order_id=$1 order by id", [orderId])).rows;
-      await client.query("commit");
+      if (manageTransaction) await client.query("commit");
       return { orderStatus: "PAID", entitlementIds: entitlements.map((row) => row.id), replay: true, webhookEventId: existingEvent?.id || null };
     }
     const webhook = (await client.query(`
@@ -170,7 +175,7 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
       on conflict(provider,provider_event_id) do update set attempt_count=payment_webhook_events.attempt_count+1
       returning *
     `, [provider, providerEventId, payloadHash, JSON.stringify({ orderId, amountMinor: order.total_minor, currency: order.currency })])).rows[0];
-    await client.query(`insert into payment_transactions(payment_intent_id,provider,provider_transaction_id,transaction_type,status,amount_minor,currency,metadata_json,occurred_at) values($1,$2,$3,'SETTLEMENT','SUCCEEDED',$4,$5,$6,now()) on conflict(provider,provider_transaction_id,transaction_type) do nothing`, [payment.id, provider, providerEventId, order.total_minor, order.currency, JSON.stringify({ source: "LOCAL_DEV_ONLY" })]);
+    await client.query(`insert into payment_transactions(payment_intent_id,provider,provider_transaction_id,transaction_type,status,amount_minor,currency,metadata_json,occurred_at) values($1,$2,$3,'SETTLEMENT','SUCCEEDED',$4,$5,$6,now()) on conflict(provider,provider_transaction_id,transaction_type) do nothing`, [payment.id, provider, providerEventId, order.total_minor, order.currency, JSON.stringify({ source: provider === "BANK_TRANSFER" ? "OWNER_BANK_TRANSFER_APPROVAL" : "LOCAL_DEV_ONLY" })]);
     await client.query("update payment_intents set status='SUCCEEDED',provider=$1,provider_reference=$2,succeeded_at=coalesce(succeeded_at,now()),updated_at=now() where id=$3", [provider, providerEventId, payment.id]);
     await client.query("update orders set status='PAID',completed_at=coalesce(completed_at,now()),updated_at=now() where id=$1", [order.id]);
     const items = (await client.query("select * from order_items where order_id=$1 order by id", [order.id])).rows;
@@ -217,7 +222,9 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
             await client.query("insert into shipment_items(shipment_id,physical_product_id,quantity,title_snapshot) values($1,$2,$3,$4) on conflict do nothing", [shipmentId, component.productId, component.quantity, component.title]);
           }
         }
-        continue;
+        // Student commerce still uses its physical shipment snapshot, but
+        // training rights must be materialized from the purchased definitions.
+        // Packages without training definitions retain ownership-only behavior.
       }
       for (const definition of definitions) {
         const insertedEnrollment = (await client.query(`insert into enrollments(student_user_id,training_program_id,status) values($1,$2,'ACTIVE') on conflict(student_user_id,training_program_id) do nothing returning id`, [itemBeneficiary.studentUserId, definition.trainingProgramId])).rows[0];
@@ -227,19 +234,35 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
         const link = (await client.query(`insert into package_entitlement_enrollments(package_entitlement_id,enrollment_id,training_program_id,source_order_item_id) values($1,$2,$3,$4) on conflict(package_entitlement_id,training_program_id) do nothing returning id`, [entitlement.id, enrollment.id, definition.trainingProgramId, item.id])).rows[0];
         if (link) await client.query(`insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'education.enrollment.materialized','enrollment','${enrollment.id}','SUCCESS',$2,$3)`, [actorUserId, crypto.randomUUID(), JSON.stringify({ entitlementId: entitlement.id, orderItemId: item.id, trainingProgramId: definition.trainingProgramId })]);
         if (["TRAINER_LED", "HYBRID"].includes(definition.deliveryMode)) {
-          const requestRow = (await client.query(`insert into trainer_assignment_requests(enrollment_id,status) values($1,'PENDING') on conflict (enrollment_id) where status='PENDING' do nothing returning id`, [enrollment.id])).rows[0];
-          const resolved = requestRow || (await client.query("select id from trainer_assignment_requests where enrollment_id=$1 and status='PENDING'", [enrollment.id])).rows[0];
-          if (resolved) { assignmentRequestIds.push(resolved.id); if (requestRow) await client.query(`insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'education.assignment_request.created','trainer_assignment_request',$2,'SUCCESS',$3,$4)`, [actorUserId, resolved.id, crypto.randomUUID(), JSON.stringify({ enrollmentId: enrollment.id, entitlementId: entitlement.id })]); }
+          const requiresTrainer = definition.deliveryMode === "TRAINER_LED" || Boolean((await client.query(
+            "select 1 from package_components where package_version_id=$1 and is_active=true and component_type='TRAINER_SERVICE' limit 1",
+            [item.package_version_id],
+          )).rowCount);
+
+          if (requiresTrainer) {
+            const requestRow = (await client.query(`insert into trainer_assignment_requests(enrollment_id,status) values($1,'PENDING') on conflict (enrollment_id) where status='PENDING' do nothing returning id`, [enrollment.id])).rows[0];
+            const resolved = requestRow || (await client.query("select id from trainer_assignment_requests where enrollment_id=$1 and status='PENDING'", [enrollment.id])).rows[0];
+
+            if (resolved) {
+              assignmentRequestIds.push(resolved.id);
+              if (requestRow) {
+                await client.query(
+                  `insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'education.assignment_request.created','trainer_assignment_request',$2,'SUCCESS',$3,$4)`,
+                  [actorUserId, resolved.id, crypto.randomUUID(), JSON.stringify({ enrollmentId: enrollment.id, entitlementId: entitlement.id })],
+                );
+              }
+            }
+          }
         }
       }
       if (entitlement.created_at || entitlement.id) await client.query(`insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'commerce.entitlement.granted','package_entitlement',$2,'SUCCESS',$3,$4) on conflict do nothing`, [actorUserId, entitlement.id, crypto.randomUUID(), JSON.stringify({ orderId: order.id, orderItemId: item.id, packageVersionId: item.package_version_id })]);
     }
     await client.query(`insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'commerce.payment.succeeded','order',$2,'SUCCESS',$3,$4)`, [actorUserId, order.id, crypto.randomUUID(), JSON.stringify({ provider, providerEventId, paymentIntentId: payment.id })]);
     await client.query("update payment_webhook_events set status='APPLIED',processed_at=now(),error_code=null where id=$1", [webhook.id]);
-    await client.query("commit");
+    if (manageTransaction) await client.query("commit");
     return { orderStatus: "PAID", entitlementIds: [...new Set(entitlementIds)], enrollmentIds: [...new Set(enrollmentIds)], assignmentRequestIds: [...new Set(assignmentRequestIds)], replay: false, webhookEventId: webhook.id };
   } catch (cause) {
-    try { await client.query("rollback"); } catch { /* ignore rollback failure */ }
+    if (manageTransaction) { try { await client.query("rollback"); } catch { /* ignore rollback failure */ } }
     throw cause;
-  } finally { client.release(); }
+  } finally { if (manageTransaction) client.release(); }
 }

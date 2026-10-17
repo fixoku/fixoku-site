@@ -1,3 +1,4 @@
+import "./student-portal.css";
 import type { ReactNode } from "react";
 import { PanelShell } from "../panel/layout/PanelShell";
 

@@ -1,0 +1,9 @@
+.legal020c-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:15px 28px 0}
+.legal020c-toolbar button,.legal020c-actions button{background:#f26923;color:#fff;border:1px solid #ef6525;border-radius:10px;padding:11px 17px;font-size:13px;font-weight:750;cursor:pointer}
+.legal020c-toolbar small{color:#697d90;font-size:12px;line-height:1.5}
+.legal020c-feedback{margin:12px 28px;color:#a04f19;font-size:13px}
+.legal020c-editor{padding:17px 28px 27px;display:grid;gap:12px}
+.legal020c-editor label{color:#18334f;font-weight:800;font-size:14px}
+.legal020c-editor textarea{display:block;width:100%;min-height:460px;max-height:70vh;padding:15px;resize:vertical;box-sizing:border-box;color:#192b3f;background:#fff;border:1px solid #b9c9d8;border-radius:10px;font:13px/1.65 Consolas,monospace}
+.legal020c-actions{display:flex;gap:10px;flex-wrap:wrap}.legal020c-actions button:last-child{color:#284159;border-color:#d5dfeb;background:#f6f8fa}.legal020c-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:750px){.legal020c-toolbar,.legal020c-editor{padding-left:18px;padding-right:18px}}

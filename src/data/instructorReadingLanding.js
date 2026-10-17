@@ -50,8 +50,6 @@ export const instructorVideoDiscovery = {
   id: "egitmen-modelini-kesfet",
   headingLead: "FİXOKU EĞİTMENLİK MODELİNİ",
   headingAccent: "5 KISA VİDEODA KEŞFEDİN",
-  placeholderLabel:
-    "Fixoku eğitmenlik modeli tanıtım videoları için boş medya alanı",
   topics: [
     "Fixoku Eğitmeni Olmak Ne Demek?",
     "Fixoku Sistemi Nedir?",

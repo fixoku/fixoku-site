@@ -3,7 +3,9 @@ import { TrainerIcon as PanelIcon } from "../components/TrainerIcon";
 import { PanelShell } from "../../panel/layout/PanelShell";
 import { TURKEY_LOCATIONS, getTurkeyDistricts } from "../../../data/turkeyLocations.js";
 import { resolveProfileImage } from "../../panel/profileAvatar";
+import { TrainerQualificationBadgeR5 } from "../../../shared/FixokuTrainerBadgeR5";
 import "./trainer-profile.css";
+import "./trainer-badges-r9.css";
 
 type Profile = {
   firstName: string;
@@ -22,14 +24,12 @@ type Profile = {
   photoUrl?: string | null;
 };
 
+type Address = { id?: string; title: string; firstName: string; lastName: string; phone: string; city: string; district: string; addressLine: string; neighborhood?: string | null; postalCode?: string | null };
+const emptyAddress: Address = { title: "Teslimat Adresi", firstName: "", lastName: "", phone: "", city: "", district: "", addressLine: "" };
 type Status = "loading" | "ready" | "saving" | "success" | "error";
-type TabId = "personal" | "professional";
+type TabId = "personal" | "professional" | "address";
 
-type BadgeDef = {
-  id: string;
-  label: string;
-  symbol: "speed" | "flow" | "focus" | "paragraph" | "understand" | "coach" | "exam";
-};
+type QualificationBadgeR9 = { id: string; label: string };
 
 const empty: Profile = {
   firstName: "",
@@ -48,19 +48,10 @@ const empty: Profile = {
   photoUrl: null,
 };
 
-const tabs: readonly [TabId, string, "user-solid" | "briefcase"][] = [
+const tabs: readonly [TabId, string, "user-solid" | "briefcase" | "pin"][] = [
   ["personal", "Kişisel Bilgiler", "user-solid"],
   ["professional", "Mesleki Bilgiler", "briefcase"],
-];
-
-const specialtyBadges: readonly BadgeDef[] = [
-  { id: "speed-reading", label: "Hızlı Okuma", symbol: "speed" },
-  { id: "fluent-reading", label: "Akıcı Okuma", symbol: "flow" },
-  { id: "focus", label: "Dikkat Çalışmaları", symbol: "focus" },
-  { id: "paragraph", label: "Paragraf Teknikleri", symbol: "paragraph" },
-  { id: "comprehension", label: "Anlama ve Yorumlama", symbol: "understand" },
-  { id: "coaching", label: "Öğrenci Koçluğu", symbol: "coach" },
-  { id: "exam", label: "Sınav Stratejileri", symbol: "exam" },
+  ["address", "Adres", "pin"],
 ];
 
 function placeKey(value: string) {
@@ -90,39 +81,6 @@ function validEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(String(value || "").trim());
 }
 
-function normalizedName(value: string) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/ı/gu, "i")
-    .toLocaleLowerCase("en-US")
-    .replace(/\s+/gu, " ")
-    .trim();
-}
-
-function specialtyTokens(value: string) {
-  return String(value || "")
-    .split(/[,;\n|]+/u)
-    .map((item) => normalizedName(item))
-    .filter(Boolean);
-}
-
-function resolveBadges(profile: Profile, userName: string) {
-  const fullName = `${profile.firstName} ${profile.lastName}`.trim() || userName;
-  const localReview =
-    typeof window !== "undefined" &&
-    ["127.0.0.1", "localhost"].includes(window.location.hostname) &&
-    normalizedName(fullName) === "ozlem kaplan";
-
-  if (localReview) return specialtyBadges;
-
-  const tokens = specialtyTokens(profile.specialties);
-  return specialtyBadges.filter((badge) => {
-    const label = normalizedName(badge.label);
-    return tokens.some((token) => token === label || token.includes(label) || label.includes(token));
-  });
-}
-
 export function TrainerProfilePage({
   user,
 }: {
@@ -138,6 +96,31 @@ export function TrainerProfilePage({
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [qualificationBadges, setQualificationBadges] = useState<QualificationBadgeR9[]>([]);
+  const [deliveryAddress, setDeliveryAddress] = useState<Address>({ ...emptyAddress });
+  const [addressState, setAddressState] = useState<"loading" | "ready" | "saving">("loading");
+  const [addressFeedback, setAddressFeedback] = useState("");
+  useEffect(() => {
+    fetch("/api/trainer/addresses", { credentials: "same-origin", cache: "no-store" })
+      .then(async response => { if (!response.ok) throw new Error(); return response.json(); })
+      .then(data => { const saved = data.addresses?.[0]; setDeliveryAddress(saved ? saved : { ...emptyAddress }); setAddressState("ready"); })
+      .catch(() => { setAddressState("ready"); setAddressFeedback("Kayıtlı adresler yüklenemedi. Tekrar deneyin."); });
+  }, []);
+  async function saveDeliveryAddress() {
+    const a = deliveryAddress;
+    if (![a.title, a.firstName, a.lastName, a.phone, a.city, a.district, a.addressLine].every(value => String(value || "").trim())) {
+      setAddressFeedback("Adres başlığı, ad, soyad, telefon, il, ilçe ve açık adres zorunludur."); return;
+    }
+    setAddressState("saving"); setAddressFeedback("");
+    try {
+      const response = await fetch("/api/trainer/addresses", { method: a.id ? "PATCH" : "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(a) });
+      const data = await response.json();
+      if (!response.ok || !data.address) throw new Error(data.error || "Adres kaydedilemedi.");
+      setDeliveryAddress(data.address); setAddressFeedback("Adresiniz kaydedildi. Ödeme sayfasında otomatik seçilir.");
+    } catch (error) { setAddressFeedback(error instanceof Error ? error.message : "Adres kaydedilemedi."); }
+    finally { setAddressState("ready"); }
+  }
+
 
   useEffect(() => {
     fetch("/api/trainer/profile", { credentials: "same-origin" })
@@ -148,6 +131,8 @@ export function TrainerProfilePage({
         const place = canonicalizeLocation(loaded.city, loaded.district);
         const next = { ...loaded, ...place };
         setProfile(next);
+        // FIXOKU_BADGES_R9: read actual active qualifications, not editable specialties.
+        setQualificationBadges(Array.isArray(data.badges) ? data.badges : []);
         setInitial(next);
         setOriginalEmail(next.email || user.email);
         setStatus("ready");
@@ -158,6 +143,18 @@ export function TrainerProfilePage({
       });
   }, [user.email]);
 
+  useEffect(() => {
+    if (addressState !== "ready") return;
+    setDeliveryAddress(current => current.id ? current : {
+      ...current,
+      firstName: current.firstName || profile.firstName,
+      lastName: current.lastName || profile.lastName,
+      phone: current.phone || profile.phone,
+      city: current.city || profile.city,
+      district: current.district || profile.district,
+    });
+  }, [addressState, profile.firstName, profile.lastName, profile.phone, profile.city, profile.district]);
+
   const dirty = useMemo(
     () =>
       JSON.stringify(profile) !== JSON.stringify(initial) ||
@@ -167,10 +164,7 @@ export function TrainerProfilePage({
   );
 
   const districts = getTurkeyDistricts(profile.city);
-  const badges = useMemo(
-    () => resolveBadges(profile, user.name),
-    [profile.firstName, profile.lastName, profile.specialties, user.name],
-  );
+  const badges = qualificationBadges;
 
   function update(key: keyof Profile, value: string) {
     setProfile((current) => ({ ...current, [key]: value }));
@@ -456,6 +450,22 @@ export function TrainerProfilePage({
     </div>
   );
 
+  const addressPanel = (
+    <div className="trainer-profile-address-panel">
+      <p className="trainer-profile-address-note">Burada kaydettiğiniz teslimat adresi, ödeme ekranında otomatik seçilir.</p>
+      <div className="profile-grid">
+        <label className="profile-field full"><span>Adres başlığı</span><input value={deliveryAddress.title} onChange={event => setDeliveryAddress(a => ({ ...a, title: event.target.value }))} placeholder="Ev / İş" /></label>
+        <label className="profile-field"><span>Ad</span><input value={deliveryAddress.firstName} onChange={event => setDeliveryAddress(a => ({ ...a, firstName: event.target.value }))} /></label>
+        <label className="profile-field"><span>Soyad</span><input value={deliveryAddress.lastName} onChange={event => setDeliveryAddress(a => ({ ...a, lastName: event.target.value }))} /></label>
+        <label className="profile-field full"><span>Telefon</span><input type="tel" value={deliveryAddress.phone} onChange={event => setDeliveryAddress(a => ({ ...a, phone: event.target.value }))} placeholder="05XX XXX XX XX" /></label>
+        <label className="profile-field"><span>İl</span><select value={deliveryAddress.city} onChange={event => setDeliveryAddress(a => ({ ...a, city: event.target.value, district: "" }))}><option value="">İl seçin</option>{TURKEY_LOCATIONS.map(p => <option key={p.plate} value={p.name}>{p.name}</option>)}</select></label>
+        <label className="profile-field"><span>İlçe</span><select value={deliveryAddress.district} onChange={event => setDeliveryAddress(a => ({ ...a, district: event.target.value }))} disabled={!deliveryAddress.city}><option value="">İlçe seçin</option>{getTurkeyDistricts(deliveryAddress.city).map(d => <option key={d} value={d}>{d}</option>)}</select></label>
+        <label className="profile-field full"><span>Açık adres</span><textarea value={deliveryAddress.addressLine} onChange={event => setDeliveryAddress(a => ({ ...a, addressLine: event.target.value }))} placeholder="Mahalle, cadde, sokak, bina ve daire numarası" /></label>
+      </div>
+      <div className="trainer-profile-address-actions"><span role="status">{addressState === "loading" ? "Adres yükleniyor..." : addressFeedback}</span><button type="button" className="profile-button" disabled={addressState !== "ready"} onClick={() => void saveDeliveryAddress()}>{addressState === "saving" ? "Kaydediliyor..." : "Adresi Kaydet"}</button></div>
+    </div>
+  );
+
   const professionalPanel = (
     <div className="profile-grid">
       <Field
@@ -608,7 +618,7 @@ export function TrainerProfilePage({
                 role="tabpanel"
                 aria-labelledby={`profile-tab-${tab}`}
               >
-                {tab === "personal" ? personalPanel : professionalPanel}
+                {tab === "personal" ? personalPanel : tab === "address" ? addressPanel : professionalPanel}
 
                 {errors.form && (
                   <p className="profile-form-error" role="alert">
@@ -618,7 +628,7 @@ export function TrainerProfilePage({
 
                 <div className="trainer-profile-feedback-row">
                   <span className="profile-feedback" role="status" aria-live="polite">
-                    {feedback || (dirty ? "Kaydedilmemiş değişiklikleriniz var." : "")}
+                    {tab === "address" ? "" : (feedback || (dirty ? "Kaydedilmemiş değişiklikleriniz var." : ""))}
                   </span>
 
                   {tab === "personal" && (
@@ -676,7 +686,7 @@ export function TrainerProfilePage({
               <div className="trainer-specialty-badges" aria-label="Uzmanlık rozetleri">
                 {badges.map((badge) => (
                   <div className="trainer-specialty-badge" key={badge.id} title={badge.label} aria-label={badge.label}>
-                    <SpecialtyBadgeIcon symbol={badge.symbol} />
+                    <TrainerQualificationBadgeR5 title={badge.label} fallback={null} size={76} />
                     <span>{badge.label}</span>
                   </div>
                 ))}
@@ -769,81 +779,5 @@ function Field({
   );
 }
 
-function SpecialtyBadgeIcon({ symbol }: { symbol: BadgeDef["symbol"] }) {
-  const common = {
-    width: 26,
-    height: 26,
-    viewBox: "0 0 26 26",
-    fill: "none",
-    xmlns: "http://www.w3.org/2000/svg",
-    "aria-hidden": true,
-  } as const;
 
-  if (symbol === "speed") {
-    return (
-      <svg {...common}>
-        <path d="M4 15a9 9 0 1 1 18 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="M13 14l5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="13" cy="14" r="2" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  if (symbol === "flow") {
-    return (
-      <svg {...common}>
-        <path d="M4 8h12M4 13h18M4 18h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="m18 6 4 2-4 2" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  if (symbol === "focus") {
-    return (
-      <svg {...common}>
-        <circle cx="13" cy="13" r="8" stroke="currentColor" strokeWidth="2" />
-        <circle cx="13" cy="13" r="3" fill="currentColor" />
-        <path d="M13 2v3M13 21v3M2 13h3M21 13h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (symbol === "paragraph") {
-    return (
-      <svg {...common}>
-        <path d="M7 5h12M7 10h12M7 15h8M7 20h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="4" cy="5" r="1.3" fill="currentColor" />
-        <circle cx="4" cy="10" r="1.3" fill="currentColor" />
-        <circle cx="4" cy="15" r="1.3" fill="currentColor" />
-        <circle cx="4" cy="20" r="1.3" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  if (symbol === "understand") {
-    return (
-      <svg {...common}>
-        <path d="M5 7.5C7.5 5 10 4 13 4s5.5 1 8 3.5V20c-2.5-1.6-5-2.4-8-2.4S7.5 18.4 5 20V7.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        <path d="M13 4v13.5" stroke="currentColor" strokeWidth="2" />
-      </svg>
-    );
-  }
-
-  if (symbol === "coach") {
-    return (
-      <svg {...common}>
-        <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="2" />
-        <path d="M4 21c.5-5 2.5-7 5-7s4.5 2 5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="m17 10 2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg {...common}>
-      <path d="M5 5h16v16H5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M9 10h8M9 14h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="m15 18 2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+/* FIXOKU_BADGES_R9: superseded SVG previews removed. */

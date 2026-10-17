@@ -202,7 +202,7 @@ function WhatsAppIcon() {
 function Header() {
   const location = useLocation();
   const isHomePath = location.pathname === "/";
-  const headerLogoSrc = isHomePath ? "/logo-fixoku.png" : "/siyah-logo-fixoku.png";
+  const headerLogoSrc = (isHomePath || location.pathname === "/hizli-okuma-egitmeni-ol" || location.pathname === "/iletisim") ? "/logo-fixoku.png" : "/siyah-logo-fixoku.png";
   const [desktopActiveMenu, setDesktopActiveMenu] = useState("");
   const [mobileActiveMenu, setMobileActiveMenu] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -432,7 +432,7 @@ function Header() {
 
             <div className="top-actions">
               <Link to={TRAINING_HUB_PATH} className="action-btn store-btn">Eğitimleri İncele</Link>
-              <button type="button" className="action-btn purchase-btn" disabled aria-disabled="true" title="Satın alma bağlantısı henüz tanımlanmadı">Satın Al</button>
+              <Link to="/egitim-paketleri" className="action-btn purchase-btn">Satın Al</Link>
               <Link to="/giris" className="action-btn login-btn">Giriş Yap</Link>
             </div>
           </div>
@@ -525,7 +525,7 @@ function Header() {
 
             <div className="mobile-actions">
               <Link to={TRAINING_HUB_PATH} className="action-btn store-btn" onClick={closeMobileMenu}>Eğitimleri İncele</Link>
-              <button type="button" className="action-btn purchase-btn" disabled aria-disabled="true" title="Satın alma bağlantısı henüz tanımlanmadı">Satın Al</button>
+              <Link to="/egitim-paketleri" className="action-btn purchase-btn">Satın Al</Link>
               <Link to="/giris" className="action-btn login-btn">Giriş Yap</Link>
             </div>
 
@@ -1398,6 +1398,35 @@ function Header() {
             .mobile-bottom-nav {
               background: rgba(255, 255, 255, 0.97) !important;
             }
+          }
+        }
+
+        /* FIXOKU_022S_DESKTOP_DROPDOWN_SINGLE_LINE */
+        @media (min-width: 1101px) {
+          .glass-menu .icon-dropdown {
+            width: max-content !important;
+            min-width: 510px !important;
+            max-width: calc(100vw - 36px) !important;
+            padding: 13px !important;
+          }
+          .glass-menu .icon-dropdown a {
+            display: grid !important;
+            grid-template-columns: 38px max-content !important;
+            align-items: center;
+            gap: 13px;
+            min-height: 52px;
+            padding: 8px 14px !important;
+            white-space: nowrap !important;
+          }
+          .glass-menu .icon-dropdown a > span:last-child {
+            white-space: nowrap !important;
+            overflow-wrap: normal !important;
+            word-break: normal !important;
+          }
+          .glass-menu .nav-item-egitimlerimiz .icon-dropdown,
+          .glass-menu .nav-item-kurumsal .icon-dropdown {
+            left: auto !important;
+            right: 0 !important;
           }
         }
 

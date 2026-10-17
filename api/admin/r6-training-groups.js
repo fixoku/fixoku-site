@@ -55,6 +55,76 @@ async function assertParticipantTargets(client, participants) {
   }
 }
 
+async function readGroupAssignmentCandidatesV22(client) {
+  return (await client.query(`
+    select distinct on (
+      pe.beneficiary_student_user_id,
+      pe.package_version_id,
+      pp.id
+    )
+      u.id as "studentUserId",
+      sp.id as "studentProfileId",
+      u.display_name as "studentName",
+      u.email as "studentEmail",
+      sp.education_stage as "educationStage",
+      sp.grade,
+      sp.class_branch as "classBranch",
+      sp.school,
+      pe.package_version_id as "packageVersionId",
+      pv.title as "packageTitle",
+      pp.id as "trainingProductId",
+      pp.title as "trainingTitle",
+      pp.service_type as "trainingType",
+      pp.service_mode as "serviceMode",
+      coalesce(pp.min_students,1)::int as "configuredMinStudents",
+      coalesce(pp.max_students,5)::int as "maxStudents",
+      qd.id as "requiredQualificationId",
+      qd.code as "requiredQualificationCode",
+      qd.title as "requiredQualificationTitle"
+    from package_entitlements pe
+    join platform_users u
+      on u.id=pe.beneficiary_student_user_id
+    left join student_profiles sp
+      on sp.user_id=u.id
+    join package_versions pv
+      on pv.id=pe.package_version_id
+    join package_components pc
+      on pc.package_version_id=pe.package_version_id
+     and pc.is_active=true
+    join physical_products pp
+      on pp.id=coalesce(pc.physical_product_id,pc.reference_id)
+     and pp.is_active=true
+    join lateral (
+      select q.id,q.code,q.title
+      from r6_qualification_definitions q
+      where q.service_type=pp.service_type
+        and q.education_stage=sp.education_stage
+      order by q.code
+      limit 1
+    ) qd on true
+    where pe.status='ACTIVE'
+      and pp.r6_product_type='TRAINING_SERVICE'
+      and pp.service_mode='GROUP'
+      and not exists (
+        select 1
+        from r6_training_group_participants rgp
+        join r6_training_groups rg
+          on rg.id=rgp.training_group_id
+        where rgp.student_user_id=u.id
+          and rgp.status='ACTIVE'
+          and rg.mode='GROUP'
+          and rg.education_stage=sp.education_stage
+          and rg.training_type=pp.service_type
+          and rg.required_qualification_id=qd.id
+          and rg.status in ('DRAFT','ASSIGNED','IN_PROGRESS')
+      )
+    order by
+      pe.beneficiary_student_user_id,
+      pe.package_version_id,
+      pp.id,
+      pe.effective_at desc
+  `)).rows;
+}
 async function readGroups(client, { trainerUserId = null } = {}) {
   const rows = (await client.query(`
     select g.id,g.package_version_id as "packageVersionId",g.training_product_id as "trainingProductId",
@@ -63,7 +133,7 @@ async function readGroups(client, { trainerUserId = null } = {}) {
       g.min_students as "minStudents",g.max_students as "maxStudents",g.status,
       g.projected_payout_minor as "projectedPayoutMinor",g.completed_at as "completedAt",g.created_at as "createdAt",
       tu.display_name as "trainerName",qd.code as "requiredQualificationCode",qd.title as "requiredQualificationTitle",
-      coalesce(json_agg(json_build_object('id',p.id,'studentUserId',p.student_user_id,'childProfileId',p.child_profile_id,'studentProfileId',p.student_profile_id,'enrollmentId',p.enrollment_id,'status',p.status,'billable',p.billable,'studentName',coalesce(su.display_name,concat_ws(' ',c.first_name,c.last_name)),'studentEmail',su.email,'guardianName',sp.guardian_name,'guardianEmail',sp.guardian_email) order by p.created_at) filter(where p.id is not null),'[]'::json) as participants,
+      coalesce(json_agg(json_build_object('id',p.id,'studentUserId',p.student_user_id,'childProfileId',p.child_profile_id,'studentProfileId',p.student_profile_id,'enrollmentId',p.enrollment_id,'status',p.status,'billable',p.billable,'studentName',coalesce(su.display_name,concat_ws(' ',c.first_name,c.last_name)),'studentEmail',su.email,'guardianName',sp.guardian_name,'guardianEmail',sp.guardian_email,'grade',sp.grade,'classBranch',sp.class_branch) order by p.created_at) filter(where p.id is not null),'[]'::json) as participants,
       count(p.id) filter(where p.status='ACTIVE')::int as "activeParticipantCount",
       count(p.id) filter(where p.status='ACTIVE' and p.billable=true)::int as "billableParticipantCount"
     from r6_training_groups g
@@ -94,7 +164,7 @@ export default async function handler(req, res) {
       const parsed = new URL(req.url || "http://local", "http://local");
       const requestedTrainer = parsed.searchParams.get("trainerUserId") || null;
       if (manageDenied && requestedTrainer && String(requestedTrainer) !== String(principal.user.id)) return json(res, 403, { error: "R6_GROUP_SCOPE_DENIED" });
-      return json(res, 200, { groups: await readGroups(client, { trainerUserId: manageDenied ? principal.user.id : requestedTrainer }) });
+      return json(res, 200, { groups: await readGroups(client, { trainerUserId: manageDenied ? principal.user.id : requestedTrainer }), candidates: await readGroupAssignmentCandidatesV22(client) });
     }
     if (manageDenied) return json(res, manageDenied.status, manageDenied.body);
     let body;
@@ -115,12 +185,102 @@ export default async function handler(req, res) {
     await assertParticipantTargets(client, input.participants);
     const matrixRows = (await client.query("select training_type,student_count,amount_minor from r6_training_payout_matrix where training_type=$1", [input.trainingType])).rows;
     const billableCount = input.participants.length;
-    const projectedPayoutMinor = billableCount ? calculateR6PayoutFromMatrix(matrixRows, input.trainingType, billableCount) : 0;
+    const initialPayoutRow = matrixRows.find((candidate) =>
+      String(candidate.training_type || candidate.trainingType).toUpperCase() === String(input.trainingType).toUpperCase() &&
+      Number(candidate.student_count ?? candidate.studentCount) === billableCount
+    );
+    const projectedPayoutMinor = billableCount && initialPayoutRow
+      ? calculateR6PayoutFromMatrix(matrixRows, input.trainingType, billableCount)
+      : 0;
     const status = r6GroupStatus({ trainerUserId: input.trainerUserId, participantCount: input.participants.length, minStudents: input.minStudents });
-    const group = (await client.query(`insert into r6_training_groups(package_version_id,training_product_id,required_qualification_id,trainer_user_id,education_stage,training_type,mode,min_students,max_students,status,projected_payout_minor,created_by) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning *`, [input.packageVersionId || null, input.trainingProductId || null, qualification.id, input.trainerUserId || null, input.educationStage, input.trainingType, input.mode, input.minStudents, input.maxStudents, status, projectedPayoutMinor, principal.user.id])).rows[0];
+    /* AUTO_GROUP_REUSE_V21 */
+let group = null;
+const automaticGroupAssignment =
+  input.mode === "GROUP" &&
+  Boolean(input.trainerUserId) &&
+  Array.isArray(input.participants) &&
+  input.participants.length === 1;
+
+if (automaticGroupAssignment) {
+  const participant = input.participants[0];
+
+  const duplicate = (await client.query(
+    `select rg.id
+     from r6_training_group_participants rgp
+     join r6_training_groups rg on rg.id=rgp.training_group_id
+     where rgp.student_user_id=$1
+       and rgp.status='ACTIVE'
+       and rg.mode='GROUP'
+       and rg.education_stage=$2
+       and rg.training_type=$3
+       and rg.required_qualification_id=$4
+       and rg.status in ('DRAFT','ASSIGNED','IN_PROGRESS')
+     limit 1`,
+    [participant.studentUserId, input.educationStage, input.trainingType, qualification.id]
+  )).rows[0];
+
+  if (duplicate) {
+    throw Object.assign(new Error("R6_PARTICIPANT_ALREADY_GROUPED"), { status: 409 });
+  }
+
+  group = (await client.query(
+    `select g.*
+     from r6_training_groups g
+     where g.trainer_user_id=$1
+       and g.required_qualification_id=$2
+       and g.education_stage=$3
+       and g.training_type=$4
+       and g.mode='GROUP'
+       and g.status in ('DRAFT','ASSIGNED','IN_PROGRESS')
+       and (
+         select count(*)::int
+         from r6_training_group_participants p
+         where p.training_group_id=g.id
+           and p.status='ACTIVE'
+       ) < g.max_students
+     order by g.created_at asc, g.id asc
+     limit 1
+     for update skip locked`,
+    [input.trainerUserId, qualification.id, input.educationStage, input.trainingType]
+  )).rows[0] || null;
+}
+
+if (!group) {
+  group = (await client.query(`insert into r6_training_groups(package_version_id,training_product_id,required_qualification_id,trainer_user_id,education_stage,training_type,mode,min_students,max_students,status,projected_payout_minor,created_by) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning *`, [input.packageVersionId || null, input.trainingProductId || null, qualification.id, input.trainerUserId || null, input.educationStage, input.trainingType, input.mode, input.minStudents, input.maxStudents, status, projectedPayoutMinor, principal.user.id])).rows[0];
+}
     for (const participant of input.participants) {
       await client.query("insert into r6_training_group_participants(training_group_id,child_profile_id,student_profile_id,student_user_id,enrollment_id,status,billable) values($1,$2,$3,$4,$5,'ACTIVE',true)", [group.id, participant.childProfileId || null, participant.studentProfileId || null, participant.studentUserId, participant.enrollmentId || null]);
     }
+    const refreshedGroupState = (await client.query(
+      `select
+         g.min_students as "minStudents",
+         g.max_students as "maxStudents",
+         count(p.id) filter(where p.status='ACTIVE')::int as "activeParticipantCount"
+       from r6_training_groups g
+       left join r6_training_group_participants p on p.training_group_id=g.id
+       where g.id=$1
+       group by g.id`,
+      [group.id],
+    )).rows[0];
+
+    const totalParticipantCount = Number(refreshedGroupState?.activeParticipantCount || 0);
+    const totalPayoutRow = matrixRows.find((candidate) =>
+      String(candidate.training_type || candidate.trainingType).toUpperCase() === String(input.trainingType).toUpperCase() &&
+      Number(candidate.student_count ?? candidate.studentCount) === totalParticipantCount
+    );
+    const totalProjectedPayoutMinor = totalParticipantCount && totalPayoutRow
+      ? calculateR6PayoutFromMatrix(matrixRows, input.trainingType, totalParticipantCount)
+      : 0;
+    const totalStatus = r6GroupStatus({
+      trainerUserId: input.trainerUserId,
+      participantCount: totalParticipantCount,
+      minStudents: Number(refreshedGroupState?.minStudents || input.minStudents || 1),
+    });
+
+    group = (await client.query(
+      "update r6_training_groups set status=$1,projected_payout_minor=$2,updated_at=now() where id=$3 returning *",
+      [totalStatus, totalProjectedPayoutMinor, group.id],
+    )).rows[0];
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'r6.training_group.created','r6_training_group',$2,'SUCCESS',$3,$4)", [principal.user.id, group.id, crypto.randomUUID(), JSON.stringify({ status, trainingType: input.trainingType, mode: input.mode, participantCount: billableCount, projectedPayoutMinor })]);
     await client.query("commit");
     return json(res, 201, { group: { ...group, projectedPayoutMinor }, requiredQualification: qualification, status, projectedPayoutMinor });

@@ -8,20 +8,17 @@ function origin(env = process.env) { return String(env.APP_ORIGIN || "http://127
 export function newInvitationToken() { return crypto.randomBytes(32).toString("base64url"); }
 export function hashInvitationToken(token) { return crypto.createHash("sha256").update(String(token)).digest("hex"); }
 
-/** Create a Better Auth password account through the in-process server handler. */
+/** Invitation authority is checked by the caller before this server API call. */
 export async function createAuthAccount({ email, name, password }) {
-  const response = await auth.handler(new Request("http://local/api/auth/sign-up/email", {
-    method: "POST",
-    headers: { "content-type": "application/json", origin: origin() },
-    body: JSON.stringify({ name, email, password, callbackURL: "/giris" }),
-  }));
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok || !body?.user?.id) {
+  let body;
+  try {
+    body = await auth.api.signUpEmail({ body: { name, email, password, callbackURL: "/giris" } });
+  } catch (cause) {
     const error = new Error("AUTH_ACCOUNT_CREATE_FAILED");
-    error.status = response.status;
-    error.body = body;
+    error.status = cause.statusCode || 503;
     throw error;
   }
+  if (!body?.user?.id) throw new Error("AUTH_ACCOUNT_CREATE_FAILED");
   return body.user;
 }
 

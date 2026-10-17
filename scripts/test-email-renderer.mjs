@@ -16,7 +16,7 @@ let claim = 0;
 const client = { query: async (sql) => {
   if (sql.startsWith("update notification_email_outbox set status='PROCESSING'")) {
     if (claim++) return { rows: [] };
-    return { rows: [{ id: "renderer-1", event_type: "MARKETING_PERMISSION_AWARE", recipient_email: "demo@example.test", subject: "Demo", body: "Gövde", attempt_count: 1 }] };
+    return { rows: [{ id: "renderer-1", event_type: "PROFILE_COMPLETION", recipient_email: "demo@example.test", recipient_name: "Demo", reference: "R-1", cta_path: "/tercihler", subject: "Demo", body: "Gövde", attempt_count: 1 }] };
   }
   return { rows: [] };
 } };

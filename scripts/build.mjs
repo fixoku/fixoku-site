@@ -7,9 +7,9 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
 const temporaryServerDirectory = path.join(projectRoot, ".prerender-server");
 const viteCli = path.join(projectRoot, "node_modules", "vite", "bin", "vite.js");
-// Avoid Vite's Windows-sensitive temporary config bundle under node_modules/.vite-temp.
-// The supported runner loader evaluates the existing config in place.
-const viteConfigLoaderArgs = ["--configLoader", "runner"];
+// Load the ESM config with Node so CommonJS dependencies retain their native
+// require scope. Vite's runner loader cannot evaluate the current plugin chain.
+const viteConfigLoaderArgs = ["--configLoader", "native"];
 
 function run(label, command, args) {
   console.log(`\n[build] ${label}`);

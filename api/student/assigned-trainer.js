@@ -6,15 +6,7 @@ import {
   readProfilePhoto,
 } from "../../src/server/domain/profile-media.js";
 
-const PREVIEW_BADGES = Object.freeze([
-  { id: "speed-reading", label: "Hızlı Okuma", symbol: "speed" },
-  { id: "fluent-reading", label: "Akıcı Okuma", symbol: "flow" },
-  { id: "focus", label: "Dikkat Çalışmaları", symbol: "focus" },
-  { id: "paragraph", label: "Paragraf Teknikleri", symbol: "paragraph" },
-  { id: "comprehension", label: "Anlama ve Yorumlama", symbol: "understand" },
-  { id: "coaching", label: "Öğrenci Koçluğu", symbol: "coach" },
-  { id: "exam", label: "Sınav Stratejileri", symbol: "exam" },
-]);
+// FIXOKU_BADGES_R9: only database-backed active qualifications.
 
 const json = (res, status, body) => {
   res.statusCode = status;
@@ -28,16 +20,6 @@ const headersOf = (req) =>
   new Headers(
     Object.entries(req.headers || {}).map(([key, value]) => [key, String(value)]),
   );
-
-function normalizedName(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/ı/gu, "i")
-    .toLocaleLowerCase("en-US")
-    .replace(/\s+/gu, " ")
-    .trim();
-}
 
 async function assignedTrainer(client, studentUserId) {
   return (
@@ -154,10 +136,17 @@ export default async function handler(req, res) {
       `${firstName} ${lastName}`.trim() ||
       String(trainer.displayName || "").trim();
 
-    const localPreview =
-      process.env.NODE_ENV !== "production" &&
-      process.env.LOCAL_REVIEW_MODE === "1" &&
-      normalizedName(displayName) === "ozlem kaplan";
+    const qualifications = (await client.query(
+      `select distinct qd.code as id, qd.title as label
+       from r6_trainer_qualification_grants g
+       join r6_qualification_definitions qd on qd.id = g.qualification_id
+       where g.trainer_user_id = $1
+         and g.status = 'ACTIVE'
+         and g.revoked_at is null
+         and (g.valid_until is null or g.valid_until > now())
+       order by label`,
+      [trainer.trainerUserId],
+    )).rows;
 
     const photoParams = new URLSearchParams();
     photoParams.set("photo", "1");
@@ -181,7 +170,7 @@ export default async function handler(req, res) {
         photoUrl: trainer.photoStorageKey
           ? `/api/student/assigned-trainer?${photoParams.toString()}`
           : null,
-        badges: localPreview ? PREVIEW_BADGES : [],
+        badges: qualifications,
       },
     });
   } catch (error) {

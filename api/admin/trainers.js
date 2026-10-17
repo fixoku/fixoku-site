@@ -7,12 +7,35 @@ const SOURCE = new Set(["PACKAGE_COMPLETION", "ADMIN_GRANT", "LEGACY_IMPORT"]);
 const ACTION = new Set(["grant", "suspend", "revoke", "reactivate"]);
 export default async function handler(req, res) {
   const principal = await resolvePrincipal(headers(req)); if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
-  const denied = requirePermission(principal, "qualification.manage"); if (denied) return json(res, denied.status, denied.body);
+  const denied = requirePermission(principal, "qualification.manage"); if (denied) return json(res, denied.status, denied.body); if(req.method!=="GET") return json(res,405,{error:"QUALIFICATION_MANAGEMENT_REMOVED_USE_TRAINER_ACCESS"});
   if (req.method !== "GET" && req.method !== "POST") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect();
   try {
     if (req.method === "GET") {
-      const rows = (await client.query(`select u.id,u.display_name as "displayName",u.email,m.status as "membershipStatus",q.id as "qualificationId",q.training_program_id as "trainingProgramId",tp.title as "programTitle",q.status as "qualificationStatus",q.source,q.granted_by as "grantedBy",q.granted_at as "grantedAt",q.valid_from as "validFrom",q.valid_until as "validUntil",q.reason,q.suspended_at as "suspendedAt",q.revoked_at as "revokedAt",q.revoked_by as "revokedBy",q.revoked_reason as "revokedReason" from platform_users u join platform_memberships m on m.user_id=u.id and m.role='TRAINER' and m.status='ACTIVE' left join trainer_qualifications q on q.trainer_user_id=u.id left join training_programs tp on tp.id=q.training_program_id order by u.display_name,q.granted_at desc`)).rows;
+      const rows = (await client.query(`select
+        u.id,
+        u.display_name as "displayName",
+        u.email,
+        m.status as "membershipStatus",
+        g.id as "qualificationId",
+        qd.id as "trainingProgramId",
+        qd.title as "programTitle",
+        g.status as "qualificationStatus",
+        g.source,
+        g.granted_by as "grantedBy",
+        g.granted_at as "grantedAt",
+        null::timestamptz as "validFrom",
+        g.valid_until as "validUntil",
+        null::text as reason,
+        null::timestamptz as "suspendedAt",
+        g.revoked_at as "revokedAt",
+        g.revoked_by as "revokedBy",
+        g.revoke_reason as "revokedReason"
+      from platform_users u
+      join platform_memberships m on m.user_id=u.id and m.role='TRAINER' and m.status='ACTIVE'
+      left join r6_trainer_qualification_grants g on g.trainer_user_id=u.id
+      left join r6_qualification_definitions qd on qd.id=g.qualification_id
+      order by u.display_name,g.granted_at desc`)).rows; /* R6_CANONICAL_DIRECTORY_V29 */
       const trainingPrograms = (await client.query("select id,title,slug from training_programs where audience='TRAINER' and status='PUBLISHED' order by display_order,id")).rows;
       return json(res, 200, { trainers: rows, trainingPrograms });
     }

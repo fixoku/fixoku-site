@@ -29,6 +29,20 @@ export const studentReadingLandingRoute = {
   ],
 };
 
+export const educationPackagesPublicRoute = {
+  path: "/egitim-paketleri",
+  title: "Eğitim Paketleri ve Hızlı Okuma Programları | Fixoku",
+  description:
+    "Fixoku eğitim paketlerini ilkokul, ortaokul, lise, yetişkin ve paragraf kategorilerinde inceleyin. İçerik, kitap ve güncel paket seçeneklerini keşfedin.",
+  heading: "Eğitim Paketlerimiz",
+  distinguishingText: "Eğitim Paketlerimiz",
+  schemaType: "CollectionPage",
+  breadcrumbs: [
+    { label: "Ana Sayfa", path: "/" },
+    { label: "Eğitim Paketleri", path: "/egitim-paketleri" },
+  ],
+};
+
 const existingPublicRoutes = [
   {
     path: "/",
@@ -52,6 +66,7 @@ const existingPublicRoutes = [
       { label: "İletişim", path: "/iletisim" },
     ],
   },
+  educationPackagesPublicRoute,
   studentReadingLandingRoute,
   institutionReadingLandingRoute,
   instructorReadingLandingRoute,
@@ -117,7 +132,7 @@ const corporateRoutes = createContentRoutes(corporatePages, {
 
 const legalRoutes = legalPages.map((page) => ({
   path: page.path,
-  title: page.seoTitle,
+  title: page.path === "/kvkk" ? "Kişisel Veriler ve KVKK Hakları | Fixoku" : page.seoTitle,
   description: page.metaDescription,
   heading: page.heading,
   distinguishingText: page.heading,

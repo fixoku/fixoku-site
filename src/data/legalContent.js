@@ -1,3 +1,4 @@
+import { legalPublicPages2026 } from './legalPublicPages2026.js';
 export const contactPhones = {
   mobile: {
     label: "Cep / WhatsApp",
@@ -269,25 +270,8 @@ export const legalPages = [
   },
 ];
 
-const draftLegalRoutes = [
-  ["/kvkk-aydinlatma-metni", "KVKK Aydınlatma Metni"],
-  ["/acik-riza", "Açık Rıza Metni"],
-  ["/ticari-elektronik-ileti", "Ticari Elektronik İleti"],
-  ["/kullanim-kosullari", "Kullanım Koşulları"],
-  ["/uyelik-sozlesmesi", "Üyelik Sözleşmesi"],
-  ["/mesafeli-satis-sozlesmesi", "Mesafeli Satış Sözleşmesi"],
-  ["/on-bilgilendirme-formu", "Ön Bilgilendirme Formu"],
-  ["/iptal-iade-cayma-politikasi", "İptal, İade ve Cayma Politikası"],
-  ["/teslimat-kargo-politikasi", "Teslimat ve Kargo Politikası"],
-  ["/dijital-icerik-ve-hizmet-kosullari", "Dijital İçerik ve Hizmet Koşulları"],
-  ["/veri-sahibi-basvuru-formu", "Veri Sahibi Başvuru Formu"],
-].map(([path, heading]) => ({
-  kind: "legal", slug: path.slice(1), path, eyebrow: "Yasal Taslak", heading,
-  seoTitle: `${heading} | Fixoku`, metaDescription: `${heading} hakkında Fixoku taslak bilgilendirmesi.`,
-  summary: "Bu metin hukuki inceleme için hazırlanmış taslaktır. Yayından önce şirket bilgileri ve uygulanabilir mevzuat doğrulanmalıdır.", readingTime: "3 dakika", schemaType: "WebPage", updatedAt,
-  sections: [{ id: "taslak", title: "Taslak ve hukuki inceleme", paragraphs: ["LEGAL_VALUE_REQUIRED — Bu belgede yer alan şirket, vergi, iletişim, fiyat, teslimat ve hizmete özgü bilgiler yetkili kişi tarafından doğrulanıp tamamlanmalıdır.", "Fixoku; fiziksel ürün, dijital içerik, dijital erişim ve eğitim hizmetleri için koşulları ürün ve sipariş türüne göre ayrı sunar. İsteğe bağlı pazarlama izni hizmetin kurulması için zorunlu değildir.", `Son güncelleme: ${updatedAt}. Bu belge avukat onayı değildir.`] }],
-}));
-legalPages.push(...draftLegalRoutes);
+// FIXOKU 021I: yerel kullanıcı bilgilendirme sayfaları. Yayın ve hukuki onay ayrıca doğrulanır.
+legalPages.splice(0, legalPages.length, ...legalPublicPages2026);
 
 export const legalContentByPath = Object.fromEntries(
   legalPages.map((page) => [page.path, page]),

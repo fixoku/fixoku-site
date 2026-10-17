@@ -58,9 +58,25 @@ export default async function handler(req, res) {
   if (!["GET", "POST"].includes(req.method)) return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
-    if (req.method === "GET") return json(res, 200, { products: (await pool.query(`${selectProducts} order by is_active desc,title,sku`)).rows });
-    const body = fields(await read(req));
-    const row = (await pool.query(`insert into physical_products(sku,title,description,product_type,is_active,weight_grams,dimensions_json,stock_location,low_stock_threshold,cost_minor,currency,image_reference,r6_product_type,list_gross_minor,vat_rate_bps,default_access_days,service_type,service_mode,min_students,max_students) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) returning id,sku,title,description,product_type as "productType",r6_product_type as "r6ProductType",list_gross_minor as "listGrossMinor",vat_rate_bps as "vatRateBps",default_access_days as "defaultAccessDays",service_type as "serviceType",service_mode as "serviceMode",min_students as "minStudents",max_students as "maxStudents"`, [body.sku, body.title, body.description, body.productType, body.isActive, body.weightGrams, body.dimensionsJson, body.stockLocation, body.lowStockThreshold, body.costMinor, body.currency, body.imageReference, body.r6ProductType, body.listGrossMinor, body.vatRateBps, body.defaultAccessDays, body.serviceType, body.serviceMode, body.minStudents, body.maxStudents])).rows[0];
+    if (req.method === "GET") {
+      const products = (await pool.query(`${selectProducts} order by is_active desc,title,sku`)).rows;
+      const stages = (await pool.query("select physical_product_id as id,education_stage::text as stage from r6_product_stage_scopes")).rows;
+      for (const product of products) product.stageScopes = stages.filter((stage) => stage.id === product.id).map((stage) => stage.stage);
+      return json(res, 200, { products });
+    }
+    const input = await read(req);
+    const stageScopes = input.stageScopes === undefined ? ["PRIMARY","MIDDLE","HIGH","ADULT"] : input.stageScopes;
+    if (!Array.isArray(stageScopes) || stageScopes.length < 1 || stageScopes.some((s) => !["PRIMARY","MIDDLE","HIGH","ADULT"].includes(s))) return json(res,400,{error:"PRODUCT_STAGES_INVALID"});
+    const body = fields(input);
+    const client = await pool.connect();
+    let row;
+    try {
+      await client.query("begin");
+      row = (await client.query(`insert into physical_products(sku,title,description,product_type,is_active,weight_grams,dimensions_json,stock_location,low_stock_threshold,cost_minor,currency,image_reference,r6_product_type,list_gross_minor,vat_rate_bps,default_access_days,service_type,service_mode,min_students,max_students) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) returning id,sku,title,description,product_type as "productType",r6_product_type as "r6ProductType",list_gross_minor as "listGrossMinor",vat_rate_bps as "vatRateBps",default_access_days as "defaultAccessDays",service_type as "serviceType",service_mode as "serviceMode",min_students as "minStudents",max_students as "maxStudents"`, [body.sku, body.title, body.description, body.productType, body.isActive, body.weightGrams, body.dimensionsJson, body.stockLocation, body.lowStockThreshold, body.costMinor, body.currency, body.imageReference, body.r6ProductType, body.listGrossMinor, body.vatRateBps, body.defaultAccessDays, body.serviceType, body.serviceMode, body.minStudents, body.maxStudents])).rows[0];
+      for (const stage of [...new Set(stageScopes)]) await client.query("insert into r6_product_stage_scopes(physical_product_id,education_stage) values($1,$2::education_stage)",[row.id,stage]);
+      await client.query("commit");
+    } catch (error) { await client.query("rollback").catch(()=>{}); throw error; }
+    finally { client.release(); }
     return json(res, 201, { product: row });
   } catch (error) { return json(res, error.status || (error.code === "23505" ? 409 : 503), { error: error.code === "23505" ? "SKU_ALREADY_EXISTS" : error.message || "PRODUCTS_UNAVAILABLE" }); } finally { await pool.end(); }
 }

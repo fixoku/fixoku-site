@@ -38,11 +38,43 @@ export function verifyPaytrCallback(fields, env = process.env) {
   return actual.length === wanted.length && crypto.timingSafeEqual(wanted, actual);
 }
 
+
+/** Use only persisted checkout snapshots, never customer fields from an unauthenticated client. */
+export function paytrCustomerFromOrder(row) {
+  const object = (value) => {
+    if (value && typeof value === "object" && !Array.isArray(value)) return value;
+    if (typeof value === "string") {
+      try { const parsed = JSON.parse(value); return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {}; }
+      catch { return {}; }
+    }
+    return {};
+  };
+  const shipping = object(row?.shippingSnapshot);
+  const billing = object(row?.billingSnapshot);
+  const join = (...parts) => parts.map((part) => String(part || "").trim()).filter(Boolean).join(" ");
+  const userName = join(billing.firstName, billing.lastName) || join(shipping.firstName, shipping.lastName) || String(row?.customerName || "").trim();
+  const userAddress = [shipping.addressLine || billing.addressLine, shipping.district || billing.district, shipping.city || billing.city].map((item) => String(item || "").trim()).filter(Boolean).join(", ");
+  const userPhone = String(shipping.phone || billing.phone || "").trim();
+  return { userName, userAddress, userPhone };
+}
+
+function validatePaytrCustomer(input) {
+  const userName = String(input?.userName || "").trim();
+  const userAddress = String(input?.userAddress || "").trim();
+  const userPhone = String(input?.userPhone || "").trim();
+  if (!userName || userName.length > 60 || !userAddress || userAddress.length > 400 || !userPhone || userPhone.length > 20) {
+    const error = new Error("PAYTR_CUSTOMER_INFO_REQUIRED"); error.code = "PAYTR_CUSTOMER_INFO_REQUIRED"; error.status = 422; throw error;
+  }
+  return { userName, userAddress, userPhone };
+}
+
 export async function requestPaytrIframeToken(input, env = process.env) {
   const c = paytrConfig(env);
+  const customer = validatePaytrCustomer(input);
   const token = paytrToken(input, env);
   const form = new URLSearchParams({
     merchant_id: c.merchantId, user_ip: input.userIp, merchant_oid: input.merchantOid,
+    user_name: customer.userName, user_address: customer.userAddress, user_phone: customer.userPhone,
     email: input.email, payment_amount: String(input.paymentAmount), paytr_token: token,
     user_basket: input.userBasket, no_installment: String(input.noInstallment || "0"),
     max_installment: String(input.maxInstallmentNum || "0"), currency: input.currency || "TL",

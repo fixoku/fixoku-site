@@ -2,6 +2,7 @@ import { resolvePrincipal, requirePermission } from "../src/server/auth/authoriz
 import { getSmtpConfig } from "../src/server/domain/email-outbox.js";
 import { getDigitalStorageConfig } from "../src/server/domain/digital-delivery.js";
 import { shippingRuntime } from "../src/server/shipping/adapter.js";
+import { paytrRuntime } from "../src/server/payments/paytr.js";
 
 const json = (res, status, body) => {
   res.statusCode = status;
@@ -25,12 +26,14 @@ export default async function handler(req, res) {
   const smtp = getSmtpConfig();
   const storage = getDigitalStorageConfig();
   const shipping = shippingRuntime();
+  const paytr = paytrRuntime();
   const emailTest = String(process.env.EMAIL_PROVIDER || "").toUpperCase() === "TEST" || String(process.env.EMAIL_TEST_MODE || "") === "1";
   return json(res, 200, {
     providers: {
       email: { name: emailTest ? "TEST" : "SMTP", status: smtp ? (emailTest ? "CONFIGURED_TEST" : "CONFIGURED") : "DISABLED_CONFIG_REQUIRED", configured: Boolean(smtp), reason: smtp ? null : "SMTP_CONFIG_REQUIRED" },
       digitalStorage: { name: storage.provider, status: storage.enabled ? "CONFIGURED" : (storage.reason || "DISABLED_CONFIG_REQUIRED"), configured: Boolean(storage.enabled), reason: storage.enabled ? null : storage.reason },
-      shipping: { name: shipping.provider === "DISABLED" || shipping.provider === "SENDEO" ? "Sendeo" : shipping.provider, status: shipping.provider === "DISABLED" ? "CONFIG_REQUIRED" : shipping.status, configured: Boolean(shipping.enabled), reason: shipping.enabled ? null : (shipping.status === "CARRIER_SELECTION_REQUIRED" ? "CARRIER_SELECTION_REQUIRED" : "SHIPPING_CONFIG_REQUIRED") },
+      shipping: { name: shipping.provider === "DISABLED" ? "Kargo seçilmedi" : shipping.provider === "SENDEO" ? "Sendeo" : shipping.provider, status: shipping.provider === "DISABLED" ? "CONFIG_REQUIRED" : shipping.status, configured: Boolean(shipping.enabled), runtimeVerified: false, readyForLive: false, reason: shipping.enabled ? "CARRIER_API_CONTRACT_UNVERIFIED" : (shipping.status === "CARRIER_SELECTION_REQUIRED" ? "CARRIER_SELECTION_REQUIRED" : "SHIPPING_CONFIG_REQUIRED") },
+      paytr: { name: "PayTR", status: paytr.configured ? "CONFIGURED_UNVERIFIED" : "CONFIG_REQUIRED", configured: Boolean(paytr.configured), runtimeVerified: false, readyForLive: false, reason: paytr.configured ? "PAYTR_PROVIDER_RUNTIME_TEST_REQUIRED" : "PAYTR_CONFIG_REQUIRED" },
     },
   });
 }

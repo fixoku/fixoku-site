@@ -102,3 +102,66 @@
     flex: 1 1 120px;
   }
 }
+
+/* FIXOKU RELEASE-019D: keep owned package details available, books in compact gallery */
+.trainer-panel .trainer-owned-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  width:min(100%,208px);
+  gap:8px;
+  margin-left:auto;
+}
+.trainer-panel .trainer-owned-actions :is(a,button){width:100%;min-height:38px;white-space:normal;}
+.trainer-panel .trainer-owned-details-toggle{
+  color:#b45116;
+  border:1px solid #f0bb99;
+  background:#fffaf6;
+}
+.trainer-panel .trainer-package-feature-list{margin:0 0 18px;}
+.trainer-panel .trainer-package-books{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:2px 0 10px;
+  min-width:0;
+}
+.trainer-panel .trainer-package-book{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  gap:11px;
+  padding:10px;
+  border:1px solid #e5e9ee;
+  border-radius:10px;
+  background:#fff;
+}
+.trainer-panel .trainer-package-book-cover{
+  width:68px;
+  min-width:68px;
+  height:96px;
+  min-height:96px;
+  flex:0 0 68px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:4px;
+  background:#fafafa;
+}
+.trainer-panel .trainer-package-book-cover img{
+  display:block;
+  width:100% !important;
+  max-width:100% !important;
+  height:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+}
+.trainer-panel .trainer-package-book-copy{min-width:0;overflow-wrap:anywhere;}
+.trainer-panel .trainer-package-book-copy strong{display:block;font-size:13px;line-height:1.35;color:#273444;}
+.trainer-panel .trainer-package-book-copy small{display:block;margin-top:6px;font-size:12px;color:#667488;}
+@media(max-width:580px){
+  .trainer-panel .trainer-package-books{grid-template-columns:1fr;}
+  .trainer-panel .trainer-owned-actions{width:100%;}
+}
+/* END RELEASE-019D trainer */

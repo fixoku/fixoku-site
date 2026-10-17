@@ -1,0 +1,44 @@
+/* Fixoku E-posta V3. Display-only adjustment for the administrative preview screen. */
+@media (min-width: 761px) {
+  /* Synchronised through a ResizeObserver on the right preview column. */
+  .email-template-review .email-template-workspace {
+    align-items: stretch !important;
+  }
+  .email-template-review .email-template-workspace > .email-template-library {
+    position: relative !important;
+    top: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    border: 1px solid #e1e9f1 !important;
+    border-radius: 17px !important;
+    padding: 15px 13px !important;
+  }
+  .email-template-review .email-template-library > .admin-section-heading {
+    flex: none;
+    padding: 3px 6px 12px;
+  }
+  .email-template-review .email-template-library > .email-template-list {
+    display: grid !important;
+    align-content: start !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    padding: 3px 5px 7px !important;
+    scrollbar-width: thin;
+    scrollbar-color: #d4dee9 transparent;
+  }
+}
+@media (max-width: 760px) {
+  .email-template-review .email-template-workspace > .email-template-library {
+    height: auto !important;
+    max-height: 460px !important;
+    overflow: auto !important;
+    position: static !important;
+  }
+}

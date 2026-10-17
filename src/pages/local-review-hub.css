@@ -6,3 +6,34 @@
 .local-review-toolbar > span:not(.local-review-toolbar-label) { color: #4b3b57; }
 
 .local-review-toolbar>span:not(.local-review-toolbar-label){color:#4b1e74}
+/* FIXOKU_022W_STYLE_START - local review, six profiles only */
+.review-six-page .review-six-shell { max-width: 860px; margin: 0 auto; padding: 72px 24px 96px; }
+.review-six-page .review-six-header { display: block; margin: 0 0 36px; text-align: center; }
+.review-six-page .review-six-header h1 { margin: 0; color: #48146b; font-size: clamp(30px, 4vw, 43px); font-weight: 850; letter-spacing: -0.035em; line-height: 1.16; }
+.review-six-page .review-six-groups { display: grid; gap: 32px; }
+.review-six-page .review-six-group h2 { margin: 0 0 12px; color: #5b2675; font-size: 15px; font-weight: 800; line-height: 1.4; }
+.review-six-page .review-six-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.review-six-page .review-six-card { appearance: none; display: flex; width: 100%; min-height: 108px; align-items: center; gap: 15px; padding: 17px 18px; border: 1px solid #eadff1; border-radius: 17px; background: #fff; box-shadow: 0 8px 26px rgba(40, 15, 55, .045); color: #271331; cursor: pointer; text-align: left; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.review-six-page .review-six-card:hover { border-color: #f27e46; box-shadow: 0 11px 27px rgba(71, 32, 77, .11); transform: translateY(-2px); }
+.review-six-page .review-six-card:focus-visible { outline: 3px solid #fb7b36; outline-offset: 3px; }
+.review-six-page .review-six-card:disabled { cursor: wait; opacity: .7; transform: none; }
+.review-six-page .review-six-card.is-active { border-color: #fa7230; background: #fff9f6; }
+.review-six-page .review-six-avatar { display: flex; flex: 0 0 62px; align-items: center; justify-content: center; width: 62px; height: 62px; overflow: hidden; border-radius: 50%; background: linear-gradient(145deg, #f7eafc, #ffede1); color: #a06aa7; }
+.review-six-page .review-six-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.review-six-page .review-six-avatar svg { width: 43px; height: 43px; }
+.review-six-page .review-six-card-copy { display: grid; flex: 1 1 auto; min-width: 0; gap: 5px; }
+.review-six-page .review-six-card-copy strong { color: #25112f; font-size: 17px; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; }
+.review-six-page .review-six-card-copy small { color: #74677d; font-size: 13px; font-weight: 550; }
+.review-six-page .review-six-card-action { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; color: #df5a18; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.review-six-page .review-six-card-action span { font-size: 17px; }
+@media (max-width: 720px) {
+  .review-six-page .review-six-shell { padding: 44px 16px 70px; }
+  .review-six-page .review-six-groups { gap: 26px; }
+  .review-six-page .review-six-row { grid-template-columns: minmax(0, 1fr); gap: 11px; }
+  .review-six-page .review-six-card { min-height: 94px; padding: 14px; }
+  .review-six-page .review-six-card-copy strong { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .review-six-page .review-six-card { transition: none; }
+}
+/* FIXOKU_022W_STYLE_END */

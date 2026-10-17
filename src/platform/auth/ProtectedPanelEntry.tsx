@@ -66,7 +66,10 @@ export function ProtectedPanelEntry({ requiredRole, children }: { requiredRole?:
     return () => { active = false; };
   }, [location.pathname, requiredRole]);
   if (state.status === "loading") return <main className="route-loading-status" aria-live="polite">Oturum doğrulanıyor…</main>;
-  if (state.status === "denied") return <Navigate replace to={`/giris?returnTo=${encodeURIComponent(location.pathname)}`} />;
+  if (state.status === "denied") {
+    const returnTo = `${location.pathname}${location.search}${location.hash}`;
+    return <Navigate replace to={`/giris?returnTo=${encodeURIComponent(returnTo)}`} />;
+  }
   const allowedRoles = requiredRole ? (Array.isArray(requiredRole) ? requiredRole : [requiredRole]) : [];
   if (allowedRoles.length && !allowedRoles.some((role) => state.context.roles.includes(role))) return <main className="platform-access-denied"><h1>Bu panele erişim izniniz yok.</h1><p>Hesabınızın yetkili olduğu panele devam edebilirsiniz.</p><button type="button" onClick={() => navigate(state.context.destination ?? state.context.destinations?.[0] ?? "/giris")}>Yetkili panele git</button></main>;
   return <><LocalReviewToolbar context={state.context} />{children?.(state.context)}</>;
@@ -100,7 +103,25 @@ export function ProtectedAdminProducts() { return <ProtectedPanelEntry requiredR
 export function ProtectedAdminProductDetail() { return <ProtectedPanelEntry requiredRole={["OWNER", "SUPER_ADMIN"]}>{({ user, uiRole }) => <PanelShell user={user} role={uiRole}><AdminProductDetailPage /></PanelShell>}</ProtectedPanelEntry>; }
 export function ProtectedStudentShipments() { return <ProtectedPanelEntry requiredRole={["STUDENT", "GUARDIAN"]}>{({ user }) => <StudentShipmentsPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedStudentProfile() { return <ProtectedPanelEntry requiredRole={["STUDENT", "GUARDIAN"]}>{({ user, roles }) => <StudentProfilePage user={user} guardian={roles.includes("GUARDIAN") && !roles.includes("STUDENT")} />}</ProtectedPanelEntry>; }
-export function ProtectedStudentChildren() { return <ProtectedPanelEntry requiredRole={["STUDENT", "GUARDIAN"]}>{({ user, roles }) => <StudentChildrenPage user={user} guardian={roles.includes("GUARDIAN") && !roles.includes("STUDENT")} />}</ProtectedPanelEntry>; }
+function FamilyOfferChildrenGate({ user, guardian }: { user: PanelContext["user"]; guardian: boolean }) {
+  const [access, setAccess] = useState<"loading" | "allowed" | "denied">("loading");
+  useEffect(() => {
+    let active = true;
+    fetch("/api/student/family-offers", { credentials: "same-origin", cache: "no-store" })
+      .then(async (response) => response.ok ? response.json() : { offers: [] })
+      .then((data) => {
+        if (active) setAccess(Array.isArray(data.offers) && data.offers.some((offer: { status?: string }) => offer.status === "SENT") ? "allowed" : "denied");
+      })
+      .catch(() => { if (active) setAccess("denied"); });
+    return () => { active = false; };
+  }, []);
+  if (access === "loading") return <main className="route-loading-status" role="status">Aile teklifi erişimi kontrol ediliyor…</main>;
+  if (access === "denied") return <Navigate replace to="/panel/ogrenci" />;
+  return <StudentChildrenPage user={user} guardian={guardian} />;
+}
+export function ProtectedStudentChildren() {
+  return <ProtectedPanelEntry requiredRole={["STUDENT", "GUARDIAN"]}>{({ user, roles }) => <FamilyOfferChildrenGate user={user} guardian={roles.includes("GUARDIAN") && !roles.includes("STUDENT")} />}</ProtectedPanelEntry>;
+}
 
 export function ProtectedStudentPortal() { return <ProtectedPanelEntry requiredRole={["STUDENT", "GUARDIAN"]}>{({ user, roles }) => <StudentPortalPage user={user} roles={roles} />}</ProtectedPanelEntry>; }
 export function ProtectedNotifications() { return <ProtectedPanelEntry>{({ user, roles }) => <NotificationCenterPage user={user} role={roles.includes("OWNER") ? "OWNER" : roles.includes("SUPER_ADMIN") ? "ADMIN" : roles.includes("STUDENT") || roles.includes("GUARDIAN") ? "STUDENT" : "TRAINER"} />}</ProtectedPanelEntry>; }

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import HomeStudentPackagesShowcase from "./components/home/HomeStudentPackagesShowcase.jsx";
 import StudentStoriesSection from "./components/StudentStoriesSection.jsx";
 import TrainerStoriesSection from "./components/TrainerStoriesSection.jsx";
 import SharedPromoVideo from "./components/SharedPromoVideo.jsx";
@@ -146,109 +147,6 @@ function App() {
 
     return () => window.clearInterval(interval);
   }, [sliderCount]);
-
-  const educationStoreItems = useMemo(
-    () => [
-      {
-        category: "Hızlı Okuma",
-        title: "Fixoku Hızlı Okuma Eğitim Kitabı",
-        author: "Fixoku Akademi",
-        price: "Eğitim İçeriği",
-        lessons: "21 Gün",
-        students: "126 Egzersiz",
-        tone: "orange",
-        coverKicker: "Okuma • Anlama",
-        coverTitle: "Hızlı Okuma",
-        coverSub: "Kitap + Yazılım",
-      },
-      {
-        category: "Dikkat",
-        title: "Dikkat ve Odaklanma Egzersiz Kitabı",
-        author: "Fixoku Akademi",
-        price: "Eğitim İçeriği",
-        lessons: "5 Test",
-        students: "9 Analiz",
-        tone: "purple",
-        coverKicker: "Odak • Dikkat",
-        coverTitle: "Dikkat Eğitimi",
-        coverSub: "Oyun Tabanlı",
-      },
-      {
-        category: "LGS",
-        title: "LGS Paragraf ve Zaman Yönetimi",
-        author: "Fixoku Sınav Ekibi",
-        price: "Sınav Paketi",
-        lessons: "8 Modül",
-        students: "LGS Uyumlu",
-        tone: "blue",
-        coverKicker: "LGS Hazırlık",
-        coverTitle: "Paragraf Hızı",
-        coverSub: "Süre Kazandırır",
-      },
-      {
-        category: "YKS",
-        title: "YKS Hızlı Okuma ve Paragraf Eğitimi",
-        author: "Fixoku Sınav Ekibi",
-        price: "Sınav Paketi",
-        lessons: "8 Modül",
-        students: "YKS Uyumlu",
-        tone: "pink",
-        coverKicker: "YKS Hazırlık",
-        coverTitle: "Paragraf Stratejisi",
-        coverSub: "Anlama Odaklı",
-      },
-      {
-        category: "İlkokul",
-        title: "İlkokul Okuma Alışkanlığı Programı",
-        author: "Fixoku Çocuk Ekibi",
-        price: "Seviye Paketi",
-        lessons: "Kolay Seviye",
-        students: "Oyunlu Eğitim",
-        tone: "green",
-        coverKicker: "İlkokul",
-        coverTitle: "Okuma Sevgisi",
-        coverSub: "Temel Beceriler",
-      },
-      {
-        category: "Ortaokul",
-        title: "Ortaokul Hızlı Okuma Gelişim Seti",
-        author: "Fixoku Akademi",
-        price: "Seviye Paketi",
-        lessons: "Orta Seviye",
-        students: "Takip Sistemi",
-        tone: "cyan",
-        coverKicker: "Ortaokul",
-        coverTitle: "Dikkat + Hız",
-        coverSub: "Akademik Destek",
-      },
-      {
-        category: "Lise",
-        title: "Lise Okuma Hızı ve Anlama Seti",
-        author: "Fixoku Akademi",
-        price: "Seviye Paketi",
-        lessons: "İleri Seviye",
-        students: "Sınav Odaklı",
-        tone: "red",
-        coverKicker: "Lise",
-        coverTitle: "Anlama Gücü",
-        coverSub: "Yoğun Program",
-      },
-      {
-        category: "Eğitmen",
-        title: "Fixoku Eğitmen Eğitim Materyalleri",
-        author: "Fixoku Eğitmen Akademisi",
-        price: "Eğitmen Paketi",
-        lessons: "Sertifika",
-        students: "Panel Desteği",
-        tone: "gold",
-        coverKicker: "Eğitmen",
-        coverTitle: "Eğitmen Seti",
-        coverSub: "Kurulum Rehberi",
-      },
-    ],
-    []
-  );
-
 
   const sliderData = [
     {
@@ -1333,80 +1231,7 @@ function App() {
     </div>
 
 
-    <div className="education-store-block">
-      <div className="education-store-heading">
-        <span className="education-store-eyebrow">Fixoku Eğitim Mağazası</span>
-        <h2 className="education-store-title">Premium Eğitim Kitapları ve Programları</h2>
-        <p className="education-store-subtitle">
-          Hızlı okuma, dikkat, odaklanma ve sınav başarısı için hazırlanan Fixoku eğitim içeriklerini keşfedin.
-        </p>
-      </div>
-
-      <div className="education-store-grid">
-        {educationStoreItems.map((item) => (
-          <article className={`education-product-card education-product-${item.tone}`} key={item.title}>
-            <div className="education-product-cover">
-              <button type="button" className="education-product-fav" aria-label={`${item.title} favorilere ekle`}>
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 20s-7-4.4-9.2-8.4C1 8.3 2.8 5 6.2 5c2 0 3.4 1 4.2 2.1C11.2 6 12.6 5 14.6 5 18 5 20 8.3 18.2 11.6 16 15.6 12 20 12 20Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              <div className="education-product-kicker">{item.coverKicker}</div>
-              <div className="education-product-book-icon" aria-hidden="true">
-                <svg viewBox="0 0 96 96" fill="none">
-                  <path d="M22 20h28c8 0 14 6 14 14v42H35c-7 0-13-6-13-13V20Z" fill="rgba(255,255,255,.82)" />
-                  <path d="M64 34c0-8 6-14 14-14h6v56h-6c-8 0-14-6-14-14V34Z" fill="rgba(255,255,255,.55)" />
-                  <path d="M34 36h18M34 48h18M34 60h14" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                  <path d="M64 28v48" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                </svg>
-              </div>
-              <h3>{item.coverTitle}</h3>
-              <p>{item.coverSub}</p>
-            </div>
-
-            <div className="education-product-body">
-              <div className="education-product-stars" aria-label="5 yıldız">
-                ★★★★★
-              </div>
-              <h3 className="education-product-title">{item.title}</h3>
-              <p className="education-product-author">by {item.author}</p>
-              <div className="education-product-price">{item.price}</div>
-
-              <div className="education-product-meta">
-                <span>
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M5 5h10a4 4 0 0 1 4 4v10H9a4 4 0 0 0-4-4V5Z" stroke="currentColor" strokeWidth="2" />
-                    <path d="M5 5v14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  {item.lessons}
-                </span>
-                <span>
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M12 4l8 4-8 4-8-4 8-4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                    <path d="M6 10v5c0 2 3 4 6 4s6-2 6-4v-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  {item.students}
-                </span>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <div className="education-store-action">
-        <a href="/egitimler" className="education-store-btn">
-          <span>Tüm Eğitimleri Keşfet</span>
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
-      </div>
-    </div>
+    <HomeStudentPackagesShowcase />
 
     <div className="faq-block">
       <h2 className="faq-title">Fixoku Hakkında Sık Sorulan Sorular</h2>

@@ -4,6 +4,7 @@ import { pushEvent } from "../martech/events.js";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Giris.css";
 import "./auth-lifecycle.css";
+import "./auth-unified-v4.css";
 
 const roles = {
   STUDENT: { title: "Öğrenci Girişi", register: "/ogrenci-kayit" },
@@ -11,25 +12,87 @@ const roles = {
   ADMIN: { title: "Yönetici Girişi" },
   OWNER: { title: "Sistem Sahibi Girişi" },
 };
-const Shell = ({ title, description, children }) => <main className="fixoku-login-page auth-lifecycle-page"><section className="fixoku-login-card auth-lifecycle-card"><div className="fixoku-login-logo"><img src="/siyah-logo-fixoku.png" alt="Fixoku" /></div><h1>{title}</h1>{description && <p>{description}</p>}{children}</section></main>;
+function safeReturnTo(value) {
+  const candidate = String(value || "");
+  if (!candidate.startsWith("/") || candidate.startsWith("//") || candidate.includes("\\")) return "";
+  try {
+    const parsed = new URL(candidate, "http://fixoku.local");
+    return parsed.origin === "http://fixoku.local" && parsed.pathname.startsWith("/panel/")
+      ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+      : "";
+  } catch { return ""; }
+}
+function AuthRoleIcon({ trainer }) {
+  return trainer ? (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="31" height="31" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m2 9 10-5 10 5-10 5L2 9Z"/><path d="M6 11.3V16c3 2.9 9 2.9 12 0v-4.7"/><path d="M22 9v7"/></svg>
+  ) : (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="31" height="31" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6c-2.6-2-5.4-2.1-9-1v14c3.7-1 6.9-.7 9 1 2.1-1.7 5.3-2 9-1V5c-3.6-1.1-6.4-1-9 1Z"/><path d="M12 6v14"/></svg>
+  );
+}
+
+function Shell({ title, description, children }) {
+  const location = useLocation();
+  const path = location.pathname;
+  const unified = ["/ogrenci-girisi", "/ogretmen-girisi", "/ogrenci-kayit", "/ogretmen-basvuru", "/sifremi-unuttum", "/sifre-sifirla"].includes(path);
+  if (!unified) return <main className="fixoku-login-page auth-lifecycle-page"><section className="fixoku-login-card auth-lifecycle-card"><div className="fixoku-login-logo"><img src="/siyah-logo-fixoku.png" alt="Fixoku" /></div><h1>{title}</h1>{description && <p>{description}</p>}{children}</section></main>;
+  const trainer = path === "/ogretmen-girisi" || path === "/ogretmen-basvuru" || new URLSearchParams(location.search).get("alan") === "egitmen";
+  const loginPath = trainer ? "/ogretmen-girisi" : "/ogrenci-girisi";
+  const registerPath = trainer ? "/ogretmen-basvuru" : "/ogrenci-kayit";
+  const returnTo = safeReturnTo(new URLSearchParams(location.search).get("returnTo"));
+  const withReturnTo = (target) => returnTo ? `${target}?returnTo=${encodeURIComponent(returnTo)}` : target;
+  const isRegistration = path === "/ogrenci-kayit" || path === "/ogretmen-basvuru";
+
+  return <main className="fixoku-login-page auth-lifecycle-page fixu-page">
+    <section className="fixu-layout" aria-label="Fixoku güvenli giriş ve üyelik merkezi">
+      <aside className="fixu-aside">
+        <img className="fixu-aside-logo" src="/fixoku-giris-beyaz-logo.png" alt="Fixoku - Okuyan, Anlayan, Gelişen Nesiller" />
+        <div className="fixu-aside-role"><span className="fixu-aside-icon"><AuthRoleIcon trainer={trainer} /></span><strong>{trainer ? "Eğitmen alanı" : "Öğrenci alanı"}</strong></div>
+        <h2>{trainer ? "Eğitim süreçlerinizi tek merkezden yönetin." : "Derslerinizi, paketlerinizi ve gelişiminizi tek yerden takip edin."}</h2>
+        <p>{trainer ? "Öğrencilerinizi, atamalarınızı ve uzmanlık alanlarınızı kolayca yönetin." : "Öğrenci panelinizden tüm eğitim sürecinizi kolayca yönetin."}</p>
+        <div className="fixu-aside-footer"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m12 2 8 4v6c0 5-3 8.5-8 10-5-1.5-8-5-8-10V6l8-4Z"/><path d="m8 12 3 3 5-6"/></svg> Güvenli {trainer ? "eğitmen" : "öğrenci"} deneyimi</div>
+      </aside>
+      <div className="fixu-content">
+        <header className="fixu-auth-header"><Link to={withReturnTo("/giris")} className="fixu-back">‹&nbsp; Giriş türünü değiştir</Link><span className={trainer ? "fixu-kind fixu-kind-trainer" : "fixu-kind fixu-kind-student"}>{trainer ? "Eğitmen alanı" : "Öğrenci alanı"}</span></header>
+        <nav className="fixu-tabs" aria-label="Hesap işlemleri"><Link className={!isRegistration ? "active" : ""} to={withReturnTo(loginPath)}>Giriş Yap</Link><Link className={isRegistration ? "active" : ""} to={withReturnTo(registerPath)}>{trainer ? "Başvuru Yap" : "Kayıt Ol"}</Link></nav>
+        <div className="fixu-form-area"><h1>{title}</h1>{description && <p className="fixu-description">{description}</p>}{children}</div>
+      </div>
+    </section>
+  </main>;
+}
 const Message = ({ children, error = false }) => children ? <p className={error ? "auth-error" : "auth-message"} role={error ? "alert" : "status"}>{children}</p> : null;
 
 export function RoleLoginPage({ role = "STUDENT" }) {
-  const copy = roles[role] || roles.STUDENT; const navigate = useNavigate();
-  const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  const copy = roles[role] || roles.STUDENT; const navigate = useNavigate(); const location = useLocation();
+  const returnTo = safeReturnTo(new URLSearchParams(location.search).get("returnTo"));
+  const withReturnTo = (target) => returnTo ? `${target}?returnTo=${encodeURIComponent(returnTo)}` : target;
+  const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [showPassword, setShowPassword] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   async function submit(event) {
     event.preventDefault(); setBusy(true); setError("");
     try {
       const response = await fetch("/api/auth/sign-in/email", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", origin: window.location.origin }, body: JSON.stringify({ email: email.trim(), password }) });
       if (!response.ok) throw new Error(response.status === 401 ? "E-posta veya parola hatalı." : "Giriş tamamlanamadı.");
-      const contextResponse = await fetch("/api/panel-context", { credentials: "same-origin" }); if (!contextResponse.ok) throw new Error("Oturum doğrulanamadı.");
-      const context = await contextResponse.json(); const destination = context.destination || context.destinations?.[0] || "/panel";
+      const contextResponse = await fetch("/api/panel-context", { credentials: "same-origin" });
+      if (!contextResponse.ok && role === "TRAINER") {
+        const candidate = await fetch("/api/trainer-candidate?action=profile", { credentials: "same-origin", cache: "no-store" });
+        if (candidate.ok) { navigate("/panel/egitmen-aday", { replace: true }); return; }
+      }
+      if (!contextResponse.ok) throw new Error("Oturum doğrulanamadı.");
+      const context = await contextResponse.json(); const fallbackDestination = context.destination || context.destinations?.[0] || "/panel"; const destination = returnTo || fallbackDestination;
       const expected = role === "ADMIN" ? ["OWNER", "SUPER_ADMIN"] : [role];
-      if (!context.roles?.some((item) => expected.includes(item))) { setError("Bu hesap seçtiğiniz giriş alanına ait değil. Yetkili panele yönlendiriliyorsunuz."); setTimeout(() => navigate(destination, { replace: true }), 900); return; }
+      if (!context.roles?.some((item) => expected.includes(item))) { setError("Bu hesap seçtiğiniz giriş alanına ait değil. Yetkili panele yönlendiriliyorsunuz."); setTimeout(() => navigate(fallbackDestination, { replace: true }), 900); return; }
       navigate(destination, { replace: true });
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Giriş tamamlanamadı."); } finally { setBusy(false); }
   }
-  return <Shell title={copy.title} description="Hesabınızla güvenli şekilde devam edin."><form onSubmit={submit} noValidate><label htmlFor="role-email">E-posta<input id="role-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></label><label htmlFor="role-password">Parola<input id="role-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label><button type="submit" disabled={busy}>{busy ? "Giriş yapılıyor…" : "Giriş yap"}</button><Message error>{error}</Message></form><nav className="auth-links" aria-label="Hesap bağlantıları"><Link to="/sifremi-unuttum">Parolamı unuttum</Link>{copy.register && <Link to={copy.register}>{role === "STUDENT" ? "Öğrenci hesabı oluştur" : "Eğitmen başvurusu"}</Link>}<Link to="/giris">Diğer giriş seçenekleri</Link></nav></Shell>;
+  return <Shell title={copy.title} description="Hesabınızla güvenli şekilde devam edin.">
+    <form onSubmit={submit} noValidate>
+      <label htmlFor="role-email">E-posta adresi<input id="role-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
+      <label htmlFor="role-password">Parola<div className="fixu-password-control"><input id="role-password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Parolayı gizle" : "Parolayı göster"}>{showPassword ? "Gizle" : "Göster"}</button></div></label>
+    <div className="fixu-forgot-link"><Link to={role === "TRAINER" ? "/sifremi-unuttum?alan=egitmen" : "/sifremi-unuttum?alan=ogrenci"}>Şifremi unuttum</Link></div>
+      <button type="submit" disabled={busy}>{busy ? "Giriş yapılıyor…" : "Giriş Yap →"}</button>
+      <Message error>{error}</Message>
+    </form>
+    <nav className="auth-links" aria-label="Hesap bağlantıları"><span>{role === "STUDENT" ? "Henüz hesabınız yok mu?" : "Eğitmen hesabınız yok mu?"}</span>{copy.register && <Link to={withReturnTo(copy.register)}>{role === "STUDENT" ? "Hesap oluştur" : "Eğitmen başvurusu yap"}</Link>}{role !== "STUDENT" && role !== "TRAINER" && <Link to={withReturnTo("/giris")}>Diğer giriş seçenekleri</Link>}</nav>
+  </Shell>;
 }
 
 const educationStages = [
@@ -188,15 +251,255 @@ export function PasswordResetPage() { const location = useLocation(); const navi
 
 export function EmailVerificationPage() { const location = useLocation(); const navigate = useNavigate(); const token = new URLSearchParams(location.search).get("token") || ""; const [message, setMessage] = useState(token ? "E-posta adresiniz doğrulanıyor…" : "E-posta adresinizi doğrulamak için gelen bağlantıyı açın."); useEffect(() => { if (!token) return; let active = true; fetch("/api/auth/verify-email?token="+encodeURIComponent(token)+"&callbackURL=%2Fpanel", { credentials: "same-origin" }).then((r) => { if (!active) return; setMessage(r.ok ? "E-posta adresiniz doğrulandı. Panelinize yönlendiriliyorsunuz." : "Doğrulama bağlantısı geçersiz, süresi dolmuş veya daha önce kullanılmış."); if (r.ok) setTimeout(() => navigate("/panel", { replace: true }), 900); }).catch(() => active && setMessage("E-posta doğrulaması tamamlanamadı.")); return () => { active = false; }; }, [token, navigate]); return <Shell title="E-posta Doğrulama" description="Hesabınızı kullanmaya devam etmek için e-posta adresinizi doğrulayın."><Message>{message}</Message><p className="auth-secondary-link"><Link to="/giris">Giriş merkezine dönün</Link></p></Shell>; }
 
-export function TrainerApplicationPage() { const trackingStarted = useRef(false); const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", education: "", experience: "", requestedProgram: "", description: "", kvkk: false }); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const update = (key) => (e) => { if (!trackingStarted.current) { trackingStarted.current = true; pushEvent("trainer_application_start", { form_id: "trainer_application" }); } return setForm((current) => ({ ...current, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value })); }; async function submit(e) { e.preventDefault(); if (!form.kvkk) return setMessage("KVKK aydınlatma metnini kabul etmeniz gerekir."); setBusy(true); setMessage(""); try { const r = await fetch("/api/trainer-applications", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(form) }); if (r.ok) { pushEvent("trainer_application_submit", { form_id: "trainer_application" }); pushEvent("generate_lead", { form_id: "trainer_application" }); } else { pushEvent("form_error", { form_id: "trainer_application", response_status: r.status }); } setMessage(r.ok ? "Başvurunuz alındı. İnceleme sonucu e-posta ile bildirilecektir." : "Başvurunuz kaydedilemedi."); } catch { pushEvent("form_error", { form_id: "trainer_application", response_status: "network" }); setMessage("Başvurunuz kaydedilemedi."); } finally { setBusy(false); } } return <Shell title="Eğitmen Başvurusu" description="Başvurunuz incelenir; onay olmadan aktif eğitmen hesabı oluşturulmaz."><form className="auth-registration-form" onSubmit={submit} noValidate>{[["name", "Ad soyad"], ["email", "E-posta"], ["phone", "Telefon"], ["city", "Şehir"], ["education", "Mesleki / eğitim bilgileri"], ["experience", "Deneyim"], ["requestedProgram", "İlgilendiğiniz program"]].map(([key, label]) => <label key={key} htmlFor={"trainer-"+key}>{label}<input id={"trainer-"+key} type={key === "email" ? "email" : "text"} value={form[key]} onChange={update(key)} required={key !== "requestedProgram"} /></label>)}<label htmlFor="trainer-description">Açıklama<textarea id="trainer-description" value={form.description} onChange={update("description")} rows="4" /></label><label className="auth-check"><input type="checkbox" checked={form.kvkk} onChange={update("kvkk")} />KVKK aydınlatma metnini okudum.</label><button type="submit" disabled={busy}>{busy ? "Gönderiliyor…" : "Başvuruyu gönder"}</button><Message>{message}</Message></form><p className="auth-secondary-link"><Link to="/ogretmen-girisi">Eğitmen girişine dönün</Link></p></Shell>; }
+export function TrainerApplicationPage() {
+  const trackingStarted = useRef(false);
+  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const update = (key) => (event) => {
+    if (!trackingStarted.current) {
+      trackingStarted.current = true;
+      pushEvent("trainer_application_start", { form_id: "trainer_application" });
+    }
+    const value = key === "phone" ? normalizeMobileInput(event.target.value) : event.target.value;
+    setForm((current) => ({ ...current, [key]: value }));
+    setError("");
+  };
+
+  async function submit(event) {
+    event.preventDefault();
+    if (busy || submitted) return;
+    const fullName = form.name.trim().replace(/\s+/gu, " ");
+    const names = fullName.split(" ").filter(Boolean);
+    const email = form.email.trim().toLowerCase();
+    if (names.length < 2 || fullName.length > 160) {
+      setError("Lütfen adınızı ve soyadınızı yazın.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email) || email.length > 254) {
+      setError("Geçerli bir e-posta adresi girin.");
+      return;
+    }
+    if (form.phone && !/^5\d{9}$/u.test(form.phone)) {
+      setError("Telefon girerseniz 5 ile başlayan 10 haneli cep telefonu numarası yazın.");
+      return;
+    }
+
+    setBusy(true);
+    setMessage("");
+    setError("");
+    try {
+      const response = await fetch("/api/trainer-applications", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: fullName,
+          firstName: names[0],
+          lastName: names.slice(1).join(" "),
+          email,
+          phone: form.phone || null,
+          legalAcknowledged: true,
+        }),
+      });
+      if (!response.ok) {
+        pushEvent("form_error", { form_id: "trainer_application", response_status: response.status });
+        const body = await response.json().catch(() => ({}));
+        setError(response.status === 409
+          ? "Bu e-posta ile daha önce başvuru yapılmış."
+          : response.status === 400 && body?.message
+            ? String(body.message)
+            : "Başvuru kaydedilemedi. Lütfen tekrar deneyin.");
+        return;
+      }
+      setSubmitted(true);
+      const result = await response.json().catch(() => ({}));
+      setMessage(result.emailVerification
+        ? "Doğrulama bağlantısını e-posta adresinize gönderdik. Bağlantıyı açıp güvenli bir şifre belirleyerek aday alanınıza girebilirsiniz."
+        : "Kısa başvurunuz alındı. Eğitmen hesabınızın açılışıyla ilgili e-posta üzerinden bilgilendirileceksiniz.");
+      pushEvent("trainer_application_submit", { form_id: "trainer_application" });
+      pushEvent("generate_lead", { form_id: "trainer_application" });
+    } catch {
+      pushEvent("form_error", { form_id: "trainer_application", response_status: "network" });
+      setError("Bağlantı kurulamadı. Lütfen yeniden deneyin.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <Shell title="Eğitmen Başvurusu" description="Kısa başvurunuz için ad soyad ve e-posta yeterli. Telefon eklemek isteğe bağlıdır.">
+    <form className="auth-registration-form" onSubmit={submit} noValidate>
+      <label htmlFor="trainer-name">Ad soyad <span aria-hidden="true">*</span>
+        <input id="trainer-name" name="name" autoComplete="name" maxLength={160} value={form.name} onChange={update("name")} required disabled={submitted} />
+      </label>
+      <label htmlFor="trainer-email">E-posta <span aria-hidden="true">*</span>
+        <input id="trainer-email" name="email" type="email" autoComplete="email" maxLength={254} value={form.email} onChange={update("email")} required disabled={submitted} />
+      </label>
+      <label htmlFor="trainer-phone">Telefon <span style={{ opacity: 0.7, fontWeight: 400 }}>(isteğe bağlı)</span>
+        <input id="trainer-phone" name="phone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="5XXXXXXXXX" pattern="5[0-9]{9}" maxLength={10} value={form.phone} onChange={update("phone")} disabled={submitted} />
+      </label>
+      <p className="auth-secondary-link">Kişisel verilerinizin işlenmesine ilişkin bilgilere <a href="/egitmen-kvkk-aydinlatma" target="_blank" rel="noopener noreferrer">Eğitmen KVKK Aydınlatma Metni</a> üzerinden yeni sekmede ulaşabilirsiniz.</p>
+      <button type="submit" disabled={busy || submitted}>{submitted ? "Başvuru alındı" : busy ? "Kaydediliyor…" : "Kısa başvuruyu gönder"}</button>
+      <Message>{message}</Message>
+      <Message error>{error}</Message>
+    </form>
+    <p className="auth-secondary-link"><Link to="/ogretmen-girisi">Zaten hesabınız var mı? Eğitmen girişine dönün</Link></p>
+  </Shell>;
+}
 
 export function AccountSecurityPage() { const [currentPassword, setCurrentPassword] = useState(""); const [newPassword, setNewPassword] = useState(""); const [confirm, setConfirm] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); async function change(e) { e.preventDefault(); if (newPassword.length < 8 || newPassword !== confirm) return setMessage("Yeni parola en az 8 karakter olmalı ve iki alan eşleşmelidir."); setBusy(true); try { const r = await fetch("/api/auth/change-password", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ currentPassword, newPassword, revokeOtherSessions: true }) }); setMessage(r.ok ? "Parolanız değiştirildi; diğer oturumlar kapatıldı." : "Parola değiştirilemedi."); } catch { setMessage("Parola değiştirilemedi."); } finally { setBusy(false); } } async function revoke() { setBusy(true); try { const r = await fetch("/api/auth/revoke-other-sessions", { method: "POST", credentials: "same-origin" }); setMessage(r.ok ? "Diğer oturumlar kapatıldı." : "Oturumlar kapatılamadı."); } catch { setMessage("Oturumlar kapatılamadı."); } finally { setBusy(false); } } return <Shell title="Hesap ve Güvenlik" description="Parolanızı ve açık oturumlarınızı yönetin."><form onSubmit={change} noValidate><label htmlFor="current-password">Mevcut parola<input id="current-password" type="password" autoComplete="current-password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required /></label><label htmlFor="new-password">Yeni parola<input id="new-password" type="password" autoComplete="new-password" minLength={8} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /></label><label htmlFor="confirm-password">Yeni parola (tekrar)<input id="confirm-password" type="password" autoComplete="new-password" minLength={8} value={confirm} onChange={(e) => setConfirm(e.target.value)} required /></label><button type="submit" disabled={busy}>Parolayı değiştir</button></form><button type="button" className="auth-secondary-button" onClick={() => void revoke()} disabled={busy}>Diğer oturumları kapat</button><Message>{message}</Message><p className="auth-secondary-link"><Link to="/panel">Panele dönün</Link></p></Shell>; }
 
 export function InvitationAcceptPage({ kind = "trainer" }) {
-  const location = useLocation(); const navigate = useNavigate(); const token = new URLSearchParams(location.search).get("token") || "";
-  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [password, setPassword] = useState(""); const [confirm, setConfirm] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
-  async function submit(event) { event.preventDefault(); if (!token) return setMessage("Davet bağlantısı eksik veya geçersiz."); if (password.length < 8 || password !== confirm) return setMessage("Parola en az 8 karakter olmalı ve alanlar eşleşmelidir."); setBusy(true); try { const response = await fetch(`/api/invitation-accept/${kind}-invitation-accept`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, email, name, password }) }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error === "INVITATION_INVALID_OR_USED" ? "Davet bağlantısı geçersiz, süresi dolmuş veya daha önce kullanılmış." : "Davet kabul edilemedi."); setMessage("Hesabınız etkinleştirildi. Giriş sayfasına yönlendiriliyorsunuz."); setTimeout(() => navigate(kind === "admin" ? "/admin-girisi" : "/ogretmen-girisi", { replace: true }), 700); } catch (error) { setMessage(error instanceof Error ? error.message : "Davet kabul edilemedi."); } finally { setBusy(false); } }
-  return <Shell title={kind === "admin" ? "Yönetici davetini kabul et" : "Eğitmen hesabını etkinleştir"} description="Davet bağlantınız tek kullanımlıdır. Hesabınız için güvenli bir parola belirleyin."><form onSubmit={submit} noValidate><label htmlFor="invite-email">E-posta<input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label><label htmlFor="invite-name">Ad soyad<input id="invite-name" value={name} onChange={(e) => setName(e.target.value)} required /></label><label htmlFor="invite-password">Parola<input id="invite-password" type="password" minLength={8} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label><label htmlFor="invite-confirm">Parola (tekrar)<input id="invite-confirm" type="password" minLength={8} autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required /></label><button type="submit" disabled={busy}>{busy ? "Etkinleştiriliyor…" : "Daveti kabul et"}</button><Message>{message}</Message></form></Shell>;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const token = new URLSearchParams(location.search).get("token") || "";
+  const [identity, setIdentity] = useState({ email: "", name: "" });
+  const [adminName, setAdminName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [message, setMessage] = useState("");
+  const [identityLoading, setIdentityLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!token) {
+      setMessage("Davet bağlantısı eksik veya geçersiz.");
+      setIdentityLoading(false);
+      return () => { active = false; };
+    }
+
+    fetch(kind === "candidate" ? `/api/trainer-candidate?action=preview&token=${encodeURIComponent(token)}` : `/api/invitation-accept/${kind}-invitation-accept?token=${encodeURIComponent(token)}`, {
+      method: "GET",
+      headers: { accept: "application/json" },
+    })
+      .then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.error || "INVITATION_INVALID_OR_USED");
+        return body;
+      })
+      .then((body) => {
+        if (!active) return;
+        setIdentity({
+          email: String(body.invitation?.email || ""),
+          name: String(body.invitation?.name || ""),
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setMessage("Davet bağlantısı geçersiz, süresi dolmuş veya daha önce kullanılmış.");
+      })
+      .finally(() => {
+        if (active) setIdentityLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [kind, token]);
+
+  async function submit(event) {
+    event.preventDefault();
+    if (!token) return setMessage("Davet bağlantısı eksik veya geçersiz.");
+    if (!identity.email) return setMessage("Davet kimliği doğrulanamadı.");
+    if (kind === "admin" && !adminName.trim()) return setMessage("Ad soyad alanını doldurun.");
+    if (password.length < (kind === "candidate" ? 12 : 8) || password !== confirm) return setMessage(`Parola en az ${kind === "candidate" ? 12 : 8} karakter olmalı ve alanlar eşleşmelidir.`);
+
+    setBusy(true);
+    setMessage("");
+    try {
+      const payload = kind === "admin"
+        ? { token, email: identity.email, name: adminName.trim(), password }
+        : { token, password };
+
+      const response = await fetch(kind === "candidate" ? "/api/trainer-candidate?action=activate" : `/api/invitation-accept/${kind}-invitation-accept`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const code = String(body.error || "");
+        if (code === "INVITATION_INVALID_OR_USED") throw new Error("Davet bağlantısı geçersiz, süresi dolmuş veya daha önce kullanılmış.");
+        if (code === "ACCOUNT_ALREADY_EXISTS") throw new Error("Bu e-posta adresiyle zaten bir hesap bulunuyor.");
+        throw new Error("Davet kabul edilemedi.");
+      }
+
+      setMessage("Hesabınız etkinleştirildi. Giriş sayfasına yönlendiriliyorsunuz.");
+      setTimeout(() => navigate(kind === "admin" ? "/admin-girisi" : kind === "candidate" ? "/ogretmen-girisi?returnTo=%2Fpanel%2Fegitmen-aday" : "/ogretmen-girisi", { replace: true }), 700);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Davet kabul edilemedi.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Shell
+      title={kind === "admin" ? "Yönetici davetini kabul et" : "Eğitmen hesabını etkinleştir"}
+      description={kind === "trainer" || kind === "candidate"
+        ? "E-posta adresiniz doğrulandı. Aday hesabınızı açmak için yalnızca güvenli bir parola oluşturun."
+        : "Davet bağlantınız tek kullanımlıdır. Hesabınız için güvenli bir parola belirleyin."}
+    >
+      {identityLoading ? (
+        <p role="status">Davet bilgileri doğrulanıyor…</p>
+      ) : (
+        <form onSubmit={submit} noValidate>
+          {identity.email && (
+            <div className="auth-invite-identity" aria-label="Davet edilen hesap">
+              {(kind === "trainer" || kind === "candidate") && identity.name && <><span>Ad soyad</span><strong>{identity.name}</strong></>}
+              <span>E-posta</span>
+              <strong>{identity.email}</strong>
+            </div>
+          )}
+
+          {kind === "admin" && (
+            <label htmlFor="invite-name">
+              Ad soyad
+              <input
+                id="invite-name"
+                value={adminName}
+                onChange={(event) => setAdminName(event.target.value)}
+                required
+              />
+            </label>
+          )}
+
+          <label htmlFor="invite-password">
+            Şifre oluştur
+            <input
+              id="invite-password"
+              type="password"
+              minLength={8}
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+          </label>
+
+          <label htmlFor="invite-confirm">
+            Şifre tekrar
+            <input
+              id="invite-confirm"
+              type="password"
+              minLength={8}
+              autoComplete="new-password"
+              value={confirm}
+              onChange={(event) => setConfirm(event.target.value)}
+              required
+            />
+          </label>
+
+          <button type="submit" disabled={busy || !identity.email}>
+            {busy ? "Etkinleştiriliyor…" : "Hesabı etkinleştir"}
+          </button>
+          <Message>{message}</Message>
+        </form>
+      )}
+    </Shell>
+  );
 }
 
 export function AccountClosurePage() { const [reason, setReason] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); async function submit(e) { e.preventDefault(); setBusy(true); try { const response = await fetch("/api/account-lifecycle/closure", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ reason }) }); setMessage(response.ok ? "Hesap kapatma talebiniz kaydedildi." : "Talep gönderilemedi."); } catch { setMessage("Talep gönderilemedi."); } finally { setBusy(false); } } return <Shell title="Hesap kapatma talebi" description="Talebiniz operasyon ekibinin incelemesine iletilir. Kayıtlar, yasal saklama kurallarına göre korunur."><form onSubmit={submit} noValidate><label htmlFor="closure-reason">Neden (isteğe bağlı)<textarea id="closure-reason" rows="5" value={reason} onChange={(e) => setReason(e.target.value)} /></label><button type="submit" disabled={busy}>{busy ? "Gönderiliyor…" : "Hesap kapatma talebi gönder"}</button><Message>{message}</Message></form><p className="auth-secondary-link"><Link to="/hesap/guvenlik">Hesap güvenliğine dönün</Link></p></Shell>; }

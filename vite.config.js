@@ -27,20 +27,24 @@ function betterAuthApi() {
     name: 'fixoku-better-auth-api',
     async configureServer(server) {
       if (!process.env.DATABASE_URL) return
-      const [{ auth }, { toNodeHandler }] = await Promise.all([
-        import('./src/server/auth/auth.js'),
-        import('better-auth/node'),
-      ])
-      const handler = toNodeHandler(auth)
+      const { default: handler } = await import('./api/auth/[...all].js')
       server.middlewares.use((request, response, next) => {
         // Public account creation is disabled at the HTTP boundary. Student
         // registration and controlled invitation/bootstrap flows call Better Auth
         // in-process and therefore retain their explicit authority.
+        if (request.url?.split('?', 1)[0] === '/api/public/student-commerce-packages') {
+          import('./api/public/student-commerce-packages.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.split('?', 1)[0] === '/api/auth/sign-up/email') {
           response.statusCode = 403
           response.setHeader('Content-Type', 'application/json; charset=utf-8')
           response.setHeader('Cache-Control', 'no-store')
           response.end(JSON.stringify({ error: 'SIGNUP_DISABLED' }))
+          return
+        }
+        if (request.url?.startsWith('/api/trainer-candidate')) {
+          import('./api/trainer-candidate.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
         if (request.url?.startsWith('/api/trainer-applications')) {
@@ -59,7 +63,10 @@ function betterAuthApi() {
           import('./api/panel-context.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
-        if (request.url?.startsWith('/api/admin/account-lifecycle')) {
+        if (request.url?.startsWith('/api/admin/owner-legal-editor')) {
+          import('./api/admin/owner-legal-editor.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }        if (request.url?.startsWith('/api/admin/account-lifecycle')) {
           import('./api/admin/account-lifecycle.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
@@ -184,6 +191,10 @@ function betterAuthApi() {
           import('./api/admin/payments.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url === '/api/admin/student-bank-transfers' || request.url?.startsWith('/api/admin/student-bank-transfers?')) {
+          import('./api/admin/student-bank-transfers.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url === '/api/admin/assignment-requests' || request.url?.startsWith('/api/admin/assignment-requests?')) {
           import('./api/admin/assignment-requests.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
@@ -268,6 +279,10 @@ function betterAuthApi() {
           import('./api/trainer/addresses.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.startsWith('/api/trainer/legal-documents')) {
+          import('./api/trainer/legal-documents.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/trainer/orders')) {
           import('./api/trainer/orders.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
@@ -282,6 +297,14 @@ function betterAuthApi() {
         }
         if (request.url?.startsWith('/api/trainer/video-media')) {
           import('./api/trainer/video-media.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/shared-presentation-media')) {
+          import('./api/trainer/shared-presentation-media.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.startsWith('/api/trainer/shared-presentation-catalog')) {
+          import('./api/trainer/shared-presentation-catalog.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
         if (request.url?.startsWith('/api/trainer/curriculum-media')) {
@@ -308,7 +331,10 @@ function betterAuthApi() {
           import('./api/trainer/resources.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
-        if (request.url?.startsWith('/api/trainer/students/')) {
+                if (request.url?.startsWith('/api/trainer/assignment-followup')) {
+          import('./api/trainer/assignment-followup.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }if (request.url?.startsWith('/api/trainer/students/')) {
           import('./api/trainer/students/[id].js').then(({ default: handler }) => {
             const parsed = new URL(request.url, 'http://local');
             request.query = { id: parsed.pathname.split('/').pop() };
@@ -389,7 +415,21 @@ function betterAuthApi() {
 
 // https://vite.dev/config/
 export default defineConfig({
-  server: { host: '127.0.0.1' },
+  server: {
+    host: '127.0.0.1',
+    fs: {
+      strict: true,
+      deny: [
+        '.env',
+        '.env.*',
+        '*.{crt,pem,key,p12,pfx,cer,der}',
+        '.npmrc',
+        '.yarnrc.yml',
+        '**/.git/**',
+        '**/private/**',
+      ],
+    },
+  },
   define: {
     'globalThis.__FIXOKU_GTM_ID__': JSON.stringify(process.env.GTM_CONTAINER_ID || 'GTM-T5GHCWX6'),
   },

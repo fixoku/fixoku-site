@@ -40,50 +40,7 @@ export function PanelShell({
         <PanelTopbar user={user} role={role} />
         {children}
 
-        <div
-          className="panel-endcap"
-          style={{
-            margin: "auto 26px 0",
-            padding: "18px 22px",
-            borderRadius: "18px 18px 0 0",
-            border: "1px solid #ece7de",
-            background: "linear-gradient(135deg,#fff 0%,#fffaf4 58%,#f8efe7 100%)",
-            boxShadow: "0 12px 30px rgba(36,33,28,.04)",
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px 20px",
-          }}
-        >
-          <div style={{ display: "grid", gap: "4px" }}>
-            <strong style={{ color: "#14233a", fontSize: "16px" }}>
-              Fixoku Panel
-            </strong>
-            <span style={{ color: "#6e7782", fontSize: "13px" }}>
-              Bilgi paylaşır, geleceği birlikte inşa ederiz.
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: "10px 16px",
-              color: "#8b6f57",
-              fontSize: "12px",
-              fontWeight: 700,
-              letterSpacing: ".02em",
-            }}
-          >
-            <span>GÜVENLİ ÖDEME</span>
-            <span>•</span>
-            <span>KARGO TAKİBİ</span>
-            <span>•</span>
-            <span>DESTEK</span>
-          </div>
-        </div>
+        <div className="panel-endcap panel-endcap-empty" aria-hidden="true" />
       </div>
     </div>
   );

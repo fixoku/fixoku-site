@@ -28,7 +28,9 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    disableSignUp: true,
+    // Public signup is denied by the HTTP adapters. Controlled registration
+    // and invitation flows create accounts through the in-process handler.
+    disableSignUp: false,
     requireEmailVerification: true,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {

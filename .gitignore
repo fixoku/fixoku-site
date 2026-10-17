@@ -26,3 +26,4 @@ playwright-report
 *.sln
 *.sw?
 .vercel
+.env*.local

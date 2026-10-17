@@ -2,14 +2,66 @@ import fs from "node:fs";
 import path from "node:path";
 import pg from "pg";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
-import { assertTrainerPrincipal } from "../../src/server/domain/trainer-commerce.js";
-const reply=(res,status,body="")=>{res.statusCode=status;res.setHeader("Cache-Control","private, no-store");res.setHeader("X-Content-Type-Options","nosniff");res.end(body);};const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,String(v)]));
-const videoFiles=[
-  "1.mp4",
-  "2.mp4",
-  "3.mp4",
-  "4.mp4",
-  "5.mp4",
-  "6.mp4",
-];
-export default async function handler(req,res){if(req.method!=="GET")return reply(res,405);const principal=await resolvePrincipal(headers(req));if(!principal)return reply(res,401);const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});try{const user=await assertTrainerPrincipal(principal);const parsed=new URL(req.url,"http://local");const packageId=parsed.searchParams.get("packageId");const video=Number(parsed.searchParams.get("video"));if(!packageId||!Number.isInteger(video)||video<1||video>videoFiles.length)return reply(res,400);if(!((await pool.query("select 1 from trainer_package_entitlements where trainer_user_id=$1 and package_id=$2 and status='ACTIVE'",[user.id,packageId])).rowCount))return reply(res,403);if(video>1&&!((await pool.query("select 1 from trainer_video_progress where trainer_user_id=$1 and package_id=$2 and video_index=$3 and completed_at is not null",[user.id,packageId,video-1])).rowCount))return reply(res,403);const file=path.resolve("public","videos","teacher-panel","demo","akici-hizli-okuma",videoFiles[video-1]);if(!fs.existsSync(file))return reply(res,404);const stat=fs.statSync(file);const range=String(req.headers.range||"");res.setHeader("Content-Type","video/mp4");res.setHeader("Accept-Ranges","bytes");if(range){const match=/bytes=(\d+)-(\d*)/u.exec(range);if(!match)return reply(res,416);const start=Number(match[1]);const end=match[2]?Math.min(Number(match[2]),stat.size-1):stat.size-1;if(start>end||start>=stat.size)return reply(res,416);res.statusCode=206;res.setHeader("Content-Range",`bytes ${start}-${end}/${stat.size}`);res.setHeader("Content-Length",String(end-start+1));fs.createReadStream(file,{start,end}).pipe(res);return;}res.statusCode=200;res.setHeader("Content-Length",String(stat.size));fs.createReadStream(file).pipe(res);}catch{return reply(res,403);}finally{await pool.end();}}
+import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
+import { getRealTrainerLessons } from "./video-config.js";
+import { previewUnlocked } from "./video-preview-progress.js";
+
+const reply = (res, status, body = "") => {
+  res.statusCode = status;
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  res.end(body);
+};
+const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : String(v)]));
+export default async function handler(req, res) {
+  if (req.method !== "GET") return reply(res, 405);
+  let principal;
+  try { principal = await resolvePrincipal(headers(req)); } catch { return reply(res, 401); }
+  if (!principal) return reply(res, 401);
+  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  try {
+    const user = await assertTrainerPrincipal(principal);
+    const parsed = new URL(req.url, "http://local");
+    const packageId = parsed.searchParams.get("packageId");
+    const videoIndex = Number(parsed.searchParams.get("video"));
+    const poster = parsed.searchParams.get("poster") === "1";
+    if (!TRAINER_COMMERCE_UUID.test(String(packageId || "")) || !Number.isInteger(videoIndex) || videoIndex < 1) return reply(res, 400);
+    const result = await pool.query(`select p.slug from packages p join trainer_package_entitlements e on e.package_id=p.id where p.id=$1 and p.audience='TRAINER' and e.trainer_user_id=$2 and e.status='ACTIVE' limit 1`, [packageId, user.id]);
+    const slug = result.rows[0]?.slug;
+    if (!slug) return reply(res, 403);
+    const lessons = getRealTrainerLessons(slug);
+    const lesson = lessons[videoIndex - 1];
+    if (!lesson) return reply(res, 404);
+    if (!poster && !previewUnlocked(user.id, packageId, videoIndex)) return reply(res, 403);
+    const file = poster ? path.resolve("private", "trainer-video-posters", slug, lesson.poster) : path.resolve("private", "trainer-curriculum-intake", "release-015l-egitmen-dersleri", slug, lesson.filename);
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return reply(res, 404);
+    const stat = fs.statSync(file);
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("Content-Type", poster ? "image/jpeg" : "video/mp4");
+    if (poster) {
+      res.statusCode = 200;
+      res.setHeader("Content-Length", String(stat.size));
+      return fs.createReadStream(file).pipe(res);
+    }
+    res.setHeader("Accept-Ranges", "bytes");
+    const range = String(req.headers.range || "");
+    if (range) {
+      const match = /^bytes=(\d+)-(\d*)$/u.exec(range);
+      if (!match) return reply(res, 416);
+      const start = Number(match[1]);
+      const end = match[2] ? Math.min(Number(match[2]), stat.size - 1) : stat.size - 1;
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= stat.size) return reply(res, 416);
+      res.statusCode = 206;
+      res.setHeader("Content-Range", `bytes ${start}-${end}/${stat.size}`);
+      res.setHeader("Content-Length", String(end - start + 1));
+      return fs.createReadStream(file, { start, end }).pipe(res);
+    }
+    res.statusCode = 200;
+    res.setHeader("Content-Length", String(stat.size));
+    return fs.createReadStream(file).pipe(res);
+  } catch { return reply(res, 403); }
+  finally { await pool.end(); }
+}

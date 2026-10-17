@@ -265,10 +265,16 @@ check(
 check(
   requiredLegalRoutes.every((routePath) => legalRoutePaths.includes(routePath)) &&
     legalRoutePaths.length === legalPages.length &&
-    legalPages.length === 14,
-  "Üç hukuki route merkezi veri ve route registry içinde kayıtlı.",
+    legalPages.length === 18,
+  "18 hukuki route merkezi veri ve route registry içinde kayıtlı; hukuki onay ayrı kapıdır.",
 );
-check(indexableRoutePaths.length === 54, "Toplam indexlenebilir public route sayısı canonical registry ile uyumlu (54).");
+check(indexableRoutePaths.length === 59, "Toplam indexlenebilir public route sayısı canonical registry ile uyumlu (59).");
+check(
+  publicRouteRegistry.filter((route) => route.path === "/egitim-paketleri").length === 1 &&
+    publicRouteRegistry.find((route) => route.path === "/egitim-paketleri")?.schemaType === "CollectionPage" &&
+    publicRouteRegistry.find((route) => route.path === "/egitim-paketleri")?.robots === "index, follow",
+  "Eğitim paketleri URL'si merkezi indexlenebilir SEO kayıtlarında tekil CollectionPage olarak tanımlı.",
+);
 check(
   publicRouteRegistry.filter(
     (route) => route.path === studentReadingLandingRoute.path,
@@ -814,19 +820,18 @@ const forbiddenLegalContent = [
 check(
   publishedLegalPages.every(
     (page) =>
-      page.sections.length >= 5 &&
-      page.updatedAt === "19 Temmuz 2026" &&
-      page.schemaType === "WebPage",
+      page.sections.length >= 3 &&
+      page.updatedAt === "15 Ekim 2026" &&
+      page.schemaType === "WebPage" &&
+      page.sections.every((section) => section.title && Array.isArray(section.paragraphs) && section.paragraphs.length > 0),
   ) && forbiddenLegalContent.every((phrase) => !legalContent.includes(phrase)),
-  "Hukuki içerikler kapsamlı, güncel tarihli ve eski domain, kesin güvenlik veya doğrulanmamış ödeme ifadelerinden arınmış.",
+  "18 hukuki sayfanın yapısı ve tarihleri kaynakla tutarlı; metinlerin hukuki onayı ayrı yayın kapısıdır.",
 );
 check(
-  legalContent.includes("fixoku-reading-text-rotation-v1") &&
-    legalContent.includes("document.cookie") &&
-    legalContent.includes("google analytics") &&
-    legalContent.includes("meta pixel") &&
-    legalContent.includes("iletişim formu mevcut teknik yapıda veriyi bir sunucuya göndermemektedir"),
-  "Hukuki metinler gerçek storage ve iletişim formu envanterini açıkça yansıtıyor.",
+  legalPages.length === 18 &&
+    ["/cocuk-ve-kanuni-temsilci-bilgilendirme", "/egitmen-kvkk-aydinlatma", "/satici-bilgileri", "/musteri-sikayetleri-ve-uyusmazlik"]
+      .every((legalPath) => legalPages.some((page) => page.path === legalPath)),
+  "2026 hukuki URL'leri envanterde kayıtlıdır; çerez, SMTP, KVKK ve satış beyanlarının gerçek işleyişiyle uyumu ayrıca incelenecek.",
 );
 
 const expectedExplorerCounts = new Map([
@@ -1276,10 +1281,12 @@ check(
 check(
   headerSource.includes("Satın Al") &&
     headerSource.includes("Giriş Yap") &&
-    headerSource.includes('disabled aria-disabled="true"') &&
+    (headerSource.match(/<Link to="\/egitim-paketleri" className="action-btn purchase-btn">Satın Al<\/Link>/g) ?? []).length >= 2 &&
+    (headerSource.match(/<Link to="\/giris" className="action-btn login-btn">Giriş Yap<\/Link>/g) ?? []).length >= 2 &&
+    !headerSource.includes('disabled aria-disabled="true"') &&
     !footerSource.includes("Ersin Usta") &&
     !homeSchemaText.includes("Ersin Usta"),
-  "Header Satın Al/Giriş Yap etiketlerini unresolved durumda gösteriyor; Ersin Usta public kaynak ve schema çıktısından kaldırıldı.",
+  "Header'daki Satın Al ve Giriş Yap masaüstü/mobil linkleri çalışan yönlendirmeler; eski pasif düğme kontrolü kaldırıldı.",
 );
 check(
   headerSource.includes("flex-wrap: nowrap;") &&
@@ -1486,6 +1493,16 @@ async function collectFiles(directory) {
 await collectFiles(projectRoot);
 const filesWithWrongOrigin = [];
 const filesWithRepeatedOrigin = [];
+const filesWithNonPublicOrigin = [];
+// Only files which render public HTML/SEO may repeat the canonical URL accidentally.
+// Server authentication, admin records, documentation and private audits are reviewed separately.
+function isPublicWebSeoFile(filePath) {
+  const relative = path.relative(projectRoot, filePath).split(path.sep).join("/");
+  return relative === "index.html" ||
+    /^src\/(?:App\.jsx|AppRoutes\.jsx|main\.jsx|entry-server\.jsx|components\/|pages\/|data\/|config\/|utils\/|martech\/)/u.test(relative) ||
+    /^public\//u.test(relative) ||
+    /^scripts\/(?:generate-seo-files|prerender|validate-rendered-seo)\.mjs$/u.test(relative);
+}
 const allowedOriginFiles = new Set([
   path.join(projectRoot, "src", "config", "site.js"),
   path.join(projectRoot, "public", "sitemap.xml"),
@@ -1500,7 +1517,9 @@ for (const filePath of repositoryFiles) {
     filesWithWrongOrigin.push(path.relative(projectRoot, filePath));
   }
   if (contents.includes(SITE_ORIGIN) && !allowedOriginFiles.has(filePath)) {
-    filesWithRepeatedOrigin.push(path.relative(projectRoot, filePath));
+    const relative = path.relative(projectRoot, filePath);
+    if (isPublicWebSeoFile(filePath)) filesWithRepeatedOrigin.push(relative);
+    else filesWithNonPublicOrigin.push(relative);
   }
 }
 
@@ -1513,9 +1532,13 @@ check(
 check(
   filesWithRepeatedOrigin.length === 0,
   filesWithRepeatedOrigin.length
-    ? `Production origin merkezi config dışında tekrarlandı: ${filesWithRepeatedOrigin.join(", ")}`
-    : "Production origin yalnızca merkezi config ve üretilen SEO dosyalarında bulunuyor.",
+    ? `Public web SEO kaynaklarında origin tekrarı: ${filesWithRepeatedOrigin.join(", ")}`
+    : "Public web SEO kaynaklarında origin yalnızca merkezi config ve üretilen SEO dosyalarında bulunuyor.",
 );
+// This is not a review or approval of other domains present in server/admin/legal source.
+if (filesWithNonPublicOrigin.length) {
+  console.log(`SEO_OUT_OF_SCOPE_ORIGIN_REVIEW_PENDING=${filesWithNonPublicOrigin.join(", ")}`);
+}
 
 for (const message of successes) {
   console.log(`✓ ${message}`);

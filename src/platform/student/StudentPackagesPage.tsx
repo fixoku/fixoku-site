@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { StudentPanelShell } from "./StudentPanelShell";
@@ -75,7 +75,7 @@ const stageMeta: Record<string, { label: string; theme: string }> = {
 
 const stateLabel: Record<PackageRow["accessState"], string> = {
   AVAILABLE: "Satın alınabilir",
-  OWNED: "Sipariş kaydı mevcut",
+  OWNED: "Erişim kaydı görünüyor",
   PENDING_PAYMENT: "Ödeme bekliyor",
 };
 
@@ -112,6 +112,8 @@ export function StudentPackagesPage({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const selectedPackageVersionId = new URLSearchParams(location.search).get("packageVersionId") || "";
+  const autoCheckoutRef = useRef("");
 
   const [body, setBody] = useState<Body | null>(null);
   const [state, setState] =
@@ -186,7 +188,7 @@ export function StudentPackagesPage({
 
   const addToCart = async (
     item: PackageRow,
-    mode: "stay" | "checkout",
+    mode: "stay" | "cart" | "checkout",
   ) => {
     setMessage("");
 
@@ -198,7 +200,9 @@ export function StudentPackagesPage({
 
     if (cartIds.has(item.packageVersionId)) {
       navigate(
-        guardian ? `/panel/ogrenci/sepet?studentProfileId=${encodeURIComponent(studentProfileId)}` : "/panel/ogrenci/sepet",
+        mode === "checkout"
+          ? guardian ? `/panel/ogrenci/checkout?studentProfileId=${encodeURIComponent(studentProfileId)}` : "/panel/ogrenci/checkout"
+          : guardian ? `/panel/ogrenci/sepet?studentProfileId=${encodeURIComponent(studentProfileId)}` : "/panel/ogrenci/sepet",
       );
       return;
     }
@@ -240,6 +244,13 @@ export function StudentPackagesPage({
         return;
       }
 
+      if (mode === "cart") {
+        navigate(
+          guardian ? `/panel/ogrenci/sepet?studentProfileId=${encodeURIComponent(studentProfileId)}` : "/panel/ogrenci/sepet",
+        );
+        return;
+      }
+
       setMessage("Paket sepete eklendi.");
     } finally {
       setBusyId("");
@@ -250,6 +261,23 @@ export function StudentPackagesPage({
     const studentProfileId = guardian ? body?.context?.studentProfileId || "" : "";
     navigate(guardian ? `/panel/ogrenci/sepet?studentProfileId=${encodeURIComponent(studentProfileId)}` : "/panel/ogrenci/sepet");
   };
+
+  useEffect(() => {
+    if (state !== "ready" || !body || !selectedPackageVersionId || autoCheckoutRef.current === selectedPackageVersionId) return;
+    const selected = body.packages.find((item) => item.packageVersionId === selectedPackageVersionId);
+    autoCheckoutRef.current = selectedPackageVersionId;
+    if (!selected) {
+      setMessage("Seçtiğiniz paket mevcut öğrenci grubu için uygun değil.");
+      return;
+    }
+    if (selected.accessState !== "AVAILABLE" && !cartIds.has(selectedPackageVersionId)) {
+      setMessage("Seçtiğiniz paket satın alınabilir durumda değil.");
+      return;
+    }
+    void addToCart(selected, "cart").catch(() => {
+      autoCheckoutRef.current = "";
+    });
+  }, [state, body, selectedPackageVersionId, cartIds]);
 
   const changeChild = (studentProfileId: string) => {
     navigate(
@@ -646,7 +674,7 @@ export function StudentPackagesPage({
                   {item.accessState ===
                     "OWNED" && (
                     <div className="student-package-card__notice">
-                      Bu paket için daha önce sipariş kaydı oluşturulmuş.
+                      Bu paket için sistemde bir erişim kaydı bulunuyor. Bu kayıt, ödemenin yapıldığı anlamına tek başına gelmez. Erişim ve sipariş durumunu ayrıca doğrulayın.
                     </div>
                   )}
                 </div>

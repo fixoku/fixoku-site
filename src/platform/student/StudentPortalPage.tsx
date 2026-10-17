@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { StudentPanelShell } from "./StudentPanelShell";
+import { TrainerQualificationBadgeR5 } from "../../shared/FixokuTrainerBadgeR5";
+import { resolveProfileImage } from "../panel/profileAvatar";
 import "./student-portal.css";
+import "./student-trainer-badges-r9.css";
 
 type StudentProfile = {
   firstName?: string;
@@ -14,7 +17,7 @@ type Enrollment = Record<string, unknown>;
 type Badge = {
   id: string;
   label: string;
-  symbol: "speed" | "flow" | "focus" | "paragraph" | "understand" | "coach" | "exam";
+  // FIXOKU_BADGES_R9: label is a DB-backed qualification title, not a preview symbol.
 };
 
 type Trainer = {
@@ -50,7 +53,24 @@ function enrollmentTitle(row: Enrollment) {
 }
 
 function enrollmentStatus(row: Enrollment) {
-  return firstString(row, ["statusLabel", "status", "enrollmentStatus"]);
+  const original = firstString(row, ["statusLabel", "status", "enrollmentStatus"]);
+  if (!original) return "";
+  const normalized = original.trim().toUpperCase().replace(/[\s-]+/g, "_");
+  const turkish: Record<string, string> = {
+    ACTIVE: "Devam Ediyor",
+    IN_PROGRESS: "Devam Ediyor",
+    ONGOING: "Devam Ediyor",
+    ENROLLED: "Kayıtlı",
+    PENDING: "Bekliyor",
+    PLANNED: "Planlandı",
+    SCHEDULED: "Planlandı",
+    COMPLETED: "Tamamlandı",
+    COMPLETE: "Tamamlandı",
+    FINISHED: "Tamamlandı",
+    CANCELLED: "İptal Edildi",
+    CANCELED: "İptal Edildi",
+  };
+  return turkish[normalized] || original;
 }
 
 function extractEnrollments(body: Record<string, unknown>) {
@@ -86,6 +106,7 @@ export function StudentPortalPage({
   const [profile, setProfile] = useState<StudentProfile>({});
   const [portal, setPortal] = useState<Record<string, unknown>>({});
   const [trainer, setTrainer] = useState<Trainer | null>(null);
+  const [trainerPhotoError, setTrainerPhotoError] = useState(false);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -120,6 +141,7 @@ export function StudentPortalPage({
         setProfile(profileBody.profile || {});
         setPortal(portalBody || {});
         setTrainer(trainerBody.trainer || null);
+        setTrainerPhotoError(false);
         setState("ready");
       })
       .catch((error) => {
@@ -141,6 +163,12 @@ export function StudentPortalPage({
   ]
     .filter(Boolean)
     .join(" · ");
+
+  // FIXOKU_BADGES_R9: same trusted avatar resolver as the trainer's own profile.
+  // A missing or broken photo falls back to initials, never to an invented portrait.
+  const trainerPhotoSrc = trainer
+    ? trainer.photoUrl || resolveProfileImage({ name: trainer.displayName, email: trainer.email })
+    : null;
 
   if (state === "loading") {
     return (
@@ -168,72 +196,103 @@ export function StudentPortalPage({
 
   return (
     <StudentPanelShell user={user} guardian={isGuardian}>
-      <main className="student-dashboard-v2">
+      <main className="student-dashboard-v2 student-dashboard-v2--refined">
         <header className="student-dashboard-v2__heading">
-          <h1>Merhaba, {studentName}</h1>
-          <p>Profilinizi, eğitmeninizi ve kayıtlı eğitimlerinizi buradan takip edebilirsiniz.</p>
+          <div className="student-dashboard-v2__welcome">
+            <span className="student-dashboard-v2__welcome-label">Öğrenme alanım</span>
+            <h1>Merhaba, {studentName}</h1>
+          </div>
+          <div className="student-dashboard-v2__count" aria-label={`${enrollments.length} eğitim kaydı`}>
+            <span>{enrollments.length}</span>
+            <span>Eğitim kaydım</span>
+          </div>
         </header>
 
-        <div className="student-dashboard-v2__top-grid">
-          <section className="student-dashboard-v2__student-card">
-            <div className="student-dashboard-v2__student-avatar" aria-hidden="true">
-              {(profile.firstName || studentName).charAt(0).toLocaleUpperCase("tr-TR")}
-              {(profile.lastName || studentName.split(" ").at(-1) || "").charAt(0).toLocaleUpperCase("tr-TR")}
-            </div>
-            <div>
-              <span className="student-dashboard-v2__eyebrow">ÖĞRENCİ BİLGİLERİ</span>
-              <h2>{studentName}</h2>
-              {studentMeta && <p>{studentMeta}</p>}
-            </div>
-          </section>
+        <div className="student-dashboard-v2__workspace">
+          <div className="student-dashboard-v2__primary">
+            <section className="student-dashboard-v2__student-card" aria-label="Öğrenci bilgileri">
+              <div className="student-dashboard-v2__mini-heading">Öğrenci bilgilerim</div>
+              <div className="student-dashboard-v2__student-identity">
+                <div className="student-dashboard-v2__student-avatar" aria-hidden="true">
+                  {(profile.firstName || studentName).charAt(0).toLocaleUpperCase("tr-TR")}
+                  {(profile.lastName || studentName.split(" ").at(-1) || "").charAt(0).toLocaleUpperCase("tr-TR")}
+                </div>
+                <div className="student-dashboard-v2__student-info">
+                  <h2>{studentName}</h2>
+                  <p>{studentMeta || "Öğrenci"}</p>
+                </div>
+              </div>
+            </section>
 
-          <section className="student-trainer-card">
+            <section className="student-dashboard-v2__enrollments" aria-label="Kayıtlı eğitimlerim">
+              <div className="student-dashboard-v2__section-heading">
+                <div>
+                  <span className="student-dashboard-v2__eyebrow">EĞİTİM TAKİBİ</span>
+                  <h2>Eğitimlerim</h2>
+                </div>
+                <span>{enrollments.length} kayıt</span>
+              </div>
+              {enrollments.length ? (
+                <div className="student-dashboard-v2__enrollment-list">
+                  {enrollments.map((item, index) => (
+                    <article className="student-dashboard-v2__enrollment" key={index}>
+                      <div className="student-dashboard-v2__enrollment-icon" aria-hidden="true">✓</div>
+                      <div className="student-dashboard-v2__enrollment-copy">
+                        <h3>{enrollmentTitle(item)}</h3>
+                        <p>Kayıtlı eğitim</p>
+                      </div>
+                      {enrollmentStatus(item) && (
+                        <span className="student-dashboard-v2__status">{enrollmentStatus(item)}</span>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="student-dashboard-v2__empty">
+                  <strong>Henüz eğitim kaydı bulunmuyor</strong>
+                  <p>Atanan veya satın alınan eğitimler burada gösterilecektir.</p>
+                </div>
+              )}
+            </section>
+          </div>
+
+          <section className="student-trainer-card" aria-label="Atanan eğitmen">
             <div className="student-trainer-card__title-row">
               <div>
-                <span className="student-dashboard-v2__eyebrow">ATANAN ÖĞRETMEN</span>
+                <span className="student-dashboard-v2__eyebrow">EĞİTMEN BİLGİLERİ</span>
                 <h2>Eğitmenim</h2>
               </div>
+              {trainer && <span className="student-trainer-card__assignment">Atanan eğitmen</span>}
             </div>
-
             {trainer ? (
               <>
                 <div className="student-trainer-card__identity">
-                  {trainer.photoUrl ? (
-                    <img
-                      className="student-trainer-card__photo"
-                      src={trainer.photoUrl}
-                      alt={`${trainer.displayName} profil fotoğrafı`}
-                    />
-                  ) : (
-                    <div className="student-trainer-card__photo student-trainer-card__photo--fallback">
-                      {trainerInitials(trainer)}
-                    </div>
-                  )}
-
-                  <div className="student-trainer-card__identity-copy">
-                    <h3>{trainer.displayName}</h3>
-                    <p>
-                      {[trainer.profession, trainer.city].filter(Boolean).join(" · ") ||
-                        "FIXOKU Eğitmeni"}
-                    </p>
-
-                    {trainer.badges.length > 0 && (
-                      <div className="student-trainer-card__badges" aria-label="Eğitmen uzmanlıkları">
-                        {trainer.badges.map((badge) => (
-                          <span
-                            className="student-trainer-card__badge"
-                            key={badge.id}
-                            title={badge.label}
-                            aria-label={badge.label}
-                          >
-                            <SpecialtyIcon symbol={badge.symbol} />
-                          </span>
-                        ))}
+                  <div className="student-trainer-card__portrait-stack">
+                    {trainerPhotoSrc && !trainerPhotoError ? (
+                      <img
+                        className="student-trainer-card__photo"
+                        src={trainerPhotoSrc}
+                        alt={`${trainer.displayName} profil fotoğrafı`}
+                        onError={() => setTrainerPhotoError(true)}
+                      />
+                    ) : (
+                      <div className="student-trainer-card__photo student-trainer-card__photo--fallback">
+                        {trainerInitials(trainer)}
                       </div>
                     )}
                   </div>
+                  <div className="student-trainer-card__identity-copy">
+                    <h3>{trainer.displayName}</h3>
+                    <p>{[trainer.profession, trainer.city].filter(Boolean).join(" · ") || "FIXOKU Eğitmeni"}</p>
+                  </div>
                 </div>
-
+                {trainer.badges.length > 0 && (
+                  <div className="student-trainer-card__badges" aria-label="Eğitmenin aktif uzmanlık rozetleri">
+                    {trainer.badges.map((badge) => (
+                      <TrainerQualificationBadgeR5 key={badge.id} title={badge.label} fallback={null} size={76} zoomSize={168} />
+                    ))}
+                  </div>
+                )}
                 <div className="student-trainer-card__details">
                   {trainer.phone && (
                     <a href={`tel:${trainer.phone}`} className="student-trainer-card__detail">
@@ -241,14 +300,12 @@ export function StudentPortalPage({
                       <span>{trainer.phone}</span>
                     </a>
                   )}
-
                   {trainer.email && (
                     <a href={`mailto:${trainer.email}`} className="student-trainer-card__detail">
                       <strong>E-posta</strong>
                       <span>{trainer.email}</span>
                     </a>
                   )}
-
                   {trainer.bio && (
                     <div className="student-trainer-card__bio">
                       <strong>Kısa Özgeçmiş</strong>
@@ -258,74 +315,16 @@ export function StudentPortalPage({
                 </div>
               </>
             ) : (
-              <p className="student-trainer-card__empty">
-                Henüz size atanmış bir eğitmen bulunmuyor.
-              </p>
+              <div className="student-dashboard-v2__empty">
+                <strong>Henüz eğitmen atanmamış</strong>
+                <p>Eğitmen ataması yapıldığında bilgileri burada görünecek.</p>
+              </div>
             )}
           </section>
         </div>
-
-        <section className="student-dashboard-v2__enrollments">
-          <div className="student-dashboard-v2__section-heading">
-            <h2>Eğitimlerim</h2>
-            <span>{enrollments.length} kayıt</span>
-          </div>
-
-          {enrollments.length ? (
-            <div className="student-dashboard-v2__enrollment-list">
-              {enrollments.map((item, index) => (
-                <article className="student-dashboard-v2__enrollment" key={index}>
-                  <div>
-                    <h3>{enrollmentTitle(item)}</h3>
-                    <p>Kayıtlı eğitim</p>
-                  </div>
-                  {enrollmentStatus(item) && (
-                    <span className="student-dashboard-v2__status">
-                      {enrollmentStatus(item)}
-                    </span>
-                  )}
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="student-portal__state">
-              <h3>Kayıtlı eğitim bulunmuyor</h3>
-              <p>Atanan veya satın alınan eğitimler burada gösterilecektir.</p>
-            </div>
-          )}
-        </section>
       </main>
     </StudentPanelShell>
   );
 }
 
-function SpecialtyIcon({ symbol }: { symbol: Badge["symbol"] }) {
-  const common = {
-    width: 22,
-    height: 22,
-    viewBox: "0 0 26 26",
-    fill: "none",
-    xmlns: "http://www.w3.org/2000/svg",
-    "aria-hidden": true,
-  } as const;
-
-  if (symbol === "speed") {
-    return <svg {...common}><path d="M4 15a9 9 0 1 1 18 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M13 14l5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><circle cx="13" cy="14" r="2" fill="currentColor"/></svg>;
-  }
-  if (symbol === "flow") {
-    return <svg {...common}><path d="M4 8h12M4 13h18M4 18h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="m18 6 4 2-4 2" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>;
-  }
-  if (symbol === "focus") {
-    return <svg {...common}><circle cx="13" cy="13" r="8" stroke="currentColor" strokeWidth="2"/><circle cx="13" cy="13" r="3" fill="currentColor"/><path d="M13 2v3M13 21v3M2 13h3M21 13h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
-  }
-  if (symbol === "paragraph") {
-    return <svg {...common}><path d="M7 5h12M7 10h12M7 15h8M7 20h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><circle cx="4" cy="5" r="1.3" fill="currentColor"/><circle cx="4" cy="10" r="1.3" fill="currentColor"/><circle cx="4" cy="15" r="1.3" fill="currentColor"/><circle cx="4" cy="20" r="1.3" fill="currentColor"/></svg>;
-  }
-  if (symbol === "understand") {
-    return <svg {...common}><path d="M5 7.5C7.5 5 10 4 13 4s5.5 1 8 3.5V20c-2.5-1.6-5-2.4-8-2.4S7.5 18.4 5 20V7.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M13 4v13.5" stroke="currentColor" strokeWidth="2"/></svg>;
-  }
-  if (symbol === "coach") {
-    return <svg {...common}><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="2"/><path d="M4 21c.5-5 2.5-7 5-7s4.5 2 5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="m17 10 2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
-  }
-  return <svg {...common}><path d="M5 5h16v16H5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M9 10h8M9 14h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="m15 18 2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
-}
+// FIXOKU_BADGES_R9: assigned trainer uses the shared PNG badge renderer.

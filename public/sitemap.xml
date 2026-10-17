@@ -7,6 +7,9 @@
     <loc>https://fixoku.com/iletisim</loc>
   </url>
   <url>
+    <loc>https://fixoku.com/egitim-paketleri</loc>
+  </url>
+  <url>
     <loc>https://fixoku.com/ogrenciler-icin-hizli-okuma-egitimi</loc>
   </url>
   <url>
@@ -121,22 +124,7 @@
     <loc>https://fixoku.com/sss</loc>
   </url>
   <url>
-    <loc>https://fixoku.com/kvkk</loc>
-  </url>
-  <url>
-    <loc>https://fixoku.com/gizlilik-politikasi</loc>
-  </url>
-  <url>
-    <loc>https://fixoku.com/cerez-politikasi</loc>
-  </url>
-  <url>
-    <loc>https://fixoku.com/kvkk-aydinlatma-metni</loc>
-  </url>
-  <url>
-    <loc>https://fixoku.com/acik-riza</loc>
-  </url>
-  <url>
-    <loc>https://fixoku.com/ticari-elektronik-ileti</loc>
+    <loc>https://fixoku.com/satici-bilgileri</loc>
   </url>
   <url>
     <loc>https://fixoku.com/kullanim-kosullari</loc>
@@ -145,10 +133,10 @@
     <loc>https://fixoku.com/uyelik-sozlesmesi</loc>
   </url>
   <url>
-    <loc>https://fixoku.com/mesafeli-satis-sozlesmesi</loc>
+    <loc>https://fixoku.com/on-bilgilendirme-formu</loc>
   </url>
   <url>
-    <loc>https://fixoku.com/on-bilgilendirme-formu</loc>
+    <loc>https://fixoku.com/mesafeli-satis-sozlesmesi</loc>
   </url>
   <url>
     <loc>https://fixoku.com/iptal-iade-cayma-politikasi</loc>
@@ -160,6 +148,33 @@
     <loc>https://fixoku.com/dijital-icerik-ve-hizmet-kosullari</loc>
   </url>
   <url>
+    <loc>https://fixoku.com/kvkk</loc>
+  </url>
+  <url>
+    <loc>https://fixoku.com/kvkk-aydinlatma-metni</loc>
+  </url>
+  <url>
+    <loc>https://fixoku.com/gizlilik-politikasi</loc>
+  </url>
+  <url>
+    <loc>https://fixoku.com/cerez-politikasi</loc>
+  </url>
+  <url>
+    <loc>https://fixoku.com/ticari-elektronik-ileti</loc>
+  </url>
+  <url>
+    <loc>https://fixoku.com/acik-riza</loc>
+  </url>
+  <url>
     <loc>https://fixoku.com/veri-sahibi-basvuru-formu</loc>
+  </url>
+  <url>
+    <loc>https://fixoku.com/cocuk-ve-kanuni-temsilci-bilgilendirme</loc>
+  </url>
+  <url>
+    <loc>https://fixoku.com/egitmen-kvkk-aydinlatma</loc>
+  </url>
+  <url>
+    <loc>https://fixoku.com/musteri-sikayetleri-ve-uyusmazlik</loc>
   </url>
 </urlset>

@@ -11,11 +11,13 @@ assert.equal(getSmtpConfig({ EMAIL_PROVIDER: "DISABLED", SMTP_HOST: "smtp.test",
 assert.equal(getSmtpConfig({ SMTP_HOST: "smtp.test", SMTP_PORT: "587", SMTP_USER: "u", SMTP_PASS: "p", MAIL_FROM: "bad\nheader", SMTP_SECURE: "false" }), null);
 
 const updates = []; let claimCount = 0; let sent = 0;
-const eventTypes = ["TRAINER_ASSIGNMENT", "TRAINER_REASSIGNMENT", "EDUCATION_COMPLETION", "EARNING_NOTIFICATION", "PAYOUT_NOTIFICATION", "SHIPMENT_SHIPPED", "SHIPMENT_DELIVERED"];
+// The outbox worker forwards the current generic row contract (recipientName,
+// body, reference and ctaPath); keep this fixture set within that contract.
+const eventTypes = ["ACCOUNT_ACTIVATION", "PROFILE_COMPLETION", "ORDER_RECEIVED", "PAYMENT_FAILED", "SHIPMENT_PREPARING", "SUPPORT_REQUEST_RECEIVED", "WELCOME"];
 const client = { query: async (sql) => {
   if (sql.startsWith("update notification_email_outbox set status='PROCESSING'")) {
     if (claimCount >= eventTypes.length) return { rows: [] };
-    return { rows: [{ id: `mail-test-${claimCount}`, event_type: eventTypes[claimCount++], recipient_email: "local@example.test", subject: "Local", body: "No external mail", attempt_count: 1 }] };
+    return { rows: [{ id: `mail-test-${claimCount}`, event_type: eventTypes[claimCount++], recipient_email: "local@example.test", recipient_name: "Yerel kullanıcı", reference: `LOCAL-${claimCount}`, cta_path: "/giris", subject: "Local", body: "No external mail", attempt_count: 1 }] };
   }
   updates.push(sql); return { rows: [] };
 } };
@@ -28,12 +30,14 @@ assert.equal(getDigitalStorageConfig({ DIGITAL_STORAGE_PROVIDER: "LOCAL", DIGITA
 assert.equal(resolvePrivateStoragePath("C:/private-files", "../secret.txt"), null);
 
 assert.equal(shippingRuntime({}).status, "DISABLED_CONFIG_REQUIRED");
+assert.equal(createShippingAdapter({ provider: "DISABLED", token: "sandbox-token", baseUrl: "https://sandbox.example.test" }).runtime.enabled, false);
+assert.equal(shippingRuntime({ SHIPPING_PROVIDER: "SENDEO", SHIPPING_TOKEN: "sandbox-token", SHIPPING_BASE_URL: "http://sandbox.example.test" }).enabled, false);
 await assert.rejects(() => createShippingAdapter({ token: "", baseUrl: "" }).quote({}), (error) => error instanceof ShippingConfigurationError && error.code === "DISABLED_CONFIG_REQUIRED");
 const originalFetch = globalThis.fetch;
 globalThis.fetch = async (url, options) => { assert.match(String(options.headers.authorization), /^Bearer sandbox-token$/u); return new Response(JSON.stringify({ providerReference: "sandbox-1" }), { status: 200, headers: { "content-type": "application/json" } }); };
-try { const adapter = createShippingAdapter({ token: "sandbox-token", baseUrl: "https://sandbox.example.test" }); assert.equal(adapter.runtime.status, "CONFIGURED"); assert.deepEqual(await adapter.quote({ postalCode: "34000" }), { providerReference: "sandbox-1" }); } finally { globalThis.fetch = originalFetch; }
+try { const adapter = createShippingAdapter({ provider: "SENDEO", token: "sandbox-token", baseUrl: "https://sandbox.example.test" }); assert.equal(adapter.runtime.status, "CONFIGURED"); assert.deepEqual(await adapter.quote({ postalCode: "34000" }), { providerReference: "sandbox-1" }); } finally { globalThis.fetch = originalFetch; }
 globalThis.fetch = async () => new Response(JSON.stringify({ error: "temporary" }), { status: 503, headers: { "content-type": "application/json" } });
-try { await assert.rejects(() => createShippingAdapter({ token: "sandbox-token", baseUrl: "https://sandbox.example.test" }).quote({}), (error) => error.code === "PROVIDER_ERROR" && error.status === 503); } finally { globalThis.fetch = originalFetch; }
+try { await assert.rejects(() => createShippingAdapter({ provider: "SENDEO", token: "sandbox-token", baseUrl: "https://sandbox.example.test" }).quote({}), (error) => error.code === "PROVIDER_ERROR" && error.status === 503); } finally { globalThis.fetch = originalFetch; }
 
 const health = providerHealth({ EMAIL_PROVIDER: "TEST", DIGITAL_STORAGE_PROVIDER: "S3", SHIPENTEGRA_TOKEN: "", SHIPENTEGRA_BASE_URL: "" });
 assert.equal(health.email.status, "CONFIGURED_TEST"); assert.equal(health.digitalStorage.configured, false); assert.equal(health.shipping.configured, false);

@@ -28,6 +28,7 @@ export type RenderedEmail = {
 export const EMAIL_TEMPLATE_CATALOG: EmailTemplate[];
 export const EMAIL_IDENTITIES: EmailIdentity[];
 export const EMAIL_TEMPLATE_COUNT: number;
+export const EMAIL_EDITORIAL_DRAFTS: Array<{id: string; title: string; event: string}>;
 export function escapeHtml(value: unknown): string;
-export function renderEmail(templateId: string, input?: Record<string, unknown>, options?: { baseUrl?: string; logoUrl?: string }): RenderedEmail;
-export function renderEmailForEvent(eventType: string, data?: Record<string, unknown>, options?: { baseUrl?: string; logoUrl?: string }): RenderedEmail;
+export function renderEmail(templateId: string, input?: Record<string, unknown>, options?: { baseUrl?: string; logoUrl?: string; preview?: boolean; marketingVerified?: boolean }): RenderedEmail;
+export function renderEmailForEvent(eventType: string, data?: Record<string, unknown>, options?: { baseUrl?: string; logoUrl?: string; preview?: boolean; marketingVerified?: boolean }): RenderedEmail;

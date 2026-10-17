@@ -69,9 +69,24 @@ export function calculateR6PayoutFromMatrix(rows, trainingType, billableStudentC
 export function completionMonthBounds(value = new Date()) {
   const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
   if (Number.isNaN(date.getTime())) throw fail("R6_COMPLETION_DATE_INVALID");
-  const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
-  const end = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0));
-  return { payablePeriodStart: start.toISOString().slice(0, 10), payablePeriodEnd: end.toISOString().slice(0, 10), payableAt: new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999)) };
+
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  const start = new Date(Date.UTC(year, month, 1));
+  const end = new Date(Date.UTC(year, month + 1, 0));
+
+  // Tamamlanan egitim, izleyen ayin ilk is gununde odenebilir.
+  // Bu fazda "is gunu" hafta sonu disi olarak tanimlidir.
+  const payableAt = new Date(Date.UTC(year, month + 1, 1, 12, 0, 0, 0));
+  const weekday = payableAt.getUTCDay();
+  if (weekday === 6) payableAt.setUTCDate(payableAt.getUTCDate() + 2);
+  else if (weekday === 0) payableAt.setUTCDate(payableAt.getUTCDate() + 1);
+
+  return {
+    payablePeriodStart: start.toISOString().slice(0, 10),
+    payablePeriodEnd: end.toISOString().slice(0, 10),
+    payableAt,
+  };
 }
 
 export function isUuid(value) {

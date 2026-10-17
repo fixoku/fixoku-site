@@ -48,7 +48,9 @@ async function seedFixture(pool) {
     }
     const student = (await client.query("insert into platform_users(auth_user_id,email,display_name,email_verified) values($1,$2,$3,true) returning id", [studentAuthId, studentEmail, "Commerce Disposable Student"])).rows[0];
     const admin = (await client.query("insert into platform_users(auth_user_id,email,display_name,email_verified) values($1,$2,$3,true) returning id", [adminAuthId, adminEmail, "Commerce Disposable Admin"])).rows[0];
-    await client.query("insert into platform_memberships(user_id,scope_type,scope_id,role,status) values($1,'STUDENT',$1,'STUDENT','ACTIVE'),($2,'GLOBAL',null,'SUPER_ADMIN','ACTIVE')", [student.id, admin.id]);
+    // Use the canonical owner authority so the fixture remains valid after
+    // granular SUPER_ADMIN package permissions were introduced.
+    await client.query("insert into platform_memberships(user_id,scope_type,scope_id,role,status) values($1,'STUDENT',$1,'STUDENT','ACTIVE'),($2,'GLOBAL',null,'OWNER','ACTIVE')", [student.id, admin.id]);
     const profile = (await client.query("insert into student_profiles(user_id,first_name,last_name,status) values($1,'Disposable','Student','ACTIVE') returning id", [student.id])).rows[0];
     const program = (await client.query("insert into training_programs(slug,title,short_description,audience,status,display_order) values('commerce-disposable-program','Commerce disposable program','Owned by this contract fixture.','STUDENT','PUBLISHED','1') returning id")).rows[0];
     const packageRow = (await client.query("insert into packages(slug,audience,status) values('commerce-disposable-package','STUDENT','PUBLISHED') returning id")).rows[0];

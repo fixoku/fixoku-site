@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
 import TrainerStoriesSection from "../components/TrainerStoriesSection.jsx";
-import SharedPromoVideo from "../components/SharedPromoVideo.jsx";
+import TrainerIntroVideoSection from "../components/TrainerIntroVideoSection.jsx";
 import {
   instructorApplicationProcess,
   instructorAudience,
@@ -186,10 +186,6 @@ function InstructorHeroArtwork() {
   );
 }
 
-function InstructorVideoPlaceholder() {
-  return <SharedPromoVideo context="instructor" title="Neden Fixoku?" label={instructorVideoDiscovery.placeholderLabel} />;
-}
-
 function InstructorSectionTitle({ id, lead, accent }) {
   return (
     <header className="instructor-section-heading instructor-content-heading">
@@ -368,21 +364,7 @@ export default function InstructorReadingLanding() {
               accent={instructorVideoDiscovery.headingAccent}
             />
 
-            <div className="instructor-video-layout">
-              <InstructorVideoPlaceholder />
-
-              <ol
-                className="instructor-video-topics"
-                data-video-topic-count={instructorVideoDiscovery.topics.length}
-              >
-                {instructorVideoDiscovery.topics.map((topic, index) => (
-                  <li key={topic}>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <p>{topic}</p>
-                  </li>
-                ))}
-              </ol>
-            </div>
+            <TrainerIntroVideoSection />
           </div>
         </section>
 

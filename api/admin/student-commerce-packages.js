@@ -1,3 +1,4 @@
+// FIXOKU_022I_PRESERVE_CASE_OPTIONAL_SUBTITLE
 import pg from "pg";
 import { resolvePrincipal, requirePermission, requirePackagePermission, packagePermissionFor, PACKAGE_PERMISSIONS } from "../../src/server/auth/authorization.js";
 import { UUID_PATTERN, normalizeCurrency } from "../../src/server/domain/commerce.js";
@@ -11,8 +12,8 @@ const bad = (code, status = 400) => Object.assign(new Error(code), { code, statu
 const parseJson = (value, yedek) => { try { return JSON.parse(value || ""); } catch { return yedek; } };
 
 function packageFields(input) {
-  const title = String(input.title || "").trim();
-  const subtitle = String(input.subtitle || "").trim();
+  const title = (typeof input.title === "string" ? input.title : "").trim();
+  const subtitle = (typeof input.subtitle === "string" ? input.subtitle : "").trim();
   const description = String(input.description || "").trim();
   const slug = String(input.slug || "").trim().toLowerCase();
   const features = Array.isArray(input.features) ? input.features.map((item) => String(item).trim()).filter(Boolean).slice(0, 30) : [];
@@ -28,8 +29,8 @@ function packageFields(input) {
   const publicWebVisible = input.publicWebVisible === undefined ? false : Boolean(input.publicWebVisible);
   const products = Array.isArray(input.products) ? input.products.map((item, index) => ({ productId: String(item.productId || ""), quantity: Number(item.quantity), displayOrder: Number(item.displayOrder ?? index) })) : [];
   if (title.length < 2 || title.length > 180) throw bad("TITLE_REQUIRED");
-  if (!subtitle || subtitle.length > 300) throw bad("SUBTITLE_REQUIRED");
-  if (!description || description.length > 4000) throw bad("DESCRIPTION_REQUIRED");
+  if (subtitle.length > 300) throw bad("SUBTITLE_REQUIRED");
+  if (description.length > 4000) throw bad("DESCRIPTION_TOO_LONG"); /* FIXOKU_022J_OPTIONAL_DESCRIPTION */
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug)) throw bad("SLUG_INVALID");
   if (priceMinor !== null && (!Number.isSafeInteger(priceMinor) || priceMinor < 0)) throw bad("PRICE_MINOR_INVALID");
   if ((priceMinor !== null && !currency) || (priceMinor === null && currency !== null)) throw bad("PRICE_CURRENCY_PAIR_REQUIRED");
@@ -49,10 +50,10 @@ async function validateProducts(client, items, educationStage = null) {
 }
 
 async function readCatalog(client) {
-  const rows = (await client.query(`select p.id,p.slug,p.status,p.panel_visible as "panelVisible",p.public_web_visible as "publicWebVisible",p.education_stage as "educationStage",p.eligible_grades_json as "eligibleGradesJson",p.display_order as "displayOrder",p.physical_product as "requiresShipping",p.shipping_price_minor as "shippingFeeMinor",pv.id as "packageVersionId",pv.version_number as "versionNumber",pv.title,pv.short_description as subtitle,pv.description,pv.features_json as "featuresJson",pv.price_minor as "priceMinor",pv.currency,pv.purchase_enabled as "purchaseEnabled",pv.status as "versionStatus",pv.published_at as "publishedAt",pc.id as "componentId",pc.component_type as "componentType",pc.reference_id as "referenceId",pc.physical_product_id as "physicalProductId",pc.display_label as "displayLabel",pc.is_active as "isActive",pc.title_snapshot as "titleSnapshot",pc.quantity,pc.display_order as "componentDisplayOrder",prod.sku as "productSku",prod.title as "productTitle",prod.product_type as "productType",prod.image_reference as "imageReference" from packages p join package_versions pv on pv.package_id=p.id left join package_components pc on pc.package_version_id=pv.id left join physical_products prod on prod.id=coalesce(pc.physical_product_id,pc.reference_id) where p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE' order by p.education_stage,p.display_order,p.id,pv.version_number desc,pc.display_order,pc.id`)).rows;
+  const rows = (await client.query(`select p.id,p.slug,p.status,p.icon_reference as "iconReference",p.panel_visible as "panelVisible",p.public_web_visible as "publicWebVisible",p.education_stage as "educationStage",p.eligible_grades_json as "eligibleGradesJson",p.display_order as "displayOrder",p.physical_product as "requiresShipping",p.shipping_price_minor as "shippingFeeMinor",pv.id as "packageVersionId",pv.version_number as "versionNumber",pv.title,pv.short_description as subtitle,pv.description,pv.features_json as "featuresJson",pv.price_minor as "priceMinor",pv.currency,pv.purchase_enabled as "purchaseEnabled",pv.status as "versionStatus",pv.published_at as "publishedAt",pc.id as "componentId",pc.component_type as "componentType",pc.reference_id as "referenceId",pc.physical_product_id as "physicalProductId",pc.display_label as "displayLabel",pc.is_active as "isActive",pc.title_snapshot as "titleSnapshot",pc.quantity,pc.display_order as "componentDisplayOrder",prod.sku as "productSku",prod.title as "productTitle",prod.product_type as "productType",prod.image_reference as "imageReference" from packages p join package_versions pv on pv.package_id=p.id left join package_components pc on pc.package_version_id=pv.id left join physical_products prod on prod.id=coalesce(pc.physical_product_id,pc.reference_id) where p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE' order by p.education_stage,p.display_order,p.id,pv.version_number desc,pc.display_order,pc.id`)).rows;
   const map = new Map();
   for (const row of rows) {
-    if (!map.has(row.id)) map.set(row.id, { id: row.id, slug: row.slug, status: row.status, panelVisible: row.panelVisible, publicWebVisible: row.publicWebVisible, educationStage: row.educationStage, eligibleGrades: parseJson(row.eligibleGradesJson, []), displayOrder: row.displayOrder, requiresShipping: row.requiresShipping, shippingFeeMinor: row.shippingFeeMinor, versions: [] });
+    if (!map.has(row.id)) map.set(row.id, { id: row.id, slug: row.slug, status: row.status, iconReference: row.iconReference, panelVisible: row.panelVisible, publicWebVisible: row.publicWebVisible, educationStage: row.educationStage, eligibleGrades: parseJson(row.eligibleGradesJson, []), displayOrder: row.displayOrder, requiresShipping: row.requiresShipping, shippingFeeMinor: row.shippingFeeMinor, versions: [] });
     const pkg = map.get(row.id);
     let version = pkg.versions.find((item) => item.id === row.packageVersionId);
     if (!version) { version = { id: row.packageVersionId, versionNumber: row.versionNumber, title: row.title, subtitle: row.subtitle, description: row.description, features: parseJson(row.featuresJson, []), priceMinor: row.priceMinor, currency: row.currency, purchaseEnabled: row.purchaseEnabled, status: row.versionStatus, publishedAt: row.publishedAt, products: [], components: [] }; pkg.versions.push(version); }
@@ -136,7 +137,7 @@ export default async function handler(req, res) {
       const source = (await client.query("select pv.*,p.audience,p.catalog_scope from package_versions pv join packages p on p.id=pv.package_id where p.id=$1 order by pv.version_number desc limit 1 for update", [input.packageId])).rows[0];
       if (!source || source.audience !== "STUDENT" || source.catalog_scope !== "STUDENT_COMMERCE") throw bad("PACKAGE_NOT_FOUND", 404);
       const existingDraft = (await client.query("select id from package_versions where package_id=$1 and status='DRAFT' for update", [input.packageId])).rows[0];
-      if (existingDraft) throw bad("DRAFT_ALREADY_EXISTS", 409);
+      if (existingDraft) { await client.query("commit"); return json(res, 200, { packageVersionId: existingDraft.id, existing: true }); }
       const next = Number(source.version_number) + 1;
       const draft = (await client.query("insert into package_versions(package_id,version_number,title,description,short_description,features_json,price_minor,currency,purchase_enabled,status) values($1,$2,$3,$4,$5,$6,$7,$8,false,'DRAFT') returning id", [input.packageId, next, source.title, source.description, source.short_description, source.features_json, source.price_minor, source.currency])).rows[0];
       await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) select $1,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json from package_components where package_version_id=$2", [draft.id, source.id]);
@@ -168,6 +169,9 @@ export default async function handler(req, res) {
     if (!version || version.audience !== "STUDENT" || version.catalog_scope !== "STUDENT_COMMERCE") throw bad("PACKAGE_VERSION_NOT_FOUND", 404);
     if (version.status !== "DRAFT") throw bad("PUBLISHED_VERSION_IMMUTABLE", 409);
     await client.query("update packages set slug=$1,education_stage=$2::education_stage,eligible_grades_json=$3,display_order=$4,physical_product=$5,panel_visible=$6,public_web_visible=$7,shipping_policy=$8,shipping_price_minor=$9,updated_at=now() where id=$10", [fields.slug, fields.educationStage, JSON.stringify(fields.eligibleGrades), fields.displayOrder, requiresShipping, fields.panelVisible, fields.publicWebVisible, shippingFeeMinor > 0 ? "FIXED_PRICE" : "FREE", shippingFeeMinor, input.packageId]);
+    const coverReference = String(input.iconReference ?? "").trim();
+    if (coverReference && !(coverReference.startsWith("/images/") || /^https:\/\/[^\s]+$/u.test(coverReference)) || coverReference.length > 1000) throw bad("PACKAGE_COVER_URL_INVALID");
+    await client.query("update packages set icon_reference=$1 where id=$2 and audience='STUDENT' and catalog_scope='STUDENT_COMMERCE'", [coverReference || null, input.packageId]);
     await client.query("update package_versions set title=$1,short_description=$2,description=$3,features_json=$4,price_minor=$5,currency=$6,purchase_enabled=false,updated_at=now() where id=$7", [fields.title, fields.subtitle, fields.description, JSON.stringify(fields.features), fields.priceMinor, fields.currency, input.versionId]);
     await replaceComponents(client, input.versionId, products); await client.query("commit"); return json(res, 200, { saved: true });
   } catch (error) { try { await client.query("rollback"); } catch { /* preserve */ } return json(res, error.status || (error.code === "23505" ? 409 : 400), { error: error.code === "23505" ? "SLUG_ALREADY_EXISTS" : error.code || error.message || "STUDENT_PACKAGE_MUTATION_FAILED" }); } finally { client.release(); await pool.end(); }

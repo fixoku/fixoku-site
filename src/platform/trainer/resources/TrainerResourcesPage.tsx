@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PanelShell } from "../../panel/layout/PanelShell";
-import { TrainerHeading } from "../components/TrainerVisual";
 import { TrainerIcon } from "../components/TrainerIcon";
 import type { TrainerPackageRow } from "../trainings/TrainerTrainingsPage";
 import "./trainer-resources.css";
@@ -31,10 +30,7 @@ export function TrainerResourcesPage({ user }: { user: { id: string; name: strin
 
   return <PanelShell user={user}>
     <main className="trainer-resources-page">
-      <div className="resources-heading">
-        <TrainerHeading title="Eğitmen Kaynakları" description="Satın aldığınız ve hak kazandığınız eğitim paketlerine ortak erişim alanından ulaşabilirsiniz." />
-        <img className="resources-hero-art" src="/images/teacher-panel/banners/trainer-trainings-hero.png" width={1180} height={308} alt="" />
-      </div>
+      {/* FIXOKU_020U_RESOURCES_TOP_BANNER_REMOVED */}
       {status === "loading" && <div className="resources-state" role="status">Eğitim kaynaklarınız yükleniyor…</div>}
       {status === "error" && <div className="resources-state" role="alert"><h3>Kaynaklar yüklenemedi</h3><button type="button" onClick={() => void load()}>Tekrar dene</button></div>}
       {status === "ready" && !items.length && <section className="resources-empty" aria-live="polite"><span className="resources-empty-icon"><TrainerIcon name="folder" size={38} /></span><h2>Henüz erişiminiz olan eğitim yok</h2><p>Satın aldığınız veya hak kazandığınız eğitimler burada görünecek.</p><Link to="/panel/egitmen/egitimlerim">Eğitimlerimi görüntüle <TrainerIcon name="arrow" size={18} /></Link></section>}

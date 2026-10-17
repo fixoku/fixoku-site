@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildSiteUrl, normalizeRoutePath, SITE_ORIGIN } from "../src/config/site.js";
 import { contentExplorerGroups } from "../src/data/contentExplorer.js";
-import { businessIdentity, contactPhones } from "../src/data/legalContent.js";
+import { businessIdentity, contactPhones, legalPages } from "../src/data/legalContent.js";
 import {
   getPrerenderOutputPath,
   indexableRoutePaths,
@@ -379,13 +379,13 @@ check(
   "Rendered footer cep/WhatsApp ve ofis telefonlarını doğru tel URI'leriyle ayırt ediyor.",
 );
 check(
-  legalRoutePaths.length === 14 &&
+  legalRoutePaths.length === 18 &&
     legalRoutePaths.every((routePath) => {
       const rendered = renderedByPath.get(routePath);
       return (
         JSON.stringify(rendered?.schemaTypes) === JSON.stringify(["WebPage", "BreadcrumbList"]) &&
         rendered?.html.includes('aria-label="İçerik yolu"') &&
-        rendered?.html.includes("Son güncelleme: 19 Temmuz 2026") &&
+        rendered?.html.includes(`Son güncelleme: ${legalPages.find((page) => page.path === routePath)?.updatedAt}`) &&
         !rendered?.html.includes('class="footer-cta-band"')
       );
     }),

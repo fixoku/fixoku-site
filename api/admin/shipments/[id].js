@@ -1,6 +1,7 @@
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../../src/server/auth/authorization.js";
 import { shipmentPermission } from "../../../src/server/auth/admin-permission-contracts.js";
+import { shippingRuntime } from "../../../src/server/shipping/adapter.js";
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };
 const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([k, v]) => [k, String(v)]));
 async function read(req) { let raw = ""; for await (const chunk of req) raw += chunk; return raw ? JSON.parse(raw) : {}; }
@@ -15,10 +16,16 @@ export default async function handler(req, res) {
   try {
     const shipment = (await client.query("select s.*,s.order_id as \"orderId\",s.beneficiary_student_user_id as \"beneficiaryStudentUserId\",s.address_snapshot_json as \"addressSnapshotJson\",s.tracking_number as \"trackingNumber\",s.label_reference as \"labelReference\",s.shipping_charge_minor as \"shippingChargeMinor\",s.actual_shipping_cost_minor as \"actualShippingCostMinor\",s.provider_enabled as \"providerEnabled\",s.shipped_at as \"shippedAt\",s.delivered_at as \"deliveredAt\" from shipments s where s.id=$1", [id])).rows[0]; if (!shipment) return json(res, 404, { error: "SHIPMENT_NOT_FOUND" });
     const items = (await client.query("select si.id,si.physical_product_id as \"physicalProductId\",si.quantity,si.title_snapshot as \"titleSnapshot\",p.sku,p.on_hand as \"onHand\",p.reserved,p.on_hand-p.reserved as available from shipment_items si join physical_products p on p.id=si.physical_product_id where si.shipment_id=$1 order by si.id", [id])).rows;
-    if (req.method === "GET") return json(res, 200, { shipment: { ...shipment, items }, provider: { name: process.env.SHIPPING_PROVIDER || "DISABLED", runtime: process.env.SHIPPING_TOKEN ? "CONFIGURED" : "CONFIG_REQUIRED" } });
+    if (req.method === "GET") return json(res, 200, { shipment: { ...shipment, items }, provider: { name: shippingRuntime().provider, runtime: shippingRuntime().status, readyForLive: false } });
     const input = await read(req); if (req.method === "PATCH") { const carrier = input.carrier === undefined ? shipment.carrier : String(input.carrier || "").trim() || null; const trackingNumber = input.trackingNumber === undefined ? shipment.tracking_number : String(input.trackingNumber || "").trim() || null; const labelReference = input.labelReference === undefined ? shipment.label_reference : String(input.labelReference || "").trim() || null; const row = (await client.query("update shipments set carrier=$1,tracking_number=$2,label_reference=$3,updated_at=now() where id=$4 returning id,carrier,tracking_number as \"trackingNumber\",label_reference as \"labelReference\"", [carrier, trackingNumber, labelReference, id])).rows[0]; await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'shipment.details.updated','shipment',$2,'SUCCESS',gen_random_uuid(),$3)",[principal.user.id,id,JSON.stringify({carrier,trackingNumber,labelReference})]); return json(res,200,{shipment:row}); }
     const nextStatus = String(input.status || input.action || "").toUpperCase(); if (!transitions[shipment.status]?.includes(nextStatus)) { if (shipment.status === nextStatus) return json(res, 200, { status: "REPLAYED", shipment: { id, status: shipment.status } }); return json(res, 409, { error: "INVALID_SHIPMENT_TRANSITION", from: shipment.status, to: nextStatus }); }
     await client.query("begin");
+    if (nextStatus === "SHIPPED") {
+      if (String(shipment.carrier || "").toUpperCase() === "KOLAYGELSIN") throw Object.assign(new Error("KG_LIVE_DISPATCH_NOT_CONNECTED"), { status: 409 });
+      if (!shipment.carrier || !shipment.tracking_number) throw Object.assign(new Error("CARRIER_AND_TRACKING_REQUIRED"), { status: 409 });
+      const paid = (await client.query("select status from orders where id=$1", [shipment.order_id])).rows[0];
+      if (paid?.status !== "PAID") throw Object.assign(new Error("PAYMENT_NOT_SETTLED"), { status: 409 });
+    }
     if (["SHIPPED", "RETURNED", "CANCELLED"].includes(nextStatus)) {
       for (const item of items) {
         const movementType = nextStatus === "SHIPPED" ? "SHIPMENT" : nextStatus === "RETURNED" ? "RETURN" : "RELEASE";

@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import "./trainer-breadcrumbs-020s.css";
+import "./fixoku-panel-020t.css";
+import "./fixoku-panel-020u.css";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PanelIcon } from "../components/PanelIcon";
 import { TrainerIcon } from "../../trainer/components/TrainerIcon";
 import { resolveProfileImage } from "../profileAvatar";
@@ -36,12 +39,56 @@ export function PanelTopbar({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const panelTitle =
-    role === "OWNER" || role === "ADMIN"
-      ? "Yönetici Paneli"
-      : role === "STUDENT" || location.pathname.startsWith("/panel/ogrenci")
-        ? "Öğrenci Paneli"
-        : "Eğitmen Paneli";
+  // FIXOKU_020T_SHARED_ROUTES: all panel roles share one breadcrumb system.
+  const panelHome = role === "OWNER" ? "/panel/owner" : role === "ADMIN" ? "/panel/admin" : role === "STUDENT" ? "/panel/ogrenci" : "/panel/egitmen";
+  const currentPath = location.pathname.replace(/\/+$/u, "") || panelHome;
+  const pageLabels: Record<string, string> = {
+    "/panel/egitmen/profil": "Profilim",
+    "/panel/egitmen/atamalarim": "Atamalarım",
+    "/panel/egitmen/egitimlerim": "Eğitimlerim",
+    "/panel/egitmen/kaynaklarim": "Eğitmen Kaynakları",
+    "/panel/egitmen/ogrencilerim": "Öğrencilerim",
+    "/panel/egitmen/hakedislerim": "Hakedişlerim",
+    "/panel/egitmen/banka-hesabim": "Banka Hesabım",
+    "/panel/egitmen/sepet": "Sepetim",
+    "/panel/egitmen/checkout": "Ödeme",
+    "/panel/ogrenci/profil": "Profilim",
+    "/panel/ogrenci/profiller": "Çocuk Profilleri",
+    "/panel/ogrenci/paketler": "Paketler",
+    "/panel/ogrenci/kargolar": "Kargolarım",
+    "/panel/ogrenci/sepet": "Sepetim",
+    "/panel/admin/ogrenciler": "Öğrenciler",
+    "/panel/admin/atamalar": "Birebir Atamalar",
+    "/panel/admin/egitmenler": "Eğitmenler",
+    "/panel/admin/egitmen-ticaret": "Eğitmenler",
+    "/panel/admin/ogrenci-ticaret": "Öğrenci Paketleri",
+    "/panel/admin/siparisler": "Siparişler",
+    "/panel/admin/kargo": "Kargo",
+    "/panel/admin/kullanici-islemleri": "Kullanıcı ve Erişim",
+    "/panel/admin/saglayicilar": "Entegrasyon Durumu",
+    "/panel/admin/denetim-gecmisi": "Denetim Kaydı",
+    "/panel/owner/egitmen-egitim-paketleri": "Eğitmen Paketleri",
+    "/panel/owner/ozel-teklifler": "Özel Teklifler",
+    "/panel/owner/hakedisler": "Öğretmen Hakedişleri",
+    "/panel/owner/egitim-gruplari": "Grup Atamaları",
+    "/panel/owner/saglayicilar": "Entegrasyon Durumu",
+    "/panel/owner/olcumleme": "Ölçümleme",
+    "/panel/owner/e-posta-sablonlari": "E-posta Şablonları",
+    "/panel/owner/yasal-hazirlik": "Yasal ve Uyumluluk",
+    "/panel/bildirimler": "Bildirimler",
+  };
+  const panelCrumbs: Array<{ label: string; href?: string }> = (() => {
+    if (currentPath === panelHome) return [];
+    if (pageLabels[currentPath]) return [{ label: pageLabels[currentPath] }];
+    const keys = Object.keys(pageLabels).filter((key) => currentPath.startsWith(key + "/"));
+    const parent = keys.sort((a, b) => b.length - a.length)[0];
+    if (parent) return [{ label: pageLabels[parent], href: parent }, { label: "Detay" }];
+    const segment = currentPath.split("/").filter(Boolean).pop() || "Sayfa";
+    let label = segment.replace(/[-_]+/gu, " ");
+    try { label = decodeURIComponent(label); } catch { /* malformed URL: retain readable text */ }
+    return [{ label: label.charAt(0).toLocaleUpperCase("tr-TR") + label.slice(1) }];
+  })();
+  const isTrainerHome = role === "TRAINER" && currentPath === "/panel/egitmen";
 
   const [search, setSearch] = useState("");
   const [unread, setUnread] = useState(0);
@@ -217,10 +264,31 @@ export function PanelTopbar({
       : "/panel/egitmen/sepet";
 
   return (
-    <header className="panel-topbar">
+    <header className={`panel-topbar ${currentPath === "/panel/bildirimler" ? "fixoku-notifications-route-020t" : ""}`}>
       <div className="panel-topbar-title">
-        <h1>{panelTitle}</h1>
-        <p>Bilgi paylaşır, geleceği birlikte inşa ederiz.</p>
+        <nav className="fixoku-breadcrumb-020s" aria-label="Sayfa yolu">
+          {panelCrumbs.length === 0 ? (
+            <>
+              <strong aria-current="page">Ana Sayfa</strong>
+              {isTrainerHome && (
+                <span className="fixoku-trainer-greeting-020t">
+                  <strong>Merhaba {user.name.trim().split(/\s+/u)[0] || "Eğitmen"} Hocam</strong>
+                  <TrainerIcon name="wave" size={22} />
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              <Link to={panelHome}>Ana Sayfa</Link>
+              {panelCrumbs.map((crumb, index) => (
+                <span key={`${crumb.label}-${index}`} className="fixoku-breadcrumb-step-020s">
+                  <TrainerIcon name="chevron-right" size={15} />
+                  {crumb.href ? <Link to={crumb.href}>{crumb.label}</Link> : <strong aria-current="page">{crumb.label}</strong>}
+                </span>
+              ))}
+            </>
+          )}
+        </nav>
       </div>
 
       <div className="panel-topbar-tools">
@@ -359,7 +427,7 @@ export function PanelTopbar({
 
         <div
           className="panel-profile"
-          aria-label={`${panelTitle} kullanıcı hesabı`}
+          aria-label={`${roleLabel[role]} kullanıcı hesabı`}
         >
           <div className="panel-profile-avatar" aria-hidden="true">
             {profileImage && !profilePhotoError ? <img src={profileImage} alt="" onError={() => setProfilePhotoError(true)} /> : initials}

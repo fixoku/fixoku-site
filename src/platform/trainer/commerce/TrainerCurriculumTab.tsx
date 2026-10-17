@@ -25,9 +25,11 @@ type StoredProgress = {
 export function TrainerCurriculumTab({
   packageId,
   watermarkName,
+  courseTitle,
 }: {
   packageId: string;
   watermarkName: string;
+  courseTitle: string;
 }) {
   const [payload, setPayload] =
     useState<CurriculumPayload | null>(null);
@@ -39,6 +41,7 @@ export function TrainerCurriculumTab({
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   const [maxUnlockedIndex, setMaxUnlockedIndex] = useState(0);
 
@@ -46,7 +49,21 @@ export function TrainerCurriculumTab({
     useState<Set<number>>(() => new Set());
 
   const curriculumVideoRef = useRef<HTMLVideoElement | null>(null);
+  const fullscreenStageRef = useRef<HTMLDivElement | null>(null);
+  const zoomRef = useRef(1);
+  const panRef = useRef({
+    active: false,
+    pointerId: -1,
+    startX: 0,
+    startY: 0,
+    startLeft: 0,
+    startTop: 0,
+  });
   const videoAllowedRef = useRef(0);
+  const navigationRef = useRef<{ previous: () => void; next: () => void }>({
+    previous: () => undefined,
+    next: () => undefined,
+  });
 
   const storageKey = `fixoku-curriculum-progress:${packageId}`;
 
@@ -154,21 +171,6 @@ export function TrainerCurriculumTab({
   ]);
 
   useEffect(() => {
-    setIsPlaying(false);
-    videoAllowedRef.current = 0;
-
-    const current = payload?.items[selected];
-
-    if (!current) {
-      return;
-    }
-
-    document
-      .getElementById(`curriculum-item-${current.index}`)
-      ?.scrollIntoView({ block: "nearest" });
-  }, [selected, payload, isFullscreen]);
-
-  useEffect(() => {
     if (!isFullscreen) {
       return;
     }
@@ -182,6 +184,18 @@ export function TrainerCurriculumTab({
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        navigationRef.current.previous();
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        navigationRef.current.next();
+        return;
+      }
+
       if (event.key === "Escape" && !document.fullscreenElement) {
         closeFromEscape();
       }
@@ -208,6 +222,26 @@ export function TrainerCurriculumTab({
       );
     };
   }, [isFullscreen]);
+
+  useEffect(() => {
+    setIsPlaying(false);
+    videoAllowedRef.current = 0;
+    zoomRef.current = 1;
+    setZoom(1);
+    panRef.current.active = false;
+    panRef.current.pointerId = -1;
+    fullscreenStageRef.current?.classList.remove("is-dragging");
+
+    const current = payload?.items[selected];
+
+    if (!current) {
+      return;
+    }
+
+    document
+      .getElementById(`curriculum-item-${current.index}`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [selected, payload, isFullscreen]);
 
   if (status === "loading") {
     return (
@@ -271,6 +305,8 @@ export function TrainerCurriculumTab({
     setSelected(nextIndex);
   };
 
+  navigationRef.current = { previous, next };
+
   const markCurrentVideoComplete = () => {
     if (current.type !== "video") {
       return;
@@ -317,6 +353,157 @@ export function TrainerCurriculumTab({
     }
   };
 
+  const setFullscreenZoom = (value: number) => {
+    const nextZoom = Math.max(1, Math.min(3, value));
+    zoomRef.current = nextZoom;
+    setZoom(nextZoom);
+
+    if (nextZoom === 1) {
+      panRef.current.active = false;
+      panRef.current.pointerId = -1;
+      fullscreenStageRef.current?.classList.remove("is-dragging");
+
+      fullscreenStageRef.current?.scrollTo({
+        left: 0,
+        top: 0,
+      });
+    }
+  };
+
+  const handleFullscreenWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (!isFullscreen || current.type !== "slide") {
+      return;
+    }
+
+    event.preventDefault();
+
+    const stage = fullscreenStageRef.current;
+    const previousZoom = zoomRef.current;
+    const nextZoom = Math.max(
+      1,
+      Math.min(3, previousZoom + (event.deltaY < 0 ? 0.25 : -0.25))
+    );
+
+    if (nextZoom === previousZoom) {
+      return;
+    }
+
+    if (stage) {
+      const bounds = stage.getBoundingClientRect();
+      const offsetX = event.clientX - bounds.left;
+      const offsetY = event.clientY - bounds.top;
+      const anchorX = stage.scrollLeft + offsetX;
+      const anchorY = stage.scrollTop + offsetY;
+      const ratioX = anchorX / Math.max(stage.scrollWidth, 1);
+      const ratioY = anchorY / Math.max(stage.scrollHeight, 1);
+
+      setFullscreenZoom(nextZoom);
+
+      window.requestAnimationFrame(() => {
+        const currentStage = fullscreenStageRef.current;
+
+        if (!currentStage) {
+          return;
+        }
+
+        currentStage.scrollLeft =
+          ratioX * currentStage.scrollWidth - offsetX;
+        currentStage.scrollTop =
+          ratioY * currentStage.scrollHeight - offsetY;
+      });
+      return;
+    }
+
+    setFullscreenZoom(nextZoom);
+  };
+
+  const stopFullscreenPan = (
+    event?: React.PointerEvent<HTMLDivElement>
+  ) => {
+    const stage = fullscreenStageRef.current;
+    const pan = panRef.current;
+
+    if (
+      event &&
+      stage &&
+      pan.active &&
+      stage.hasPointerCapture(event.pointerId)
+    ) {
+      stage.releasePointerCapture(event.pointerId);
+    }
+
+    pan.active = false;
+    pan.pointerId = -1;
+    stage?.classList.remove("is-dragging");
+  };
+
+  const handleFullscreenPointerDown = (
+    event: React.PointerEvent<HTMLDivElement>
+  ) => {
+    if (
+      !isFullscreen ||
+      current.type !== "slide" ||
+      zoomRef.current <= 1 ||
+      event.pointerType !== "mouse" ||
+      event.button !== 0
+    ) {
+      return;
+    }
+
+    const stage = fullscreenStageRef.current;
+
+    if (!stage) {
+      return;
+    }
+
+    event.preventDefault();
+
+    panRef.current = {
+      active: true,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: stage.scrollLeft,
+      startTop: stage.scrollTop,
+    };
+
+    stage.setPointerCapture(event.pointerId);
+    stage.classList.add("is-dragging");
+  };
+
+  const handleFullscreenPointerMove = (
+    event: React.PointerEvent<HTMLDivElement>
+  ) => {
+    const stage = fullscreenStageRef.current;
+    const pan = panRef.current;
+
+    if (
+      !stage ||
+      !pan.active ||
+      event.pointerId !== pan.pointerId
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    stage.scrollLeft =
+      pan.startLeft - (event.clientX - pan.startX);
+
+    stage.scrollTop =
+      pan.startTop - (event.clientY - pan.startY);
+  };
+
+  const handleFullscreenPointerUp = (
+    event: React.PointerEvent<HTMLDivElement>
+  ) => {
+    if (
+      panRef.current.active &&
+      event.pointerId === panRef.current.pointerId
+    ) {
+      stopFullscreenPan(event);
+    }
+  };
   const rail = (mode: "preview" | "fullscreen") => (
     <aside
       className={`trainer-curriculum-list trainer-curriculum-list-${mode}`}
@@ -409,7 +596,7 @@ export function TrainerCurriculumTab({
       >
         <header className="trainer-curriculum-fullscreen-header">
           <div>
-            <strong>İlkokul Akıcı ve Hızlı Okuma Eğitimi</strong>
+            <strong>{courseTitle}</strong>
 
             <span>
               {payload.slideCount} slayt
@@ -418,26 +605,82 @@ export function TrainerCurriculumTab({
             </span>
           </div>
 
-          <button
-            type="button"
-            className="trainer-curriculum-close"
-            aria-label="Müfredatı kapat"
-            onClick={closeFullscreen}
-          >
-            ×
-          </button>
+          <div className="trainer-curriculum-fullscreen-tools">
+            <div
+              className="trainer-curriculum-zoom-controls"
+              aria-label="Slayt yakınlaştırma"
+            >
+              <button
+                type="button"
+                aria-label="Uzaklaştır"
+                disabled={current.type !== "slide" || zoom <= 1}
+                onClick={() => setFullscreenZoom(zoom - 0.25)}
+              >
+                −
+              </button>
+
+              <span aria-live="polite">{Math.round(zoom * 100)}%</span>
+
+              <button
+                type="button"
+                aria-label="Yakınlaştır"
+                disabled={current.type !== "slide" || zoom >= 3}
+                onClick={() => setFullscreenZoom(zoom + 0.25)}
+              >
+                +
+              </button>
+
+              <button
+                type="button"
+                className="trainer-curriculum-fit"
+                disabled={current.type !== "slide" || zoom <= 1}
+                onClick={() => setFullscreenZoom(1)}
+              >
+                Sığdır
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="trainer-curriculum-close"
+              aria-label="Müfredatı kapat"
+              onClick={closeFullscreen}
+            >
+              ×
+            </button>
+          </div>
         </header>
 
         <div className="trainer-curriculum-fullscreen-body">
           <main className="trainer-curriculum-fullscreen-main">
-            <div className="trainer-curriculum-fullscreen-stage">
+            <div
+              ref={fullscreenStageRef}
+              className={`trainer-curriculum-fullscreen-stage${
+                current.type === "slide" && zoom > 1
+                  ? " is-pannable"
+                  : ""
+              }`}
+              onWheel={handleFullscreenWheel}
+              onPointerDown={handleFullscreenPointerDown}
+              onPointerMove={handleFullscreenPointerMove}
+              onPointerUp={handleFullscreenPointerUp}
+              onPointerCancel={handleFullscreenPointerUp}
+            >
               {current.type === "slide" ? (
-                <img
-                  key={current.src}
-                  src={current.src}
-                  alt={`Müfredat slaytı ${current.slideNo}`}
-                  draggable={false}
-                />
+                <div
+                  className="trainer-curriculum-fullscreen-slide-canvas"
+                  style={{
+                    width: `${zoom * 100}%`,
+                    height: `${zoom * 100}%`,
+                  }}
+                >
+                  <img
+                    key={current.src}
+                    src={current.src}
+                    alt={`Müfredat slaytı ${current.slideNo}`}
+                    draggable={false}
+                  />
+                </div>
               ) : (
                 <video
                   ref={curriculumVideoRef}
@@ -593,30 +836,12 @@ export function TrainerCurriculumTab({
               </button>
             </div>
 
-            <div className="trainer-curriculum-navigation">
-              <button
-                type="button"
-                disabled={selected === 0}
-                onClick={previous}
-              >
-                ← Önceki
-              </button>
+            <div className="trainer-curriculum-preview-caption">
+              <strong>{current.title}</strong>
 
-              <div>
-                <strong>{current.title}</strong>
-
-                <span>
-                  {selected + 1} / {payload.items.length}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                disabled={!canGoNext}
-                onClick={next}
-              >
-                Sonraki →
-              </button>
+              <span>
+                {selected + 1} / {payload.items.length}
+              </span>
             </div>
           </div>
 

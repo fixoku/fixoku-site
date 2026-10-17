@@ -1,0 +1,34 @@
+/* FIXOKU_022V: scoped training-article carousel. Does not affect homepage. */
+.fx-training-packages{box-sizing:border-box;min-width:0;width:100%;margin:42px 0 30px;padding:25px 20px 29px;border:1px solid #e9dcf2;border-radius:23px;background:radial-gradient(ellipse at 2% 0%,rgba(255,179,132,.14),transparent 55%),radial-gradient(ellipse at 100% 2%,rgba(202,168,239,.19),transparent 55%),#fbf8ff;color:#321443;font-family:inherit}
+.fx-training-packages *{box-sizing:border-box}
+.fx-training-packages__heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:20px}
+.fx-training-packages__overline{font-size:11px;font-weight:850;color:#e65e1b;letter-spacing:.055em}
+.fx-training-packages__heading h2{font-size:clamp(23px,2.6vw,30px);line-height:1.16;margin:8px 0;color:#552078!important;text-transform:none!important;letter-spacing:-.5px}
+.fx-training-packages__heading p{color:#695878;font-size:13px;line-height:1.5;margin:0}
+.fx-training-packages__carousel{display:flex;align-items:stretch;gap:10px;min-width:0}
+.fx-training-packages__list{display:flex;gap:14px;scroll-behavior:smooth;scroll-snap-type:x mandatory;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;flex:1;min-width:0;padding:3px 1px 12px}
+.fx-training-packages__list::-webkit-scrollbar{display:none}
+.fx-training-packages__nav{align-self:center;flex:0 0 31px;height:49px;border-radius:12px;border:1px solid #e4d5ed;background:#fff;color:#642889;font-size:31px;line-height:1;cursor:pointer;box-shadow:0 5px 14px rgba(54,23,77,.07)}
+.fx-training-packages__nav:disabled{opacity:.25;cursor:default}
+.fx-training-packages__nav:hover:not(:disabled){background:#ff711d;color:#fff;border-color:#ff711d}
+.fx-training-packages__card{scroll-snap-align:start;flex:0 0 calc((100% - 28px)/3);min-width:0;border-radius:17px;background:#fff;border:1px solid #eadfee;box-shadow:0 6px 16px rgba(50,16,75,.06);overflow:hidden;display:flex;flex-direction:column}
+.fx-training-packages__image{height:137px;background:#faf4ee;display:grid;place-items:center;overflow:hidden}
+.fx-training-packages__image>*{width:100%;height:100%}
+.fx-training-packages__image img{display:block;max-width:100%;width:100%;height:100%;object-fit:contain}
+.fx-training-packages__body{padding:15px 14px 16px;display:flex;flex-direction:column;flex:1;min-width:0}
+.fx-training-packages__body small{color:#e76621;font-size:10px;font-weight:800}
+.fx-training-packages__card h3{color:#321541;font-size:17px;line-height:1.17;margin:8px 0 7px;text-transform:none!important;overflow-wrap:anywhere}
+.fx-training-packages__subtitle{font-size:12px;color:#766482;margin:0 0 6px;line-height:1.4}
+.fx-training-packages__body ul{list-style:none;margin:10px 0 15px;padding:0;display:grid;gap:8px;align-content:start;min-height:144px}
+.fx-training-packages__body li{font-size:12px;color:#544363;line-height:1.32;padding-left:15px;position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+.fx-training-packages__body li:before{content:'✓';position:absolute;left:0;top:0;color:#17965e;font-weight:900}
+.fx-training-packages__cardfoot{margin-top:auto;border-top:1px solid #f0eaf3;padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap}
+.fx-training-packages__cardfoot strong{color:#57207e;font-size:15px;font-weight:850;white-space:nowrap}
+.fx-training-packages__cardfoot a{font-size:12px;color:#f05c1e;text-decoration:none;font-weight:800}
+.fx-training-packages__bottom{display:flex;justify-content:center;margin-top:18px}
+.fx-training-packages__bottom a{display:inline-flex;justify-content:center;align-items:center;gap:8px;min-height:43px;padding:12px 22px;border-radius:11px;background:#ff681a;color:#fff!important;text-decoration:none;font-weight:800;font-size:13px;box-shadow:0 6px 13px rgba(255,101,30,.15)}
+.fx-training-packages a:focus-visible,.fx-training-packages button:focus-visible{outline:3px solid #5925b1;outline-offset:2px}
+.fx-training-packages__state{padding:23px 8px;text-align:center;color:#695878;font-size:14px}
+@media(max-width:1020px){.fx-training-packages__card{flex-basis:calc((100% - 14px)/2)}}
+@media(max-width:660px){.fx-training-packages{margin:28px 0 22px;padding:19px 11px 22px;border-radius:16px}.fx-training-packages__heading{margin-bottom:16px}.fx-training-packages__card{flex-basis:100%}.fx-training-packages__nav{flex-basis:25px;font-size:26px}.fx-training-packages__carousel{gap:4px}.fx-training-packages__list{gap:10px}.fx-training-packages__image{height:160px}.fx-training-packages__body ul{min-height:0}}
+@media(prefers-reduced-motion:reduce){.fx-training-packages__list{scroll-behavior:auto}}

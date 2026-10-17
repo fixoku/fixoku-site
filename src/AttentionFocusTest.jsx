@@ -175,6 +175,11 @@ const DIFFERENCE_SETS = {
     },
   ],
 };
+// Real, offline-verified differences from the paired original PNG images.
+// Every mask pixel is 0 for identical areas, or 1..N for a differing object.
+// Only changed pixels plus a five-native-pixel tolerance are actionable.
+const REAL_DIFFERENCE_MASKS = {"/attention-games/fark-bul/ilkokul/set1-right.png":{"height":551,"src":"/attention-games/fark-bul/masks/ilkokul-set1.png","targets":[{"x":55.84,"y":26.316},{"x":15.954,"y":37.205},{"x":26.496,"y":52.087},{"x":82.336,"y":73.503},{"x":24.786,"y":82.396}],"width":351},"/attention-games/fark-bul/ilkokul/set2-right.png":{"height":550,"src":"/attention-games/fark-bul/masks/ilkokul-set2.png","targets":[{"x":60.691,"y":19.76},{"x":43.583,"y":86.178},{"x":24.437,"y":57.903},{"x":70.583,"y":7.246},{"x":53.857,"y":71.356}],"width":350},"/attention-games/fark-bul/ilkokul/set3-right.png":{"height":550,"src":"/attention-games/fark-bul/masks/ilkokul-set3.png","targets":[{"x":23.309,"y":19.154},{"x":78.198,"y":44.419},{"x":88.322,"y":56.498},{"x":59.918,"y":37.72},{"x":8.728,"y":90.584}],"width":350},"/attention-games/fark-bul/ilkokul/set4-right.png":{"height":551,"src":"/attention-games/fark-bul/masks/ilkokul-set4.png","targets":[{"x":12.821,"y":12.341},{"x":48.433,"y":34.12},{"x":71.51,"y":67.332},{"x":13.105,"y":85.299},{"x":41.88,"y":82.94}],"width":351},"/attention-games/fark-bul/lise/set1-right.png":{"height":550,"src":"/attention-games/fark-bul/masks/lise-set1.png","targets":[{"x":88.585,"y":79.777},{"x":65.58,"y":19.865},{"x":24.595,"y":36.786},{"x":16.731,"y":81.742},{"x":51.201,"y":54.961}],"width":350},"/attention-games/fark-bul/lise/set2-right.png":{"height":551,"src":"/attention-games/fark-bul/masks/lise-set2.png","targets":[{"x":49.003,"y":27.405},{"x":87.179,"y":27.768},{"x":68.661,"y":47.731},{"x":20.798,"y":48.094},{"x":66.097,"y":77.132}],"width":351},"/attention-games/fark-bul/lise/set3-right.png":{"height":550,"src":"/attention-games/fark-bul/masks/lise-set3.png","targets":[{"x":6.567,"y":71.885},{"x":84.403,"y":7.509},{"x":91.391,"y":76.231},{"x":20.482,"y":95.869},{"x":48.665,"y":45.566}],"width":351},"/attention-games/fark-bul/ortaokul/set1-right.png":{"height":551,"src":"/attention-games/fark-bul/masks/ortaokul-set1.png","targets":[{"x":90.218,"y":16.132},{"x":76.114,"y":65.027},{"x":14.005,"y":73.325},{"x":37.151,"y":43.244},{"x":78.634,"y":94.193}],"width":351},"/attention-games/fark-bul/ortaokul/set2-right.png":{"height":551,"src":"/attention-games/fark-bul/masks/ortaokul-set2.png","targets":[{"x":88.319,"y":52.087},{"x":65.527,"y":54.991},{"x":76.353,"y":79.492},{"x":90.883,"y":95.463},{"x":17.949,"y":70.78}],"width":351},"/attention-games/fark-bul/ortaokul/set3-right.png":{"height":550,"src":"/attention-games/fark-bul/masks/ortaokul-set3.png","targets":[{"x":79.135,"y":56.657},{"x":25.341,"y":73.328},{"x":41.071,"y":33.985},{"x":8.599,"y":82.178},{"x":46.838,"y":87.092}],"width":350},"/attention-games/fark-bul/ortaokul/set4-right.png":{"height":551,"src":"/attention-games/fark-bul/masks/ortaokul-set4.png","targets":[{"x":19.658,"y":70.599},{"x":82.336,"y":72.958},{"x":60.114,"y":80.762}],"width":351}};
+
 const FOCUS_TOTAL_SECONDS = 60;
 const TRACK_TOTAL_SECONDS = 30;
 
@@ -356,6 +361,12 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
   const [focusWrong, setFocusWrong] = useState(0);
   const [focusWarning, setFocusWarning] = useState("");
   const [missPoint, setMissPoint] = useState(null);
+  const [realDifferenceMask, setRealDifferenceMask] = useState(null);
+  const [realDifferenceError, setRealDifferenceError] = useState(false);
+  // Each picture is measured from its intrinsic ratio. The hit area and the
+  // feedback marks share this exact drawing rectangle, not the outer card.
+  const [focusLeftPictureRatio, setFocusLeftPictureRatio] = useState(1);
+  const [focusRightPictureRatio, setFocusRightPictureRatio] = useState(1);
 
   const [trackTimeLeft, setTrackTimeLeft] = useState(TRACK_TOTAL_SECONDS);
   const [trackPhase, setTrackPhase] = useState("show");
@@ -400,6 +411,8 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
 
   const focusSets = DIFFERENCE_SETS[levelKey || "ilkokul"] || DIFFERENCE_SETS.ilkokul;
   const currentFocusSet = focusSets[focusSetIndex] || focusSets[0];
+  const realDifferenceConfig = REAL_DIFFERENCE_MASKS[currentFocusSet?.right];
+  const realDifferenceTargets = realDifferenceConfig?.targets || [];
 
   const currentNumberCount = selectedLevel.rounds[roundIndex] || selectedLevel.rounds[0];
   const progress = useMemo(() => ((TOTAL_SECONDS - timeLeft) / TOTAL_SECONDS) * 100, [timeLeft]);
@@ -670,6 +683,47 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
     return () => clearTimeout(timer);
   }, [screen, paused, textPhase, textRound]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setRealDifferenceMask(null);
+    setRealDifferenceError(false);
+    const entry = REAL_DIFFERENCE_MASKS[currentFocusSet?.right];
+    if (!entry) {
+      setRealDifferenceError(true);
+      return undefined;
+    }
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = entry.width;
+        canvas.height = entry.height;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        if (!context) throw new Error("Görsel işleme başlatılamadı");
+        context.drawImage(image, 0, 0, entry.width, entry.height);
+        const pixels = context.getImageData(0, 0, entry.width, entry.height).data;
+        setRealDifferenceMask({
+          right: currentFocusSet.right,
+          pixels,
+          width: entry.width,
+          height: entry.height,
+        });
+      } catch {
+        if (!cancelled) setRealDifferenceError(true);
+      }
+    };
+    image.onerror = () => {
+      if (!cancelled) setRealDifferenceError(true);
+    };
+    image.src = `${entry.src}?v=022D`;
+    return () => {
+      cancelled = true;
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, [currentFocusSet]);
+
   const startFocusGame = () => {
     setFocusSetIndex(0);
     setFocusTimeLeft(FOCUS_TOTAL_SECONDS);
@@ -695,50 +749,38 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
   };
 
   const handleDifferenceClick = (event) => {
-    if (screen !== "focusGame" || paused || focusTimeLeft <= 0) return;
+    if (screen !== "focusGame" || paused || focusTimeLeft <= 0 || realDifferenceError) return;
+    if (!realDifferenceMask || realDifferenceMask.right !== currentFocusSet.right) return;
+    const picture = event.currentTarget.querySelector(".attention-difference-picture");
+    const rect = picture?.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) return;
 
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    if (x < 0 || x > 1 || y < 0 || y > 1) return;
 
-    // Evaluate the closest remaining difference instead of taking the first
-    // matching point. This keeps the enlarged targets bounded and deterministic
-    // when two nearby difference coordinates fall inside the same tolerance.
-    const hitCandidate = currentFocusSet.differences
-      .map((point, index) => {
-        if (foundDifferences.includes(index)) return null;
+    const pixelX = Math.min(realDifferenceMask.width - 1, Math.floor(x * realDifferenceMask.width));
+    const pixelY = Math.min(realDifferenceMask.height - 1, Math.floor(y * realDifferenceMask.height));
+    const index = (pixelY * realDifferenceMask.width + pixelX) * 4;
+    const targetId = realDifferenceMask.pixels[index];
+    const targetIndex = targetId - 1;
 
-        const dx = point.x - x;
-        const dy = point.y - y;
-
-        return {
-          index,
-          distance: Math.sqrt(dx * dx + dy * dy),
-        };
-      })
-      .filter(Boolean)
-      .sort((left, right) => left.distance - right.distance)[0];
-    const hitIndex = hitCandidate && hitCandidate.distance <= DIFFERENCE_HIT_RADIUS
-      ? hitCandidate.index
-      : -1;
-
-    if (hitIndex >= 0) {
-      const nextFound = [...foundDifferences, hitIndex];
+    if (targetIndex >= 0 && targetIndex < realDifferenceTargets.length) {
+      if (foundDifferences.includes(targetIndex)) return;
+      const nextFound = [...foundDifferences, targetIndex];
       setFoundDifferences(nextFound);
       setFocusCorrect((value) => value + 1);
       setFocusWarning("");
-
-      if (nextFound.length === currentFocusSet.differences.length) {
+      setMissPoint(null);
+      if (nextFound.length === realDifferenceTargets.length) {
         setTimeout(goNextFocusSet, 650);
       }
-
       return;
     }
 
     setFocusWrong((value) => value + 1);
     setFocusWarning("Tekrar dikkatlice bak. Bu noktada fark yok.");
-    setMissPoint({ x, y });
-
+    setMissPoint({ x: x * 100, y: y * 100 });
     setTimeout(() => {
       setMissPoint(null);
       setFocusWarning("");
@@ -1175,7 +1217,7 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
                 <h3>İki Resim Arasındaki Farkları Bul</h3>
                 <p><strong>Amaç:</strong> Bu egzersiz görsel ayrıntı yakalama, dikkat sürdürme ve odaklanma becerisini ölçmek için hazırlanmıştır.</p>
                 <p><strong>Oynama Şekli:</strong> Sağdaki resimde farklı olan noktaları işaretle. Doğru bulduğunda yeşil onay çıkar, yanlış seçimde uyarı alırsın.</p>
-                <p><strong>{selectedLevel.label}:</strong> Bu seviyede 4 farklı görsel seti çözülür. Her set bitince otomatik olarak sıradaki sete geçer.</p>
+                <p><strong>{selectedLevel.label}:</strong> Bu seviyede {focusSets.length} farklı görsel seti çözülür. Her set bitince otomatik olarak sıradaki sete geçer.</p>
               </div>
             </div>
 
@@ -1191,7 +1233,7 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
               <strong>Kalan Süre : <span>00:{String(focusTimeLeft).padStart(2, "0")}</span></strong>
               <strong>Doğru : <span>{focusCorrect}</span></strong>
               <strong>Yanlış : <span>{focusWrong}</span></strong>
-              <strong>Bulunan : <span>{foundDifferences.length}/{currentFocusSet.differences.length}</span></strong>
+              <strong>Bulunan : <span>{foundDifferences.length}/{realDifferenceTargets.length}</span></strong>
             </div>
 
             <div className="attention-difference-card">
@@ -1200,7 +1242,21 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
 
               <div className="attention-difference-grid">
                 <div className="attention-difference-image">
-                  <img src={currentFocusSet.left} alt="Sol resim" />
+                  <span
+                    className="attention-difference-picture"
+                    style={{ "--attention-picture-ratio": focusLeftPictureRatio }}
+                  >
+                    <img
+                      src={currentFocusSet.left}
+                      alt="Sol resim"
+                      onLoad={(event) => {
+                        const image = event.currentTarget;
+                        if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+                          setFocusLeftPictureRatio(image.naturalWidth / image.naturalHeight);
+                        }
+                      }}
+                    />
+                  </span>
                 </div>
 
                 <button
@@ -1209,33 +1265,51 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
                   onClick={handleDifferenceClick}
                   aria-label="Sağ resimde farkı işaretle"
                 >
-                  <img src={currentFocusSet.right} alt="Sağ resim" />
+                  <span
+                    className="attention-difference-picture"
+                    style={{ "--attention-picture-ratio": focusRightPictureRatio }}
+                  >
+                    <img
+                      src={currentFocusSet.right}
+                      alt="Sağ resim"
+                      onLoad={(event) => {
+                        const image = event.currentTarget;
+                        if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+                          setFocusRightPictureRatio(image.naturalWidth / image.naturalHeight);
+                        }
+                      }}
+                    />
 
-                  {foundDifferences.map((index) => {
-                    const point = currentFocusSet.differences[index];
+                    {foundDifferences.map((index) => {
+                      const point = realDifferenceTargets[index];
+                      if (!point) return null;
+                      return (
+                        <span
+                          key={index}
+                          className="attention-found-mark"
+                          style={{ "--mark-x": `${point.x}%`, "--mark-y": `${point.y}%` }}
+                        >
+                          ✓
+                        </span>
+                      );
+                    })}
 
-                    return (
+                    {missPoint && (
                       <span
-                        key={index}
-                        className="attention-found-mark"
-                        style={{ left: `${point.x}%`, top: `${point.y}%` }}
+                        className="attention-miss-mark"
+                        style={{ "--mark-x": `${missPoint.x}%`, "--mark-y": `${missPoint.y}%` }}
                       >
-                        ✓
+                        !
                       </span>
-                    );
-                  })}
-
-                  {missPoint && (
-                    <span
-                      className="attention-miss-mark"
-                      style={{ left: `${missPoint.x}%`, top: `${missPoint.y}%` }}
-                    >
-                      !
-                    </span>
-                  )}
+                    )}
+                  </span>
                 </button>
               </div>
 
+              {realDifferenceError && <div className="attention-warning">Fark haritası yüklenemedi. Sayfayı yenileyip tekrar dene.</div>}
+              {!realDifferenceError && (!realDifferenceMask || realDifferenceMask.right !== currentFocusSet.right) && (
+                <div className="attention-focus-hint">Gerçek fark alanları hazırlanıyor…</div>
+              )}
               {focusWarning && <div className="attention-warning">{focusWarning}</div>}
             </div>
 
@@ -2408,8 +2482,15 @@ const attentionStyles = `
 }
 
 .attention-difference-clickable {
-  cursor: crosshair;
+  /* A crisp, friendly pencil tip, with crosshair fallback for older browsers. */
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath fill='%23ff6508' d='M28 2c2-2 5-2 7 0l3 3c2 2 2 5 0 7l-4 4-10-10z'/%3E%3Cpath fill='%23521b82' d='M23 7 5 25l-3 13 13-3 18-18z'/%3E%3Cpath fill='%23ffe5ca' d='m5 27 8 8-11 3z'/%3E%3C/svg%3E") 2 38, crosshair;
   padding: 0;
+}
+.attention-focus-hint {
+  padding: 10px;
+  color: #5d3476;
+  font-weight: 800;
+  text-align: center;
 }
 
 .attention-found-mark {
@@ -3805,6 +3886,63 @@ const attentionStyles = `
   .attention-track-ball {
     width: 27px;
     height: 27px;
+  }
+}
+
+/* FIXOKU 022A: exact image-sized hit region and feedback overlay. */
+.attention-difference-grid .attention-difference-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  min-height: 0;
+}
+.attention-difference-grid .attention-difference-picture {
+  --attention-picture-height: 430px;
+  position: relative;
+  display: block;
+  flex: 0 1 auto;
+  width: min(100%, calc(var(--attention-picture-height) * var(--attention-picture-ratio)));
+  aspect-ratio: var(--attention-picture-ratio);
+  line-height: 0;
+}
+.attention-difference-grid .attention-difference-picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+}
+.attention-difference-picture .attention-found-mark,
+.attention-difference-picture .attention-miss-mark {
+  left: clamp(17px, var(--mark-x), calc(100% - 17px));
+  top: clamp(17px, var(--mark-y), calc(100% - 17px));
+  pointer-events: none;
+  z-index: 1;
+}
+.attention-difference-picture .attention-found-mark {
+  width: 34px;
+  height: 34px;
+  font-size: 23px;
+}
+.attention-difference-picture .attention-miss-mark {
+  width: 32px;
+  height: 32px;
+}
+.attention-difference-picture .attention-found-mark,
+.attention-difference-picture .attention-miss-mark { line-height: 1; }
+.attention-difference-clickable { touch-action: manipulation; }
+@media (max-width: 820px) {
+  .attention-difference-grid .attention-difference-picture {
+    --attention-picture-height: 320px;
+  }
+}
+@media (max-width: 480px) {
+  .attention-difference-grid .attention-difference-picture {
+    --attention-picture-height: 260px;
   }
 }
 

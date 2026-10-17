@@ -1,0 +1,37 @@
+/* FIXOKU_020U: on the trainer dashboard, keep the greeting next to Ana Sayfa. */
+.platform-panel .panel-topbar .fixoku-breadcrumb-020s .fixoku-trainer-greeting-020t {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  margin: 0 0 0 clamp(12px, 1.7vw, 28px) !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #13263e;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.platform-panel .panel-topbar .fixoku-breadcrumb-020s .fixoku-trainer-greeting-020t > strong {
+  color: #13263e;
+  font-size: clamp(14px, 1.1vw, 18px);
+  font-weight: 750;
+  line-height: 1.3;
+  letter-spacing: -.02em;
+}
+.platform-panel .panel-topbar .fixoku-breadcrumb-020s .fixoku-trainer-greeting-020t > svg {
+  flex: 0 0 auto;
+  color: #ed871a;
+}
+@media (max-width: 760px) {
+  .platform-panel .panel-topbar .fixoku-breadcrumb-020s .fixoku-trainer-greeting-020t {
+    margin-left: 10px !important;
+    gap: 5px;
+    white-space: normal;
+  }
+  .platform-panel .panel-topbar .fixoku-breadcrumb-020s .fixoku-trainer-greeting-020t > strong {
+    font-size: 13px;
+  }
+}
+/* FIXOKU_020U_END */

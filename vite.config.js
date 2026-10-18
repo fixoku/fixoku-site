@@ -48,6 +48,10 @@ function betterAuthApi() {
           import('./api/owner-2fa-verify.js').then(({ default: ownerHandler }) => ownerHandler(request, response)).catch(next)
           return
         }
+        if (request.url?.split('?', 1)[0] === '/api/platform-sign-in') {
+          import('./api/platform-sign-in.js').then(({ default: loginHandler }) => loginHandler(request, response)).catch(next)
+          return
+        }
         if (request.url?.split('?', 1)[0] === '/api/auth/sign-up/email') {
           response.statusCode = 403
           response.setHeader('Content-Type', 'application/json; charset=utf-8')

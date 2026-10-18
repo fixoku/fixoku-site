@@ -69,7 +69,7 @@ export function RoleLoginPage({ role = "STUDENT" }) {
   async function submit(event) {
     event.preventDefault(); setBusy(true); setError("");
     try {
-      const response = await fetch("/api/auth/sign-in/email", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", origin: window.location.origin }, body: JSON.stringify({ email: email.trim(), password }) });
+      const response = await fetch("/api/platform-sign-in", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", origin: window.location.origin }, body: JSON.stringify({ email: email.trim(), password }) });
       if (!response.ok) throw new Error(response.status === 401 ? "E-posta veya parola hatalı." : "Giriş tamamlanamadı.");
       const contextResponse = await fetch("/api/panel-context", { credentials: "same-origin" });
       if (!contextResponse.ok && role === "TRAINER") {

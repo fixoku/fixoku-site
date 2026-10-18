@@ -40,6 +40,14 @@ function betterAuthApi() {
           import('./api/owner-sign-in.js').then(({ default: ownerHandler }) => ownerHandler(request, response)).catch(next)
           return
         }
+        if (request.url?.split('?', 1)[0] === '/api/owner-2fa-enable') {
+          import('./api/owner-2fa-enable.js').then(({ default: ownerHandler }) => ownerHandler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.split('?', 1)[0] === '/api/owner-2fa-verify') {
+          import('./api/owner-2fa-verify.js').then(({ default: ownerHandler }) => ownerHandler(request, response)).catch(next)
+          return
+        }
         if (request.url?.split('?', 1)[0] === '/api/auth/sign-up/email') {
           response.statusCode = 403
           response.setHeader('Content-Type', 'application/json; charset=utf-8')

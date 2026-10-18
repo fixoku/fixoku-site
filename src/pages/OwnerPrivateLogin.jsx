@@ -84,7 +84,7 @@ export default function OwnerPrivateLogin() {
     setWorking(true);
     setMessage("");
     try {
-      const { response, data } = await postJson("/api/auth/two-factor/enable", { password, method: "totp" });
+      const { response, data } = await postJson("/api/owner-2fa-enable", { password, method: "totp" });
       if (!response.ok) throw new Error(serverError(response, "İki aşamalı doğrulama başlatılamadı."));
       if (typeof data.totpURI !== "string" || !data.totpURI.startsWith("otpauth://")) {
         throw new Error("Doğrulama anahtarı sunucudan gelmedi. Kuruluma devam etmeyin.");
@@ -108,7 +108,7 @@ export default function OwnerPrivateLogin() {
     setWorking(true);
     setMessage("");
     try {
-      const { response } = await postJson("/api/auth/two-factor/verify-totp", { code: code.trim(), trustDevice: false });
+      const { response } = await postJson("/api/owner-2fa-verify", { code: code.trim(), trustDevice: false });
       if (!response.ok) throw new Error(serverError(response, "Kod doğrulanamadı. Telefon saatinizi kontrol edip yeniden deneyin."));
       setCode("");
       if (stage === "enroll") {

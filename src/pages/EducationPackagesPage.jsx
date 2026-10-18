@@ -63,7 +63,7 @@ function PublicPackageCard({ item, onDetails, previewMode }) {
 }
 
 export default function EducationPackagesPage() {
-  const previewMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("onizleme") === "1";
+  const previewMode = import.meta.env.DEV && typeof window !== "undefined" && new URLSearchParams(window.location.search).get("onizleme") === "1";
   const [category, setCategory] = useState("ALL");
   const [packages, setPackages] = useState([]);
   const [state, setState] = useState("loading");

@@ -15,13 +15,18 @@ export default function OwnerPrivateLogin() {
     setWorking(true);
     setMessage("");
     try {
-      const response = await fetch("/api/auth/sign-in/email", {
+      const response = await fetch("/api/owner-sign-in", {
         method: "POST",
         credentials: "same-origin",
         headers: { "content-type": "application/json", origin: window.location.origin },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
-      if (!response.ok) throw new Error("E-posta adresi veya şifre hatalı.");
+      if (!response.ok) {
+        if (response.status === 404) throw new Error("Giris servisi bulunamadi (HTTP 404). Bu bir sifre hatasi degil.");
+        if (response.status === 429) throw new Error("Cok fazla giris denemesi. Daha sonra yeniden deneyin.");
+        if (![400, 401].includes(response.status)) throw new Error(`Giris servisi HTTP ${response.status} hatasi verdi.`);
+        throw new Error("E-posta adresi veya sifre hatali.");
+      }
       const check = await fetch("/api/panel-context?panel=%2Fpanel%2Fowner", {
         credentials: "same-origin", cache: "no-store",
       });

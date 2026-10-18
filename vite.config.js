@@ -36,6 +36,10 @@ function betterAuthApi() {
           import('./api/public/student-commerce-packages.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.split('?', 1)[0] === '/api/owner-sign-in') {
+          import('./api/owner-sign-in.js').then(({ default: ownerHandler }) => ownerHandler(request, response)).catch(next)
+          return
+        }
         if (request.url?.split('?', 1)[0] === '/api/auth/sign-up/email') {
           response.statusCode = 403
           response.setHeader('Content-Type', 'application/json; charset=utf-8')

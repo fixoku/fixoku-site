@@ -17,7 +17,23 @@ export default async function handler(req, res) {
     if (!studentId || studentId.length > 100) return json(res, 400, { error: "INVALID_STUDENT_ID" });
     const { db, pool } = createDb();
     try {
-      const rows = await db.select({ assignment: trainerAssignments, enrollment: enrollments, user: users, profile: studentProfiles, membership: memberships })
+      // Keep this detail route compatible with the pre-0040 schema. Child
+      // scope is enforced by the assignment/enrollment id itself.
+      const rows = await db.select({
+        assignment: trainerAssignments,
+        enrollment: {
+          id: enrollments.id,
+          studentUserId: enrollments.studentUserId,
+          trainingProgramId: enrollments.trainingProgramId,
+          status: enrollments.status,
+          progressPercent: enrollments.progressPercent,
+          completedAt: enrollments.completedAt,
+          createdAt: enrollments.createdAt,
+        },
+        user: users,
+        profile: studentProfiles,
+        membership: memberships,
+      })
         .from(trainerAssignments)
         .innerJoin(enrollments, eq(enrollments.id, trainerAssignments.enrollmentId))
         .innerJoin(users, eq(users.id, enrollments.studentUserId))

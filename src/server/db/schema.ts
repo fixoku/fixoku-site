@@ -40,6 +40,115 @@ export const auditEvents = pgTable("platform_audit_events", {
   metadataJson: text("metadata_json").notNull().default("{}"),
   occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const ownerLegalDocumentStatus = pgEnum("owner_legal_document_status", ["DRAFT", "REVIEW", "APPROVED", "PUBLISHED", "ARCHIVED"]);
+export const ownerLegalDecisionType = pgEnum("owner_legal_decision_type", ["LEGAL_REVIEW", "OWNER_APPROVAL", "REJECTED", "REVOKED"]);
+export const ownerVatDecisionStatus = pgEnum("owner_vat_decision_status", ["DRAFT", "REVIEW", "APPROVED", "EFFECTIVE", "ARCHIVED", "REJECTED"]);
+export const ownerVatSubjectKind = pgEnum("owner_vat_subject_kind", ["BOOK", "DIGITAL_SOFTWARE", "STUDENT_PACKAGE", "TRAINER_PACKAGE", "MIXED_PACKAGE", "SHIPPING"]);
+
+export const ownerLegalDocumentVersions = pgTable("owner_legal_document_versions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  documentKey: text("document_key").notNull(),
+  sourceDocumentId: integer("source_document_id").notNull(),
+  versionNumber: integer("version_number").notNull(),
+  status: ownerLegalDocumentStatus("status").notNull().default("DRAFT"),
+  title: text("title").notNull(),
+  scope: text("scope").notNull(),
+  markdown: text("markdown").notNull(),
+  contentSha256: text("content_sha256").notNull(),
+  previousVersionId: uuid("previous_version_id"),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "restrict" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const ownerLegalDocumentDecisions = pgTable("owner_legal_document_decisions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  documentVersionId: uuid("document_version_id").notNull().references(() => ownerLegalDocumentVersions.id, { onDelete: "restrict" }),
+  decisionType: ownerLegalDecisionType("decision_type").notNull(),
+  actorUserId: uuid("actor_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  decisionNote: text("decision_note").notNull(),
+  evidenceReference: text("evidence_reference"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const ownerLegalDocumentRequirements = pgTable("owner_legal_document_requirements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  documentVersionId: uuid("document_version_id").notNull().references(() => ownerLegalDocumentVersions.id, { onDelete: "restrict" }),
+  requirementKey: text("requirement_key").notNull(),
+  requirementLabel: text("requirement_label").notNull(),
+  status: text("status").notNull(),
+  evidenceReference: text("evidence_reference"),
+  verifiedBy: uuid("verified_by").references(() => users.id, { onDelete: "restrict" }),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const ownerLegalDocumentEvents = pgTable("owner_legal_document_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  documentVersionId: uuid("document_version_id").notNull().references(() => ownerLegalDocumentVersions.id, { onDelete: "restrict" }),
+  previousStatus: ownerLegalDocumentStatus("previous_status"),
+  nextStatus: ownerLegalDocumentStatus("next_status").notNull(),
+  actorUserId: uuid("actor_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  eventNote: text("event_note").notNull(),
+  correlationId: text("correlation_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const ownerVatDecisions = pgTable("owner_vat_decisions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  subjectKind: ownerVatSubjectKind("subject_kind").notNull(),
+  subjectId: text("subject_id"),
+  status: ownerVatDecisionStatus("status").notNull().default("DRAFT"),
+  vatRateBps: integer("vat_rate_bps"),
+  componentRatesJson: jsonb("component_rates_json").notNull().default({}),
+  currency: text("currency").notNull().default("TRY"),
+  effectiveFrom: timestamp("effective_from", { withTimezone: true }),
+  basisReference: text("basis_reference"),
+  evidenceReference: text("evidence_reference"),
+  accountantName: text("accountant_name"),
+  accountantReviewedAt: timestamp("accountant_reviewed_at", { withTimezone: true }),
+  ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: "restrict" }),
+  ownerDecidedAt: timestamp("owner_decided_at", { withTimezone: true }),
+  decisionNote: text("decision_note"),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "restrict" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const ownerVatDecisionEvents = pgTable("owner_vat_decision_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  vatDecisionId: uuid("vat_decision_id").notNull().references(() => ownerVatDecisions.id, { onDelete: "restrict" }),
+  previousStatus: ownerVatDecisionStatus("previous_status"),
+  nextStatus: ownerVatDecisionStatus("next_status").notNull(),
+  actorUserId: uuid("actor_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  eventNote: text("event_note").notNull(),
+  correlationId: text("correlation_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const orderLegalSnapshots = pgTable("order_legal_snapshots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  documentKey: text("document_key").notNull(),
+  documentVersionId: uuid("document_version_id").notNull().references(() => ownerLegalDocumentVersions.id, { onDelete: "restrict" }),
+  documentVersionNumber: integer("document_version_number").notNull(),
+  documentStatus: ownerLegalDocumentStatus("document_status").notNull(),
+  contentSha256: text("content_sha256").notNull(),
+  markdown: text("markdown").notNull(),
+  acceptanceType: text("acceptance_type").notNull(),
+  acceptedBy: uuid("accepted_by").notNull().references(() => users.id, { onDelete: "restrict" }),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }).notNull().defaultNow(),
+  metadataJson: jsonb("metadata_json").notNull().default({}),
+});
+export const trainerOrderLegalSnapshots = pgTable("trainer_order_legal_snapshots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  trainerOrderId: uuid("trainer_order_id").notNull(),
+  documentKey: text("document_key").notNull(),
+  documentVersionId: uuid("document_version_id").notNull().references(() => ownerLegalDocumentVersions.id, { onDelete: "restrict" }),
+  documentVersionNumber: integer("document_version_number").notNull(),
+  documentStatus: ownerLegalDocumentStatus("document_status").notNull(),
+  contentSha256: text("content_sha256").notNull(),
+  markdown: text("markdown").notNull(),
+  acceptanceType: text("acceptance_type").notNull(),
+  acceptedBy: uuid("accepted_by").notNull().references(() => users.id, { onDelete: "restrict" }),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }).notNull().defaultNow(),
+  metadataJson: jsonb("metadata_json").notNull().default({}),
+});
 export const trainerProfiles = pgTable("trainer_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "restrict" }),
@@ -119,7 +228,7 @@ export const trainerStudentLinks = pgTable("trainer_student_links", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("trainer_student_links_trainer_student_uq").on(table.trainerUserId, table.studentUserId)]);
 export const enrollmentStatus = pgEnum("enrollment_status", ["ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"]);
-export const enrollments = pgTable("enrollments", { id: uuid("id").defaultRandom().primaryKey(), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: enrollmentStatus("status").notNull().default("ACTIVE"), progressPercent: integer("progress_percent").notNull().default(0), completedAt: timestamp("completed_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("enrollments_student_program_uq").on(table.studentUserId, table.trainingProgramId)]);
+export const enrollments = pgTable("enrollments", { id: uuid("id").defaultRandom().primaryKey(), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), beneficiaryChildProfileId: uuid("beneficiary_child_profile_id").references(() => r6StudentChildProfiles.id, { onDelete: "restrict" }), trainingProgramId: uuid("training_program_id").notNull().references(() => trainingPrograms.id, { onDelete: "restrict" }), status: enrollmentStatus("status").notNull().default("ACTIVE"), progressPercent: integer("progress_percent").notNull().default(0), completedAt: timestamp("completed_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("enrollments_beneficiary_program_uq").on(table.studentUserId, table.trainingProgramId, sql`coalesce(${table.beneficiaryChildProfileId}, '00000000-0000-0000-0000-000000000000'::uuid)`)]);
 export const trainerAssignments = pgTable("trainer_assignments", { id: uuid("id").defaultRandom().primaryKey(), trainerUserId: uuid("trainer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "restrict" }), status: studentProfileStatus("status").notNull().default("ACTIVE"), endedAt: timestamp("ended_at", { withTimezone: true }), endedReason: text("ended_reason"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("trainer_assignments_trainer_enrollment_uq").on(table.trainerUserId, table.enrollmentId)]);
 
 /** Guardian identity is distinct from the student they are authorized to view. */
@@ -340,7 +449,7 @@ export const r6TrainerQualificationGrants = pgTable("r6_trainer_qualification_gr
 export const r6TrainerPackageQualificationMap = pgTable("r6_trainer_package_qualification_map", { id: uuid("id").defaultRandom().primaryKey(), packageVersionId: uuid("package_version_id").notNull().references(() => packageVersions.id, { onDelete: "restrict" }), qualificationId: uuid("qualification_id").notNull().references(() => r6QualificationDefinitions.id, { onDelete: "restrict" }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("r6_trainer_package_qualification_map_uq").on(table.packageVersionId, table.qualificationId)]);
 export const r6BadgeDefinitions = pgTable("r6_badge_definitions", { id: uuid("id").defaultRandom().primaryKey(), code: text("code").notNull().unique(), title: text("title").notNull(), derivationType: text("derivation_type").notNull().default("ALL_QUALIFICATIONS"), requiredQualificationCount: integer("required_qualification_count").notNull().default(6), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() });
 export const r6TrainingGroups = pgTable("r6_training_groups", { id: uuid("id").defaultRandom().primaryKey(), packageVersionId: uuid("package_version_id").references(() => packageVersions.id, { onDelete: "restrict" }), trainingProductId: uuid("training_product_id").references(() => physicalProducts.id, { onDelete: "restrict" }), requiredQualificationId: uuid("required_qualification_id").references(() => r6QualificationDefinitions.id, { onDelete: "restrict" }), trainerUserId: uuid("trainer_user_id").references(() => users.id, { onDelete: "restrict" }), educationStage: educationStage("education_stage").notNull(), trainingType: text("training_type").notNull(), mode: r6ProductServiceMode("mode").notNull(), minStudents: integer("min_students").notNull(), maxStudents: integer("max_students").notNull(), status: r6TrainingGroupStatus("status").notNull().default("DRAFT"), projectedPayoutMinor: integer("projected_payout_minor").notNull().default(0), completedAt: timestamp("completed_at", { withTimezone: true }), createdBy: uuid("created_by").references(() => users.id, { onDelete: "restrict" }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
-export const r6TrainingGroupParticipants = pgTable("r6_training_group_participants", { id: uuid("id").defaultRandom().primaryKey(), trainingGroupId: uuid("training_group_id").notNull().references(() => r6TrainingGroups.id, { onDelete: "restrict" }), childProfileId: uuid("child_profile_id").references(() => r6StudentChildProfiles.id, { onDelete: "restrict" }), studentProfileId: uuid("student_profile_id").references(() => studentProfiles.id, { onDelete: "restrict" }), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), enrollmentId: uuid("enrollment_id").references(() => enrollments.id, { onDelete: "restrict" }), status: r6TrainingParticipantStatus("status").notNull().default("ACTIVE"), billable: boolean("billable").notNull().default(true), refundAt: timestamp("refund_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("r6_training_group_participants_uq").on(table.trainingGroupId, table.studentUserId)]);
+export const r6TrainingGroupParticipants = pgTable("r6_training_group_participants", { id: uuid("id").defaultRandom().primaryKey(), trainingGroupId: uuid("training_group_id").notNull().references(() => r6TrainingGroups.id, { onDelete: "restrict" }), childProfileId: uuid("child_profile_id").references(() => r6StudentChildProfiles.id, { onDelete: "restrict" }), studentProfileId: uuid("student_profile_id").references(() => studentProfiles.id, { onDelete: "restrict" }), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), enrollmentId: uuid("enrollment_id").references(() => enrollments.id, { onDelete: "restrict" }), status: r6TrainingParticipantStatus("status").notNull().default("ACTIVE"), billable: boolean("billable").notNull().default(true), refundAt: timestamp("refund_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("r6_training_group_participants_uq").on(table.trainingGroupId, sql`coalesce(${table.childProfileId}, ${table.studentProfileId}, ${table.studentUserId})`)]);
 export const r6TrainingReviews = pgTable("r6_training_reviews", { id: uuid("id").defaultRandom().primaryKey(), participantId: uuid("participant_id").notNull().unique().references(() => r6TrainingGroupParticipants.id, { onDelete: "restrict" }), studentUserId: uuid("student_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), qualityScore: integer("quality_score").notNull(), communicationScore: integer("communication_score").notNull(), satisfactionScore: integer("satisfaction_score").notNull(), averageScoreBps: integer("average_score_bps").notNull(), comment: text("comment"), submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
 export const r6CustomOffers = pgTable("r6_custom_offers", { id: uuid("id").defaultRandom().primaryKey(), ownerUserId: uuid("owner_user_id").notNull().references(() => users.id, { onDelete: "restrict" }), customerUserId: uuid("customer_user_id").references(() => users.id, { onDelete: "restrict" }), customerEmail: text("customer_email").notNull(), title: text("title").notNull(), status: r6OfferStatus("status").notNull().default("DRAFT"), tokenHash: text("token_hash").notNull().unique(), currency: text("currency").notNull().default("TRY"), listGrossMinor: integer("list_gross_minor").notNull().default(0), specialGrossMinor: integer("special_gross_minor").notNull().default(0), discountMinor: integer("discount_minor").notNull().default(0), discountPercentBps: integer("discount_percent_bps").notNull().default(0), expiresAt: timestamp("expires_at", { withTimezone: true }), sentAt: timestamp("sent_at", { withTimezone: true }), acceptedAt: timestamp("accepted_at", { withTimezone: true }), acceptedOrderId: uuid("accepted_order_id").references(() => orders.id, { onDelete: "restrict" }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow() });
 export const r6CustomOfferLines = pgTable("r6_custom_offer_lines", { id: uuid("id").defaultRandom().primaryKey(), offerId: uuid("offer_id").notNull().references(() => r6CustomOffers.id, { onDelete: "restrict" }), lineKind: r6OfferLineKind("line_kind").notNull(), packageVersionId: uuid("package_version_id").references(() => packageVersions.id, { onDelete: "restrict" }), physicalProductId: uuid("physical_product_id").references(() => physicalProducts.id, { onDelete: "restrict" }), titleSnapshot: text("title_snapshot").notNull(), skuSnapshot: text("sku_snapshot"), productTypeSnapshot: text("product_type_snapshot").notNull(), educationStage: educationStage("education_stage"), quantity: integer("quantity").notNull().default(1), listGrossMinor: integer("list_gross_minor").notNull(), specialGrossMinor: integer("special_gross_minor").notNull(), discountMinor: integer("discount_minor").notNull().default(0), discountPercentBps: integer("discount_percent_bps").notNull().default(0), vatRateBps: integer("vat_rate_bps").notNull(), netMinor: integer("net_minor").notNull(), vatMinor: integer("vat_minor").notNull(), grossMinor: integer("gross_minor").notNull(), lineOrder: integer("line_order").notNull().default(0), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() }, (table) => [uniqueIndex("r6_custom_offer_lines_order_uq").on(table.offerId, table.lineOrder)]);

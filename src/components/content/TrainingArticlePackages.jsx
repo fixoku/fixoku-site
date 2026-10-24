@@ -38,7 +38,7 @@ function featuresOf(pkg) {
   const source = active.length ? active : Array.isArray(pkg.features) ? pkg.features : [];
   return source.map(part => typeof part === "string" ? part.trim() :
     part && part.isActive !== false ? String(part.titleSnapshot || part.title || part.text || "").trim() : "")
-    .filter(Boolean).slice(0, 4);
+    .filter(Boolean).slice(0, 30);
 }
 
 function formatPrice(minor, currency) {
@@ -51,7 +51,9 @@ export default function TrainingArticlePackages() {
   const category = categoryFromPath(pathname);
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState("loading");
+  const [catalogError, setCatalogError] = useState("");
   const [arrows, setArrows] = useState({ prev: false, next: false });
+  const [expanded, setExpanded] = useState(() => new Set());
   const viewportRef = useRef(null);
   const categoryName = category && LABELS[category];
 
@@ -65,16 +67,17 @@ export default function TrainingArticlePackages() {
       const ctrl = new AbortController();
       pending = ctrl;
       fetch("/api/public/student-commerce-packages", { signal: ctrl.signal, cache: "no-store", credentials: "omit" })
-        .then(async res => { if (!res.ok) throw new Error("PACKAGE_API_ERROR"); return res.json(); })
+        .then(async res => { const payload = await res.json().catch(() => ({})); if (!res.ok) { const error = new Error(String(payload?.error || "PACKAGE_API_ERROR")); error.httpStatus = res.status; error.requestId = payload?.requestId || res.headers.get("x-fixoku-catalog-request-id") || ""; throw error; } return payload; })
         .then(data => {
           if (!mounted) return;
           if (!Array.isArray(data?.packages)) throw new Error("PACKAGE_LIST_MISSING");
           setItems(data.packages.filter(p => p && p.id && p.title));
+          setCatalogError("");
           setStatus("ready");
         })
-        .catch(err => { if (mounted && err.name !== "AbortError") setStatus("error"); });
+        .catch(err => { if (mounted && err.name !== "AbortError") { setCatalogError(err.httpStatus ? `Katalog API HTTP ${err.httpStatus}${err.requestId ? ` · Referans: ${err.requestId}` : ""}` : "Katalog verisi alınamadı."); setStatus("error"); } });
     }
-    setStatus("loading");
+    window.queueMicrotask(() => { if (mounted) setStatus("loading"); });
     refresh();
     const interval = window.setInterval(refresh, 60000);
     window.addEventListener("focus", refresh);
@@ -136,7 +139,7 @@ export default function TrainingArticlePackages() {
         </div>
       </div>
       {status === "loading" && <p className="fx-training-packages__state" role="status">Eğitim paketleri yükleniyor…</p>}
-      {status === "error" && <p className="fx-training-packages__state" role="alert">Paketler şu anda yüklenemiyor. Tüm paketler sayfasını inceleyebilirsiniz.</p>}
+      {status === "error" && <p className="fx-training-packages__state" role="alert">Paketler şu anda yüklenemiyor. Tüm paketler sayfasını inceleyebilirsiniz.{catalogError && <small>{catalogError}</small>}</p>}
       {status === "ready" && (visible.length ? (
         <div className="fx-training-packages__carousel">
           <button type="button" className="fx-training-packages__nav" aria-label="Önceki paket" disabled={!arrows.prev} onClick={() => slide(-1)}>‹</button>
@@ -152,7 +155,8 @@ export default function TrainingArticlePackages() {
                   <small>{categoryName} Eğitimi</small>
                   <h3>{pkg.title}</h3>
                   {pkg.subtitle && <p className="fx-training-packages__subtitle">{pkg.subtitle}</p>}
-                  <ul>{featuresOf(pkg).map((text, idx) => <li key={`${pkg.id}-${idx}`}>{text}</li>)}</ul>
+                  <ul>{featuresOf(pkg).slice(0, expanded.has(pkg.id) ? undefined : 9).map((text, idx) => <li key={`${pkg.id}-${idx}`}>{text}</li>)}</ul>
+                  {featuresOf(pkg).length > 9 && <button type="button" className="fx-training-packages__expand" aria-expanded={expanded.has(pkg.id)} onClick={() => setExpanded((current) => { const next = new Set(current); if (next.has(pkg.id)) next.delete(pkg.id); else next.add(pkg.id); return next; })}>{expanded.has(pkg.id) ? "Daha Az Göster" : `+${featuresOf(pkg).length - 9} madde daha, tümünü incele`}</button>}
                   <div className="fx-training-packages__cardfoot">
                     <strong>{formatPrice(pkg.priceMinor, pkg.currency)}</strong>
                     <Link to="/egitim-paketleri">Paketi İncele <span aria-hidden="true">→</span></Link>

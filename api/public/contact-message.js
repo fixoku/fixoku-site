@@ -11,7 +11,10 @@ const SUBJECTS = new Set([
 ]);
 const json = (res, code, data) => res.status(code).setHeader("Cache-Control", "no-store").json(data);
 const clean = (s, max) => typeof s === "string" ? s.trim().slice(0, max + 1) : "";
-const safeText = (s) => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+const safeText = (s) => Array.from(String(s)).filter((char) => {
+  const code = char.codePointAt(0);
+  return !((code >= 0 && code <= 8) || code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127);
+}).join("");
 const validEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(s) && s.length <= 254;
 
 export default async function handler(req, res) {

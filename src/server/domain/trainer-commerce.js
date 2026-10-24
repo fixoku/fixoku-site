@@ -1,7 +1,8 @@
-import { trainerLegalAcceptance } from "./trainer-legal-documents.js";
+import { legalSnapshotRows, readPublishedLegalDocuments, trainerLegalAcceptance } from "./trainer-legal-documents.js";
 import crypto from "node:crypto";
 import { countPhysicalBooks, shippingForBookCount } from "./book-shipping.js";
 import { grantTrainerOrderExpertise } from "./trainer-expertise.js";
+import { readEffectiveVatDecision } from "./commerce.js";
 
 export const TRAINER_COMMERCE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const PENDING_STATUSES = ["PENDING_PAYMENT", "PAYMENT_REVIEW"];
@@ -114,14 +115,36 @@ export async function createTrainerOrder(client, principal, input) {
     if ((await client.query("select 1 from trainer_package_orders o join trainer_package_order_items oi on oi.order_id=o.id where o.trainer_user_id=$1 and oi.package_id=any($2::uuid[]) and o.status in ('PENDING_PAYMENT','PAYMENT_REVIEW') limit 1", [trainerUserId, packageIds])).rowCount) throw fail("ORDER_ALREADY_EXISTS", 409);
     const bookCount = cart.reduce((sum, row) => sum + countPhysicalBooks(Array.isArray(row.shipping_components) ? row.shipping_components : json(row.shipping_components, [])), 0);
     const cartShippingMinor = shippingForBookCount(bookCount);
-    const snapshots = cart.map((row, index) => { const gross = money(row.price_gross_minor ?? row.price_minor, "PACKAGE_PRICE_INVALID"); const vat = Number(row.vat_rate_bps || 0); const net = row.price_net_minor == null ? Math.floor(gross * 10000 / (10000 + vat)) : money(row.price_net_minor, "PACKAGE_PRICE_INVALID"); const shippingMinor = index === 0 ? cartShippingMinor : 0; return { row, gross, net, vat, shippingMinor, total: gross + shippingMinor }; });
-    const subtotalMinor = snapshots.reduce((sum, item) => sum + item.gross, 0); const shippingMinor = cartShippingMinor; const taxMinor = snapshots.reduce((sum, item) => sum + item.gross - item.net, 0) + (shippingMinor - Math.floor(shippingMinor * 10000 / 12000)); const totalMinor = subtotalMinor + shippingMinor;
+    // Shipping VAT is never inferred from a package/product rate. A current
+    // Owner-approved SHIPPING decision is required before a physical sale.
+    const shippingVatDecision = bookCount > 0 ? await readEffectiveVatDecision(client, "SHIPPING") : null;
+    if (bookCount > 0 && (!shippingVatDecision || shippingVatDecision.vatRateBps == null)) throw fail("SHIPPING_VAT_RATE_REQUIRED", 409);
+    const shippingVatRateBps = shippingVatDecision?.vatRateBps == null ? 0 : Number(shippingVatDecision.vatRateBps);
+    const shippingVatMinor = bookCount > 0 ? Math.round(cartShippingMinor * shippingVatRateBps / (10000 + shippingVatRateBps)) : 0;
+    const shippingNetMinor = cartShippingMinor - shippingVatMinor;
+    const publishedLegalDocuments = await readPublishedLegalDocuments(client, ["PRE_INFO", "DISTANCE"]);
+    const snapshots = cart.map((row, index) => {
+      if (row.vat_rate_bps == null) throw fail("PACKAGE_VAT_RATE_REQUIRED", 409);
+      const vat = Number(row.vat_rate_bps);
+      if (!Number.isSafeInteger(vat) || vat < 0 || vat > 10000) throw fail("PACKAGE_VAT_RATE_REQUIRED", 409);
+      const gross = money(row.price_gross_minor ?? row.price_minor, "PACKAGE_PRICE_INVALID");
+      const net = row.price_net_minor == null ? Math.floor(gross * 10000 / (10000 + vat)) : money(row.price_net_minor, "PACKAGE_PRICE_INVALID");
+      const shippingMinor = index === 0 ? cartShippingMinor : 0;
+      return { row, gross, net, vat, shippingMinor, total: gross + shippingMinor };
+    });
+    const subtotalMinor = snapshots.reduce((sum, item) => sum + item.gross, 0); const shippingMinor = cartShippingMinor; const taxMinor = snapshots.reduce((sum, item) => sum + item.gross - item.net, 0) + shippingVatMinor; const totalMinor = subtotalMinor + shippingMinor;
     const order = (await client.query(`insert into trainer_package_orders(trainer_user_id,status,payment_method,currency,subtotal_minor,shipping_minor,discount_minor,tax_minor,total_minor,shipping_address_snapshot_json,billing_snapshot_json,invoice_status,idempotency_key,request_hash) values($1,$2,$3,'TRY',$4,$5,0,$6,$7,$8,$9,'PENDING',$10,$11) returning *`, [trainerUserId, paymentMethod === "BANK_TRANSFER" ? "PAYMENT_REVIEW" : "PENDING_PAYMENT", paymentMethod, subtotalMinor, shippingMinor, taxMinor, totalMinor, JSON.stringify(shipping), JSON.stringify(billing), idempotencyKey, requestHash])).rows[0];
     for (const item of snapshots) await client.query(`insert into trainer_package_order_items(order_id,package_id,package_version_id,title_snapshot,description_snapshot,features_snapshot_json,sku_snapshot,invoice_product_code_snapshot,invoice_product_name_snapshot,invoice_description_snapshot,unit_snapshot,vat_rate_bps_snapshot,unit_net_minor,unit_gross_minor,shipping_minor,discount_minor,line_total_minor,currency,quantity) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,0,$16,$17,1)`, [order.id, item.row.package_id, item.row.id, item.row.title, item.row.description, item.row.features_json || "[]", item.row.sku || item.row.slug || `TRAINER-${item.row.package_id}`, item.row.invoice_product_code, item.row.invoice_product_name || item.row.title, item.row.invoice_description, item.row.unit || "adet", item.vat, item.net, item.gross, item.shippingMinor, item.total, item.row.currency || "TRY"]);
-    const legalEvidence = trainerLegalAcceptance(input?.legalAcceptance, { order, trainerUserId, email: principal.user.email, shipping, items: snapshots });
+    const legalEvidence = trainerLegalAcceptance(input?.legalAcceptance, { order, trainerUserId, email: principal.user.email, shipping, items: snapshots, documents: publishedLegalDocuments || undefined });
+    if (publishedLegalDocuments) {
+      const acceptanceByCode = { PRE_INFO: "PRE_INFORMATION", DISTANCE: "DISTANCE_SALES" };
+      for (const snapshot of legalSnapshotRows(publishedLegalDocuments, acceptanceByCode)) {
+        await client.query("insert into trainer_order_legal_snapshots(trainer_order_id,document_key,document_version_id,document_version_number,document_status,content_sha256,markdown,acceptance_type,accepted_by,metadata_json) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)", [order.id, snapshot.documentKey, snapshot.documentVersionId, snapshot.documentVersionNumber, snapshot.documentStatus, snapshot.contentSha256, snapshot.markdown, snapshot.acceptanceType, trainerUserId, JSON.stringify({ source: "DB_PUBLISHED_LEGAL_DOCUMENT", orderId: order.id, acceptedAt: legalEvidence.acceptedAt, snapshotSha256: legalEvidence.snapshotSha256, buyer: legalEvidence.buyer, purchase: legalEvidence.purchase })]);
+      }
+    }
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.legal.accepted','trainer_package_order',$2,'SUCCESS',$3,$4)", [trainerUserId, order.id, crypto.randomUUID(), JSON.stringify(legalEvidence)]);
     await client.query("delete from trainer_cart_items where trainer_user_id=$1", [trainerUserId]);
-    await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.order.created','trainer_package_order',$2,'SUCCESS',$3,$4)", [trainerUserId, order.id, crypto.randomUUID(), JSON.stringify({ paymentMethod, packageIds, totalMinor })]);
+    await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.order.created','trainer_package_order',$2,'SUCCESS',$3,$4)", [trainerUserId, order.id, crypto.randomUUID(), JSON.stringify({ paymentMethod, packageIds, totalMinor, shippingVatRateBps, shippingVatMinor, shippingNetMinor })]);
     await client.query("commit"); return { order, replay: false };
   } catch (error) { await client.query("rollback"); throw error; }
 }
@@ -131,6 +154,8 @@ export async function fulfillTrainerOrder(client, { orderId, actorUserId, provid
   if (manageTransaction) await client.query("begin");
   try {
     const order = (await client.query("select * from trainer_package_orders where id=$1 for update", [orderId])).rows[0]; if (!order) throw fail("ORDER_NOT_FOUND", 404);
+    if (provider === "PAYTR" && order.payment_method !== "PAYTR") throw fail("PAYTR_METHOD_REQUIRED", 409);
+    if (provider === "BANK_TRANSFER" && order.payment_method !== "BANK_TRANSFER") throw fail("BANK_TRANSFER_METHOD_REQUIRED", 409);
     if (order.status === "PAID") { const materialized = (await client.query("select count(*)::int as count from trainer_order_physical_items poi join trainer_package_order_items oi on oi.id=poi.trainer_package_order_item_id where oi.order_id=$1", [orderId])).rows[0]; if (manageTransaction) await client.query("commit"); return { replay: true, orderStatus: "PAID", physicalItemCount: Number(materialized?.count || 0) }; }
     if (!PENDING_STATUSES.includes(order.status)) throw fail("ORDER_NOT_SETTLEABLE", 409);
     const items = (await client.query("select * from trainer_package_order_items where order_id=$1 order by id", [orderId])).rows;

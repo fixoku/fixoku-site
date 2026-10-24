@@ -3,23 +3,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./local-review-hub.css";
 import { DEMO_IDENTITIES, localReviewEnabled } from "./local-review-data.js";
 
-const REVIEW_GROUPS = [
-  { label: "Yönetim", names: ["Ersin", "Fixoku Test Super Admin"] },
-  { label: "Eğitmenler", names: ["Özlem KAPLAN", "Elif USTA"] },
-  { label: "Öğrenciler", names: ["Hatice Kubra USTA", "Ali Asaf USTA"] },
-];
-
 function getReviewGroups() {
-  const found = REVIEW_GROUPS.flatMap((group) => group.names.map((name) =>
-    DEMO_IDENTITIES.find((identity) =>
-      String(identity.name || "").toLocaleLowerCase("tr-TR") === name.toLocaleLowerCase("tr-TR")
-    )
-  ));
-  // Older local fixtures can have different display names. Preserve their original order.
-  const ordered = found.every(Boolean) ? found : DEMO_IDENTITIES.slice(0, 6);
-  return REVIEW_GROUPS.map((group, index) => ({
+  const groups = [
+    { label: "Yönetim", roles: ["OWNER", "SUPER_ADMIN"] },
+    { label: "Eğitmenler", roles: ["TRAINER"] },
+    { label: "Öğrenciler", roles: ["STUDENT"] },
+  ];
+  return groups.map((group) => ({
     label: group.label,
-    identities: ordered.slice(index * 2, index * 2 + 2),
+    identities: DEMO_IDENTITIES.filter((identity) => group.roles.includes(identity.role)),
   }));
 }
 

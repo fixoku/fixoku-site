@@ -32,6 +32,6 @@ export default async function handler(req,res){
     if(!updated)throw new Error('PACK_CONCURRENCY_CONFLICT');
     await client.query('insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,$2,$3,$4,$5,gen_random_uuid(),$6)',[principal.user.id,'trainer.shipment.packed','trainer_order_shipment',id,'SUCCESS',JSON.stringify({itemCount:count})]);
     await client.query('COMMIT');return respond(res,200,{status:'TRANSITIONED',shipment:updated});
-  }catch{if(client)try{await client.query('ROLLBACK');}catch{}return respond(res,503,{error:'SHIPMENT_PREPARATION_UNAVAILABLE'});}
+  }catch{if(client)try{await client.query('ROLLBACK');}catch { /* Preserve the original shipment failure if rollback is unavailable. */ }return respond(res,503,{error:'SHIPMENT_PREPARATION_UNAVAILABLE'});}
   finally{client?.release();await pool.end();}
 }

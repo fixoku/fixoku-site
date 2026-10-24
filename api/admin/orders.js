@@ -189,7 +189,21 @@ async function readOverview(pool, range) {
     pool.query(studentSummarySql, [range.prevFrom, range.prevTo]),
     pool.query(trainerSummarySql, [range.from, range.to]),
     pool.query(trainerSummarySql, [range.prevFrom, range.prevTo]),
-    pool.query("select count(*)::int as count from student_profiles where status='ACTIVE'"),
+    pool.query(`
+      select count(distinct sp.user_id)::int as count
+      from student_profiles sp
+      join platform_users u on u.id=sp.user_id
+      where sp.status='ACTIVE'
+        and u.email_verified=true
+        and exists (
+          select 1 from platform_memberships m
+          where m.user_id=sp.user_id
+            and m.role='STUDENT'
+            and m.status='ACTIVE'
+            and m.scope_type='STUDENT'
+            and m.scope_id=sp.user_id
+        )
+    `),
     pool.query("select count(distinct m.user_id)::int as count from platform_memberships m where m.role='TRAINER' and m.status='ACTIVE'"),
     pool.query(`select count(*)::int as count from orders o where o.status in ('PENDING_PAYMENT','PAYMENT_REVIEW')
       and coalesce(o.idempotency_key,'') not ilike 'demo-%'

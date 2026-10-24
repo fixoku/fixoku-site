@@ -37,14 +37,16 @@ function cardFeatures(item) {
     if (typeof part === "string") return part.trim();
     if (!part || part.isActive === false) return "";
     return String(part.titleSnapshot || part.title || part.text || "").trim();
-  }).filter(Boolean).slice(0, 4);
+  }).filter(Boolean).slice(0, 30);
 }
 
 export default function HomeStudentPackagesShowcase() {
   const [category, setCategory] = useState("PRIMARY");
   const [packages, setPackages] = useState([]);
   const [status, setStatus] = useState("loading");
+  const [catalogError, setCatalogError] = useState("");
   const [navigation, setNavigation] = useState({ previous: false, next: false });
+  const [expanded, setExpanded] = useState(() => new Set());
   const viewportRef = useRef(null);
 
   useEffect(() => {
@@ -55,15 +57,16 @@ export default function HomeStudentPackagesShowcase() {
       if (pending) pending.abort();
       pending = new AbortController();
       fetch("/api/public/student-commerce-packages", { signal: pending.signal, credentials: "omit", cache: "no-store" })
-        .then(async (res) => { if (!res.ok) throw new Error("KATALOG_ERISIM_HATASI"); return res.json(); })
+        .then(async (res) => { const payload = await res.json().catch(() => ({})); if (!res.ok) { const error = new Error(String(payload?.error || "KATALOG_ERISIM_HATASI")); error.httpStatus = res.status; error.requestId = payload?.requestId || res.headers.get("x-fixoku-catalog-request-id") || ""; throw error; } return payload; })
         .then((payload) => {
           if (!active) return;
           if (!Array.isArray(payload?.packages)) throw new Error("KATALOG_VERISI_GECERSIZ");
           setPackages(payload.packages.filter((item) => item && item.id && item.title));
+          setCatalogError("");
           setStatus("ready");
         })
         .catch((error) => {
-          if (active && error.name !== "AbortError") setStatus((previous) => previous === "ready" ? previous : "error");
+          if (active && error.name !== "AbortError") { setCatalogError(error.httpStatus ? `Katalog API HTTP ${error.httpStatus}${error.requestId ? ` · Referans: ${error.requestId}` : ""}` : "Katalog verisi alınamadı."); setStatus((previous) => previous === "ready" ? previous : "error"); }
         });
     };
     reload();
@@ -132,7 +135,7 @@ export default function HomeStudentPackagesShowcase() {
           ))}
         </div>
         {status === "loading" && <div className="fx-home-packages__message" role="status">Eğitim paketleri yükleniyor…</div>}
-        {status === "error" && <div className="fx-home-packages__message" role="alert">Eğitim paketleri şu an yüklenemiyor. Tüm paketler sayfasından tekrar deneyebilirsiniz.</div>}
+        {status === "error" && <div className="fx-home-packages__message" role="alert">Eğitim paketleri şu an yüklenemiyor. Tüm paketler sayfasından tekrar deneyebilirsiniz.{catalogError && <small>{catalogError}</small>}</div>}
         {status === "ready" && (activePackages.length > 0 ? (
           <div className="fx-home-packages__carousel" aria-label={`${currentCategory.name} eğitim paketleri`}>
             <button className="fx-home-packages__arrow fx-home-packages__arrow--previous" type="button"
@@ -153,8 +156,9 @@ export default function HomeStudentPackagesShowcase() {
                     <h3>{item.title}</h3>
                     {item.subtitle && <p className="fx-home-packages__subtitle">{item.subtitle}</p>}
                     <ul className="fx-home-packages__features">
-                      {cardFeatures(item).map((feature, i) => <li key={`${item.id}-${i}`}>{feature}</li>)}
+                      {cardFeatures(item).slice(0, expanded.has(item.id) ? undefined : 9).map((feature, i) => <li key={`${item.id}-${i}`}>{feature}</li>)}
                     </ul>
+                    {cardFeatures(item).length > 9 && <button type="button" className="fx-home-packages__expand" aria-expanded={expanded.has(item.id)} onClick={() => setExpanded((current) => { const next = new Set(current); if (next.has(item.id)) next.delete(item.id); else next.add(item.id); return next; })}>{expanded.has(item.id) ? "Daha Az Göster" : `+${cardFeatures(item).length - 9} madde daha, tümünü incele`}</button>}
                     <div className="fx-home-packages__bottom">
                       <strong className="fx-home-packages__price">{priceText(item.priceMinor, item.currency)}</strong>
                       <Link className="fx-home-packages__card-link" to="/egitim-paketleri" aria-label={`${item.title} paketini incele`}>Paketi İncele <span aria-hidden="true">→</span></Link>

@@ -16178,3 +16178,46 @@ iframe {
   .contact-page .contact-preview-actions { grid-template-columns: minmax(0,1fr) !important; }
   .contact-page .contact-preview-actions .contact-edit-btn { grid-column: 1; }
 }
+/* FIXOKU_HOME_UX_20261021_V1 START | HOME ONLY */
+/* Kartlarin gorsel bolumu: iceride bosluk yok, tam tasma */
+.how-it-works-section .how-card-visual {
+  width: 100%;
+  aspect-ratio: 334 / 215;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: block;
+  overflow: hidden;
+}
+.how-it-works-section .how-card-illustration {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  aspect-ratio: auto !important;
+}
+.how-it-works-section .how-card-image {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 0 !important;
+  filter: none !important;
+}
+.how-it-works-section .how-card-clouds { display: none !important; }
+/* Tasmasina izin verilen dekor sekilleri, kartlarin ve yazinin ustune cikmasin */
+.fixoku-experience-section .fixoku-experience-hero {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+.fixoku-experience-section .fixoku-bg-shape { pointer-events: none !important; }
+.fixoku-experience-section .fixoku-experience-cards,
+.fixoku-experience-section .fixoku-experience-action,
+.fixoku-experience-section .fixoku-experience-bottom {
+  position: relative;
+  z-index: 2;
+}
+/* FIXOKU_HOME_UX_20261021_V1 END */

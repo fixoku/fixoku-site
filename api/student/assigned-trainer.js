@@ -21,11 +21,13 @@ const headersOf = (req) =>
     Object.entries(req.headers || {}).map(([key, value]) => [key, String(value)]),
   );
 
-async function assignedTrainer(client, studentUserId) {
+async function assignedTrainer(client, beneficiary) {
   return (
     await client.query(
       `select
          ta.trainer_user_id as "trainerUserId",
+         ta.enrollment_id as "enrollmentId",
+         $2::uuid as "childProfileId",
          u.display_name as "displayName",
          u.email,
          tp.first_name as "firstName",
@@ -45,9 +47,20 @@ async function assignedTrainer(client, studentUserId) {
          on tp.user_id=ta.trainer_user_id
        where e.student_user_id=$1
          and ta.status='ACTIVE'
+         and (
+           $2::uuid is null
+           or exists (
+             select 1
+             from package_entitlement_enrollments pee
+             join package_entitlements pe on pe.id=pee.package_entitlement_id
+             where pee.enrollment_id=e.id
+               and pe.beneficiary_child_profile_id=$2
+               and pe.status='ACTIVE'
+           )
+         )
        order by ta.created_at desc
        limit 1`,
-      [studentUserId],
+      [beneficiary.studentUserId, beneficiary.childProfileId || null],
     )
   ).rows[0] || null;
 }
@@ -85,12 +98,13 @@ export default async function handler(req, res) {
       requestedProfileId || null,
     );
 
-    const trainer = await assignedTrainer(client, beneficiary.studentUserId);
+    const trainer = await assignedTrainer(client, beneficiary);
 
     if (!trainer) {
       return json(res, 200, {
         role,
         studentProfileId: beneficiary.studentProfileId,
+        childProfileId: beneficiary.childProfileId || null,
         trainer: null,
       });
     }
@@ -157,6 +171,7 @@ export default async function handler(req, res) {
     return json(res, 200, {
       role,
       studentProfileId: beneficiary.studentProfileId,
+      childProfileId: beneficiary.childProfileId || null,
       trainer: {
         trainerUserId: trainer.trainerUserId,
         firstName,

@@ -758,6 +758,21 @@ export const EMAIL_EDITORIAL_V1 = Object.freeze({
     ],
     "status": "review"
   },
+  "trainer-welcome": {
+    "subject": "FIXOKU'ya Hoş Geldiniz | Eğitmen Hesabınız",
+    "title": "Eğitmen hesabınız oluşturuldu",
+    "paragraphs": [
+      "Başvurunuz bize ulaştı ve eğitmen hesabınız oluşturuldu.",
+      "Girişte başvuru sırasında belirlediğiniz şifreyi kullanabilirsiniz. Eğitmen giriş bağlantınız: https://fixoku.com/ogretmen-girisi",
+      "E-posta doğrulaması gerekiyorsa, ayrı doğrulama bağlantısını açıp gösterilen adımları tamamlayın. Başvurunuzun onaylanması hesabınızın oluşturulmasından ayrı bir süreçtir."
+    ],
+    "fields": [],
+    "cta": "Eğitmen girişine git",
+    "path": "/ogretmen-girisi",
+    "fixture": { "recipientName": "Selin Yıldız" },
+    "required": [],
+    "status": "review"
+  },
   "marketing-permission-aware": {
     "subject": "Fixoku | Eğitim dünyasından yenilikler",
     "title": "Eğitim dünyasından yenilikler",

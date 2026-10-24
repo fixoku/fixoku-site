@@ -1,15 +1,20 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
-import { resolvePrivateStoragePath } from "./digital-delivery.js";
+import { createSignedReadUrl, getDigitalStorageConfig, resolvePrivateStoragePath } from "./digital-delivery.js";
 
 const MIME_EXTENSIONS = Object.freeze({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" });
 const MAX_BYTES = 2 * 1024 * 1024;
 
 /** Profile media is private by default. A local root is an explicit test/dev adapter. */
 export function getProfileMediaConfig(env = globalThis.process?.env || {}) {
-  const provider = String(env.PROFILE_MEDIA_PROVIDER || "DISABLED").trim().toUpperCase();
+  const provider = String(env.PROFILE_MEDIA_PROVIDER || env.DIGITAL_STORAGE_PROVIDER || "DISABLED").trim().toUpperCase();
+  if (provider === "S3" || provider === "R2") {
+    const storage = getDigitalStorageConfig({ ...env, DIGITAL_STORAGE_PROVIDER: provider });
+    return storage.enabled ? { ...storage, mediaPrefix: "" } : { provider, enabled: false, reason: storage.reason || "PROFILE_MEDIA_CONFIG_REQUIRED" };
+  }
   if (provider !== "LOCAL") return { provider: "DISABLED", enabled: false, reason: "PROFILE_MEDIA_CONFIG_REQUIRED" };
+  if (String(env.NODE_ENV || "").toLowerCase() === "production") return { provider, enabled: false, reason: "LOCAL_PROFILE_MEDIA_FORBIDDEN_IN_PRODUCTION" };
   const root = String(env.PROFILE_MEDIA_ROOT || "").trim();
   if (!root) return { provider, enabled: false, reason: "PROFILE_MEDIA_ROOT_REQUIRED" };
   return { provider, enabled: true, root: path.resolve(root) };
@@ -45,6 +50,11 @@ export async function readProfilePhoto(config, key) {
     const mime = Object.entries(MIME_EXTENSIONS).find(([, ext]) => ext === extension)?.[0] || "application/octet-stream";
     return { buffer, mime };
   } catch { return null; }
+}
+
+export function createProfilePhotoUrl(config, key) {
+  if (!config?.enabled || !["S3", "R2"].includes(config.provider)) return null;
+  return createSignedReadUrl(config, key);
 }
 
 export async function removeProfilePhoto(config, key) {

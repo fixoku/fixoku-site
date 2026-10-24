@@ -168,7 +168,7 @@ function App() {
       ),
       desc: (
         <>
-          LGS ve YKS öğrencileri için geliştirilen <strong>Fixoku</strong> sistemi ile
+          İlkokul, LGS ve YKS öğrencileri için geliştirilen <strong>Fixoku</strong> sistemi ile
           okuma hızını artırın, paragraf sorularını daha hızlı çözün,
           sınavlarda zaman kazanın.
         </>
@@ -786,7 +786,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-contain"
-                src="/images/home/fixoku-system/fixoku-egitim-kitabi.png"
+                src="/images/home/fixoku-system/fixoku-kitaplari-icerikleri.png"
                 alt="Fixoku Eğitim Kitapları görseli"
                 width="250"
                 height="250"
@@ -827,7 +827,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-contain"
-                src="/images/home/fixoku-system/yapay-zeka-destekli-yazilim.png"
+                src="/images/home/fixoku-system/fixoku-yazilim-uygulama-gorseli.png"
                 alt="Fixoku yapay zekâ destekli yazılım ekranı"
                 width="250"
                 height="250"
@@ -868,7 +868,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-cover"
-                src="/images/home/fixoku-system/uzman-egitmen-destegi.png"
+                src="/images/home/fixoku-system/fixoku-yazilim-uygulama.png"
                 alt="Fixoku uzman eğitmen desteğiyle sınıf eğitimi"
                 width="250"
                 height="250"

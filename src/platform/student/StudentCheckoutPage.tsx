@@ -91,8 +91,8 @@ export function StudentCheckoutPage({
   const [orderId, setOrderId] =
     useState("");
 
-  const [legalReady, setLegalReady] =
-    useState(false);
+  const [legalAcceptance, setLegalAcceptance] = useState({ preInformation: false, distanceSales: false, privacy: false, marketing: false, commencement: false });
+  const legalReady = legalAcceptance.preInformation && legalAcceptance.distanceSales && legalAcceptance.privacy;
 
   // Stable for retries, unique for a new checkout/payment choice. No personal data in the key.
   const [checkoutKey, setCheckoutKey] =
@@ -270,6 +270,7 @@ export function StudentCheckoutPage({
               ? shipping
               : null,
           billing,
+          legalAcceptance,
         }),
       },
     );
@@ -944,19 +945,22 @@ export function StudentCheckoutPage({
                   <div className="trainer-legal-approval__required">
                     <CheckoutLegalConsents
                       digitalOrService={!cart.requiresShipping}
-                      onChange={(consents: { preInformation: boolean; distanceSales: boolean; privacy: boolean }) =>
-                        setLegalReady(Boolean(consents.preInformation && consents.distanceSales && consents.privacy))
-                      }
+                      onChange={(consents: { preInformation: boolean; distanceSales: boolean; privacy: boolean; marketing: boolean; commencement: boolean }) => setLegalAcceptance(consents)}
                     />
                   </div>
                   <div className="trainer-legal-approval__additional" aria-label="İncelenecek hukuki metinler">
                     {[
+                      ["Satıcı / Sağlayıcı Künyesi", "/satici-bilgileri"],
+                      ["Üyelik ve Platform Kullanım Koşulları", "/uyelik-sozlesmesi"],
                       ["Ön Bilgilendirme Formu", "/on-bilgilendirme-formu"],
                       ["Mesafeli Satış Sözleşmesi", "/mesafeli-satis-sozlesmesi"],
                       ["İptal, İade ve Cayma Politikası", "/iptal-iade-cayma-politikasi"],
                       ["Teslimat ve Kargo Politikası", "/teslimat-kargo-politikasi"],
                       ["Dijital İçerik ve Hizmet Koşulları", "/dijital-icerik-ve-hizmet-kosullari"],
                       ["KVKK Aydınlatma Metni", "/kvkk-aydinlatma-metni"],
+                      ["Çocuk ve Kanuni Temsilci Bilgilendirmesi", "/cocuk-ve-kanuni-temsilci-bilgilendirme"],
+                      ["Gizlilik ve Bilgi Güvenliği Politikası", "/gizlilik-politikasi"],
+                      ["Müşteri Şikâyetleri ve Uyuşmazlık", "/musteri-sikayetleri-ve-uyusmazlik"],
                     ].map(([title, href]) => (
                       <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="trainer-legal-approval__link trainer-legal-approval__chip">{title} ↗</a>
                     ))}

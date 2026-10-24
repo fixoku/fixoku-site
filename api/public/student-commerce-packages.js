@@ -1,10 +1,12 @@
 import pg from "pg";
+import crypto from "node:crypto";
 
-const send = (res, status, body) => {
+const send = (res, status, body, requestId = null) => {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");
+  if (requestId) res.setHeader("X-Fixoku-Catalog-Request-Id", requestId);
   res.end(JSON.stringify(body));
 };
 
@@ -24,9 +26,10 @@ const allowedImage = (value) => {
 
 /** Public, strictly read-only projection of Owner-managed student commerce packages. */
 export default async function handler(req, res) {
+  const requestId = crypto.randomUUID();
   if (req.method !== "GET") return send(res, 405, { error: "METHOD_NOT_ALLOWED" });
   const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) return send(res, 503, { error: "KATALOG_BAGLANTISI_HAZIR_DEGIL" });
+  if (!connectionString) return send(res, 503, { error: "KATALOG_BAGLANTISI_HAZIR_DEGIL", requestId }, requestId);
   const pool = new pg.Pool({ connectionString, max: 2, connectionTimeoutMillis: 5000 });
   try {
     const { rows } = await pool.query(`
@@ -85,10 +88,10 @@ export default async function handler(req, res) {
       currency: row.currency === "TRY" ? "TRY" : null,
       purchaseEnabled: Boolean(row.purchaseEnabled),
     }));
-    return send(res, 200, { packages });
+    return send(res, 200, { packages, requestId }, requestId);
   } catch (error) {
     // Keep database diagnostics on server only.
-    console.error("PUBLIC_STUDENT_COMMERCE_CATALOG_ERROR", error?.code || error?.name || "UNKNOWN");
-    return send(res, 503, { error: "KATALOG_GECICI_OLARAK_ERISILEMIYOR" });
+    console.error("PUBLIC_STUDENT_COMMERCE_CATALOG_ERROR", requestId, error?.code || error?.name || "UNKNOWN");
+    return send(res, 503, { error: "KATALOG_GECICI_OLARAK_ERISILEMIYOR", requestId }, requestId);
   } finally { await pool.end(); }
 }

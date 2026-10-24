@@ -58,6 +58,20 @@ function localMobile(value: string) {
   return digits.slice(0, 10);
 }
 
+function todayIso() {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
+function validDateOfBirth(value: string) {
+  if (!value) return true;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return /^\d{4}-\d{2}-\d{2}$/u.test(value)
+    && !Number.isNaN(parsed.getTime())
+    && parsed.toISOString().slice(0, 10) === value
+    && value <= todayIso();
+}
+
 function validEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(String(value || "").trim());
 }
@@ -158,6 +172,7 @@ export function StudentProfilePage({
 
     if (!profile.firstName.trim()) next.firstName = "Ad zorunludur.";
     if (!profile.lastName.trim()) next.lastName = "Soyad zorunludur.";
+    if (!validDateOfBirth(profile.dateOfBirth)) next.dateOfBirth = "Geçerli ve bugünden önce veya bugüne eşit bir tarih girin.";
 
     if (!validEmail(profile.email)) {
       next.email = "Geçerli bir e-posta adresi girin.";
@@ -367,7 +382,9 @@ export function StudentProfilePage({
                       label="Doğum tarihi"
                       type="date"
                       value={profile.dateOfBirth}
+                      max={todayIso()}
                       readOnly={guardian}
+                      error={errors.dateOfBirth}
                       onChange={(value) => update("dateOfBirth", value)}
                     />
 
@@ -698,6 +715,7 @@ function ProfileField({
   type = "text",
   readOnly = false,
   required = false,
+  max,
   error,
   className = "",
   icon,
@@ -708,6 +726,7 @@ function ProfileField({
   type?: string;
   readOnly?: boolean;
   required?: boolean;
+  max?: string;
   error?: string;
   className?: string;
   icon?: any;
@@ -722,6 +741,7 @@ function ProfileField({
           value={value || ""}
           readOnly={readOnly}
           required={required}
+          max={max}
           onInput={(event) => onChange(event.currentTarget.value)}
           aria-invalid={Boolean(error)}
         />

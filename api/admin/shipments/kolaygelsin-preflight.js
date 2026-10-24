@@ -40,6 +40,6 @@ export default async function handler(req,res){
     }
     // Never expose personal addresses, phone numbers, tokens or raw provider payload.
     return respond(res,200,{audience,shipmentId:id,eligible:check.eligible,blockers:check.blockers,referenceNo:check.referenceNo,physicalLineCount:check.physicalLineCount,packageCount:check.packageCount,provider:'KOLAYGELSIN',operation:'PREFLIGHT_ONLY_NO_DISPATCH'});
-  }catch{if(client)try{await client.query('ROLLBACK');}catch{}return respond(res,503,{error:'SHIPMENT_PREFLIGHT_UNAVAILABLE'});}
+  }catch{if(client)try{await client.query('ROLLBACK');}catch { /* Preserve the original preflight failure if rollback is unavailable. */ }return respond(res,503,{error:'SHIPMENT_PREFLIGHT_UNAVAILABLE'});}
   finally{client?.release();await pool.end();}
 }

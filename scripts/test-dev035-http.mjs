@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import net from "node:net";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import crypto from "node:crypto";
@@ -12,9 +13,21 @@ loadLocalEnv();
 const password = process.env.TEST_SEED_PASSWORD || "DEV035-Disposable-Password!";
 const sourceUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
 assert.ok(sourceUrl, "TEST_DATABASE_URL or DATABASE_URL is required");
+async function selectLoopbackPort() {
+  const probe = net.createServer();
+  await new Promise((resolve, reject) => {
+    probe.once("error", reject);
+    probe.listen({ host: "127.0.0.1", port: 0 }, resolve);
+  });
+  const address = probe.address();
+  const port = address && typeof address === "object" ? address.port : null;
+  await new Promise((resolve, reject) => probe.close((error) => error ? reject(error) : resolve()));
+  assert.ok(Number.isInteger(port) && port > 0, "LOOPBACK_PORT_SELECTION_FAILED");
+  return port;
+}
+const port = await selectLoopbackPort();
 const disposable = await createDisposableDatabase(sourceUrl, { migrationsFolder: path.join(process.cwd(), "drizzle", "migrations") });
 const pool = disposable.pool;
-const port = 5240 + Math.floor(Math.random() * 50);
 const origin = `http://127.0.0.1:${port}`;
 const vitePath = fileURLToPath(new URL("../node_modules/vite/bin/vite.js", import.meta.url));
 let server;
@@ -23,10 +36,15 @@ let serverOutput = "";
 async function waitForServer() {
   const deadline = Date.now() + 45_000;
   while (Date.now() < deadline) {
+    if (server?.exitCode !== null && server?.exitCode !== undefined) throw new Error(`LOCAL_SERVER_EXITED:${server.exitCode}`);
     try {
-      const response = await fetch(`${origin}/`, { signal: AbortSignal.timeout(2_000) });
+      const response = await fetch(`${origin}/`, { redirect: "manual", signal: AbortSignal.timeout(2_000) });
+      const location = response.headers.get("location");
+      if (location) assert.equal(new URL(location, origin).origin, origin, "LOCAL_SERVER_EXTERNAL_REDIRECT");
       if (response.status < 500) return;
-    } catch { /* retry */ }
+    } catch (error) {
+      if (error?.code === "ERR_ASSERTION") throw error;
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   throw new Error(`LOCAL_SERVER_START_TIMEOUT:${serverOutput.slice(-1000)}`);
@@ -37,7 +55,9 @@ async function request(cookie, requestPath, options = {}) {
   headers.set("origin", origin);
   headers.set("connection", "close");
   if (cookie) headers.set("cookie", cookie);
-  const response = await fetch(`${origin}${requestPath}`, { ...options, headers });
+  const response = await fetch(`${origin}${requestPath}`, { ...options, headers, redirect: "manual" });
+  const location = response.headers.get("location");
+  if (location) assert.equal(new URL(location, origin).origin, origin, "LOCAL_SERVER_EXTERNAL_REDIRECT");
   return { response, body: await response.json().catch(() => ({})) };
 }
 
@@ -99,9 +119,30 @@ try {
     await pool.query("insert into trainer_earning_ledger(trainer_user_id,entry_type,status,amount_minor,currency,description,source_type,source_id,idempotency_key,occurred_at,payable_at,enrollment_id) values($1,'SESSION',$2,$3,'TRY',$4,'DEV035',$5,$6,now(),now(),$7)", [qualifiedTrainerId, status, amountMinor, `DEV035 ${status}`, key, `dev035-${key}-${crypto.randomUUID()}`, enrollment.id]);
   }
 
-  server = spawn(process.execPath, [vitePath, "--host", "127.0.0.1", "--port", String(port)], {
+  server = spawn(process.execPath, [vitePath, "--mode", "test", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
     cwd: process.cwd(),
-    env: { ...process.env, DATABASE_URL: disposable.databaseUrl.toString(), TEST_DATABASE_URL: disposable.databaseUrl.toString(), APP_ORIGIN: origin, BETTER_AUTH_URL: origin, NODE_ENV: "test", LOCAL_REVIEW_MODE: "1", FIXOKU_DEV_LOGIN_ENABLED: "0" },
+    env: {
+      PATH: process.env.PATH,
+      PATHEXT: process.env.PATHEXT,
+      SystemRoot: process.env.SystemRoot,
+      TEMP: process.env.TEMP,
+      TMP: process.env.TMP,
+      USERPROFILE: process.env.USERPROFILE,
+      DATABASE_URL: disposable.databaseUrl.toString(),
+      TEST_DATABASE_URL: disposable.databaseUrl.toString(),
+      BETTER_AUTH_SECRET: "R68B-DISPOSABLE-SYNTHETIC-SECRET-ONLY",
+      APP_ORIGIN: origin,
+      BETTER_AUTH_URL: origin,
+      NODE_ENV: "test",
+      LOCAL_REVIEW_MODE: "1",
+      EMAIL_PROVIDER: "DISABLED",
+      PAYTR_ENABLED: "0",
+      SHIPPING_PROVIDER: "DISABLED",
+      DIGITAL_STORAGE_PROVIDER: "LOCAL",
+      PROFILE_MEDIA_PROVIDER: "LOCAL",
+      FIXOKU_SKIP_LOCAL_ENV: "1",
+      FIXOKU_DEV_LOGIN_ENABLED: "0",
+    },
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
   });

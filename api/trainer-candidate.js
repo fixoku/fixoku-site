@@ -1,6 +1,7 @@
 import pg from "pg";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";
 import { createAuthAccount, hashInvitationToken } from "../src/server/auth/invitations.js";
+import { readTrainerCatalog } from "../src/server/domain/trainer-commerce.js";
 
 const json=(res,status,data)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.end(JSON.stringify(data));};
 const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,Array.isArray(v)?v.join(', '):String(v)]));
@@ -10,7 +11,11 @@ const compact=x=>String(x||'').trim();
 function ready(p){return ['city','district','profession','education_background','experience','specialties','bio'].every(k=>compact(p[k]).length>=2);}
 export default async function handler(req,res){
  const url=new URL(req.url||'http://local','http://local');const action=url.searchParams.get('action')||'profile';
- if(process.env.FIXOKU_TRAINER_CANDIDATE_ENABLED !== '1')return json(res,503,{error:'TRAINER_CANDIDATE_DISABLED'});
+ // Candidate access is part of the direct teacher application flow. Keep an
+ // explicit emergency kill switch, but do not make the normal Production path
+ // depend on an unset feature flag: doing so turns a valid candidate session
+ // into the generic “Oturum doğrulanamadı” screen.
+ if(process.env.FIXOKU_TRAINER_CANDIDATE_ENABLED === '0')return json(res,503,{error:'TRAINER_CANDIDATE_DISABLED'});
  if(!['GET','POST'].includes(req.method||''))return json(res,405,{error:'METHOD_NOT_ALLOWED'});
  const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});
  try{
@@ -48,7 +53,7 @@ export default async function handler(req,res){
        where id=$2 and candidate_user_id is null`,[platform.id,app.id]);
     await client.query('commit');
     return json(res,200,{success:true,candidate:true,emailVerified:true,roleGranted:false});
-   }catch{try{await client.query('rollback');}catch{}return json(res,503,{error:'CANDIDATE_ACTIVATION_INCOMPLETE_SUPPORT_REQUIRED'});}
+   }catch{try{await client.query('rollback');}catch { /* Preserve the original activation failure if rollback is unavailable. */ }return json(res,503,{error:'CANDIDATE_ACTIVATION_INCOMPLETE_SUPPORT_REQUIRED'});}
    finally{client.release();}
   }
   const principal=await resolvePrincipal(headers(req));
@@ -58,11 +63,27 @@ export default async function handler(req,res){
        from trainer_applications a join platform_users p on p.id=a.candidate_user_id
        left join trainer_profiles tp on tp.user_id=p.id
        where a.candidate_user_id=$1 order by a.created_at desc limit 1`,[principal.user.id])).rows[0];
-  if(!app)return json(res,403,{error:'CANDIDATE_ACCESS_REQUIRED'});
+  if(!app || !['RECEIVED','REVIEWING','PROFILE_READY'].includes(app.status))return json(res,403,{error:'CANDIDATE_ACCESS_REQUIRED'});
+  if(app.emailVerified !== true)return json(res,403,{error:'EMAIL_VERIFICATION_REQUIRED'});
   const data={name:`${app.first_name} ${app.last_name}`.trim(),email:principal.user.email,emailVerified:app.emailVerified,
     applicationStatus:app.status,ownerApproved:principal.memberships?.some(m=>m.role==='TRAINER'&&m.status==='ACTIVE')||false,
     profileComplete:ready(app), profile:{phone:app.phone||'',city:app.city||'',district:app.district||'',profession:app.profession||'',institution:app.institution||'',educationBackground:app.education_background||'',experience:app.experience||'',specialties:app.specialties||'',bio:app.bio||''}};
   if(action==='profile'&&req.method==='GET')return json(res,200,data);
+  if(action==='catalog'&&req.method==='GET'){
+    // Candidate view is read-only: no membership, entitlement or cart changes.
+    // Reuse published-panel catalog query; expose only public-facing metadata.
+    const rows=await readTrainerCatalog(pool, principal.user.id);
+    const catalog=rows.map(row=>({
+      packageId:row.packageId, slug:row.slug, title:row.title,
+      description:row.description, shortDescription:row.shortDescription,
+      priceGrossMinor:row.priceGrossMinor, currency:row.currency,
+      features:Array.isArray(row.features)?row.features:[],
+      components:Array.isArray(row.components)?row.components
+        .filter(item=>item.componentType==='TEXT_ITEM')
+        .map(item=>({title:item.title,displayOrder:item.displayOrder})):[],
+    }));
+    return json(res,200,{packages:catalog});
+  }
   if(action==='profile'&&req.method==='POST'){
    if(!app.emailVerified)return json(res,403,{error:'EMAIL_VERIFICATION_REQUIRED'});
    if(!['RECEIVED','REVIEWING','PROFILE_READY'].includes(app.status))return json(res,409,{error:'APPLICATION_NOT_EDITABLE'});
@@ -71,7 +92,7 @@ export default async function handler(req,res){
    const out={};for(const key of profileKeys){const value=input[key];if(value!==undefined){if(typeof value!=='string'||value.length>500)return json(res,400,{error:'INVALID_PROFILE_FIELD'});out[key]=value.trim();}}
    if(out.phone&& !/^\+?\d{10,13}$/u.test(out.phone.replace(/\s/gu,'')))return json(res,400,{error:'INVALID_PHONE'});
    const columns={city:'city',district:'district',educationBackground:'education_background',experience:'experience',specialties:'specialties',bio:'bio',profession:'profession',institution:'institution',phone:'phone'};
-   const updates=Object.entries(out).map(([key,val],i)=>`${columns[key]}=$${i+2}`);const values=[principal.user.id,...Object.values(out)];
+   const updates=Object.entries(out).map(([key],i)=>`${columns[key]}=$${i+2}`);const values=[principal.user.id,...Object.values(out)];
    if(updates.length)await pool.query(`update trainer_profiles set ${updates.join(',')},updated_at=now() where user_id=$1`,values);
    const fresh=(await pool.query('select city,district,profession,education_background,experience,specialties,bio from trainer_profiles where user_id=$1',[principal.user.id])).rows[0]||{};
    const complete=ready(fresh);

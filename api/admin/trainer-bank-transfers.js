@@ -132,8 +132,14 @@ export default async function handler(req, res) {
       }
 
       const action = String(input.action || "").toUpperCase();
+      const order = (await client.query("select id,status,payment_method,total_minor,currency from trainer_package_orders where id=$1 for update", [input.orderId])).rows[0];
+      if (!order || order.payment_method !== "BANK_TRANSFER") throw Object.assign(new Error("BANK_TRANSFER_ORDER_NOT_FOUND"), { status: 404 });
 
       if (action === "REJECT") {
+        if (order.status === "PAID" || row.status === "APPROVED") {
+          await client.query("rollback");
+          return json(res, 409, { error: "BANK_TRANSFER_ALREADY_APPROVED" });
+        }
         await client.query(
           "update trainer_bank_transfer_notifications set status='REJECTED',review_note=$1,reviewed_by=$2,reviewed_at=now(),updated_at=now() where order_id=$3",
           [
@@ -163,14 +169,12 @@ export default async function handler(req, res) {
         throw Object.assign(new Error("BANK_TRANSFER_ACTION_INVALID"), { status: 400 });
       }
 
-      const expected = (
-        await client.query(
-          "select total_minor from trainer_package_orders where id=$1",
-          [input.orderId],
-        )
-      ).rows[0];
-
-      if (Number(row.reported_amount_minor) !== Number(expected?.total_minor)) {
+      if (order.status === "PAID" || row.status === "APPROVED") {
+        await client.query("rollback");
+        return json(res, 200, { status: "APPROVED", duplicateApproval: true, entitlementActivated: true });
+      }
+      if (!['PENDING_PAYMENT', 'PAYMENT_REVIEW'].includes(order.status)) throw Object.assign(new Error("BANK_TRANSFER_NOT_REVIEWABLE"), { status: 409 });
+      if (Number(row.reported_amount_minor) !== Number(order.total_minor) || String(row.currency).toUpperCase() !== String(order.currency).toUpperCase()) {
         throw Object.assign(new Error("BANK_TRANSFER_AMOUNT_MISMATCH"), { status: 409 });
       }
 

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 
 export function loadLocalEnv() {
+  if (process.env.FIXOKU_SKIP_LOCAL_ENV === "1") return;
   if (!existsSync(".env.local")) return;
   for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/u)) {
     const match = /^([A-Z][A-Z0-9_]*)=(.*)$/u.exec(line.trim());

@@ -1,3 +1,4 @@
+/* global process */
 // FIXOKU 020C: LOCAL owner legal editing only. Source and revisions remain private.
 // Production persistence must be moved to a versioned DB-backed repository before deploying.
 import crypto from 'node:crypto';
@@ -36,6 +37,6 @@ export function saveOwnerLegalDocument({id,markdown,expectedSha256,actorId}){
   state.documents[String(id)]={...entry,history};
   fs.mkdirSync(path.dirname(statePath),{recursive:true});
   const tmp=statePath+'.'+crypto.randomUUID()+'.tmp';
-  try{fs.writeFileSync(tmp,JSON.stringify(state,null,2),'utf8');fs.renameSync(tmp,statePath);}finally{try{fs.unlinkSync(tmp);}catch{}}
+  try{fs.writeFileSync(tmp,JSON.stringify(state,null,2),'utf8');fs.renameSync(tmp,statePath);}finally{try{fs.unlinkSync(tmp);}catch{/* best-effort temporary-file cleanup */}}
   return readOwnerLegalDocuments().find(d=>d.id===id);
 }

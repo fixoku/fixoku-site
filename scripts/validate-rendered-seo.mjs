@@ -645,7 +645,6 @@ check(
     "tamamen güvende",
     "kırılması mümkün olmayan",
     "mail order",
-    "paytr",
     "iyzico",
     "iyzigo",
   ].every((phrase) => !renderedLegalHtml.includes(phrase)),
@@ -694,8 +693,8 @@ check(
   vercelConfig.cleanUrls === true &&
     vercelConfig.trailingSlash === false &&
     rewrites.length > 0 &&
-    rewrites.every(({ source }) => source === "/panel" || source.startsWith("/panel/")),
-  "Vercel clean URL ve yalnızca panel fallback yapılandırması doğru.",
+    rewrites.every(({ source }) => source === "/panel" || source.startsWith("/panel/") || ["/sifre-sifirla", "/e-posta-dogrula", "/ogretmen-aday-aktivasyon", "/ogretmen-aktivasyon", "/admin-davet-kabul"].includes(source)),
+  "Vercel clean URL, panel ve kimlik yaşam döngüsü yedek yapılandırması doğru.",
 );
 
 const sitemap = await readFile(getDistPath("sitemap.xml"), "utf8");

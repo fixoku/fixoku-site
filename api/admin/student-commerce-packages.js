@@ -10,8 +10,60 @@ const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([key
 async function read(req) { if (req.body && typeof req.body === "object") return req.body; let raw = ""; for await (const chunk of req) raw += chunk; return raw ? JSON.parse(raw) : {}; }
 const bad = (code, status = 400) => Object.assign(new Error(code), { code, status });
 const parseJson = (value, yedek) => { try { return JSON.parse(value || ""); } catch { return yedek; } };
+export const optionalBoolean = (value, code = "BOOLEAN_INVALID") => {
+  if (value === undefined) return undefined;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (value === 1) return true;
+    if (value === 0) return false;
+  }
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+  }
+  throw bad(code);
+};
 
-function packageFields(input) {
+const PUBLICATION_CONDITION_TEXT = Object.freeze({
+  PACKAGE_PERMISSION_REQUIRED: "Yayınlama yetkisi gerekli.",
+  FORBIDDEN: "Owner yayın yetkisi gerekli.",
+  AUTHENTICATED_ACTOR_REQUIRED: "Güvenli Owner oturumu gerekli.",
+  AUDIT_ACTOR_MEMBERSHIP_MISMATCH: "Aktif Owner üyeliği ile oturum kimliği eşleşmeli.",
+  CORE001_TARGET_SET_INVALID: "Onaylı katalog taslak seti tamamlanmalı.",
+  CORE001_TARGET_LOCK_FAILED: "Paket ve sürüm kilidi alınamadı; tekrar deneyin.",
+  CORE001_PUBLISH_COUNT_MISMATCH: "Yayınlanan sürüm sayısı doğrulanamadı.",
+  CORE001_PACKAGE_COUNT_MISMATCH: "Paket yayın durumu doğrulanamadı.",
+  CORE001_TARGET_PRICE_AUTHORITY_INVALID: "Paket fiyatı onaylı katalog fiyatıyla eşleşmeli.",
+  PACKAGE_VERSION_NOT_DRAFT: "Yayınlanacak sürüm taslak olmalı.",
+  PACKAGE_PRICE_INVALID: "Onaylı katalog fiyatı ve TRY para birimi eşleşmeli.",
+  PACKAGE_IDENTITY_INVALID: "Paket kimliği ve katalog alanı eşleşmeli.",
+  ACTIVE_COMPONENTS_REQUIRED: "En az bir aktif paket içeriği eklenmeli.",
+  PACKAGE_PRODUCTS_REQUIRED: "En az bir aktif ürün bulunmalı.",
+  ACTIVE_COMPONENT_INVALID: "Aktif ürünlerin kimliği ve miktarı geçerli olmalı.",
+  COMPONENT_PRODUCT_TYPE_INVALID: "Fiziksel bileşen fiziksel ürün olmalı.",
+  COMPONENT_TYPE_INVALID: "Paket bileşeni türü geçerli olmalı.",
+});
+
+function publicationGateResponse(error) {
+  const raw = Array.isArray(error?.details?.errors) ? error.details.errors : [];
+  const reasons = raw.map((item) => item?.reason).filter(Boolean);
+  const codes = [...new Set([error?.code, ...reasons].filter(Boolean))];
+  const missingConditions = [...new Set(codes.map((code) => PUBLICATION_CONDITION_TEXT[code] || "Yayın koşulları tamamlanmalı."))];
+  return {
+    error: "PUBLICATION_CONDITIONS_UNMET",
+    publicationError: error?.code || "PUBLICATION_CONDITIONS_UNMET",
+    message: `Taslak kaydedildi ancak yayınlanmadı. ${missingConditions.join(" ")}`,
+    missingConditions,
+  };
+}
+
+function isPublicationGateError(error) {
+  const code = String(error?.code || "");
+  return code === "FORBIDDEN" || code === "PACKAGE_PERMISSION_REQUIRED" || code === "AUTHENTICATED_ACTOR_REQUIRED" || code.startsWith("AUDIT_") || code.startsWith("CORE001_") || code.startsWith("PACKAGE_") || code.startsWith("ACTIVE_") || code.startsWith("COMPONENT_");
+}
+
+export function packageFields(input) {
   const title = (typeof input.title === "string" ? input.title : "").trim();
   const subtitle = (typeof input.subtitle === "string" ? input.subtitle : "").trim();
   const description = String(input.description || "").trim();
@@ -25,8 +77,10 @@ function packageFields(input) {
   const currency = input.currency === null || input.currency === "" || input.currency === undefined ? null : normalizeCurrency(input.currency);
   const shippingFeeMinor = Number(input.shippingFeeMinor || 0);
   const displayOrder = Number(input.displayOrder || 0);
-  const panelVisible = input.panelVisible === undefined ? true : Boolean(input.panelVisible);
-  const publicWebVisible = input.publicWebVisible === undefined ? false : Boolean(input.publicWebVisible);
+  // Omitted PATCH fields remain undefined so SQL can preserve the stored
+  // value. Explicit boolean strings are parsed instead of Boolean("false").
+  const panelVisible = optionalBoolean(input.panelVisible, "PANEL_VISIBLE_INVALID");
+  const publicWebVisible = optionalBoolean(input.publicWebVisible, "PUBLIC_WEB_VISIBLE_INVALID");
   const products = Array.isArray(input.products) ? input.products.map((item, index) => ({ productId: String(item.productId || ""), quantity: Number(item.quantity), displayOrder: Number(item.displayOrder ?? index) })) : [];
   if (title.length < 2 || title.length > 180) throw bad("TITLE_REQUIRED");
   if (subtitle.length > 300) throw bad("SUBTITLE_REQUIRED");
@@ -103,6 +157,23 @@ export async function replaceStructuredComponents(client, versionId, components,
   }
 }
 
+// Published versions are immutable. Resolve an editable draft while holding
+// the package lock so the Owner Save action can safely create/reuse exactly one
+// draft even when a request is retried.
+export async function resolveEditableStudentVersion(client, packageId, requestedVersionId) {
+  const packageRow = (await client.query("select p.id,p.audience,p.catalog_scope from packages p where p.id=$1 for update", [packageId])).rows[0];
+  if (!packageRow || packageRow.audience !== "STUDENT" || packageRow.catalog_scope !== "STUDENT_COMMERCE") throw bad("PACKAGE_VERSION_NOT_FOUND", 404);
+  const requested = (await client.query("select pv.* from package_versions pv where pv.id=$1 and pv.package_id=$2 for update", [requestedVersionId, packageId])).rows[0];
+  if (!requested) throw bad("PACKAGE_VERSION_NOT_FOUND", 404);
+  if (requested.status === "DRAFT") return { version: requested, draftCreated: false, previousVersionId: null };
+  const existingDraft = (await client.query("select pv.* from package_versions pv where pv.package_id=$1 and pv.status='DRAFT' order by pv.version_number desc,pv.id desc limit 1 for update", [packageId])).rows[0];
+  if (existingDraft) return { version: existingDraft, draftCreated: false, previousVersionId: requested.id };
+  const nextVersion = Number((await client.query("select coalesce(max(version_number),0)+1 as version from package_versions where package_id=$1", [packageId])).rows[0].version);
+  const draft = (await client.query("insert into package_versions(package_id,version_number,title,description,short_description,features_json,sku,invoice_product_code,invoice_product_name,invoice_description,unit,vat_rate_bps,price_net_minor,price_gross_minor,price_minor,currency,purchase_enabled,status) select package_id,$2,title,description,short_description,features_json,sku,invoice_product_code,invoice_product_name,invoice_description,unit,vat_rate_bps,price_net_minor,price_gross_minor,price_minor,currency,false,'DRAFT' from package_versions where id=$1 returning *", [requested.id, nextVersion])).rows[0];
+  await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) select $1,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json from package_components where package_version_id=$2", [draft.id, requested.id]);
+  return { version: draft, draftCreated: true, previousVersionId: requested.id };
+}
+
 export default async function handler(req, res) {
   const principal = await resolvePrincipal(headers(req)); if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
   const denied = requirePermission(principal, "package.manage"); if (denied) return json(res, denied.status, denied.body);
@@ -134,12 +205,13 @@ export default async function handler(req, res) {
     if (req.method === "POST" && action === "createDraft") {
       if (!UUID_PATTERN.test(String(input.packageId || ""))) throw bad("PACKAGE_ID_INVALID");
       await client.query("begin");
+      await client.query("select id from packages where id=$1 for update", [input.packageId]);
       const source = (await client.query("select pv.*,p.audience,p.catalog_scope from package_versions pv join packages p on p.id=pv.package_id where p.id=$1 order by pv.version_number desc limit 1 for update", [input.packageId])).rows[0];
       if (!source || source.audience !== "STUDENT" || source.catalog_scope !== "STUDENT_COMMERCE") throw bad("PACKAGE_NOT_FOUND", 404);
       const existingDraft = (await client.query("select id from package_versions where package_id=$1 and status='DRAFT' for update", [input.packageId])).rows[0];
       if (existingDraft) { await client.query("commit"); return json(res, 200, { packageVersionId: existingDraft.id, existing: true }); }
       const next = Number(source.version_number) + 1;
-      const draft = (await client.query("insert into package_versions(package_id,version_number,title,description,short_description,features_json,price_minor,currency,purchase_enabled,status) values($1,$2,$3,$4,$5,$6,$7,$8,false,'DRAFT') returning id", [input.packageId, next, source.title, source.description, source.short_description, source.features_json, source.price_minor, source.currency])).rows[0];
+      const draft = (await client.query("insert into package_versions(package_id,version_number,title,description,short_description,features_json,sku,invoice_product_code,invoice_product_name,invoice_description,unit,vat_rate_bps,price_net_minor,price_gross_minor,price_minor,currency,purchase_enabled,status) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,false,'DRAFT') returning id", [input.packageId, next, source.title, source.description, source.short_description, source.features_json, source.sku, source.invoice_product_code, source.invoice_product_name, source.invoice_description, source.unit, source.vat_rate_bps, source.price_net_minor, source.price_gross_minor, source.price_minor, source.currency])).rows[0];
       await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) select $1,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json from package_components where package_version_id=$2", [draft.id, source.id]);
       await client.query("commit"); return json(res, 201, { packageVersionId: draft.id });
     }
@@ -152,7 +224,7 @@ export default async function handler(req, res) {
       if (version.status !== "DRAFT") throw bad("PUBLISHED_VERSION_IMMUTABLE", 409);
       const stage = (await client.query("select p.education_stage as stage from packages p join package_versions pv on pv.package_id=p.id where pv.id=$1", [input.versionId])).rows[0]?.stage || null;
       await replaceStructuredComponents(client, input.versionId, input.components, stage);
-      await client.query("commit"); return json(res, 200, { saved: true });
+      await client.query("commit"); return json(res, 200, { saved: true, packageVersionId: input.versionId });
     }
     if (req.method === "POST") throw bad("PACKAGE_CREATION_FORBIDDEN", 403);
     const fields = packageFields(input); const products = await validateProducts(client, fields.products, fields.educationStage);
@@ -165,14 +237,43 @@ export default async function handler(req, res) {
       await replaceComponents(client, version.id, products); await client.query("commit"); return json(res, 201, { packageId: pkg.id, packageVersionId: version.id });
     }
     if (!UUID_PATTERN.test(String(input.packageId || "")) || !UUID_PATTERN.test(String(input.versionId || ""))) throw bad("PACKAGE_ID_INVALID");
-    const version = (await client.query("select pv.status,p.id,p.audience,p.catalog_scope from package_versions pv join packages p on p.id=pv.package_id where pv.id=$1 and p.id=$2 for update", [input.versionId, input.packageId])).rows[0];
-    if (!version || version.audience !== "STUDENT" || version.catalog_scope !== "STUDENT_COMMERCE") throw bad("PACKAGE_VERSION_NOT_FOUND", 404);
+    const requestedStatus = (await client.query("select status from package_versions where id=$1 and package_id=$2", [input.versionId, input.packageId])).rows[0]?.status;
+    if (!requestedStatus) throw bad("PACKAGE_VERSION_NOT_FOUND", 404);
+    if (requestedStatus !== "DRAFT") {
+      const createDenied = await requirePackagePermission(client, principal, PACKAGE_PERMISSIONS.CREATE);
+      if (createDenied) throw bad(createDenied.body?.error || "PACKAGE_PERMISSION_REQUIRED", createDenied.status || 403);
+    }
+    const editable = await resolveEditableStudentVersion(client, input.packageId, input.versionId);
+    const version = editable.version;
     if (version.status !== "DRAFT") throw bad("PUBLISHED_VERSION_IMMUTABLE", 409);
-    await client.query("update packages set slug=$1,education_stage=$2::education_stage,eligible_grades_json=$3,display_order=$4,physical_product=$5,panel_visible=$6,public_web_visible=$7,shipping_policy=$8,shipping_price_minor=$9,updated_at=now() where id=$10", [fields.slug, fields.educationStage, JSON.stringify(fields.eligibleGrades), fields.displayOrder, requiresShipping, fields.panelVisible, fields.publicWebVisible, shippingFeeMinor > 0 ? "FIXED_PRICE" : "FREE", shippingFeeMinor, input.packageId]);
+    await client.query("update packages set slug=$1,education_stage=$2::education_stage,eligible_grades_json=$3,display_order=$4,physical_product=$5,panel_visible=coalesce($6,panel_visible),public_web_visible=coalesce($7,public_web_visible),shipping_policy=$8,shipping_price_minor=$9,updated_at=now() where id=$10", [fields.slug, fields.educationStage, JSON.stringify(fields.eligibleGrades), fields.displayOrder, requiresShipping, fields.panelVisible ?? null, fields.publicWebVisible ?? null, shippingFeeMinor > 0 ? "FIXED_PRICE" : "FREE", shippingFeeMinor, input.packageId]);
     const coverReference = String(input.iconReference ?? "").trim();
     if (coverReference && !(coverReference.startsWith("/images/") || /^https:\/\/[^\s]+$/u.test(coverReference)) || coverReference.length > 1000) throw bad("PACKAGE_COVER_URL_INVALID");
     await client.query("update packages set icon_reference=$1 where id=$2 and audience='STUDENT' and catalog_scope='STUDENT_COMMERCE'", [coverReference || null, input.packageId]);
-    await client.query("update package_versions set title=$1,short_description=$2,description=$3,features_json=$4,price_minor=$5,currency=$6,purchase_enabled=false,updated_at=now() where id=$7", [fields.title, fields.subtitle, fields.description, JSON.stringify(fields.features), fields.priceMinor, fields.currency, input.versionId]);
-    await replaceComponents(client, input.versionId, products); await client.query("commit"); return json(res, 200, { saved: true });
+    await client.query("update package_versions set title=$1,short_description=$2,description=$3,features_json=$4,price_gross_minor=$5,price_minor=$5,currency=$6,purchase_enabled=false,updated_at=now() where id=$7", [fields.title, fields.subtitle, fields.description, JSON.stringify(fields.features), fields.priceMinor, fields.currency, version.id]);
+    if (Array.isArray(input.components)) await replaceStructuredComponents(client, version.id, input.components, fields.educationStage);
+    else await replaceComponents(client, version.id, products);
+    const saved = { saved: true, packageVersionId: version.id, draftCreated: editable.draftCreated, previousPackageVersionId: editable.previousVersionId, published: false };
+    if (fields.publicWebVisible === true) {
+      // Save the draft first, then attempt publication behind a savepoint. A
+      // failed gate rolls back only publication work; the Owner's draft and
+      // visibility choice are committed and reported as unpublished.
+      await client.query("savepoint owner_publication_attempt");
+      try {
+        const target = (await client.query("select pv.id as version_id,pv.package_id,p.slug,p.audience,p.catalog_scope as \"catalogScope\",pv.version_number from package_versions pv join packages p on p.id=pv.package_id where pv.id=$1 and p.id=$2 and p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE'", [version.id, input.packageId])).rows[0];
+        if (!target) throw bad("PACKAGE_VERSION_NOT_FOUND", 404);
+        const result = await publishPackageVersionsAtomically(client, { targets: [target], principal });
+        await client.query("release savepoint owner_publication_attempt");
+        await client.query("commit");
+        return json(res, 200, { ...saved, ...result, published: true, status: "PUBLISHED" });
+      } catch (publicationError) {
+        if (!isPublicationGateError(publicationError)) throw publicationError;
+        await client.query("rollback to savepoint owner_publication_attempt");
+        await client.query("release savepoint owner_publication_attempt");
+        await client.query("commit");
+        return json(res, 409, { ...saved, ...publicationGateResponse(publicationError), published: false, status: "DRAFT" });
+      }
+    }
+    await client.query("commit"); return json(res, 200, saved);
   } catch (error) { try { await client.query("rollback"); } catch { /* preserve */ } return json(res, error.status || (error.code === "23505" ? 409 : 400), { error: error.code === "23505" ? "SLUG_ALREADY_EXISTS" : error.code || error.message || "STUDENT_PACKAGE_MUTATION_FAILED" }); } finally { client.release(); await pool.end(); }
 }

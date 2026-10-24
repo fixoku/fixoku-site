@@ -34,14 +34,16 @@ export default async function handler(req, res) {
           select distinct on (
             pe.beneficiary_student_user_id,
             pe.package_version_id,
-            pp.id
+            pp.id,
+            pe.beneficiary_child_profile_id
           )
             u.id as "studentUserId",
-            sp.id as "studentProfileId",
+            coalesce(c.legacy_student_profile_id,sp.id) as "studentProfileId",
+            pe.beneficiary_child_profile_id as "childProfileId",
             u.display_name as "studentName",
             u.email as "studentEmail",
-            sp.education_stage as "educationStage",
-            sp.grade,
+            coalesce(c.education_stage,sp.education_stage) as "educationStage",
+            coalesce(c.grade,sp.grade) as grade,
             sp.class_branch as "classBranch",
             sp.school,
             pe.package_version_id as "packageVersionId",
@@ -61,6 +63,9 @@ export default async function handler(req, res) {
             on u.id = pe.beneficiary_student_user_id
           left join student_profiles sp
             on sp.user_id = u.id
+          left join r6_student_child_profiles c
+            on c.id = pe.beneficiary_child_profile_id
+           and c.status = 'ACTIVE'
           join package_versions pv
             on pv.id = pe.package_version_id
           join package_components pc
@@ -73,7 +78,7 @@ export default async function handler(req, res) {
             select q.id,q.code,q.title
             from r6_qualification_definitions q
             where q.service_type = pp.service_type
-              and q.education_stage = sp.education_stage
+              and q.education_stage = coalesce(c.education_stage,sp.education_stage)
             order by q.code
             limit 1
           ) qd on true
@@ -88,15 +93,20 @@ export default async function handler(req, res) {
               where rgp.student_user_id = u.id
                 and rgp.status = 'ACTIVE'
                 and rg.mode = 'GROUP'
-                and rg.education_stage = sp.education_stage
+                and rg.education_stage = coalesce(c.education_stage,sp.education_stage)
                 and rg.training_type = pp.service_type
                 and rg.required_qualification_id = qd.id
                 and rg.status in ('DRAFT','ASSIGNED','IN_PROGRESS')
+                and (
+                  (pe.beneficiary_child_profile_id is not null and rgp.child_profile_id=pe.beneficiary_child_profile_id)
+                  or (pe.beneficiary_child_profile_id is null and rgp.child_profile_id is null and rgp.student_profile_id=coalesce(pe.beneficiary_student_profile_id,sp.id))
+                )
             )
           order by
             pe.beneficiary_student_user_id,
             pe.package_version_id,
             pp.id,
+            pe.beneficiary_child_profile_id,
             pe.effective_at desc
         `)
       ).rows;

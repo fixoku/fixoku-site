@@ -2,13 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 
-if (fs.existsSync('.env.local')) {
-  for (const line of fs.readFileSync('.env.local', 'utf8').split(/\r?\n/u)) {
-    const match = /^([A-Z][A-Z0-9_]*)=(.*)$/u.exec(line.trim())
-    if (match && !process.env[match[1]]) process.env[match[1]] = match[2]
-  }
-}
-
 function institutionApplicationApi() {
   return {
     name: 'fixoku-institution-application-api',
@@ -78,6 +71,9 @@ function betterAuthApi() {
         if (request.url?.startsWith('/api/panel-context')) {
           import('./api/panel-context.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
+        }
+        if (request.url?.startsWith('/api/admin/owner-legal-review-package')) {
+          import('./api/admin/owner-legal-review-package.js').then(({ default: handler }) => handler(request, response)).catch(next)
         }
         if (request.url?.startsWith('/api/admin/owner-legal-editor')) {
           import('./api/admin/owner-legal-editor.js').then(({ default: handler }) => handler(request, response)).catch(next)
@@ -430,7 +426,17 @@ function betterAuthApi() {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const testEnvIsolation = mode === 'test' || process.env.FIXOKU_SKIP_LOCAL_ENV === '1'
+  if (!testEnvIsolation && fs.existsSync('.env.local')) {
+    for (const line of fs.readFileSync('.env.local', 'utf8').split(/\r?\n/u)) {
+      const match = /^([A-Z][A-Z0-9_]*)=(.*)$/u.exec(line.trim())
+      if (match && !process.env[match[1]]) process.env[match[1]] = match[2]
+    }
+  }
+
+  return {
+  envDir: testEnvIsolation ? false : undefined,
   server: {
     host: '127.0.0.1',
     fs: {
@@ -447,7 +453,7 @@ export default defineConfig({
     },
   },
   define: {
-    'globalThis.__FIXOKU_GTM_ID__': JSON.stringify(process.env.GTM_CONTAINER_ID || 'GTM-T5GHCWX6'),
+    'globalThis.__FIXOKU_GTM_ID__': JSON.stringify(testEnvIsolation ? '' : (process.env.GTM_CONTAINER_ID || 'GTM-T5GHCWX6')),
   },
   plugins: [react(), institutionApplicationApi(), betterAuthApi()],
   build: {
@@ -471,4 +477,5 @@ export default defineConfig({
       },
     },
   },
+  }
 })

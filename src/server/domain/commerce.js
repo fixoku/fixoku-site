@@ -12,8 +12,55 @@ export function normalizeCurrency(value) {
   return /^[A-Z]{3}$/u.test(currency) ? currency : null;
 }
 
+/**
+ * Return the current Owner-approved VAT decision for a commercial subject.
+ * Checkout must never infer a shipping rate from a package or product rate;
+ * callers use a missing/invalid result as a fail-closed guard.
+ */
+export async function readEffectiveVatDecision(client, subjectKind, subjectId = null) {
+  try {
+    const row = (await client.query(`
+      select vat_rate_bps as "vatRateBps", component_rates_json as "componentRatesJson", currency
+        from owner_vat_decisions
+       where subject_kind=$1::owner_vat_subject_kind
+         and ($2::text is null or subject_id=$2)
+         and status='EFFECTIVE'
+         and effective_from is not null
+         and effective_from <= now()
+         and currency='TRY'
+       order by effective_from desc, updated_at desc, id desc
+       limit 1
+    `, [subjectKind, subjectId])).rows[0];
+    if (!row) return null;
+    const rate = row.vatRateBps == null ? null : Number(row.vatRateBps);
+    if (rate != null && (!Number.isSafeInteger(rate) || rate < 0 || rate > 10000)) return null;
+    return { vatRateBps: rate, componentRates: row.componentRatesJson || {}, currency: row.currency };
+  } catch (cause) {
+    if (cause?.code === "42P01" || cause?.code === "42704") return null;
+    throw cause;
+  }
+}
+
 function error(code, status = 400) {
   return Object.assign(new Error(code), { code, status });
+}
+
+/**
+ * R64/R65 is deployed in two phases. Keep legacy account-level enrollments
+ * readable while refusing to materialize a child enrollment until 0040 is
+ * actually present. This probe is read-only and scoped to the active DB.
+ */
+export async function enrollmentChildColumnAvailable(client) {
+  const row = (await client.query(`
+    select exists(
+      select 1
+      from information_schema.columns
+      where table_schema = any(current_schemas(false))
+        and table_name = 'enrollments'
+        and column_name = 'beneficiary_child_profile_id'
+    ) as present
+  `)).rows[0];
+  return row?.present === true;
 }
 
 export async function listBeneficiaries(client, principal) {
@@ -45,7 +92,12 @@ export async function resolveBeneficiary(client, principal, requestedProfileId =
   if (requestedProfileId !== null && (!UUID_PATTERN.test(String(requestedProfileId)))) throw error("FORBIDDEN", 403);
   const rows = await listBeneficiaries(client, principal);
   if (!rows.length) throw error("BENEFICIARY_NOT_FOUND", 403);
-  const requested = requestedProfileId ? rows.find((row) => String(row.studentProfileId || "") === String(requestedProfileId) || String(row.childProfileId || "") === String(requestedProfileId)) : null;
+  // A child UUID may equal its legacy profile UUID. Prefer the explicit child
+  // target so sibling selection cannot silently fall back to the owner row.
+  const requested = requestedProfileId
+    ? rows.find((row) => String(row.childProfileId || "") === String(requestedProfileId))
+      || rows.find((row) => String(row.studentProfileId || "") === String(requestedProfileId))
+    : null;
   if (requestedProfileId && !requested) throw error("FORBIDDEN", 403);
   return requested || rows.find((row) => row.isSelected) || rows[0];
 }
@@ -92,7 +144,7 @@ export async function createOrder(client, principal, input) {
       return { order: existing, paymentIntent: payment, replay: true, providerConfigured: Boolean(process.env.PAYMENT_PROVIDER) };
     }
     const version = await readPublishedPackageVersion(client, packageVersionId);
-    const owned = (await client.query("select id from package_entitlements where beneficiary_student_user_id=$1 and ($3::uuid is null or beneficiary_child_profile_id=$3) and package_version_id=$2 and status='ACTIVE' and (expires_at is null or expires_at>now()) limit 1", [beneficiary.studentUserId, version.packageVersionId, beneficiary.childProfileId || null])).rows[0];
+    const owned = (await client.query("select id from package_entitlements where beneficiary_student_user_id=$1 and (($3::uuid is null and beneficiary_child_profile_id is null) or beneficiary_child_profile_id=$3) and package_version_id=$2 and status='ACTIVE' and (expires_at is null or expires_at>now()) limit 1", [beneficiary.studentUserId, version.packageVersionId, beneficiary.childProfileId || null])).rows[0];
     if (owned) throw error("PACKAGE_ALREADY_OWNED", 409);
     const order = (await client.query(`
       insert into orders(buyer_user_id,beneficiary_student_user_id,beneficiary_student_profile_id,beneficiary_child_profile_id,status,currency,subtotal_minor,total_minor,idempotency_key,request_hash)
@@ -139,9 +191,15 @@ export async function buildLegalSnapshots(client, { orderId, buyerUserId }) {
   if (!UUID_PATTERN.test(String(orderId || ""))) throw error("INVALID_ORDER_ID", 400);
   const row = (await client.query(`select o.*,u.email as buyer_email, u.display_name as buyer_name, coalesce(json_agg(json_build_object('title',oi.title_snapshot,'quantity',oi.quantity,'totalMinor',oi.total_minor,'currency',oi.currency,'deliveryMode',oi.delivery_mode_snapshot)) filter (where oi.id is not null),'[]') as items from orders o join platform_users u on u.id=o.buyer_user_id left join order_items oi on oi.order_id=o.id where o.id=$1 and o.buyer_user_id=$2 group by o.id,u.email,u.display_name`, [orderId, buyerUserId])).rows[0];
   if (!row) throw error("ORDER_NOT_FOUND", 404);
-  const now = new Date().toISOString();
-  const base = { orderId: row.id, version: "fixoku-legal-v1", timestamp: now, seller: "LEGAL_VALUE_REQUIRED", buyer: { name: row.buyer_name || "", email: row.buyer_email || "" }, items: row.items, currency: row.currency, subtotalMinor: Number(row.subtotal_minor), totalMinor: Number(row.total_minor), taxMinor: null, shippingMinor: Number(row.shipping_minor || 0), payment: "PAYTR / CONFIG_REQUIRED", delivery: "Ürün ve hizmet türüne göre sipariş kaydındaki koşullar uygulanır." };
-  return { preInformation: { ...base, documentType: "PRE_INFORMATION" }, distanceSalesAgreement: { ...base, documentType: "DISTANCE_SALES_AGREEMENT", acceptanceRequired: true } };
+  let snapshots;
+  try {
+    snapshots = (await client.query(`select document_key as "documentKey",document_version_id as "documentVersionId",document_version_number as "documentVersionNumber",document_status as "documentStatus",content_sha256 as "contentSha256",markdown,acceptance_type as "acceptanceType",accepted_by as "acceptedBy",accepted_at as "acceptedAt",metadata_json as "metadataJson" from order_legal_snapshots where order_id=$1 order by document_key,acceptance_type`, [orderId])).rows;
+  } catch (cause) {
+    if (cause?.code === "42P01") throw error("LEGAL_SNAPSHOT_NOT_READY", 503);
+    throw cause;
+  }
+  if (!snapshots.length) throw error("LEGAL_SNAPSHOT_NOT_READY", 503);
+  return { orderId: row.id, buyer: { userId: row.buyer_user_id, email: row.buyer_email, name: row.buyer_name }, order: { status: row.status, currency: row.currency, subtotalMinor: Number(row.subtotal_minor), shippingMinor: Number(row.shipping_minor || 0), totalMinor: Number(row.total_minor) }, items: row.items, snapshots };
 }
 
 export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = null, provider = "DEV_ONLY_LOCAL", providerEventId = `dev-settlement:${orderId}`, amountMinor = undefined, currency = undefined, manageTransaction = true }) {
@@ -156,11 +214,13 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
     if (currency !== undefined && String(currency).toUpperCase() !== String(order.currency).toUpperCase()) throw error("PAYMENT_CURRENCY_MISMATCH", 409);
     const payment = (await client.query("select * from payment_intents where order_id=$1 for update", [orderId])).rows[0];
     if (!payment) throw error("PAYMENT_INTENT_NOT_FOUND", 409);
+    const enrollmentChildColumn = await enrollmentChildColumnAvailable(client);
     if (provider === "BANK_TRANSFER") {
       if (order.payment_method !== "BANK_TRANSFER") throw error("BANK_TRANSFER_METHOD_REQUIRED", 409);
       if (!["PENDING_PAYMENT", "PAYMENT_REVIEW", "PAID"].includes(order.status)) throw error("BANK_TRANSFER_NOT_REVIEWABLE", 409);
       if (Number(payment.amount_minor) !== Number(order.total_minor) || payment.currency !== order.currency) throw error("PAYMENT_INTENT_MISMATCH", 409);
     }
+    if (provider === "PAYTR" && order.payment_method !== "PAYTR") throw error("PAYTR_METHOD_REQUIRED", 409);
     const payloadHash = sha256({ provider, providerEventId, orderId, amountMinor: order.total_minor, currency: order.currency });
     const existingEvent = (await client.query("select * from payment_webhook_events where provider=$1 and provider_event_id=$2 for update", [provider, providerEventId])).rows[0];
     if (existingEvent && existingEvent.payload_hash !== payloadHash) throw error("WEBHOOK_PAYLOAD_CONFLICT", 409);
@@ -192,11 +252,11 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
         studentProfileId: order.beneficiary_student_profile_id,
         childProfileId: order.beneficiary_child_profile_id,
       };
-      if (order.catalog_scope_snapshot === "R6_CUSTOM_OFFER" && item.beneficiary_child_profile_id) {
+      if (itemBeneficiary.childProfileId) {
         const child = (await client.query("select owner_user_id,legacy_student_profile_id from r6_student_child_profiles where id=$1", [item.beneficiary_child_profile_id])).rows[0];
-        if (!child) throw error("ORDER_CHILD_BENEFICIARY_NOT_FOUND", 409);
+        if (!child || String(child.owner_user_id) !== String(itemBeneficiary.studentUserId)) throw error("ORDER_CHILD_BENEFICIARY_NOT_FOUND", 409);
         itemBeneficiary = {
-          studentUserId: child.owner_user_id,
+          studentUserId: itemBeneficiary.studentUserId,
           studentProfileId: child.legacy_student_profile_id,
           childProfileId: item.beneficiary_child_profile_id,
         };
@@ -227,8 +287,32 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
         // Packages without training definitions retain ownership-only behavior.
       }
       for (const definition of definitions) {
-        const insertedEnrollment = (await client.query(`insert into enrollments(student_user_id,training_program_id,status) values($1,$2,'ACTIVE') on conflict(student_user_id,training_program_id) do nothing returning id`, [itemBeneficiary.studentUserId, definition.trainingProgramId])).rows[0];
-        const enrollment = insertedEnrollment || (await client.query("select id from enrollments where student_user_id=$1 and training_program_id=$2", [itemBeneficiary.studentUserId, definition.trainingProgramId])).rows[0];
+        if (itemBeneficiary.childProfileId && !enrollmentChildColumn) throw error("CHILD_ENROLLMENT_MIGRATION_REQUIRED", 409);
+        const insertedEnrollment = enrollmentChildColumn
+          ? (await client.query(
+            `insert into enrollments(student_user_id,beneficiary_child_profile_id,training_program_id,status)
+             values($1,$2,$3,'ACTIVE')
+             on conflict do nothing returning id`,
+            [itemBeneficiary.studentUserId, itemBeneficiary.childProfileId, definition.trainingProgramId],
+          )).rows[0]
+          : (await client.query(
+            `insert into enrollments(student_user_id,training_program_id,status)
+             values($1,$2,'ACTIVE')
+             on conflict(student_user_id,training_program_id) do nothing returning id`,
+            [itemBeneficiary.studentUserId, definition.trainingProgramId],
+          )).rows[0];
+        const enrollment = insertedEnrollment || (enrollmentChildColumn
+          ? (await client.query(
+            `select id from enrollments
+             where student_user_id=$1 and training_program_id=$2
+               and (($3::uuid is null and beneficiary_child_profile_id is null)
+                 or beneficiary_child_profile_id=$3)`,
+            [itemBeneficiary.studentUserId, definition.trainingProgramId, itemBeneficiary.childProfileId],
+          )).rows[0]
+          : (await client.query(
+            "select id from enrollments where student_user_id=$1 and training_program_id=$2",
+            [itemBeneficiary.studentUserId, definition.trainingProgramId],
+          )).rows[0]);
         if (!enrollment) throw error("ENROLLMENT_MATERIALIZATION_FAILED", 409);
         enrollmentIds.push(enrollment.id);
         const link = (await client.query(`insert into package_entitlement_enrollments(package_entitlement_id,enrollment_id,training_program_id,source_order_item_id) values($1,$2,$3,$4) on conflict(package_entitlement_id,training_program_id) do nothing returning id`, [entitlement.id, enrollment.id, definition.trainingProgramId, item.id])).rows[0];

@@ -1,5 +1,5 @@
 // FIXOKU_020O_TRAINER_ORDER_AND_CONTENT_SYNC
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./admin-panel.css";
 import { StudentProductCatalogV39C } from "./StudentProductCatalogV39C";
 import { FixokuCatalogIconV40 } from "./FixokuCatalogIconV40";
@@ -11,6 +11,7 @@ type Component = {
   componentId?: string;
   componentType: string;
   productId?: string;
+  referenceId?: string;
   physicalProductId?: string;
   title?: string;
   titleSnapshot?: string;
@@ -88,7 +89,9 @@ const toMinor = (value: string) => {
 const safeComponents = (list: unknown): Component[] => Array.isArray(list)
   ? list.filter((v): v is Component => Boolean(v) && typeof v === "object" && typeof v.componentType === "string")
   : [];
-const unsupportedComponents = (list: Component[]) => list.some(item => !["TEXT_ITEM", "PHYSICAL_PRODUCT"].includes(item.componentType));
+const supportedComponentTypes = ["TEXT_ITEM", "PHYSICAL_PRODUCT", "DIGITAL_ACCESS", "TRAINER_SERVICE"] as const;
+const unsupportedComponents = (list: Component[]) => list.some(item => !supportedComponentTypes.includes(item.componentType as typeof supportedComponentTypes[number]));
+const componentTypeLabel = (type: string) => ({ PHYSICAL_PRODUCT: "Kitap", DIGITAL_ACCESS: "Dijital erişim", TRAINER_SERVICE: "Eğitmen hizmeti" }[type] || type);
 // A trainer's catalogue uses active TEXT_ITEM components when available; otherwise legacy features_json.
 // For editing a legacy package, stage its features as TEXT_ITEM entries without writing to the database.
 const toEditor = (item: PackageRecord): Editor => {
@@ -101,7 +104,7 @@ const toEditor = (item: PackageRecord): Editor => {
     title: item.title || "", slug: item.slug || "", shortDescription: item.shortDescription || "",
     description: item.description || "", featuresText: Array.isArray(item.features) ? item.features.join("\n") : "",
     price: toInput(item.priceGrossMinor), panelVisible: Boolean(item.panelVisible),
-    purchaseEnabled: Boolean(item.purchaseEnabled), publicWebVisible: false,
+    purchaseEnabled: Boolean(item.purchaseEnabled), publicWebVisible: Boolean(item.publicWebVisible),
     components: [...legacyText, ...originals],
   };
 };
@@ -121,9 +124,24 @@ function TrainerModules020P({ compact = false }: { compact?: boolean }) {
 async function api(path: string, init: RequestInit = {}) {
   const response = await fetch(path, { credentials: "same-origin", cache: "no-store", ...init });
   const data = await response.json().catch(() => ({})) as Record<string, unknown>;
-  if (!response.ok) throw new Error(String(data.error || `Sunucu yanıtı: ${response.status}`));
+  if (!response.ok) { const error = new Error(String(data.error || `Sunucu yanıtı: ${response.status}`)); (error as Error & { response?: Record<string, unknown>; status?: number }).response = data; (error as Error & { status?: number }).status = response.status; throw error; }
   return data;
 }
+const ownerPackageError = (error: unknown, yedek: string) => {
+  const code = error instanceof Error ? error.message : "";
+  const messages: Record<string, string> = {
+    DRAFT_VERSION_MISSING: "Taslak sürüm oluşturulamadı. Lütfen tekrar deneyin.",
+    PACKAGE_NOT_FOUND: "Paket bulunamadı veya artık düzenlenemiyor.",
+    PACKAGE_FIELDS_REQUIRED: "Paket adı, bağlantı adı ve açıklama zorunludur.",
+    PACKAGE_PRICE_INVALID: "Paket fiyatı geçersiz.",
+    PACKAGE_PERMISSION_REQUIRED: "Bu işlem için Owner paket yetkisi gerekiyor.",
+    PUBLISHED_VERSION_IMMUTABLE: "Yayımlanmış sürüm korunur; değişiklikler yeni taslağa kaydedilir.",
+    SLUG_ALREADY_EXISTS: "Bu bağlantı adı başka bir pakette kullanılıyor.",
+    PACKAGE_PRODUCT_UNAVAILABLE: "Seçilen ürün artık aktif değil.",
+    PUBLICATION_CONDITIONS_UNMET: "Taslak kaydedildi ancak yayınlanmadı. Eksik yayın koşullarını kontrol edin.",
+  };
+  return messages[code] || yedek;
+};
 
 export function OwnerTrainerPackagesPage() {
   const [catalog, setCatalog] = useState<Catalog>({ packages: [], products: [] });
@@ -134,6 +152,8 @@ export function OwnerTrainerPackagesPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState<StageFilter>("ALL");
   const [initialSelectionDone, setInitialSelectionDone] = useState(false);
@@ -178,8 +198,11 @@ export function OwnerTrainerPackagesPage() {
     setPreviewOnly(readOnly);
     setEditingContentIndex(null);
     setPickerOpen(false);
-    setError(""); setMessage("");
+    setError(""); setMessage(""); setSaveStatus("idle");
   };
+  const markDirty = () => { if (saveTimerRef.current) { clearTimeout(saveTimerRef.current); saveTimerRef.current = null; } setSaveStatus("idle"); };
+  const updateForm = (patch: Partial<Editor>) => { markDirty(); setForm(current => current ? { ...current, ...patch } : current); };
+  const showSaved = (text = "Paket Bilgileri Kaydedildi") => { setSaveStatus("success"); setMessage(text); if (saveTimerRef.current) clearTimeout(saveTimerRef.current); saveTimerRef.current = setTimeout(() => { setSaveStatus("idle"); saveTimerRef.current = null; }, 1000); };
   useEffect(() => {
     if (loading || initialSelectionDone || !catalog.packages.length) return;
     choose(sortedTrainerPackages(catalog.packages)[0]);
@@ -194,48 +217,70 @@ export function OwnerTrainerPackagesPage() {
     if (!item) throw new Error("PACKAGE_NOT_FOUND");
     setCatalog(current => ({ ...current, packages: [item, ...current.packages.filter(p => p.id !== id)] }));
     choose(item);
+    return item;
+  };
+  // A published version is immutable.  Keep the Owner's form values in memory
+  // while the server creates (or reuses) the single draft for this package.
+  // This makes Save a single repeatable action and avoids duplicate drafts.
+  const ensureDraftVersion = async (item: PackageRecord) => {
+    if (item.versionStatus === "DRAFT" && item.packageVersionId) return item.packageVersionId;
+    const result = await api(`/api/admin/trainer-packages?id=${encodeURIComponent(item.id)}`, {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "createDraft" }),
+    });
+    const versionId = String(result.packageVersionId || "");
+    if (!versionId) throw new Error("DRAFT_VERSION_MISSING");
+    return versionId;
   };
   const newDraft = async (item: PackageRecord) => {
     if (!item.id || item.versionStatus === "DRAFT" || busy) return;
     if (!window.confirm(`“${item.title || item.slug}” için mevcut sürümden yeni bir taslak oluşturalım mı? Bu işlem veritabanına taslak kaydı ekler.`)) return;
-    setBusy(true); setError(""); setMessage("");
+    setBusy(true); setSaveStatus("saving"); setError(""); setMessage("Kaydediliyor...");
     try {
-      await api(`/api/admin/trainer-packages?id=${encodeURIComponent(item.id)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "createDraft" }) });
+      const result = await api(`/api/admin/trainer-packages?id=${encodeURIComponent(item.id)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "createDraft" }) });
       await refreshSelected(item.id);
-      setMessage("Yeni taslak oluşturuldu. Kaydedilene kadar yayımlanmaz.");
-    } catch (err) { setError(err instanceof Error ? err.message : "Taslak oluşturulamadı"); }
+      setMessage(result.existing ? "Mevcut taslak açıldı. Değişiklikler kaydedilene kadar yayımlanmaz." : "Yeni taslak oluşturuldu. Kaydedilene kadar yayımlanmaz.");
+    } catch (err) { setError(ownerPackageError(err, "Taslak oluşturulamadı.")); }
     finally { setBusy(false); }
   };
   const saveFields = async () => {
-    if (!selected || !form || !draft || previewOnly || busy) return;
+    if (!selected || !form || previewOnly || busy) return;
     const minor = toMinor(form.price);
     if (!form.title.trim() || !form.slug.trim() || minor === null) {
       setError("Paket adı, bağlantı adı ve geçerli fiyat zorunludur."); return;
     }
     // The API currently requires a non-empty description although this Owner form no longer displays one.
     // Preserve the existing description; for legacy empty records, use the existing package title only.
-    if (!window.confirm("Bu taslağın paket bilgileri ve fiyatı kaydedilecek. Devam edilsin mi?")) return;
-    setBusy(true); setError(""); setMessage("");
+    setBusy(true); setSaveStatus("saving"); setError(""); setMessage("Kaydediliyor...");
     try {
-      await api(`/api/admin/trainer-packages?id=${encodeURIComponent(selected.id)}`, {
+      const versionId = await ensureDraftVersion(selected);
+      const result = await api(`/api/admin/trainer-packages?id=${encodeURIComponent(selected.id)}`, {
         method: "PATCH", headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          versionId: selected.packageVersionId, title: form.title.trim(), slug: form.slug.trim(),
+          versionId, title: form.title.trim(), slug: form.slug.trim(),
           shortDescription: form.shortDescription.trim(), description: form.description.trim() || selected.description?.trim() || form.title.trim(),
           features: form.featuresText.split("\n").map(s => s.trim()).filter(Boolean),
           priceGrossMinor: minor, vatRateBps: Number(selected.vatRateBps ?? 2000),
           shippingPolicy: selected.shippingPolicy || "FREE", shippingPriceMinor: Number(selected.shippingPriceMinor || 0),
           currency: "TRY", iconReference: selected.iconReference || null,
-          purchaseEnabled: form.purchaseEnabled, panelVisible: form.panelVisible, publicWebVisible: false,
+          purchaseEnabled: form.purchaseEnabled, panelVisible: form.panelVisible, publicWebVisible: form.publicWebVisible,
         }),
       });
       await refreshSelected(selected.id);
-      setMessage("Taslak bilgileri kaydedildi. Ürün ve içerik değişiklikleri ayrı kaydedilir.");
-    } catch (err) { setError(err instanceof Error ? err.message : "Taslak kaydedilemedi"); }
+      const response = (result as { published?: boolean; message?: string }).published ? "Paket kaydedildi ve yayınlandı." : "Taslak bilgileri kaydedildi. Ürün ve içerik değişiklikleri ayrı kaydedilir.";
+      showSaved(response);
+      if ((result as { message?: string }).message) setError(String((result as { message: string }).message));
+    } catch (err) {
+      const typed = err as Error & { response?: Record<string, unknown>; status?: number };
+      const response = typed.response;
+      if (typed.status === 409 && typeof response?.packageVersionId === "string") {
+        try { await refreshSelected(selected.id); setSaveStatus("error"); setError(String(response.message || (Array.isArray(response.missingConditions) ? response.missingConditions.join(" ") : "Taslak kaydedildi ancak yayınlanmadı."))); }
+        catch (refreshError) { setSaveStatus("error"); setError(ownerPackageError(refreshError, "Taslak kaydedildi ancak yeniden okunamadı.")); }
+      } else { setSaveStatus("error"); setError(String(response?.message || (Array.isArray(response?.missingConditions) ? response.missingConditions.join(" ") : "") || ownerPackageError(err, "Taslak kaydedilemedi."))); }
+    }
     finally { setBusy(false); }
   };
   const saveComponents = async () => {
-    if (!selected || !form || !draft || previewOnly || busy) return;
+    if (!selected || !form || previewOnly || busy) return;
     if (!safeComponentEditing) { setError("Bu pakette mevcut API'nin desteklemediği içerik türleri var. Kayıt engellendi; hiçbir bileşen silinmedi."); return; }
     const textItems = form.components.filter(item => item.componentType === "TEXT_ITEM");
     // The trainer-facing fallback would reveal all old features again if every TEXT_ITEM were disabled.
@@ -244,31 +289,57 @@ export function OwnerTrainerPackagesPage() {
     }
     const components = form.components.map((item) => item.componentType === "TEXT_ITEM"
       ? { componentType: "TEXT_ITEM", text: String(item.titleSnapshot || item.title || "").trim(), isActive: item.isActive !== false }
-      : { componentType: "PHYSICAL_PRODUCT", physicalProductId: String(item.physicalProductId || item.productId || ""), quantity: Number(item.quantity || 1), displayLabel: item.displayLabel || null, isActive: item.isActive !== false });
-    if (!window.confirm("Taslağın mevcut ürün ve metin bileşenleri değiştirilecek. Kaydedilsin mi?")) return;
+      : { componentType: item.componentType, productId: String(item.physicalProductId || item.productId || item.referenceId || ""), physicalProductId: item.componentType === "PHYSICAL_PRODUCT" ? String(item.physicalProductId || item.productId || "") : null, quantity: Number(item.quantity || 1), displayLabel: item.displayLabel || null, isActive: item.isActive !== false });
+    setBusy(true); setError(""); setMessage("");
+    try {
+      const versionId = await ensureDraftVersion(selected);
+      await api(`/api/admin/trainer-packages?id=${encodeURIComponent(selected.id)}`, {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "componentsSave", versionId, components }),
+      });
+      await refreshSelected(selected.id);
+      showSaved("Paket Bilgileri Kaydedildi");
+    } catch (err) { setSaveStatus("error"); setError(ownerPackageError(err, "Paket içerikleri kaydedilemedi.")); }
+    finally { setBusy(false); }
+  };
+  const publishDraft = async () => {
+    if (!selected || !draft || !selected.packageVersionId || previewOnly || busy) return;
     setBusy(true); setError(""); setMessage("");
     try {
       await api(`/api/admin/trainer-packages?id=${encodeURIComponent(selected.id)}`, {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: "componentsSave", versionId: selected.packageVersionId, components }),
+        body: JSON.stringify({ action: "publish", versionId: selected.packageVersionId }),
       });
       await refreshSelected(selected.id);
-      setMessage("Taslak ürünleri ve içerikleri kaydedildi.");
-    } catch (err) { setError(err instanceof Error ? err.message : "Paket içerikleri kaydedilemedi"); }
-    finally { setBusy(false); }
+      setMessage("Paket yayınlandı.");
+    } catch (err) {
+      const code = err instanceof Error ? err.message : "PACKAGE_PUBLISH_FAILED";
+      const messages: Record<string, string> = {
+        CORE001_PUBLICATION_VALIDATION_FAILED: "Paket yayınlanamadı. Fiyat, aktif ürün ve yayın koşullarını kontrol edin.",
+        PACKAGE_PERMISSION_REQUIRED: "Bu işlem için Owner yayın yetkisi gerekiyor.",
+        PACKAGE_VERSION_NOT_DRAFT: "Yalnızca taslak sürüm yayınlanabilir.",
+        PACKAGE_PRICE_INVALID: "Paket fiyatı yayın kataloğundaki onaylı fiyatla eşleşmiyor.",
+      };
+      setError(messages[code] || "Paket yayınlanamadı. Yayın koşullarını kontrol edin.");
+    } finally { setBusy(false); }
   };
   const addProduct = (product: Product) => {
     if (!form) return;
     if (form.components.some(c => String(c.productId || c.physicalProductId) === product.id)) return;
+    markDirty();
     setForm({ ...form, components: [...form.components, { componentType: "PHYSICAL_PRODUCT", physicalProductId: product.id, productId: product.id, title: product.title, quantity: 1, isActive: true }] });
   };
   const updateComponent = (index: number, patch: Partial<Component>) => {
     if (!form) return;
+    markDirty();
     setForm({ ...form, components: form.components.map((v, i) => i === index ? { ...v, ...patch } : v) });
   };
-  const removeComponent = (index: number) => form && setForm({ ...form, components: form.components.filter((_, i) => i !== index) });
+  const removeComponent = (index: number) => { if (!form) return; markDirty(); setForm({ ...form, components: form.components.filter((_, i) => i !== index) }); };
 
-  const canEdit = Boolean(draft && !previewOnly && !busy);
+  // Published rows are editable in the form; the first save creates/reuses a
+  // draft and sends the edit there.  The published database version remains
+  // immutable throughout the interaction.
+  const canEdit = Boolean(!previewOnly && !busy);
   // The trainer page uses TEXT_ITEM entries preferentially; staged legacy features are converted above.
   const textIndices = form ? form.components.flatMap((value, index) => value.componentType === "TEXT_ITEM" ? [index] : []) : [];
   const moveTextComponent = (componentIndex: number, direction: -1 | 1) => {
@@ -278,11 +349,17 @@ export function OwnerTrainerPackagesPage() {
     if (position < 0 || targetIndex === undefined) return;
     const next = [...form.components];
     [next[componentIndex], next[targetIndex]] = [next[targetIndex], next[componentIndex]];
+    markDirty();
     setForm({ ...form, components: next });
   };
   const addTextComponent = () => {
     if (!form || !canEdit || !safeComponentEditing) return;
-    setForm({ ...form, components: [...form.components, { componentType: "TEXT_ITEM", titleSnapshot: "Yeni içerik maddesi", title: "Yeni içerik maddesi", quantity: 1, isActive: true }] });
+    const index = form.components.length;
+    const initial = "Yeni içerik maddesi";
+    markDirty();
+    setForm({ ...form, components: [...form.components, { componentType: "TEXT_ITEM", titleSnapshot: initial, title: initial, quantity: 1, isActive: true }] });
+    setEditingContentIndex(index);
+    setEditingContentValue(initial);
   };
   const packageContentCount = (item: PackageRecord) => activeTrainerFeatures020P(item).length;
   return (
@@ -296,8 +373,8 @@ export function OwnerTrainerPackagesPage() {
         <button type="button" role="tab" aria-selected={tab === "products"} className={tab === "products" ? "selected" : ""} onClick={() => setTab("products")}><FixokuCatalogIconV40 kind="grid" size={19}/> Ürünler</button>
         <button type="button" role="tab" aria-selected={tab === "expertise"} className={tab === "expertise" ? "selected" : ""} onClick={() => setTab("expertise")}><FixokuCatalogIconV40 kind="school" size={19}/> Uzmanlıklar</button>
       </div>
-      {error && <p role="alert" className="admin-feedback">{error}</p>}
-      {message && <p role="status" className="admin-feedback">{message}</p>}
+      {error && <p role="alert" className={`admin-feedback ${saveStatus === "error" ? "admin-feedback-error" : ""}`}>{error}</p>}
+      {message && <p role={saveStatus === "error" ? "alert" : "status"} className={`admin-feedback admin-feedback-${saveStatus}`}>{message}</p>}
       {tab === "packages" && (
         <section className="admin-package-layout is-editing">
           <section className="panel-card admin-package-list">
@@ -321,7 +398,7 @@ export function OwnerTrainerPackagesPage() {
                   </dl>
                   <TrainerModules020P compact/>
                   <div className="admin-package-card-footer"><span className="fx40-package-price">{formatMoney(item.priceGrossMinor)}</span><div className="admin-card-actions">
-                    <button type="button" onClick={()=>{choose(item); if (item.versionStatus !== "DRAFT") void newDraft(item);}}>Düzenle</button>
+                    <button type="button" onClick={()=>choose(item)}>Düzenle</button>
                     <button type="button" className="admin-card-preview" onClick={()=>setPreviewPackage(item)}>Önizle</button>
                   </div></div>
                 </article>)}
@@ -333,12 +410,12 @@ export function OwnerTrainerPackagesPage() {
           {selected && form ? <section className="panel-card admin-package-form" aria-label="Paket düzenleyicisi">
             <div className="admin-editor-heading"><div><h2>{previewOnly ? "Paket Önizlemesi" : "Paketi Düzenle"}</h2></div><span className={`admin-status ${draft ? "admin-status-draft" : "admin-status-published"}`}>{draft ? "Taslak" : "Yayında"}</span></div>
             <div className="admin-package-cover-upload"><div className="admin-book-cover"><FixokuPhotoV41F src={trainerCourseCover020P(selected.title || "",selected.slug) || selected.iconReference} alt={`${selected.title || "Paket"} kapak görseli`}><FixokuCatalogIconV40 kind="package" size={34}/></FixokuPhotoV41F></div><div><strong>Paket Kapak Görseli</strong><p className="admin-section-help">Mevcut görsel görüntülenir. Yeni görsel yükleme henüz bağlanmadı.</p></div></div>
-            {!draft && !previewOnly && <div className="admin-feedback"><p>Yayındaki sürüm doğrudan değiştirilemez. Önce taslak sürüm açılmalı.</p><button type="button" className="admin-outline-button" disabled={busy || !selected.packageVersionId} onClick={()=>void newDraft(selected)}>+ Yeni Sürüm Taslağı Aç</button></div>}
+            {!draft && !previewOnly && <div className="admin-feedback"><p>Yayındaki sürüm korunur. Kaydet düğmesi ilk tıklamada mevcut sürümden tek bir taslak açıp değişikliği bu taslağa kaydeder.</p><button type="button" className="admin-outline-button" disabled={busy || !selected.packageVersionId} onClick={()=>void newDraft(selected)}>+ Yeni Sürüm Taslağı Aç</button></div>}
             {previewOnly && <p className="admin-feedback">Önizleme salt okunurdur.</p>}
             <fieldset disabled={!canEdit}><legend>Paket Bilgileri</legend><div className="admin-form-two-column">
-              <label>Paket başlığı<input value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/></label>
-              <label>Alt başlık<input value={form.shortDescription} onChange={e=>setForm({...form,shortDescription:e.target.value})}/></label>
-              <label>Bağlantı adı<input value={form.slug} onChange={e=>setForm({...form,slug:e.target.value})}/></label>
+              <label>Paket başlığı<input value={form.title} onChange={e=>updateForm({title:e.target.value})}/></label>
+              <label>Alt başlık<input value={form.shortDescription} onChange={e=>updateForm({shortDescription:e.target.value})}/></label>
+              <label>Bağlantı adı<input value={form.slug} onChange={e=>updateForm({slug:e.target.value})}/></label>
             </div></fieldset>
             <fieldset disabled={!canEdit}>
               <div className="admin-section-toolbar"><legend>Paket İçeriği</legend><button type="button" className="admin-outline-button" onClick={addTextComponent} disabled={!safeComponentEditing}>+ Yeni Madde Ekle</button></div>
@@ -372,25 +449,25 @@ export function OwnerTrainerPackagesPage() {
               <p>Bu sekmeler Öğretmen panelindeki Video Eğitimleri, Müfredat ve Sunumlar alanlarını temsil eder. Dosya listesi veya video adedi Owner paket API'sinde henüz sunulmadığından burada uydurma içerik oluşturulmaz. Özel medya dosyaları mevcut yetkili görüntüleyicide kalır.</p>
             </div>
             <fieldset disabled={!canEdit || !safeComponentEditing}><div className="admin-section-toolbar"><legend>Pakete Eklenen Ürünler</legend><button type="button" className="admin-outline-button" onClick={()=>setPickerOpen(v=>!v)}>+ Ürün Ekle</button></div>
-              <div className="admin-book-list">{form.components.filter(c=>c.componentType==="PHYSICAL_PRODUCT").map(c=>{const index=form.components.indexOf(c);const product=catalog.products.find(p=>p.id===String(c.physicalProductId||c.productId));return <div className="admin-book-row" key={c.componentId||`product-${index}`}>
-                <div className="admin-book-cover"><FixokuPhotoV41F src={product?.imageReference||c.imageReference} fallbackSrc={productImageDefaultV41F(product?.sku||"")} alt={product?.title||c.title||"Ürün"}><FixokuCatalogIconV40 kind="book" size={25}/></FixokuPhotoV41F></div>
-                <div className="admin-book-details"><strong>{product?.title||c.title||"Ürün"}</strong><span>{product?.sku||""}</span><input aria-label="Pakette görünen ürün adı" placeholder="Pakette görünen ad" value={c.displayLabel||""} onChange={e=>updateComponent(index,{displayLabel:e.target.value})}/></div>
+              <div className="admin-book-list">{form.components.filter(c=>c.componentType!=="TEXT_ITEM").map(c=>{const index=form.components.indexOf(c);const product=catalog.products.find(p=>p.id===String(c.physicalProductId||c.productId||c.referenceId));return <div className="admin-book-row" key={c.componentId||`${c.componentType}-${index}`}>
+                <div className="admin-book-cover"><FixokuPhotoV41F src={product?.imageReference||c.imageReference} fallbackSrc={productImageDefaultV41F(product?.sku||"")} alt={product?.title||c.title||componentTypeLabel(c.componentType)}><FixokuCatalogIconV40 kind={c.componentType === "PHYSICAL_PRODUCT" ? "book" : c.componentType === "TRAINER_SERVICE" ? "individual" : "software"} size={25}/></FixokuPhotoV41F></div>
+                <div className="admin-book-details"><strong>{product?.title||c.title||componentTypeLabel(c.componentType)}</strong><span>{componentTypeLabel(c.componentType)}{product?.sku ? ` · ${product.sku}` : ""}</span><input aria-label="Pakette görünen ürün adı" placeholder="Pakette görünen ad" value={c.displayLabel||""} onChange={e=>updateComponent(index,{displayLabel:e.target.value})}/></div>
                 <div className="admin-quantity"><span>Miktar</span><div><button type="button" onClick={()=>updateComponent(index,{quantity:Math.max(1,Number(c.quantity||1)-1)})}>−</button><strong>{Number(c.quantity||1)}</strong><button type="button" onClick={()=>updateComponent(index,{quantity:Math.min(99,Number(c.quantity||1)+1)})}>+</button></div></div>
                 <button type="button" className="admin-quiet-button" onClick={()=>removeComponent(index)}>Kaldır</button>
-              </div>;})}{!form.components.some(c=>c.componentType==="PHYSICAL_PRODUCT") && <p className="admin-empty-inline">Bu pakette fiziksel ürün yok.</p>}</div>
+              </div>;})}{!form.components.some(c=>c.componentType!=="TEXT_ITEM") && <p className="admin-empty-inline">Bu pakette ürün veya hizmet bileşeni yok.</p>}</div>
               {pickerOpen && <div className="admin-book-picker fx40-picker"><div className="fx40-picker-head"><h3>Pakete Ürün Ekle</h3><button type="button" className="fx40-picker-close" onClick={()=>setPickerOpen(false)} aria-label="Kapat">×</button></div>
                 <div className="fx40-picker-fields"><label><FixokuCatalogIconV40 kind="search" size={17}/><input type="search" placeholder="Ürün ara..." value={productSearch} onChange={e=>setProductSearch(e.target.value)}/></label></div>
                 <div className="admin-book-picker-results fx40-picker-grid">{visibleProducts.map(p=><article className="fx40-picker-tile" key={p.id}><div className="fx40-picker-art"><FixokuPhotoV41F src={p.imageReference} fallbackSrc={productImageDefaultV41F(p.sku)} alt={p.title}><FixokuCatalogIconV40 kind="book" size={34}/></FixokuPhotoV41F></div><strong>{p.title}</strong><small>{p.sku}</small><button type="button" disabled={form.components.some(c=>String(c.physicalProductId||c.productId)===p.id)} onClick={()=>addProduct(p)}>Ekle</button></article>)}</div>
               </div>}
             </fieldset>
             {!safeComponentEditing && <p role="alert" className="admin-feedback">Bu pakette mevcut API'nin kaydedemediği bileşen türleri var. Bileşen kayıtları korunuyor.</p>}
-            <div className="admin-package-bottom"><fieldset disabled={!canEdit}><legend>Fiyat ve Satış</legend><label>Fiyat<span className="fx41f-money-entry"><input inputMode="decimal" value={form.price} onChange={e=>setForm({...form,price:e.target.value})}/><span>₺</span></span></label><p className="admin-section-help">KDV: %{Number(selected.vatRateBps||0)/100}</p></fieldset>
+            <div className="admin-package-bottom"><fieldset disabled={!canEdit}><legend>Fiyat ve Satış</legend><label>Fiyat<span className="fx41f-money-entry"><input inputMode="decimal" value={form.price} onChange={e=>updateForm({price:e.target.value})}/><span>₺</span></span></label><p className="admin-section-help">KDV: %{Number(selected.vatRateBps||0)/100}</p></fieldset>
               <fieldset disabled={!canEdit}><legend>Görünürlük</legend><div className="admin-visibility-grid">
-                <label className="admin-switch"><input type="checkbox" checked={form.panelVisible} onChange={e=>setForm({...form,panelVisible:e.target.checked})}/><span className="admin-switch-track"/><span>Eğitmen panelinde göster</span></label>
+                <label className="admin-switch"><input type="checkbox" checked={form.panelVisible} onChange={e=>updateForm({panelVisible:e.target.checked})}/><span className="admin-switch-track"/><span>Eğitmen panelinde göster</span></label>
                 <label className="admin-switch"><input type="checkbox" checked={false} disabled readOnly/><span className="admin-switch-track"/><span>Web sitesinde göster (eğitmen paketleri için kapalı)</span></label>
-                <label className="admin-switch"><input type="checkbox" checked={form.purchaseEnabled} onChange={e=>setForm({...form,purchaseEnabled:e.target.checked})}/><span className="admin-switch-track"/><span>Satın alınabilir</span></label>
+                <label className="admin-switch"><input type="checkbox" checked={form.purchaseEnabled} onChange={e=>updateForm({purchaseEnabled:e.target.checked})}/><span className="admin-switch-track"/><span>Satın alınabilir</span></label>
               </div></fieldset></div>
-            <div className="admin-editor-actions"><button type="button" className="admin-primary-action" disabled={!canEdit} onClick={()=>void saveFields()}>Paket Bilgilerini Kaydet</button><button type="button" className="admin-secondary-action" disabled={!canEdit||!safeComponentEditing} onClick={()=>void saveComponents()}>Ürün ve İçeriği Kaydet</button><button type="button" className="admin-secondary-action" onClick={()=>{setForm(null);setSelectedId("");}}>Düzenlemeden Çık</button><button type="button" className="admin-secondary-action" disabled title="Uzmanlık eşleştirme ve yayın kontrolü bekleniyor">Yayınla (kontrol bekliyor)</button></div>
+            <div className="admin-editor-actions"><button type="button" className="admin-primary-action" disabled={!canEdit} onClick={()=>void saveFields()}>Paket Bilgilerini Kaydet</button><button type="button" className="admin-secondary-action" disabled={!canEdit||!safeComponentEditing} onClick={()=>void saveComponents()}>Ürün ve İçeriği Kaydet</button><button type="button" className="admin-secondary-action" onClick={()=>{setForm(null);setSelectedId("");}}>Düzenlemeden Çık</button><button type="button" className="admin-secondary-action" disabled={!draft||busy} onClick={()=>void publishDraft()}>Yayınla</button></div>
           </section> : <aside className="panel-card fx41e-empty-editor"><span className="fx41e-empty-art"><FixokuCatalogIconV40 kind="package" size={32}/></span><h2>Paketi Düzenle</h2><p>Soldaki bir paketi seçin.</p></aside>}
         </section>
       )}

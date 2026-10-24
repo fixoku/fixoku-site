@@ -9,7 +9,6 @@
 .fx-ep-bottom{margin-top:auto;padding-top:20px}.fx-ep-price{text-align:center;color:#071d48;font-size:26px;font-weight:800;margin:0 0 12px;letter-spacing:-.5px}.fx-ep-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.fx-ep-button{font:inherit;font-size:14px;font-weight:700;min-height:43px;padding:8px 12px;border-radius:7px;display:flex;justify-content:center;align-items:center;text-align:center;text-decoration:none;cursor:pointer}.fx-ep-buy{background:var(--ep-accent);color:#fff;border:2px solid var(--ep-accent)}.fx-ep-details{background:#fff;color:var(--ep-accent);border:2px solid var(--ep-accent)}.fx-ep-disabled{background:#f0f3f7;color:#718096;border:1px solid #dbe3eb;cursor:default}
 
 .fx-ep-message{background:#fff;border:1px solid #dae5f0;border-radius:12px;color:#31588f;padding:34px 22px;text-align:center;font-size:15px}
-.fx-ep-modal-backdrop{position:fixed;inset:0;background:rgba(10,26,48,.68);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9999}.fx-ep-modal{background:#fff;color:#173860;width:min(620px,100%);max-height:85vh;overflow:auto;border-radius:16px;padding:27px;box-shadow:0 16px 60px rgba(0,0,0,.23)}.fx-ep-modal-head{display:flex;gap:20px;justify-content:space-between;align-items:flex-start}.fx-ep-modal-head h2{font-size:25px;margin:0}.fx-ep-modal-head button{padding:8px 11px;border:1px solid #d4dfeb;border-radius:9px;background:#fff;cursor:pointer}.fx-ep-modal-subtitle{font-weight:700}.fx-ep-modal ul{padding-left:20px}.fx-ep-modal li{margin:9px 0;line-height:1.4}.fx-ep-modal-price{font-size:25px;font-weight:800;text-align:right}.fx-ep-modal-hint{font-size:13px;color:#637b96}.fx-ep-modal .fx-ep-buy{width:fit-content;margin-left:auto}
 @media(max-width:1020px){.fx-ep-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.fx-ep-page{width:min(100% - 22px,1220px);padding:130px 0 38px}.fx-ep-hero{margin-bottom:17px}.fx-ep-hero p{font-size:15px}.fx-ep-tabs{display:flex;overflow:auto;padding:0 0 6px;scroll-snap-type:x proximity}.fx-ep-tab{min-width:170px;scroll-snap-align:start}.fx-ep-grid{grid-template-columns:1fr}.fx-ep-media{height:auto;aspect-ratio:2.08/1}}
 
@@ -32,4 +31,4 @@
 .fx-ep-counter{font-size:15px;font-weight:700;color:#274d86;margin:2px 0 14px;text-align:right}
 
 /* FIXOKU_022I_PRESERVE_CASE_OPTIONAL_SUBTITLE : public education packages title casing */
-.fx-ep-card h2, .fx-ep-modal-head h2, .fx-ep-subtitle, .fx-ep-modal-subtitle { text-transform: none !important; }
+.fx-ep-card h2, .fx-ep-subtitle { text-transform: none !important; }

@@ -36,6 +36,17 @@ export function renderTrainerLegalPreview({document,cart,shipping,email,paymentM
     if (!(key in map)||map[key] == null){missing.add(key);return `‹${key}: doğrulanmış bilgi gerekli›`;}
     return `**${map[key]}**`;
   });
+  const dynamicBlock = ["PRE_INFO", "DISTANCE"].includes(String(document.code)) ? [
+    "",
+    "---",
+    "SİPARİŞE ÖZGÜ GERÇEK VERİLER",
+    `Alıcı: ${purchaseInfo || "doğrulanmış checkout bilgisi gerekli"}`,
+    `Paketler ve satırlar: ${items || "doğrulanmış checkout bilgisi gerekli"}`,
+    `Ödeme yöntemi: ${method || "doğrulanmış ödeme yöntemi gerekli"}`,
+    `Kargo: ${shippingPrice}`,
+    `Toplam: ${total}`,
+    "Sipariş kimliği ve kabul zamanı, sipariş oluşturulurken immutable snapshot kaydına eklenir.",
+  ].join("\n") : "";
   const unverified=/TASLAK\s*\/|\[(?:DOĞRULANACAK|İŞ GÜNÜ MÜ|[^\]]*DOĞRULANACAK)[^\]]*\]|hukuki inceleme bekleniyor|bu metin henüz yayıma/iu.test(filled);
-  return {code:document.code,title:document.title,version:document.version,sourceSha256:document.sourceSha256,markdown:filled,missingFields:[...missing].sort(),legalReviewRequired:unverified,ready:missing.size===0&&!unverified};
+  return {code:document.code,title:document.title,version:document.version,sourceSha256:document.sourceSha256,markdown:filled + dynamicBlock,missingFields:[...missing].sort(),legalReviewRequired:unverified,ready:missing.size===0&&!unverified,sourceDocumentId:document.sourceDocumentId||null,publicationStatus:document.publicationStatus||"LOCAL_SITE_INTEGRATED"};
 }

@@ -3,6 +3,7 @@ import path from "node:path";
 import pg from "pg";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal } from "../../src/server/domain/trainer-commerce.js";
+import { createSignedReadUrl, fetchPrivateObject, getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
@@ -28,6 +29,7 @@ export default async function handler(req, res) {
   if (!principal) {
     return stop(res, 401);
   }
+  if (!productionPrivateMediaAvailable()) return stop(res, 503);
 
   const parsed = new URL(req.url, "http://local");
   const packageId = String(parsed.searchParams.get("packageId") || "");
@@ -58,6 +60,7 @@ export default async function handler(req, res) {
         where p.id = $1
           and e.trainer_user_id = $2
           and e.status = 'ACTIVE'
+           and e.revoked_at is null
         limit 1`,
       [packageId, user.id]
     );
@@ -68,21 +71,19 @@ export default async function handler(req, res) {
       return stop(res, 403);
     }
 
-    const folder = path.resolve(
-      "private",
-      "trainer-curriculum",
-      pkg.slug
-    );
-
-    const manifestFile = path.join(folder, "manifest.json");
-
-    if (!fs.existsSync(manifestFile)) {
-      return stop(res, 404);
+    const storage = getDigitalStorageConfig();
+    const remote = storage.provider === "S3" || storage.provider === "R2";
+    const folder = path.resolve("private", "trainer-curriculum", pkg.slug);
+    let manifest;
+    if (remote) {
+      const response = await fetchPrivateObject(storage, `trainer-curriculum/${pkg.slug}/manifest.json`);
+      if (!response.ok) return stop(res, response.status === 404 ? 404 : 503);
+      try { manifest = await response.json(); } catch { return stop(res, 503); }
+    } else {
+      const manifestFile = path.join(folder, "manifest.json");
+      if (!fs.existsSync(manifestFile)) return stop(res, 404);
+      try { manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8")); } catch { return stop(res, 503); }
     }
-
-    const manifest = JSON.parse(
-      fs.readFileSync(manifestFile, "utf8")
-    );
 
     const item = Array.isArray(manifest.items)
       ? manifest.items.find(
@@ -104,6 +105,13 @@ export default async function handler(req, res) {
 
       if (!Number.isInteger(slideNo) || slideNo < 1 || slideNo > Number(manifest.slideCount || 0)) {
         return stop(res, 404);
+      }
+
+      if (remote) {
+        res.statusCode = 302;
+        res.setHeader("Location", createSignedReadUrl(storage, `trainer-curriculum/${pkg.slug}/thumbs/thumb-${String(slideNo).padStart(3, "0")}.jpg`));
+        res.setHeader("Referrer-Policy", "no-referrer");
+        return res.end();
       }
 
       const thumb = path.join(
@@ -136,6 +144,13 @@ export default async function handler(req, res) {
       item.type === "video"
         ? path.join(folder, "videos", fileName)
         : path.join(folder, fileName);
+
+    if (remote) {
+      res.statusCode = 302;
+      res.setHeader("Location", createSignedReadUrl(storage, `trainer-curriculum/${pkg.slug}/${item.type === "video" ? "videos/" : ""}${fileName}`));
+      res.setHeader("Referrer-Policy", "no-referrer");
+      return res.end();
+    }
 
     if (!fs.existsSync(file)) {
       return stop(res, 404);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import pg from "pg";
 import path from "node:path";
+import net from "node:net";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { fileURLToPath } from "node:url";
@@ -11,12 +12,25 @@ import { loadLocalEnv } from "./local-env.mjs";
 loadLocalEnv();
 const sourceUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
 assert.ok(sourceUrl, "TEST_DATABASE_URL or DATABASE_URL is required");
+async function selectLoopbackPort() {
+  const probe = net.createServer();
+  await new Promise((resolve, reject) => {
+    probe.once("error", reject);
+    probe.listen({ host: "127.0.0.1", port: 0 }, resolve);
+  });
+  const address = probe.address();
+  const port = address && typeof address === "object" ? address.port : null;
+  await new Promise((resolve, reject) => probe.close((error) => error ? reject(error) : resolve()));
+  assert.ok(Number.isInteger(port) && port > 0, "LOOPBACK_PORT_SELECTION_FAILED");
+  return port;
+}
+const port = await selectLoopbackPort();
 const disposable = await createDisposableDatabase(sourceUrl, { migrationsFolder: path.join(process.cwd(), "drizzle", "migrations") });
 const previous = Object.fromEntries(["DATABASE_URL", "TEST_DATABASE_URL", "APP_ORIGIN", "BETTER_AUTH_URL", "NODE_ENV", "LOCAL_REVIEW_MODE", "EMAIL_PROVIDER"].map((key) => [key, process.env[key]]));
 const pools = new Set();
 const originalConnect = pg.Pool.prototype.connect;
 pg.Pool.prototype.connect = function (...args) { pools.add(this); return originalConnect.apply(this, args); };
-const origin = `http://127.0.0.1:${5260 + Math.floor(Math.random() * 40)}`;
+const origin = `http://127.0.0.1:${port}`;
 process.env.DATABASE_URL = disposable.databaseUrl.toString();
 process.env.TEST_DATABASE_URL = disposable.databaseUrl.toString();
 process.env.APP_ORIGIN = origin;
@@ -45,7 +59,15 @@ async function createAccount(pool, { email, name, role, scopeType, scopeId = nul
 async function waitForServer() {
   const deadline = Date.now() + 45_000;
   while (Date.now() < deadline) {
-    try { const response = await fetch(`${origin}/`, { signal: AbortSignal.timeout(2_000) }); if (response.status < 500) return; } catch { /* retry */ }
+    if (server.process?.exitCode !== null && server.process?.exitCode !== undefined) throw new Error(`LOCAL_SERVER_EXITED:${server.process.exitCode}`);
+    try {
+      const response = await fetch(`${origin}/`, { redirect: "manual", signal: AbortSignal.timeout(2_000) });
+      const location = response.headers.get("location");
+      if (location) assert.equal(new URL(location, origin).origin, origin, "LOCAL_SERVER_EXTERNAL_REDIRECT");
+      if (response.status < 500) return;
+    } catch (error) {
+      if (error?.code === "ERR_ASSERTION") throw error;
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   throw new Error(`LOCAL_SERVER_START_TIMEOUT:${server.output.slice(-1000)}`);
@@ -56,7 +78,9 @@ async function request(cookie, requestPath, options = {}) {
   headers.set("origin", origin);
   headers.set("connection", "close");
   if (cookie) headers.set("cookie", cookie);
-  const response = await fetch(`${origin}${requestPath}`, { ...options, headers });
+  const response = await fetch(`${origin}${requestPath}`, { ...options, headers, redirect: "manual" });
+  const location = response.headers.get("location");
+  if (location) assert.equal(new URL(location, origin).origin, origin, "LOCAL_SERVER_EXTERNAL_REDIRECT");
   return { response, body: await response.json().catch(() => ({})) };
 }
 
@@ -82,7 +106,33 @@ try {
   await pool.query("insert into package_entitlement_definitions(package_version_id,training_program_id,delivery_mode) values($1,$2,'TRAINER_LED')", [version.id, program.id]);
   await pool.query("insert into student_cart_items(buyer_user_id,beneficiary_student_profile_id,package_version_id,quantity) values($1,$2,$3,1)", [studentId, profile.id, version.id]);
 
-  server.process = spawn(process.execPath, [vitePath, "--host", "127.0.0.1", "--port", origin.split(":").at(-1)], { cwd: process.cwd(), env: { ...process.env }, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+  server.process = spawn(process.execPath, [vitePath, "--mode", "test", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
+    cwd: process.cwd(),
+    env: {
+      PATH: process.env.PATH,
+      PATHEXT: process.env.PATHEXT,
+      SystemRoot: process.env.SystemRoot,
+      TEMP: process.env.TEMP,
+      TMP: process.env.TMP,
+      USERPROFILE: process.env.USERPROFILE,
+      NODE_ENV: "test",
+      DATABASE_URL: disposable.databaseUrl.toString(),
+      TEST_DATABASE_URL: disposable.databaseUrl.toString(),
+      BETTER_AUTH_SECRET: "R68B-DISPOSABLE-SYNTHETIC-SECRET-ONLY",
+      APP_ORIGIN: origin,
+      BETTER_AUTH_URL: origin,
+      LOCAL_REVIEW_MODE: "1",
+      EMAIL_PROVIDER: "DISABLED",
+      PAYTR_ENABLED: "0",
+      SHIPPING_PROVIDER: "DISABLED",
+      DIGITAL_STORAGE_PROVIDER: "LOCAL",
+      PROFILE_MEDIA_PROVIDER: "LOCAL",
+      FIXOKU_SKIP_LOCAL_ENV: "1",
+      FIXOKU_DEV_LOGIN_ENABLED: "0",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
+  });
   server.process.stdout.on("data", (chunk) => { server.output += chunk.toString(); });
   server.process.stderr.on("data", (chunk) => { server.output += chunk.toString(); });
   await waitForServer();
@@ -90,7 +140,7 @@ try {
   const studentCookie = await login("release011f-student@example.invalid");
   const ownerCookie = await login("release011f-owner@example.invalid");
   const trainerCookie = await login("release011f-trainer@example.invalid");
-  const orderRequest = await request(studentCookie, "/api/student/orders", { method: "POST", headers: { "content-type": "application/json", "idempotency-key": "release011f-bank-order" }, body: JSON.stringify({ studentProfileId: profile.id, paymentMethod: "BANK_TRANSFER", billing: { type: "INDIVIDUAL", firstName: "RELEASE011F", lastName: "Student", sameAsShipping: false } }) });
+  const orderRequest = await request(studentCookie, "/api/student/orders", { method: "POST", headers: { "content-type": "application/json", "idempotency-key": "release011f-bank-order" }, body: JSON.stringify({ studentProfileId: profile.id, paymentMethod: "BANK_TRANSFER", billing: { type: "INDIVIDUAL", firstName: "RELEASE011F", lastName: "Student", sameAsShipping: false }, legalAcceptance: { preInformation: true, distanceSales: true, privacy: true } }) });
   assert.equal(orderRequest.response.status, 201, JSON.stringify(orderRequest.body));
   const orderId = orderRequest.body.order.id;
   assert.equal(orderRequest.body.order.status, "PENDING_PAYMENT");

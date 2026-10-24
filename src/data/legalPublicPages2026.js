@@ -19,7 +19,7 @@ export const legalPublicPages2026 = [
         "title": "İşletme ve marka",
         "paragraphs": [
           "Fixoku markası altında sunulan hizmetlerin işletme tarafı, mevcut işletme kayıtlarında Mavi Yeşil Ajans Ersin USTA olarak belirtilmektedir. Resmî unvan ve kayıt numaraları kesin yayından önce işletme belgeleriyle eşleştirilir.",
-          "İletişim ve iade adresi: Temsil Plaza, Mersinli Mahallesi, 1202/2. Sokak No: 80/L, 35170 Konak / İzmir. Destek: destek@fixoku.com. Kişisel veri başvuruları: kvkk@fixoku.com. Telefon: +90 232 462 07 43 ve +90 533 478 92 53."
+          "İletişim ve iade adresi: Temsil Plaza, Mersinli Mahallesi, 1202/2. Sokak No: 80/L, 35170 Konak / İzmir. Destek: info@fixoku.com. Kişisel veri başvuruları: kvkk@fixoku.com. Telefon: +90 232 462 07 43 ve +90 533 478 92 53."
         ]
       },
       {
@@ -76,7 +76,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-4",
         "title": "Tüketici hakları ve başvuru",
         "paragraphs": [
-          "Platform koşulları zorunlu tüketici hükümlerini ortadan kaldırmaz. İade, teslimat, cayma ve kişisel veriler hakkında ilgili ayrı bilgilendirme sayfaları geçerlidir. Destek için destek@fixoku.com adresinden ulaşabilirsiniz."
+          "Platform koşulları zorunlu tüketici hükümlerini ortadan kaldırmaz. İade, teslimat, cayma ve kişisel veriler hakkında ilgili ayrı bilgilendirme sayfaları geçerlidir. Destek için info@fixoku.com adresinden ulaşabilirsiniz."
         ]
       }
     ]
@@ -119,7 +119,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-4",
         "title": "Değişiklikler ve uyuşmazlık",
         "paragraphs": [
-          "Üyelik koşullarındaki değişiklikler uygulanabilir mevzuata uygun biçimde duyurulur; geçmiş satın almalar ve tüketici hakları korunur. Destek ve hesap talepleri için destek@fixoku.com adresi kullanılabilir."
+          "Üyelik koşullarındaki değişiklikler uygulanabilir mevzuata uygun biçimde duyurulur; geçmiş satın almalar ve tüketici hakları korunur. Destek ve hesap talepleri için info@fixoku.com adresi kullanılabilir."
         ]
       }
     ]
@@ -141,7 +141,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-1",
         "title": "Satıcı ve alıcı",
         "paragraphs": [
-          "Ürün ve hizmetler Fixoku markasıyla Mavi Yeşil Ajans Ersin USTA tarafından sunulur. İletişim: destek@fixoku.com; adres: Temsil Plaza, Mersinli Mahallesi, 1202/2. Sokak No: 80/L, 35170 Konak / İzmir. Alıcıya ait ad-soyad ve fatura/teslimat bilgileri her sipariş sırasında ayrıca gösterilir."
+          "Ürün ve hizmetler Fixoku markasıyla Mavi Yeşil Ajans Ersin USTA tarafından sunulur. İletişim: info@fixoku.com; adres: Temsil Plaza, Mersinli Mahallesi, 1202/2. Sokak No: 80/L, 35170 Konak / İzmir. Alıcıya ait ad-soyad ve fatura/teslimat bilgileri her sipariş sırasında ayrıca gösterilir."
         ]
       },
       {
@@ -198,7 +198,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-1",
         "title": "Taraflar ve kapsam",
         "paragraphs": [
-          "Satıcı veya sağlayıcı: Mavi Yeşil Ajans Ersin USTA. İletişim: destek@fixoku.com. Adres: Temsil Plaza, Mersinli Mahallesi, 1202/2. Sokak No: 80/L, 35170 Konak / İzmir. Alıcının kimliği ve varsa kanuni temsilci bilgileri siparişe özgü sözleşmede belirlenir."
+          "Satıcı veya sağlayıcı: Mavi Yeşil Ajans Ersin USTA. İletişim: info@fixoku.com. Adres: Temsil Plaza, Mersinli Mahallesi, 1202/2. Sokak No: 80/L, 35170 Konak / İzmir. Alıcının kimliği ve varsa kanuni temsilci bilgileri siparişe özgü sözleşmede belirlenir."
         ]
       },
       {
@@ -255,7 +255,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-1",
         "title": "Başvuru ve iletişim",
         "paragraphs": [
-          "İptal, cayma, eksik teslimat veya ayıplı hizmet bildirimlerini sipariş numaranızla destek@fixoku.com adresine iletebilirsiniz. Başvuruların alınışı ve çözümlenmesi kayıt altına alınır."
+          "İptal, cayma, eksik teslimat veya ayıplı hizmet bildirimlerini sipariş numaranızla info@fixoku.com adresine iletebilirsiniz. Başvuruların alınışı ve çözümlenmesi kayıt altına alınır."
         ]
       },
       {
@@ -326,7 +326,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-4",
         "title": "Eksik, hasarlı veya gecikmiş teslimat",
         "paragraphs": [
-          "Yanlış, eksik, hasarlı veya gecikmiş gönderimlerde destek@fixoku.com üzerinden sipariş numarasıyla başvurabilirsiniz. Tüketicinin kanuni seçimlik hakları saklıdır."
+          "Yanlış, eksik, hasarlı veya gecikmiş gönderimlerde info@fixoku.com üzerinden sipariş numarasıyla başvurabilirsiniz. Tüketicinin kanuni seçimlik hakları saklıdır."
         ]
       },
       {
@@ -383,7 +383,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-5",
         "title": "Destek",
         "paragraphs": [
-          "Erişim sorunu veya eksik içerik bildirimi için destek@fixoku.com adresini kullanabilirsiniz."
+          "Erişim sorunu veya eksik içerik bildirimi için info@fixoku.com adresini kullanabilirsiniz."
         ]
       }
     ]
@@ -547,7 +547,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-5",
         "title": "Başvuru",
         "paragraphs": [
-          "Gizlilik veya veri güvenliği sorunlarını destek@fixoku.com; kişisel veri başvurularını kvkk@fixoku.com üzerinden iletebilirsiniz."
+          "Gizlilik veya veri güvenliği sorunlarını info@fixoku.com; kişisel veri başvurularını kvkk@fixoku.com üzerinden iletebilirsiniz."
         ]
       }
     ]
@@ -640,7 +640,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-4",
         "title": "İletişim",
         "paragraphs": [
-          "Pazarlama iletişim tercihleri ve ret talebi için destek@fixoku.com adresine başvurabilirsiniz."
+          "Pazarlama iletişim tercihleri ve ret talebi için info@fixoku.com adresine başvurabilirsiniz."
         ]
       }
     ]
@@ -834,7 +834,7 @@ export const legalPublicPages2026 = [
         "id": "bolum-1",
         "title": "Başvuru",
         "paragraphs": [
-          "Siparişiniz, ürününüz, kargo veya eğitim hizmetinizle ilgili sorunu destek@fixoku.com adresine sipariş numarasıyla bildirebilirsiniz. Başvurular değerlendirilerek uygun yanıt ve çözüm yolları sunulur."
+          "Siparişiniz, ürününüz, kargo veya eğitim hizmetinizle ilgili sorunu info@fixoku.com adresine sipariş numarasıyla bildirebilirsiniz. Başvurular değerlendirilerek uygun yanıt ve çözüm yolları sunulur."
         ]
       },
       {

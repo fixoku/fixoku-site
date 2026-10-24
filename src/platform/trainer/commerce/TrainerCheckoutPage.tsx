@@ -154,6 +154,7 @@ function legalPreviewBody(markdown: string) {
 // Mevcut Fixoku yasal sayfalarini kullanir; yeni sozlesme metni uretmez.
 type TrainerLegalDocument = { title: string; path: string; code: string };
 const trainerLegalDocuments: readonly TrainerLegalDocument[] = [
+  { code: "SELLER", title: "Satıcı / Sağlayıcı Künyesi", path: "/satici-bilgileri" },
   { code: "PRE_INFO", title: "Ön Bilgilendirme Formu", path: "/on-bilgilendirme-formu" },
   { code: "DISTANCE", title: "Mesafeli Satış Sözleşmesi", path: "/mesafeli-satis-sozlesmesi" },
   { code: "WITHDRAWAL", title: "İptal, İade ve Cayma Politikası", path: "/iptal-iade-cayma-politikasi" },
@@ -162,6 +163,8 @@ const trainerLegalDocuments: readonly TrainerLegalDocument[] = [
   { code: "MEMBERSHIP", title: "Üyelik Sözleşmesi", path: "/uyelik-sozlesmesi" },
   { code: "TERMS", title: "Kullanım Koşulları", path: "/kullanim-kosullari" },
   { code: "KVKK", title: "KVKK Aydınlatma Metni", path: "/kvkk-aydinlatma-metni" },
+  { code: "PRIVACY", title: "Gizlilik ve Bilgi Güvenliği Politikası", path: "/gizlilik-politikasi" },
+  { code: "TRAINER_KVKK", title: "Eğitmen ve Başvuru Sahipleri KVKK Aydınlatması", path: "/egitmen-kvkk-aydinlatma" },
 ] as const;
 
 export function TrainerCheckoutPage({

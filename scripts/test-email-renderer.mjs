@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { EMAIL_TEMPLATE_COUNT, renderEmail } from "../src/server/domain/email-renderer.js";
+import { EMAIL_TEMPLATE_COUNT, renderEmail, renderEmailForEvent } from "../src/server/domain/email-renderer.js";
 import { getSmtpConfig, processOutboxBatch } from "../src/server/domain/email-outbox.js";
 
-assert.equal(EMAIL_TEMPLATE_COUNT, 27);
+assert.equal(EMAIL_TEMPLATE_COUNT, 28);
 const marketing = renderEmail("marketing-permission-aware", { recipientName: "<em>Demo</em>", body: "İzinli içerik", reference: "R-1", unsubscribePath: "/tercihler" });
 assert.equal(marketing.from, "kampanya@fixoku.com");
 assert.equal(marketing.replyTo, "destek@fixoku.com");
@@ -10,6 +10,16 @@ assert.ok(marketing.html.includes("List-Unsubscribe") === false); // header belo
 assert.ok(marketing.headers["List-Unsubscribe"].includes("/tercihler"));
 assert.ok(marketing.html.includes("&lt;em&gt;Demo&lt;/em&gt;"));
 assert.ok(marketing.text.includes("Abonelikten çık:"));
+assert.ok(marketing.html.includes("<!--[if mso]>"));
+assert.ok(marketing.html.includes("background-color:#ffffff"));
+assert.ok(marketing.html.includes("siyah-logo-fixoku.png"));
+assert.ok(marketing.html.includes('alt="FIXOKU"'));
+assert.ok(marketing.html.includes("background:linear-gradient(110deg,#51156f,#d6601b)"));
+const trainerWelcome = renderEmailForEvent("trainer-welcome", { recipientName: "Selin Yıldız", ctaPath: "https://fixoku.com/ogretmen-girisi" });
+assert.equal(trainerWelcome.subject, "FIXOKU'ya Hoş Geldiniz | Eğitmen Hesabınız");
+assert.equal(trainerWelcome.from, "egitmen@fixoku.com");
+assert.ok(trainerWelcome.html.includes("https://fixoku.com/ogretmen-girisi"));
+assert.ok(trainerWelcome.html.includes("info@fixoku.com"));
 
 let sent;
 let claim = 0;

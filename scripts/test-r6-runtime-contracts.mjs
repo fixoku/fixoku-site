@@ -24,7 +24,7 @@ assert.deepEqual(completionMonthBounds("2026-09-22T12:00:00.000Z"), {
   payablePeriodEnd: "2026-09-30",
   payableAt: new Date("2026-10-01T12:00:00.000Z"),
 });
-assert.throws(() => normalizeR6GroupInput({ educationStage: "MIDDLE", trainingType: "FAST_READING", mode: "GROUP", participants: [{ studentUserId: "same", studentProfileId: "a" }, { studentUserId: "same", studentProfileId: "b" }] }), /R6_DUPLICATE_PARTICIPANT/);
+assert.throws(() => normalizeR6GroupInput({ educationStage: "MIDDLE", trainingType: "FAST_READING", mode: "GROUP", participants: [{ studentUserId: "same", childProfileId: "child-a" }, { studentUserId: "same", childProfileId: "child-a" }] }), /R6_DUPLICATE_PARTICIPANT/);
 assert.throws(() => normalizeR6GroupInput({ educationStage: "MIDDLE", trainingType: "FAST_READING", mode: "GROUP", minStudents: 1, maxStudents: 5 }), /R6_CAPACITY_INVALID/);
 
 const qualificationApi = read("api/admin/r6-qualifications.js");

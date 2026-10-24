@@ -4,7 +4,7 @@ import "./admin-panel.css";
 
 type FilterState = { from: string; to: string; packageId: string; trainerId: string; currency: string };
 const EMPTY_FILTERS: FilterState = { from: "", to: "", packageId: "", trainerId: "", currency: "" };
-const money = (minor: number | null | undefined, currency = "TRY") => new Intl.NumberFormat("tr-TR", { style: "currency", currency }).format((minor ?? 0) / 100);
+const money = (minor: number | null | undefined, currency = "TRY") => minor == null ? "—" : new Intl.NumberFormat("tr-TR", { style: "currency", currency }).format(minor / 100);
 const entryLabels: Record<string, string> = { ADJUSTMENT: "Düzeltme", SALE: "Satış", REFUND: "İade", PAYOUT: "Eğitmen ödemesi", SHIPPING: "Kargo", PRODUCT_COST: "Ürün maliyeti" };
 const readFilters = (params: URLSearchParams): FilterState => ({ from: params.get("from") || "", to: params.get("to") || "", packageId: params.get("packageId") || "", trainerId: params.get("trainerId") || "", currency: (params.get("currency") || "").toUpperCase() });
 
@@ -68,13 +68,17 @@ export function OwnerFinancePage() {
   };
 
   const metrics = data?.metrics || {};
+  const displayCurrency = data?.currency || filters.currency || "TRY";
   const costRows = [
-    ["Eğitmen yükümlülüğü", Number(metrics.trainerEarnedLiabilityMinor || 0)],
-    ["Fiziksel ürün", Number(metrics.physicalProductCostMinor || 0)],
-    ["Kargo", Number(metrics.shippingCostMinor || 0)],
+    ["Eğitmen yükümlülüğü", metrics.trainerEarnedLiabilityMinor == null ? null : Number(metrics.trainerEarnedLiabilityMinor)],
+    ["Ödenmemiş yükümlülük", metrics.trainerUnpaidMinor == null ? null : Number(metrics.trainerUnpaidMinor)],
+    ["Fiziksel ürün", metrics.physicalProductCostMinor == null ? null : Number(metrics.physicalProductCostMinor)],
+    ["Kargo", metrics.shippingCostMinor == null ? null : Number(metrics.shippingCostMinor)],
   ] as const;
-  const maxCost = Math.max(1, ...costRows.map(([, value]) => value));
-  const contributionMinor = Number(metrics.netSalesMinor || 0) - costRows.reduce((sum, [, value]) => sum + value, 0);
+  const numericCosts = costRows.map(([, value]) => value).filter((value): value is number => value != null);
+  const maxCost = Math.max(1, ...numericCosts);
+  const contributionValues = [metrics.trainerEarnedLiabilityMinor, metrics.physicalProductCostMinor, metrics.shippingCostMinor];
+  const contributionMinor = metrics.netSalesMinor == null || contributionValues.some((value: number | null | undefined) => value == null) ? null : Number(metrics.netSalesMinor) - contributionValues.reduce((sum: number, value: number | null | undefined) => sum + Number(value || 0), 0);
 
   return <main className="platform-foundation-panel admin-panel owner-finance-pro">
     <header className="admin-pro-header">
@@ -105,26 +109,28 @@ export function OwnerFinancePage() {
     {message && <div className="admin-callout" role="status">{message}</div>}
 
     {data && <>
+      {data.currencyWarning && <div className="admin-callout" role="status">{data.currencyWarning} TRY ve diğer para birimleri ayrı raporlanır.</div>}
       <section className="admin-kpi-grid admin-kpi-grid-five">
-        <article><span>Brüt satış</span><strong>{money(metrics.grossSalesMinor)}</strong><small>Tahsilat öncesi toplam satış</small></article>
-        <article><span>Net satış</span><strong>{money(metrics.netSalesMinor)}</strong><small>İade ve düzeltmeler sonrası</small></article>
-        <article><span>Eğitmen yükümlülüğü</span><strong>{money(metrics.trainerEarnedLiabilityMinor)}</strong><small>Kazanılmış eğitmen hakedişi</small></article>
-        <article><span>Ürün + kargo</span><strong>{money(Number(metrics.physicalProductCostMinor || 0) + Number(metrics.shippingCostMinor || 0))}</strong><small>Fiziksel operasyon maliyeti</small></article>
-        <article className={contributionMinor >= 0 ? "is-positive" : "is-negative"}><span>Operasyon katkısı</span><strong>{money(contributionMinor)}</strong><small>Net satış eksi görünen maliyetler</small></article>
+        <article><span>Brüt satış</span><strong>{money(metrics.grossSalesMinor, displayCurrency)}</strong><small>Tahsilat öncesi toplam satış</small></article>
+        <article><span>Net satış</span><strong>{money(metrics.netSalesMinor, displayCurrency)}</strong><small>İadeler sonrası satış; düzeltmeler ayrı defterde</small></article>
+        <article><span>Eğitmen yükümlülüğü</span><strong>{money(metrics.trainerEarnedLiabilityMinor, displayCurrency)}</strong><small>Kazanılmış eğitmen hakedişi</small></article>
+        <article><span>Ürün + kargo</span><strong>{metrics.physicalProductCostMinor == null || metrics.shippingCostMinor == null ? "—" : money(Number(metrics.physicalProductCostMinor) + Number(metrics.shippingCostMinor), displayCurrency)}</strong><small>Fiziksel operasyon maliyeti</small></article>
+        <article className={contributionMinor == null ? "" : contributionMinor >= 0 ? "is-positive" : "is-negative"}><span>Operasyon katkısı</span><strong>{money(contributionMinor, displayCurrency)}</strong><small>Net satış eksi görünen maliyetler</small></article>
       </section>
 
       <section className="admin-dashboard-grid owner-finance-visuals">
         <article className="panel-card">
           <div className="admin-section-heading"><div><span className="admin-eyebrow">MALİYET</span><h2>Maliyet dağılımı</h2></div></div>
           <div className="admin-bar-list">
-            {costRows.map(([label, value]) => <div className="admin-bar-row" key={label}><div><span>{label}</span><strong>{money(value)}</strong></div><div className="admin-bar-track"><span style={{ width: `${Math.max(4, Math.round((value / maxCost) * 100))}%` }} /></div></div>)}
+            {costRows.map(([label, value]) => <div className="admin-bar-row" key={label}><div><span>{label}</span><strong>{money(value)}</strong></div><div className="admin-bar-track"><span style={{ width: `${value == null ? 4 : Math.max(4, Math.round((value / maxCost) * 100))}%` }} /></div></div>)}
           </div>
         </article>
         <article className="panel-card">
           <div className="admin-section-heading"><div><span className="admin-eyebrow">YÖNETİM</span><h2>Finans okuma rehberi</h2></div></div>
           <div className="finance-reading-list">
             <p><strong>Net satış</strong><span>Seçilen dönem ve filtre kapsamındaki satış sonucudur.</span></p>
-            <p><strong>Eğitmen yükümlülüğü</strong><span>Henüz ödenmemiş olsa bile kazanılmış eğitmen maliyetini gösterir.</span></p>
+            <p><strong>Eğitmen yükümlülüğü</strong><span>Kesinleşmiş brüt hakediştir; ödenmiş ve ödenmemiş bakiyeler tahsislerden ayrı izlenir.</span></p>
+            {Number(metrics.trainerOverpaidMinor || 0) > 0 && <p><strong>Fazla ödenmiş tutar</strong><span>{money(metrics.trainerOverpaidMinor, displayCurrency)} ödeme tahsislerinin kesinleşmiş yükümlülüğü aştığını gösterir; yeni ödeme borcu değildir.</span></p>}
             <p><strong>Katkı</strong><span>Operasyon görünümüdür; resmî muhasebe kârı veya vergi hesabı değildir.</span></p>
           </div>
         </article>
@@ -138,23 +144,23 @@ export function OwnerFinancePage() {
       <section className="admin-dashboard-grid">
         <article className="panel-card finance-table-card">
           <div className="admin-section-heading"><div><span className="admin-eyebrow">DEFTER</span><h2>Son finans hareketleri</h2></div></div>
-          {data.ledger?.length ? <div className="finance-ledger-list">{data.ledger.slice(0, 12).map((item: any, index: number) => <div className="finance-ledger-row" key={`${item.entryType}-${item.sourceId}-${item.currency}-${index}`}><div><strong>{entryLabels[item.entryType] || "Diğer işlem"}</strong><small>{item.occurredAt ? new Date(item.occurredAt).toLocaleDateString("tr-TR") : "—"} · {item.sourceId || "Referans yok"}</small></div><strong>{money(item.amountMinor,item.currency)}</strong></div>)}</div> : <div className="admin-empty-state"><span>Henüz finans hareketi yok.</span></div>}
+          {data.ledger?.length ? <div className="finance-ledger-list">{data.ledger.slice(0, 12).map((item: any) => <div className="finance-ledger-row" key={item.id}><div><strong>{entryLabels[item.entryType] || "Diğer işlem"}</strong><small>{item.occurredAt ? new Date(item.occurredAt).toLocaleDateString("tr-TR") : "—"} · {item.currency} · {item.sourceId || "Referans yok"}{item.actorName ? ` · ${item.actorName}` : ""}</small></div><strong>{money(item.amountMinor,item.currency)}</strong></div>)}</div> : <div className="admin-empty-state"><span>Henüz finans hareketi yok.</span></div>}
         </article>
         <article className="panel-card finance-table-card">
           <div className="admin-section-heading"><div><span className="admin-eyebrow">ÖDEME</span><h2>Eğitmen ödeme kayıtları</h2></div></div>
-          {data.payouts?.length ? <div className="finance-ledger-list">{data.payouts.map((item: any) => <div className="finance-ledger-row" key={`${item.trainerUserId}-${item.currency}`}><div><strong>{item.trainerName || "Eğitmen"}</strong><small>Ödenmiş tutar</small></div><strong>{money(item.paidMinor,item.currency)}</strong></div>)}</div> : <div className="admin-empty-state"><span>Henüz eğitmen ödeme kaydı yok.</span></div>}
+          {data.payouts?.length ? <div className="finance-ledger-list">{data.payouts.map((item: any) => <div className="finance-ledger-row" key={item.id}><div><strong>{item.trainerName || "Eğitmen"}</strong><small>{item.paymentDate || "—"} · {item.currency} · {item.bankReference || "Referans yok"}</small></div><strong>{money(item.paidMinor,item.currency)}</strong></div>)}</div> : <div className="admin-empty-state"><span>Henüz eğitmen ödeme kaydı yok.</span></div>}
         </article>
       </section>
 
       <details className="panel-card finance-adjustment-details">
         <summary>Gelişmiş finans işlemleri</summary>
-        <p className="finance-adjustment-help">İade, istisnai ödeme veya muhasebe kaynaklı düzeltmeler için kullanın. Normal satış akışını burada tekrar kaydetmeyin.</p>
+        <p className="finance-adjustment-help">Bu alan yalnızca muhasebe defterine ek düzeltme kaydı yazar; PayTR iadesi, banka transferi veya gerçek satış işlemi başlatmaz.</p>
         <form className="admin-package-form finance-adjustment-form" onSubmit={(event) => void submit(event)}>
-          <label>Giriş türü<select value={adjustment.entryType} onChange={(e) => setAdjustment({ ...adjustment, entryType: e.target.value })}><option value="ADJUSTMENT">Düzeltme</option><option value="SALE">Satış</option><option value="REFUND">İade</option></select></label>
+          <label>Giriş türü<select value={adjustment.entryType} onChange={(e) => setAdjustment({ ...adjustment, entryType: e.target.value })}><option value="ADJUSTMENT">Düzeltme</option><option value="SALE">Satış düzeltmesi</option><option value="REFUND">İade düzeltmesi</option></select></label>
           <label>Kaynak türü<select required value={adjustment.sourceType} onChange={(e) => setAdjustment({ ...adjustment, sourceType: e.target.value })}><option value="MANUAL">Manuel düzeltme</option><option value="REFUND">İade</option><option value="ACCOUNTING">Muhasebe düzeltmesi</option></select></label>
           <label>Tutar (TL)<input required type="number" min="0" step="0.01" inputMode="decimal" value={adjustment.amountMinor ? (Number(adjustment.amountMinor)/100).toFixed(2) : ""} onChange={(e) => setAdjustment({ ...adjustment, amountMinor: String(Math.round(Number(e.target.value || 0) * 100)) })} /></label>
           <label>Para birimi<input required maxLength={3} value={adjustment.currency} onChange={(e) => setAdjustment({ ...adjustment, currency: e.target.value.toUpperCase() })} /></label>
-          <label>Kaynak / Referans<input value={adjustment.sourceId} onChange={(e) => setAdjustment({ ...adjustment, sourceId: e.target.value })} /></label>
+          <label>Kaynak / Referans<input required value={adjustment.sourceId} onChange={(e) => setAdjustment({ ...adjustment, sourceId: e.target.value })} /></label>
           <label>Not<textarea required value={adjustment.note} onChange={(e) => setAdjustment({ ...adjustment, note: e.target.value })} /></label>
           <button type="submit">Düzeltmeyi kaydet</button>
         </form>

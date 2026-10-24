@@ -243,6 +243,7 @@ function Footer({ showCta = true }) {
           <div className="footer-bottom-links">
             <button type="button" className="footer-consent-link" onClick={() => window.dispatchEvent(new CustomEvent("fixoku:consent-open"))}>Çerez Tercihleri</button>
             <Link to="/kvkk-aydinlatma-metni">KVKK</Link>
+            <Link to="/satici-bilgileri">Satıcı Bilgileri</Link>
             <Link to="/gizlilik-politikasi">Gizlilik</Link>
             <Link to="/cerez-politikasi">Çerez Politikası</Link>
             <Link to="/mesafeli-satis-sozlesmesi">Mesafeli Satış</Link>
@@ -251,6 +252,7 @@ function Footer({ showCta = true }) {
             <Link to="/teslimat-kargo-politikasi">Teslimat / Kargo</Link>
             <Link to="/kullanim-kosullari">Kullanım Koşulları</Link>
             <Link to="/uyelik-sozlesmesi">Üyelik Sözleşmesi</Link>
+            <Link to="/musteri-sikayetleri-ve-uyusmazlik">Şikâyet ve Uyuşmazlık</Link>
             <Link to="/iletisim">İletişim</Link>
           </div>
         </div>

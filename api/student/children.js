@@ -7,6 +7,17 @@ const json = (res, status, body) => { res.statusCode = status; res.setHeader("Co
 const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([key, value]) => [key, Array.isArray(value) ? value.join(", ") : String(value)]));
 async function readBody(req) { if (req.body && typeof req.body === "object") return req.body; let raw = ""; for await (const chunk of req) raw += chunk; return raw ? JSON.parse(raw) : {}; }
 const text = (value, max = 120) => String(value ?? "").trim().slice(0, max);
+function normalizeDateOfBirth(value){
+  if(value == null || String(value).trim() === "") return null;
+  const raw = String(value).trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/u.test(raw)) throw Object.assign(new Error("CHILD_DATE_OF_BIRTH_INVALID"),{status:400});
+  const [year, month, day] = raw.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const today = new Date();
+  const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  if(date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day || date > todayUtc) throw Object.assign(new Error("CHILD_DATE_OF_BIRTH_INVALID"),{status:400});
+  return raw;
+}
 
 function validate(input) {
   const firstName = text(input.firstName); const lastName = text(input.lastName);
@@ -15,7 +26,7 @@ function validate(input) {
   if (educationStage && !["PRIMARY", "MIDDLE", "HIGH", "ADULT"].includes(educationStage)) throw Object.assign(new Error("CHILD_STAGE_INVALID"), { status: 400 });
   const legacyStudentProfileId = input.legacyStudentProfileId ? text(input.legacyStudentProfileId, 80) : null;
   if (legacyStudentProfileId && !UUID_PATTERN.test(legacyStudentProfileId)) throw Object.assign(new Error("CHILD_LEGACY_PROFILE_INVALID"), { status: 400 });
-  return { firstName, lastName, dateOfBirth: input.dateOfBirth || null, educationStage, grade: input.grade ? text(input.grade, 40) : null, legacyStudentProfileId };
+  return { firstName, lastName, dateOfBirth: normalizeDateOfBirth(input.dateOfBirth), educationStage, grade: input.grade ? text(input.grade, 40) : null, legacyStudentProfileId };
 }
 
 export default async function handler(req, res) {

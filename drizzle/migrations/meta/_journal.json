@@ -281,6 +281,20 @@
       "when": 1792203392163,
       "tag": "0039_trainer_candidate_activation",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792365881776,
+      "tag": "0040_r64_child_identity_isolation",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1792440000000,
+      "tag": "0041_owner_legal_vat_approval",
+      "breakpoints": true
     }
   ]
 }

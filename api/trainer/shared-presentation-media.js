@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { createSignedReadUrl } from "../../src/server/domain/digital-delivery.js";
 import { authorizeSharedPresentation, replyStop } from "../../src/server/domain/trainer-shared-presentations.js";
 
 export default async function handler(req, res) {
@@ -16,6 +17,15 @@ export default async function handler(req, res) {
 
   const definition = auth.presentations.find((item) => item.id === id);
   if (!definition || !Number.isSafeInteger(definition.pageCount) || page > definition.pageCount) return replyStop(res, 404);
+  if (auth.storage?.provider === "S3" || auth.storage?.provider === "R2") {
+    const prefix = mode === "thumb" ? "thumbs" : "pages";
+    const key = `trainer-shared-presentations/${id}/${prefix}/page-${String(page).padStart(3, "0")}.jpg`;
+    res.statusCode = 302;
+    res.setHeader("Location", createSignedReadUrl(auth.storage, key));
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    return res.end();
+  }
   const file = path.join(auth.root, id, mode === "thumb" ? "thumbs" : "pages", `page-${String(page).padStart(3, "0")}.jpg`);
   if (!fs.existsSync(file)) return replyStop(res, 404);
 

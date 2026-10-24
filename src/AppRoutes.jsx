@@ -2,7 +2,7 @@ import "./platform/student/child-profiles-021a.css";
 import { Suspense } from "react";
 import ConsentManager from "./martech/ConsentManager.jsx";
 import "./martech/events.js";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import App from "./App.jsx";
 import SeoRouteManager from "./components/seo/Seo.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
@@ -38,7 +38,7 @@ import Giris from "./pages/Giris.jsx";
 import LoginGatewayPage from "./pages/LoginGatewayPage.jsx";
 import { RoleLoginPage, StudentRegistrationPage, PasswordForgotPage, PasswordResetPage, EmailVerificationPage, TrainerApplicationPage, AccountSecurityPage, InvitationAcceptPage, AccountClosurePage, TwoFactorPage } from "./pages/AuthLifecycle.jsx";
 import OwnerPrivateLogin from "./pages/OwnerPrivateLogin.jsx";
-import TrainerCandidatePage from "./pages/TrainerCandidatePage.jsx";
+import { TrainerPanelEntrySwitch } from "./pages/TrainerCandidatePage.jsx";
 import LocalReviewHub from "./pages/LocalReviewHub.jsx";
 import { localReviewEnabled } from "./pages/local-review-data.js";
 import { PanelShell } from "./platform/panel/layout/PanelShell";
@@ -56,7 +56,7 @@ import { AdminStudentsPage } from "./platform/admin/AdminStudentsPage";
 import { AdminAuditHistoryPage } from "./platform/admin/AdminAuditHistoryPage";
 import { AdminUserOperationsPage } from "./platform/admin/AdminUserOperationsPage";
 import { AdminQueryProvider } from "./platform/admin/AdminQueryProvider";
-import { ProtectedPanelEntry, ProtectedPanelRouter, ProtectedTrainerDashboard, ProtectedTrainerProfile, ProtectedTrainerTrainings, ProtectedTrainerAssignments, ProtectedTrainerCart, ProtectedTrainerCheckout, ProtectedTrainerVideo, ProtectedTrainerResources, ProtectedTrainerEarnings, ProtectedTrainerAvailability, ProtectedTrainerStudents, ProtectedTrainerStudentDetail, ProtectedStudentPortal, ProtectedStudentPackages, ProtectedStudentCart, ProtectedStudentCheckout, ProtectedAdminTrainers, ProtectedOwnerFinance, ProtectedAdminShipments, ProtectedAdminProducts, ProtectedAdminProductDetail, ProtectedStudentShipments, ProtectedStudentProfile, ProtectedStudentChildren, ProtectedNotifications, ProtectedMeasurement, ProtectedEmailTemplates, ProtectedLegalPreparation, ProtectedR6CustomOffers, ProtectedR6TrainingGroups, ProtectedR6Payouts, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
+import { ProtectedPanelEntry, ProtectedPanelRouter, ProtectedTrainerProfile, ProtectedTrainerAssignments, ProtectedTrainerCart, ProtectedTrainerCheckout, ProtectedTrainerVideo, ProtectedTrainerResources, ProtectedTrainerEarnings, ProtectedTrainerAvailability, ProtectedTrainerStudents, ProtectedTrainerStudentDetail, ProtectedStudentPortal, ProtectedStudentPackages, ProtectedStudentCart, ProtectedStudentCheckout, ProtectedAdminTrainers, ProtectedOwnerFinance, ProtectedAdminShipments, ProtectedAdminProducts, ProtectedAdminProductDetail, ProtectedStudentShipments, ProtectedStudentProfile, ProtectedStudentChildren, ProtectedNotifications, ProtectedMeasurement, ProtectedEmailTemplates, ProtectedLegalPreparation, ProtectedR6CustomOffers, ProtectedR6TrainingGroups, ProtectedR6Payouts, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
 
 const ManagementShell=({user,uiRole,children})=><PanelShell user={user} role={uiRole === "OWNER" ? "OWNER" : "ADMIN"}>{children}</PanelShell>;
 const OwnerShell=({user,children})=><PanelShell user={user} role="OWNER">{children}</PanelShell>;
@@ -72,6 +72,10 @@ function ProtectedAdminStudents(){return <ProtectedPanelEntry requiredRole={["OW
 function ProtectedAdminAuditHistory(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminAuditHistoryPage /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
 function ProtectedAdminUserOperations(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminUserOperationsPage uiRole={uiRole} /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
 function ProtectedProviderStatus({ ownerOnly = false }) { const requiredRole = ownerOnly ? "OWNER" : ["OWNER", "SUPER_ADMIN"]; return <ProtectedPanelEntry requiredRole={requiredRole}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><ProviderStatusPage /></ManagementShell>}</ProtectedPanelEntry>; }
+function LegacyTrainerLoginRedirect() {
+  const location = useLocation();
+  return <Navigate replace to={{ pathname: "/ogretmen-girisi", search: location.search, hash: location.hash }} />;
+}
 
 export default function AppRoutes() {
   return (
@@ -84,6 +88,7 @@ export default function AppRoutes() {
         <Route path="/giris" element={<LoginGatewayPage />} />
         <Route path="/egitim-platformu-girisi" element={<Giris />} />
         <Route path="/ogrenci-girisi" element={<RoleLoginPage role="STUDENT" />} />
+        <Route path="/egitmen-girisi" element={<LegacyTrainerLoginRedirect />} />
         <Route path="/ogretmen-girisi" element={<RoleLoginPage role="TRAINER" />} />
         <Route path="/admin-girisi" element={<RoleLoginPage role="ADMIN" />} />
         <Route path="/owner-girisi" element={<RoleLoginPage role="OWNER" />} />
@@ -96,7 +101,7 @@ export default function AppRoutes() {
         <Route path="/sifre-sifirla" element={<PasswordResetPage />} />
         <Route path="/ogretmen-aktivasyon" element={<InvitationAcceptPage kind="trainer" />} />
         <Route path="/ogretmen-aday-aktivasyon" element={<InvitationAcceptPage kind="candidate" />} />
-        <Route path="/panel/egitmen-aday" element={<TrainerCandidatePage />} />
+        <Route path="/panel/egitmen-aday" element={<Navigate to="/panel/egitmen" replace />} />
         <Route path="/admin-davet-kabul" element={<InvitationAcceptPage kind="admin" />} />
         <Route path="/hesap-kapatma" element={<AccountClosurePage />} />
         <Route path="/hesap/iki-adimli-dogrulama" element={<TwoFactorPage />} />
@@ -189,10 +194,10 @@ export default function AppRoutes() {
         {legalPages.map((page) => (
           <Route key={page.path} path={page.path} element={<LegalPage page={page} />} />
         ))}
-        <Route path="/panel/egitmen" element={<ProtectedTrainerDashboard />} />
-        <Route path="/panel/egitmen/profil" element={<ProtectedTrainerProfile />} />
+        <Route path="/panel/egitmen" element={<TrainerPanelEntrySwitch />} />
+        <Route path="/panel/egitmen/profil" element={<TrainerPanelEntrySwitch view="profile" />} />
         <Route path="/panel/egitmen/paketler" element={<Navigate to="/panel/egitmen/egitimlerim" replace />} />
-        <Route path="/panel/egitmen/egitimlerim" element={<ProtectedTrainerTrainings />} />
+        <Route path="/panel/egitmen/egitimlerim" element={<TrainerPanelEntrySwitch view="catalog" />} />
         <Route path="/panel/egitmen/atamalarim" element={<ProtectedTrainerAssignments />} />
         <Route path="/panel/egitmen/egitimlerim/:slug" element={<ProtectedTrainerVideo />} />
         <Route path="/panel/egitmen/sepet" element={<ProtectedTrainerCart />} />

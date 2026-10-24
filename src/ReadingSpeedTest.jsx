@@ -71,7 +71,7 @@ export default function ReadingSpeedTest({ isOpen, onClose }) {
   useEffect(() => {
     if (!isOpen || step !== "reading" || !startedAt) return undefined;
     const timer = setInterval(() => {
-      setReadingSeconds(Math.max(1, Math.round((Date.now() - startedAt) / 1000)));
+      setReadingSeconds(Math.max(1, Math.floor((Date.now() - startedAt) / 1000)));
     }, 1000);
     return () => clearInterval(timer);
   }, [isOpen, step, startedAt]);
@@ -162,9 +162,9 @@ export default function ReadingSpeedTest({ isOpen, onClose }) {
   };
 
   const finishReading = () => {
-  const seconds = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
+  const seconds = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
 
-  if (seconds < 3) {
+  if (seconds < 40) {
     setReadingWarning("Lütfen okumayı tamamlayın.");
     return;
   }
@@ -273,8 +273,9 @@ export default function ReadingSpeedTest({ isOpen, onClose }) {
     type="button"
     className="reading-primary-btn"
     onClick={finishReading}
+    disabled={readingSeconds < 40}
   >
-    Okumayı Bitirdim
+    {readingSeconds < 40 ? "Okumayı Bitirdim (" + (40 - readingSeconds) + " sn sonra)" : "Okumayı Bitirdim"}
   </button>
 
   {readingWarning && (

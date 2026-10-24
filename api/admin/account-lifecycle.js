@@ -137,7 +137,7 @@ export default async function handler(req, res) {
           await client.query(`update trainer_applications set status='APPROVED',review_note=$1,updated_at=now() where id=$2`,[b.note||null,b.id]);
           await client.query('commit');
           return json(res,200,{application:{id:b.id,status:'APPROVED'},invitationIssued:false,candidateApproved:true});
-        }catch{try{await client.query('rollback');}catch{}return json(res,503,{error:'APPROVAL_UNAVAILABLE'});}finally{client.release();}
+        }catch{try{await client.query('rollback');}catch { /* Preserve the original approval failure if rollback is unavailable. */ }return json(res,503,{error:'APPROVAL_UNAVAILABLE'});}finally{client.release();}
       }
       const raw = newInvitationToken();
       const hash = hashInvitationToken(raw);

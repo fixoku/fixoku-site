@@ -281,11 +281,11 @@ function Iletisim() {
                   </div>
                 </a>
 
-                <a href="mailto:destek@fixoku.com" className="contact-action-card">
+                <a href="mailto:info@fixoku.com" className="contact-action-card">
                   <div className="contact-action-icon">✉</div>
                   <div>
                     <strong>E-posta</strong>
-                    <span>destek@fixoku.com</span>
+                    <span>info@fixoku.com</span>
                   </div>
                 </a>
 

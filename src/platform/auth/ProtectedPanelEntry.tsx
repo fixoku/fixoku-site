@@ -35,6 +35,7 @@ import { TrainerVideoPage } from "../trainer/commerce/TrainerVideoPage";
 import "../../pages/local-review-hub.css";
 import { localReviewEnabled } from "../../pages/local-review-data.js";
 import { PanelShell } from "../panel/layout/PanelShell";
+import { readStudentPurchaseIntent } from "../../utils/purchaseIntent.js";
 
 type PanelUiRole = "OWNER" | "ADMIN" | "TRAINER" | "STUDENT";
 type PanelContext = { user: { id: string; name: string; email: string }; roles: string[]; uiRole: PanelUiRole; destination: string | null; destinations?: string[]; selectionRequired?: boolean };
@@ -47,6 +48,32 @@ function LocalReviewToolbar({ context }: { context: PanelContext }) {
   if (!local) return null;
   const role = context.uiRole === "OWNER" ? "Owner / Yönetici" : context.uiRole === "ADMIN" ? "Yönetici" : context.uiRole === "TRAINER" ? "Usta Öğretici" : context.uiRole === "STUDENT" ? "Öğrenci" : "Kullanıcı";
   return <aside className="local-review-toolbar" aria-label="Yerel inceleme araçları"><span className="local-review-toolbar-label">Yerel inceleme</span><strong>{context.user.name}</strong><span>{role}</span><button type="button" onClick={() => navigate("/yerel-inceleme")}>İnceleme Merkezi</button><button type="button" onClick={() => navigate(`/yerel-inceleme?from=${encodeURIComponent(location.pathname)}`)}>Kullanıcı Değiştir</button></aside>;
+}
+
+
+/** Verified applicants may explore the panel navigation without private TRAINER permissions. */
+function VerifiedCandidateLockedPage() {
+  const [candidate, setCandidate] = useState<{ name: string; email: string; emailVerified: boolean } | null>(null);
+  const [state, setState] = useState<"loading" | "denied" | "ready">("loading");
+  useEffect(() => {
+    let active = true;
+    fetch("/api/trainer-candidate?action=profile", { credentials: "same-origin", cache: "no-store" })
+      .then(async response => { if (!response.ok) throw new Error("DENIED"); return response.json(); })
+      .then(data => { if (active) { if (!data.emailVerified) { setState("denied"); return; } setCandidate(data); setState("ready"); } })
+      .catch(() => { if (active) setState("denied"); });
+    return () => { active = false; };
+  }, []);
+  if (state === "loading") return <main className="route-loading-status" role="status">Yetki denetleniyor…</main>;
+  if (state !== "ready" || !candidate) return <Navigate replace to="/ogretmen-girisi" />;
+  return <PanelShell role="TRAINER" user={{ name: candidate.name, email: candidate.email }}>
+    <main className="trainer-trainings-page">
+      <section className="trainings-state" style={{ background: "white", padding: 28, borderRadius: 16 }}>
+        <h1>Bu bölüm başvurunuz onaylandığında açılacak</h1>
+        <p>E-posta adresiniz doğrulanmış. Eğitim paketlerini ve fiyatlarını şimdiden inceleyebilirsiniz. Öğrenci, atama, hakediş ve özel içeriklere erişim için ilgili yetkiniz henüz aktif değil.</p>
+        <p><a href="/panel/egitmen/egitimlerim">Eğitmen eğitim paketlerini incele</a></p>
+      </section>
+    </main>
+  </PanelShell>;
 }
 
 export function ProtectedPanelEntry({ requiredRole, children }: { requiredRole?: string | readonly string[]; children?: (context: PanelContext) => ReactNode }) {
@@ -67,6 +94,12 @@ export function ProtectedPanelEntry({ requiredRole, children }: { requiredRole?:
   }, [location.pathname, requiredRole]);
   if (state.status === "loading") return <main className="route-loading-status" aria-live="polite">Oturum doğrulanıyor…</main>;
   if (state.status === "denied") {
+    const pendingIntent = location.pathname === "/panel/ogrenci/paketler"
+      ? readStudentPurchaseIntent()
+      : null;
+    const requestedVersion = new URLSearchParams(location.search).get("packageVersionId");
+    if (pendingIntent && requestedVersion === pendingIntent.packageVersionId) return <Navigate replace to="/ogrenci-girisi" />;
+    if (location.pathname.startsWith("/panel/egitmen/")) return <VerifiedCandidateLockedPage />;
     const returnTo = `${location.pathname}${location.search}${location.hash}`;
     return <Navigate replace to={`/giris?returnTo=${encodeURIComponent(returnTo)}`} />;
   }

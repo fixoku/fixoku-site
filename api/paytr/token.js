@@ -16,9 +16,9 @@ export default async function handler(req, res) {
   if (!UUID_PATTERN.test(String(input.orderId || ""))) return json(res, 400, { error: "INVALID_ORDER_ID" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
-    const row = (await pool.query("select o.id,o.total_minor,o.currency,u.email,u.display_name as \"customerName\",o.shipping_address_snapshot_json as \"shippingSnapshot\",o.billing_snapshot_json as \"billingSnapshot\" from orders o join platform_users u on u.id=o.buyer_user_id where o.id=$1 and o.buyer_user_id=$2 and o.status='PENDING_PAYMENT'", [input.orderId, principal.user.id])).rows[0];
+    const row = (await pool.query("select o.id,o.total_minor,o.currency,u.email,u.display_name as \"customerName\",o.shipping_address_snapshot_json as \"shippingSnapshot\",o.billing_snapshot_json as \"billingSnapshot\" from orders o join platform_users u on u.id=o.buyer_user_id where o.id=$1 and o.buyer_user_id=$2 and o.payment_method='PAYTR' and o.status='PENDING_PAYMENT'", [input.orderId, principal.user.id])).rows[0];
     const trainer = principal.memberships?.some((membership) => membership.role === "TRAINER");
-    const trainerRow = !row && trainer ? (await pool.query("select o.id,o.total_minor,o.currency,u.email,u.display_name as \"customerName\",o.shipping_address_snapshot_json as \"shippingSnapshot\",o.billing_snapshot_json as \"billingSnapshot\" from trainer_package_orders o join platform_users u on u.id=o.trainer_user_id where o.id=$1 and o.trainer_user_id=$2 and o.status='PENDING_PAYMENT'", [input.orderId, principal.user.id])).rows[0] : null;
+    const trainerRow = !row && trainer ? (await pool.query("select o.id,o.total_minor,o.currency,u.email,u.display_name as \"customerName\",o.shipping_address_snapshot_json as \"shippingSnapshot\",o.billing_snapshot_json as \"billingSnapshot\" from trainer_package_orders o join platform_users u on u.id=o.trainer_user_id where o.id=$1 and o.trainer_user_id=$2 and o.payment_method='PAYTR' and o.status='PENDING_PAYMENT'", [input.orderId, principal.user.id])).rows[0] : null;
     if (!row && !trainerRow) return json(res, 404, { error: "ORDER_NOT_FOUND" });
     const selected = row || trainerRow;
     const customer = paytrCustomerFromOrder(selected);

@@ -49,7 +49,23 @@ async function assertParticipantTargets(client, participants) {
       if (!profile) throw Object.assign(new Error("R6_STUDENT_PROFILE_SCOPE_DENIED"), { status: 403 });
     }
     if (participant.enrollmentId) {
-      const enrollment = (await client.query("select id from enrollments where id=$1 and student_user_id=$2", [participant.enrollmentId, participant.studentUserId])).rows[0];
+      const enrollment = (await client.query(`
+        select e.id
+        from enrollments e
+        where e.id=$1 and e.student_user_id=$2
+          and (
+            $3::uuid is null
+            or exists (
+              select 1
+              from package_entitlement_enrollments pee
+              join package_entitlements pe on pe.id=pee.package_entitlement_id
+              where pee.enrollment_id=e.id
+                and pe.beneficiary_child_profile_id=$3
+                and ($4::uuid is null or pe.beneficiary_student_profile_id=$4)
+                and pe.status='ACTIVE'
+            )
+          )
+      `, [participant.enrollmentId, participant.studentUserId, participant.childProfileId || null, participant.studentProfileId || null])).rows[0];
       if (!enrollment) throw Object.assign(new Error("R6_ENROLLMENT_SCOPE_DENIED"), { status: 403 });
     }
   }
@@ -60,14 +76,16 @@ async function readGroupAssignmentCandidatesV22(client) {
     select distinct on (
       pe.beneficiary_student_user_id,
       pe.package_version_id,
-      pp.id
+      pp.id,
+      pe.beneficiary_child_profile_id
     )
       u.id as "studentUserId",
-      sp.id as "studentProfileId",
+      coalesce(c.legacy_student_profile_id,sp.id) as "studentProfileId",
+      pe.beneficiary_child_profile_id as "childProfileId",
       u.display_name as "studentName",
       u.email as "studentEmail",
-      sp.education_stage as "educationStage",
-      sp.grade,
+      coalesce(c.education_stage,sp.education_stage) as "educationStage",
+      coalesce(c.grade,sp.grade) as grade,
       sp.class_branch as "classBranch",
       sp.school,
       pe.package_version_id as "packageVersionId",
@@ -86,6 +104,9 @@ async function readGroupAssignmentCandidatesV22(client) {
       on u.id=pe.beneficiary_student_user_id
     left join student_profiles sp
       on sp.user_id=u.id
+    left join r6_student_child_profiles c
+      on c.id=pe.beneficiary_child_profile_id
+     and c.status='ACTIVE'
     join package_versions pv
       on pv.id=pe.package_version_id
     join package_components pc
@@ -98,7 +119,7 @@ async function readGroupAssignmentCandidatesV22(client) {
       select q.id,q.code,q.title
       from r6_qualification_definitions q
       where q.service_type=pp.service_type
-        and q.education_stage=sp.education_stage
+        and q.education_stage=coalesce(c.education_stage,sp.education_stage)
       order by q.code
       limit 1
     ) qd on true
@@ -113,15 +134,20 @@ async function readGroupAssignmentCandidatesV22(client) {
         where rgp.student_user_id=u.id
           and rgp.status='ACTIVE'
           and rg.mode='GROUP'
-          and rg.education_stage=sp.education_stage
+          and rg.education_stage=coalesce(c.education_stage,sp.education_stage)
           and rg.training_type=pp.service_type
           and rg.required_qualification_id=qd.id
           and rg.status in ('DRAFT','ASSIGNED','IN_PROGRESS')
+          and (
+            (pe.beneficiary_child_profile_id is not null and rgp.child_profile_id=pe.beneficiary_child_profile_id)
+            or (pe.beneficiary_child_profile_id is null and rgp.child_profile_id is null and rgp.student_profile_id=coalesce(pe.beneficiary_student_profile_id,sp.id))
+          )
       )
     order by
       pe.beneficiary_student_user_id,
       pe.package_version_id,
       pp.id,
+      pe.beneficiary_child_profile_id,
       pe.effective_at desc
   `)).rows;
 }
@@ -209,6 +235,10 @@ if (automaticGroupAssignment) {
      from r6_training_group_participants rgp
      join r6_training_groups rg on rg.id=rgp.training_group_id
      where rgp.student_user_id=$1
+       and (
+         ($5::uuid is not null and rgp.child_profile_id=$5)
+         or ($5::uuid is null and $6::uuid is not null and rgp.student_profile_id=$6)
+       )
        and rgp.status='ACTIVE'
        and rg.mode='GROUP'
        and rg.education_stage=$2
@@ -216,7 +246,7 @@ if (automaticGroupAssignment) {
        and rg.required_qualification_id=$4
        and rg.status in ('DRAFT','ASSIGNED','IN_PROGRESS')
      limit 1`,
-    [participant.studentUserId, input.educationStage, input.trainingType, qualification.id]
+    [participant.studentUserId, input.educationStage, input.trainingType, qualification.id, participant.childProfileId || null, participant.studentProfileId || null]
   )).rows[0];
 
   if (duplicate) {

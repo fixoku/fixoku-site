@@ -3,8 +3,9 @@ import crypto from "node:crypto";
 import pg from "pg";
 import { auth } from "./auth.js";
 import { captureTestMail } from "../domain/test-mail-sink.js";
+import { requireApplicationOrigin } from "./origin.js";
 
-function origin(env = process.env) { return String(env.APP_ORIGIN || "http://127.0.0.1:5173").replace(/\/$/u, ""); }
+function origin(env = process.env) { return requireApplicationOrigin(env); }
 export function newInvitationToken() { return crypto.randomBytes(32).toString("base64url"); }
 export function hashInvitationToken(token) { return crypto.createHash("sha256").update(String(token)).digest("hex"); }
 

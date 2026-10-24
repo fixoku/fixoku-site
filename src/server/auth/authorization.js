@@ -2,6 +2,7 @@
 import { eq } from "drizzle-orm";
 import { createDb } from "../db/client.js";
 import { memberships, users } from "../db/schema.js";
+import { localReviewRuntimeAllowed } from "./local-review-runtime.js";
 
 export const ROLE_PANEL = Object.freeze({ OWNER: "/panel/owner", SUPER_ADMIN: "/panel/admin", TRAINER: "/panel/egitmen", STUDENT: "/panel/ogrenci", GUARDIAN: "/panel/ogrenci" });
 export const PACKAGE_PERMISSIONS = Object.freeze({ READ: "PACKAGE_READ", CREATE: "PACKAGE_CREATE", EDIT: "PACKAGE_EDIT", PRICE_EDIT: "PACKAGE_PRICE_EDIT", PUBLISH: "PACKAGE_PUBLISH" });
@@ -20,9 +21,16 @@ const KNOWN_ROLES = new Set(Object.keys(ROLE_PANEL));
 const KNOWN_PERMISSIONS = new Set(Object.values(ROLE_PERMISSIONS).flat());
 
 export function privilegedTwoFactorRequired(principal) {
-  if (process.env.LOCAL_REVIEW_MODE === "1") return false;
-  const enforced = process.env.NODE_ENV === "production" || process.env.FIXOKU_REQUIRE_PRIVILEGED_2FA === "1";
-  return Boolean(enforced && principal?.memberships?.some((m) => ["OWNER", "SUPER_ADMIN"].includes(m.role)) && principal?.session?.user?.twoFactorEnabled !== true);
+  const productionLike = process.env.NODE_ENV === "production" || process.env.VERCEL === "1" || String(process.env.VERCEL_ENV || "").toLowerCase() === "production";
+  if (!productionLike && (localReviewRuntimeAllowed(process.env) || process.env.LOCAL_REVIEW_MODE === "1")) return false;
+  const productionEnforced = productionLike || process.env.FIXOKU_REQUIRE_PRIVILEGED_2FA === "1";
+  const roles = new Set(principal?.memberships?.map((membership) => membership.role) || []);
+  // Production can temporarily permit the explicitly configured first Owner
+  // to enter with email + password while keeping SUPER_ADMIN 2FA enforced.
+  // The global switch is never allowed to weaken SUPER_ADMIN in production.
+  const ownerEnforced = roles.has("OWNER") && process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA !== "0" && productionEnforced;
+  const superAdminEnforced = roles.has("SUPER_ADMIN") && productionEnforced;
+  return Boolean((ownerEnforced || superAdminEnforced) && principal?.session?.user?.twoFactorEnabled !== true);
 }
 
 

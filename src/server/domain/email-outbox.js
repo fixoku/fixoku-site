@@ -1,6 +1,7 @@
 /* global process */
 import nodemailer from "nodemailer";
 import { renderEmailForEvent, renderLifecycleEmail } from "./email-renderer.js";
+import { requireApplicationOrigin } from "../auth/origin.js";
 
 const RETRYABLE_CODES = new Set(["ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "EAI_AGAIN", "SMTP_CONNECTION"]);
 
@@ -13,16 +14,19 @@ export function getSmtpConfig(env = process.env) {
   const port = Number(env.SMTP_PORT || 0);
   const user = String(env.SMTP_USER || "").trim();
   const pass = String(env.SMTP_PASS || env.SMTP_PASSWORD || "");
-  const from = String(env.MAIL_FROM || env.SMTP_FROM || "").trim();
+  const from = String(env.MAIL_FROM || env.SMTP_FROM || "bildirim@fixoku.com").trim();
   const secure = String(env.SMTP_SECURE || "false").toLowerCase();
   if (!host || !Number.isInteger(port) || port < 1 || port > 65535 || !user || !pass || !from || !["true", "false"].includes(secure) || port === 465 && secure !== "true" || /[\r\n]/u.test(from)) return null;
   return { provider: "SMTP", from, transport: { host, port, secure: secure === "true", auth: { user, pass } } };
 }
 
-export async function sendTransactionalEmail({ kind, to, url, recipientName, env = process.env, transportFactory = (config) => nodemailer.createTransport(config), logger = console } = {}) {
+export async function sendTransactionalEmail({ kind, to, url, recipientName, applicationField, env = process.env, transportFactory = (config) => nodemailer.createTransport(config), logger = console } = {}) {
   const smtp = getSmtpConfig(env);
   if (!smtp) throw new Error("SMTP_NOT_CONFIGURED");
-  const rendered = renderLifecycleEmail(kind, { url, recipientName }, { baseUrl: env.BETTER_AUTH_URL || env.APP_ORIGIN || "https://fixoku.com" });
+  const renderOptions = { baseUrl: requireApplicationOrigin(env), logoUrl: env.EMAIL_LOGO_URL || undefined };
+  const rendered = kind === "reset" || kind === "verification"
+    ? renderLifecycleEmail(kind, { url, recipientName }, renderOptions)
+    : renderEmailForEvent(kind, { recipientName, applicationField, ctaPath: url || undefined }, renderOptions);
   const info = await transportFactory(smtp.transport).sendMail({
     from: smtp.from,
     to: String(to || ""),
@@ -51,11 +55,11 @@ export async function processOutboxBatch({ client, env = process.env, transportF
     processed += 1;
     try {
       const rendered = renderEmailForEvent(claimed.event_type, {
-        recipientName: claimed.recipient_name || "Fixoku kullanıcısı",
+        recipientName: claimed.recipient_name || undefined,
         body: claimed.body,
         reference: claimed.reference || claimed.id,
         ctaPath: claimed.cta_path || "/panel/owner",
-      }, { baseUrl: env.APP_ORIGIN || "https://fixoku.com", logoUrl: env.EMAIL_LOGO_URL || undefined });
+      }, { baseUrl: requireApplicationOrigin(env), logoUrl: env.EMAIL_LOGO_URL || undefined });
       const info = await transport.sendMail({
         from: smtp.from || rendered.from,
         to: claimed.recipient_email,
@@ -64,6 +68,10 @@ export async function processOutboxBatch({ client, env = process.env, transportF
         text: rendered.text,
         html: rendered.html,
         headers: rendered.headers,
+        // Keep retries tied to one outbox identity. The unique dedupe_key
+        // prevents duplicate queue rows; a stable Message-ID also gives an
+        // SMTP provider a chance to collapse a retry after an unknown result.
+        messageId: `<fixoku-outbox-${String(claimed.id).replace(/[^a-zA-Z0-9_-]/gu, "")}@fixoku.com>`,
       });
       await client.query("update notification_email_outbox set status='SENT',sent_at=$1,provider_message_id=$2,processing_started_at=null,last_error=null where id=$3 and status='PROCESSING'", [now(), info?.messageId || null, claimed.id]);
     } catch (error) {

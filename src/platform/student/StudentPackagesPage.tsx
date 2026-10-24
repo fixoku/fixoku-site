@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { StudentPanelShell } from "./StudentPanelShell";
 import {
   findFixokuPackageMedia,
-  listFixokuEducationPackageMedia,
 } from "../../data/fixokuPackageMedia";
 import {
   findFixokuPackageCardContent,
@@ -30,6 +29,7 @@ type Product = {
 type PackageRow = {
   packageVersionId: string;
   packageId: string;
+  coverImage?: string | null;
   versionNumber: number;
   title: string;
   subtitle: string;
@@ -101,6 +101,18 @@ function unique(items: string[]) {
     seen.add(key);
     return true;
   });
+}
+
+function studentCommerceMessage(code: unknown) {
+  const messages: Record<string, string> = {
+    PACKAGE_VERSION_UNAVAILABLE: "Seçtiğiniz paketin yayımlanmış sürümü artık satın alınabilir değil. Güncel paketleri yenileyin.",
+    STUDENT_SEGMENT_REQUIRED: "Paketleri göstermek için öğrenci grubu ve sınıf bilginiz gerekli.",
+    PACKAGE_PRODUCTS_REQUIRED: "Bu paketin ürün bilgileri henüz tamamlanmamış.",
+    PRICE_REQUIRED: "Bu paket için güncel fiyat tanımlanmamış.",
+    PACKAGE_ALREADY_OWNED: "Bu pakete ait aktif erişim kaydınız bulunuyor.",
+  };
+  const value = String(code || "");
+  return messages[value] || (value && !/^[A-Z][A-Z0-9_:-]{2,80}$/u.test(value) ? value : "Paket işlemi şu anda tamamlanamadı.");
 }
 
 export function StudentPackagesPage({
@@ -175,7 +187,7 @@ export function StudentPackagesPage({
     } catch (error) {
       setMessage(
         error instanceof Error
-          ? error.message
+          ? studentCommerceMessage(error.message)
           : "Paketler yüklenemedi.",
       );
       setState("error");
@@ -225,9 +237,7 @@ export function StudentPackagesPage({
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setMessage(
-          result.error || "Paket sepete eklenemedi.",
-        );
+        setMessage(studentCommerceMessage(result.error));
         return;
       }
 
@@ -342,25 +352,10 @@ export function StudentPackagesPage({
   const stage =
     body.context?.educationStage || "";
 
-  const regularMedia =
-    listFixokuEducationPackageMedia(stage);
-
-  const visiblePackages = body.packages.filter(
-    (item) => {
-      const media = findFixokuPackageMedia(
-        stage,
-        item.title,
-      );
-
-      return Boolean(
-        media &&
-          media.section === "education" &&
-          regularMedia.some(
-            (entry) => entry.slug === media.slug,
-          ),
-      );
-    },
-  );
+  // The authenticated entitlements endpoint is the catalog authority. A
+  // package must remain visible when its Owner record is valid even if the
+  // optional static media catalog has no matching title/slug.
+  const visiblePackages = body.packages;
 
   const segmentSummary = body.context
     ? `${
@@ -452,13 +447,16 @@ export function StudentPackagesPage({
         aria-label="Öğrenci paketleri"
       >
         {visiblePackages.map((item) => {
-          const media =
-            findFixokuPackageMedia(
-              stage,
-              item.title,
-            );
-
-          if (!media) return null;
+          const media = findFixokuPackageMedia(stage, item.title);
+          const databaseImage =
+            item.coverImage ||
+            item.products.find((product) => product.imageReference)?.imageReference ||
+            item.components?.find((component) => component.imageReference)?.imageReference ||
+            null;
+          // Owner/DB media wins. Existing static media is only a visual
+          // yedek for legacy rows, and a neutral placeholder covers rows
+          // without either source.
+          const image = databaseImage || media?.image || null;
 
           const exact =
             findFixokuPackageCardContent(
@@ -480,13 +478,17 @@ export function StudentPackagesPage({
             busyId === item.packageVersionId;
 
           const displaySubtitle =
-            exact?.subtitle ||
-            item.subtitle;
+            item.description ||
+            item.subtitle ||
+            exact?.subtitle;
 
-          const contentItems = unique(
-            item.contentItems?.map((content) => content.title || content.titleSnapshot || "") ||
-            (exact?.features?.length ? exact.features : item.features),
-          );
+          const databaseContent = unique([
+            ...(item.contentItems || []).map((content) => content.title || content.titleSnapshot || ""),
+            ...(item.features || []),
+          ]);
+          const contentItems = databaseContent.length
+            ? databaseContent
+            : unique(exact?.features || []);
 
           return (
             <article
@@ -494,11 +496,24 @@ export function StudentPackagesPage({
               key={item.packageVersionId}
             >
               <div className="student-package-card__visual student-package-card__visual--image">
-                <img
-                  src={media.image}
-                  alt={item.title}
-                  loading="lazy"
-                />
+                {image && (
+                  <img
+                    src={image}
+                    alt={item.title}
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.hidden = true;
+                      event.currentTarget.nextElementSibling?.removeAttribute("hidden");
+                    }}
+                  />
+                )}
+                <span
+                  className="student-package-card__visual-placeholder"
+                  aria-label="Paket görseli yok"
+                  hidden={Boolean(image)}
+                >
+                  ▧
+                </span>
               </div>
 
               <div className="student-package-card__body">

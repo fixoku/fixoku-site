@@ -1,6 +1,8 @@
 import Breadcrumbs from "../components/content/Breadcrumbs.jsx";
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
+import { PUBLIC_LEGAL_DOCUMENT_BY_ROUTE } from "../platform/admin/legal-document-integration-v10.js";
+import { legalSourceDocumentForRoute } from "../data/legalSourceContent.js";
 
 const relatedLegalLinks = {
   "/kvkk-aydinlatma-metni": [
@@ -19,8 +21,38 @@ const relatedLegalLinks = {
   ],
 };
 
+function SourceDocumentBody({ markdown }) {
+  const sections = [];
+  let current = { id: "source", title: "Belge metni", paragraphs: [] };
+  for (const rawLine of String(markdown || "").split(/\r?\n/u)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (line.startsWith("# ")) {
+      if (current.paragraphs.length) sections.push(current);
+      current = { id: `source-${sections.length}`, title: line.slice(2), paragraphs: [] };
+      continue;
+    }
+    if (line.startsWith("## ") || line.startsWith("### ")) {
+      if (current.paragraphs.length) sections.push(current);
+      current = { id: `source-${sections.length}`, title: line.replace(/^#{2,3}\s+/u, ""), paragraphs: [] };
+      continue;
+    }
+    if (line === "---") continue;
+    current.paragraphs.push(line.replace(/\*\*/gu, ""));
+  }
+  if (current.paragraphs.length) sections.push(current);
+  return sections.map((section) => (
+    <section className="content-section" id={section.id} key={section.id}>
+      <h2>{section.title}</h2>
+      {section.paragraphs.map((paragraph, index) => <p key={`${section.id}-${index}`}>{paragraph}</p>)}
+    </section>
+  ));
+}
+
 export default function LegalPage({ page }) {
   const related = relatedLegalLinks[page.path] ?? [];
+  const sourceDocument = PUBLIC_LEGAL_DOCUMENT_BY_ROUTE[page.path] ?? null;
+  const sourceContent = legalSourceDocumentForRoute(page.path);
   return (
     <div className="page quick-reading-page legal-page">
       <Header />
@@ -35,8 +67,13 @@ export default function LegalPage({ page }) {
             />
             <div className="content-eyebrow">{page.eyebrow}</div>
             <h1>{page.heading}</h1>
-  <p className="legal-updated-at">{"Son güncelleme: " + page.updatedAt}</p>
+            <p className="legal-updated-at">{"Son güncelleme: " + (sourceDocument?.sourceDate ? sourceDocument.sourceDate.split("-").reverse().join(".") : page.updatedAt)}</p>
             <p className="content-summary">{page.summary}</p>
+            {sourceDocument && (
+              <p className="legal-source-reference" data-legal-document-id={sourceDocument.id}>
+                Fixoku belge kütüphanesi · Belge {String(sourceDocument.id).padStart(2, "0")} · V1.0 müşteri metni
+              </p>
+            )}
             <div className="content-reading-time" aria-label={`Tahmini okuma süresi ${page.readingTime}`}>
               <span aria-hidden="true">◷</span>
               Tahmini okuma süresi: {page.readingTime}
@@ -46,19 +83,11 @@ export default function LegalPage({ page }) {
 
         <div className="content-shell content-layout legal-content-layout">
           <article className="content-article legal-content-article">
-            {page.sections.map((section) => (
+            {sourceContent ? <SourceDocumentBody markdown={sourceContent.markdown} /> : page.sections.map((section) => (
               <section className="content-section" id={section.id} key={section.id}>
                 <h2>{section.title}</h2>
-                {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-                {section.bullets && (
-                  <ul>
-                    {section.bullets.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                )}
+                {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                {section.bullets && <ul>{section.bullets.map((item) => <li key={item}>{item}</li>)}</ul>}
               </section>
             ))}
               {related.length > 0 && (

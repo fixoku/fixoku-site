@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import pg from "pg";
 import { loadLocalEnv } from "./local-env.mjs";
+import { EMAIL_EDITORIAL_V1 } from "../src/server/domain/email-editorial-v1.js";
 import { EMAIL_TEMPLATE_CATALOG, renderEmailForEvent } from "../src/server/domain/email-renderer.js";
 loadLocalEnv();
 const origin=process.env.APP_ORIGIN||"http://127.0.0.1:5173";
@@ -14,7 +15,7 @@ const templates=new Set(EMAIL_TEMPLATE_CATALOG.map(t=>t.id)); const rows=[]; let
 for(const [event,template,mode] of matrix){
   if(mode==="in-app"||mode==="private"){rows.push({event,EVENT_EXISTS:"PASS",TEMPLATE_EXISTS:mode==="private"?"PRIVATE_SINK":"IN_APP_ONLY_BY_DESIGN",CTA_RESOLVES:"N/A",ROLE_RECIPIENT:"PASS"});continue;}
   assert.ok(template && templates.has(template),`MISSING_TEMPLATE:${event}`);
-  const rendered=renderEmailForEvent(event,{recipientName:"Yerel kullanıcı",ctaPath:"/giris"},{baseUrl:origin});
+  const rendered=renderEmailForEvent(event,{...(EMAIL_EDITORIAL_V1[template]?.fixture || {}),recipientName:"Yerel kullanıcı",ctaPath:"/giris"},{baseUrl:origin});
   const cta=rendered.html.match(/href="([^"]*\/giris)"/u)?.[1]||"";
   let ctaOk=false; try{const u=new URL(cta,origin); ctaOk=["http:","https:"].includes(u.protocol);}catch{}
   if(!ctaOk)broken+=1;

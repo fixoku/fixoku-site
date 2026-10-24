@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { getSmtpConfig, processOutboxBatch } from "../src/server/domain/email-outbox.js";
-import { getDigitalStorageConfig, resolvePrivateStoragePath } from "../src/server/domain/digital-delivery.js";
+import { getDigitalStorageConfig, productionPrivateMediaAvailable, resolvePrivateStoragePath } from "../src/server/domain/digital-delivery.js";
+import { selectedCarrier } from "../src/server/shipping/carriers.js";
 import { providerHealth } from "../src/server/domain/provider-runtime.js";
 import { createShippingAdapter, shippingRuntime, ShippingConfigurationError } from "../src/server/shipping/adapter.js";
+import { getProfileMediaConfig } from "../src/server/domain/profile-media.js";
 
 assert.equal(getSmtpConfig({ SMTP_HOST: "smtp.test", SMTP_PORT: "587", SMTP_USER: "u", SMTP_PASS: "p", MAIL_FROM: "no-reply@test", SMTP_SECURE: "false" }).provider, "SMTP");
 assert.equal(getSmtpConfig({ EMAIL_PROVIDER: "TEST" }).provider, "TEST");
@@ -28,10 +30,14 @@ assert.equal(getDigitalStorageConfig({ DIGITAL_STORAGE_PROVIDER: "S3" }).reason,
 assert.equal(getDigitalStorageConfig({ DIGITAL_STORAGE_PROVIDER: "LOCAL", DIGITAL_STORAGE_ROOT: "C:/private-files", NODE_ENV: "development" }).enabled, true);
 assert.equal(getDigitalStorageConfig({ DIGITAL_STORAGE_PROVIDER: "LOCAL", DIGITAL_STORAGE_ROOT: "C:/private-files", NODE_ENV: "production" }).reason, "LOCAL_STORAGE_FORBIDDEN_IN_PRODUCTION");
 assert.equal(resolvePrivateStoragePath("C:/private-files", "../secret.txt"), null);
+assert.equal(productionPrivateMediaAvailable({ NODE_ENV: "production", DIGITAL_STORAGE_PROVIDER: "LOCAL", DIGITAL_STORAGE_ROOT: "C:/private-files" }), false);
+assert.equal(productionPrivateMediaAvailable({ NODE_ENV: "development", DIGITAL_STORAGE_PROVIDER: "LOCAL", DIGITAL_STORAGE_ROOT: "C:/private-files" }), true);
+assert.equal(getProfileMediaConfig({ NODE_ENV: "production", PROFILE_MEDIA_PROVIDER: "LOCAL", PROFILE_MEDIA_ROOT: "C:/profile-files" }).enabled, false);
 
 assert.equal(shippingRuntime({}).status, "DISABLED_CONFIG_REQUIRED");
 assert.equal(createShippingAdapter({ provider: "DISABLED", token: "sandbox-token", baseUrl: "https://sandbox.example.test" }).runtime.enabled, false);
 assert.equal(shippingRuntime({ SHIPPING_PROVIDER: "SENDEO", SHIPPING_TOKEN: "sandbox-token", SHIPPING_BASE_URL: "http://sandbox.example.test" }).enabled, false);
+assert.equal(shippingRuntime({ SHIPPING_PROVIDER: "KOLAYGELSIN", SHIPPING_TOKEN: "sandbox-token", SHIPPING_BASE_URL: "https://apiintg.kolaygelsin.com" }).enabled, false);
 await assert.rejects(() => createShippingAdapter({ token: "", baseUrl: "" }).quote({}), (error) => error instanceof ShippingConfigurationError && error.code === "DISABLED_CONFIG_REQUIRED");
 const originalFetch = globalThis.fetch;
 globalThis.fetch = async (url, options) => { assert.match(String(options.headers.authorization), /^Bearer sandbox-token$/u); return new Response(JSON.stringify({ providerReference: "sandbox-1" }), { status: 200, headers: { "content-type": "application/json" } }); };
@@ -41,4 +47,5 @@ try { await assert.rejects(() => createShippingAdapter({ provider: "SENDEO", tok
 
 const health = providerHealth({ EMAIL_PROVIDER: "TEST", DIGITAL_STORAGE_PROVIDER: "S3", SHIPENTEGRA_TOKEN: "", SHIPENTEGRA_BASE_URL: "" });
 assert.equal(health.email.status, "CONFIGURED_TEST"); assert.equal(health.digitalStorage.configured, false); assert.equal(health.shipping.configured, false);
+assert.equal(selectedCarrier({ SHIPPING_PROVIDER: "SENDEO" }).selection, "AVAILABLE");
 console.log(JSON.stringify({ emailContract: "PASS", emailOutboxRuntime: "PASS", emailDedupe: "PASS", storageContract: "PASS", privatePathContainment: "PASS", productionFailClosed: "PASS", shippingContract: "PASS", providerHealth: "PASS" }));

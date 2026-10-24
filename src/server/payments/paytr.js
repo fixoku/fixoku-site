@@ -12,15 +12,64 @@ export const paytrConfig = (env = process.env) => ({
   callbackUrl: String(env.PAYTR_CALLBACK_URL || ""),
 });
 
+function isLoopbackHost(hostname) {
+  return ["127.0.0.1", "localhost", "::1"].includes(String(hostname || "").toLowerCase());
+}
+
+function isProductionRuntime(env) {
+  return String(env.NODE_ENV || "").toLowerCase() === "production"
+    || String(env.VERCEL_ENV || "").toLowerCase() === "production";
+}
+
+function isPaytrEndpoint(value, expectedPath, env = {}) {
+  try {
+    const url = new URL(String(value || ""));
+    if (!/^https?:$/u.test(url.protocol) || url.pathname !== expectedPath || url.search || url.hash || url.username || url.password) return false;
+    if (isLoopbackHost(url.hostname)) return !isProductionRuntime(env) && (url.protocol === "http:" || url.protocol === "https:");
+    if (url.protocol !== "https:") return false;
+    const configuredOrigin = String(env.APP_ORIGIN || env.BETTER_AUTH_URL || "").trim();
+    if (configuredOrigin) {
+      try {
+        const origin = new URL(configuredOrigin);
+        return origin.protocol === "https:" && url.hostname === origin.hostname && url.port === origin.port;
+      } catch {
+        return false;
+      }
+    }
+    return ["fixoku.com", "www.fixoku.com"].includes(url.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function assertPaytrUrlConfig(config, env) {
+  if (!isPaytrEndpoint(config.okUrl, "/api/paytr/return-success", env)
+    || !isPaytrEndpoint(config.failUrl, "/api/paytr/return-failure", env)
+    || !isPaytrEndpoint(config.callbackUrl, "/api/paytr/callback", env)) {
+    const error = new Error("PAYTR_URL_CONFIG_REQUIRED"); error.code = "PAYTR_URL_CONFIG_REQUIRED"; error.status = 503; throw error;
+  }
+}
+
 export function paytrRuntime(env = process.env) {
   const c = paytrConfig(env);
   const credentials = Boolean(c.merchantId && c.merchantKey && c.merchantSalt);
-  return { implementationReady: true, configured: c.enabled && credentials, status: c.enabled && credentials ? "CONFIGURED" : "CONFIG_REQUIRED", testMode: c.testMode };
+  const testOnly = c.testMode === "1";
+  const configured = c.enabled && credentials && testOnly;
+  return {
+    implementationReady: true,
+    configured,
+    status: configured ? "CONFIGURED" : "CONFIG_REQUIRED",
+    testMode: c.testMode,
+    testOnly,
+    returnUrlsConfigured: isPaytrEndpoint(c.okUrl, "/api/paytr/return-success", env)
+      && isPaytrEndpoint(c.failUrl, "/api/paytr/return-failure", env)
+      && isPaytrEndpoint(c.callbackUrl, "/api/paytr/callback", env),
+  };
 }
 
 export function paytrToken({ merchantOid, userIp, email, paymentAmount, userBasket, noInstallment = "0", maxInstallmentNum = "0", currency = "TL", testMode = "1" }, env = process.env) {
   const c = paytrConfig(env);
-  if (!c.enabled || !c.merchantId || !c.merchantKey || !c.merchantSalt) {
+  if (!c.enabled || !c.merchantId || !c.merchantKey || !c.merchantSalt || c.testMode !== "1" || String(testMode) !== "1") {
     const error = new Error("PAYTR_CONFIG_REQUIRED"); error.code = "PAYTR_CONFIG_REQUIRED"; error.status = 503; throw error;
   }
   const payload = `${c.merchantId}${userIp}${merchantOid}${email}${paymentAmount}${userBasket}${noInstallment}${maxInstallmentNum}${currency}${testMode}${c.merchantSalt}`;
@@ -71,6 +120,7 @@ function validatePaytrCustomer(input) {
 export async function requestPaytrIframeToken(input, env = process.env) {
   const c = paytrConfig(env);
   const customer = validatePaytrCustomer(input);
+  assertPaytrUrlConfig(c, env);
   const token = paytrToken(input, env);
   const form = new URLSearchParams({
     merchant_id: c.merchantId, user_ip: input.userIp, merchant_oid: input.merchantOid,

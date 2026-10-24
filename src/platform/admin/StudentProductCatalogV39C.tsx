@@ -51,6 +51,11 @@ const emptyForm = (): ProductFormV39C => ({
   id: "", sku: "", title: "", description: "", productType: "PHYSICAL",
   imageReference: "", stages: ["PRIMARY", "MIDDLE", "HIGH", "ADULT"], isActive: true, serviceMode: "INDIVIDUAL", listGrossInput: "0,00",
 });
+const productSaveMessageV85 = (error: unknown): string => {
+  if (error === "PRODUCT_IDENTITY_IMMUTABLE") return "SKU ve ürün türü geçmiş paket bağlantıları nedeniyle değiştirilemez. Ürün adı, fiyatı ve açıklaması güncellenebilir.";
+  if (typeof error === "string" && error.length) return error;
+  return "Ürün kaydedilemedi.";
+};
 
 export function StudentProductCatalogV39C({ onCatalogChanged }: { onCatalogChanged: () => Promise<unknown> }) {
   const [items, setItems] = useState<CatalogProductV39C[]>([]);
@@ -142,7 +147,7 @@ export function StudentProductCatalogV39C({ onCatalogChanged }: { onCatalogChang
         headers:{ "content-type":"application/json" }, body:JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.product?.id) throw new Error(data.error || "Ürün kaydedilemedi.");
+      if (!response.ok || !data.product?.id) throw new Error(productSaveMessageV85(data.error));
       await reload();
       await onCatalogChanged();
       setStatus(priceChangedV41D ? "Ürünün liste fiyatı kaydedildi. Paket satış fiyatları ve geçmiş sürümler değiştirilmedi." : "Mevcut ürün bilgileri kaydedildi. Paket satış fiyatları değiştirilmedi.");

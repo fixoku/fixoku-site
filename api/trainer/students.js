@@ -16,7 +16,24 @@ export default async function handler(req, res) {
     const trainer = principal.user.id;
     const { db, pool } = createDb();
     try {
-      const rows = await db.select({ assignment: trainerAssignments, enrollment: enrollments, program: trainingPrograms, user: users, profile: studentProfiles, membership: memberships })
+      // Keep this roster readable before 0040 is applied. Selecting the whole
+      // enrollment table would make the new child column mandatory at runtime.
+      const rows = await db.select({
+        assignment: trainerAssignments,
+        enrollment: {
+          id: enrollments.id,
+          studentUserId: enrollments.studentUserId,
+          trainingProgramId: enrollments.trainingProgramId,
+          status: enrollments.status,
+          progressPercent: enrollments.progressPercent,
+          completedAt: enrollments.completedAt,
+          createdAt: enrollments.createdAt,
+        },
+        program: trainingPrograms,
+        user: users,
+        profile: studentProfiles,
+        membership: memberships,
+      })
         .from(trainerAssignments)
         .innerJoin(enrollments, eq(enrollments.id, trainerAssignments.enrollmentId))
         .innerJoin(trainingPrograms, eq(trainingPrograms.id, enrollments.trainingProgramId))

@@ -13,10 +13,10 @@ export default async function handler(req, res) {
   if (!payload.merchant_oid || !["success", "failed"].includes(String(payload.status))) return text(res, 400, "INVALID_CALLBACK");
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
-    if (payload.status === "failed") { const student = await pool.query("update orders set status='PAYMENT_FAILED',updated_at=now() where id=$1 and status='PENDING_PAYMENT'", [payload.merchant_oid]); if (!student.rowCount) await pool.query("update trainer_package_orders set status='CANCELLED',cancelled_at=coalesce(cancelled_at,now()),updated_at=now() where id=$1 and status='PENDING_PAYMENT'", [payload.merchant_oid]); return text(res, 200, "OK"); }
-    const order = (await pool.query("select total_minor,currency from orders where id=$1", [payload.merchant_oid])).rows[0];
+    if (payload.status === "failed") { const student = await pool.query("update orders set status='PAYMENT_FAILED',updated_at=now() where id=$1 and payment_method='PAYTR' and status='PENDING_PAYMENT'", [payload.merchant_oid]); if (!student.rowCount) await pool.query("update trainer_package_orders set status='CANCELLED',cancelled_at=coalesce(cancelled_at,now()),updated_at=now() where id=$1 and payment_method='PAYTR' and status='PENDING_PAYMENT'", [payload.merchant_oid]); return text(res, 200, "OK"); }
+    const order = (await pool.query("select total_minor,currency from orders where id=$1 and payment_method='PAYTR'", [payload.merchant_oid])).rows[0];
     if (!order) {
-      const trainerOrder = (await pool.query("select total_minor from trainer_package_orders where id=$1", [payload.merchant_oid])).rows[0];
+      const trainerOrder = (await pool.query("select total_minor from trainer_package_orders where id=$1 and payment_method='PAYTR'", [payload.merchant_oid])).rows[0];
       if (!trainerOrder) return text(res, 404, "ORDER_NOT_FOUND");
       if (Number(payload.total_amount) !== Number(trainerOrder.total_minor)) return text(res, 409, "PAYMENT_AMOUNT_MISMATCH");
       const client = await pool.connect();

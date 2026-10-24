@@ -12,6 +12,7 @@ async function read(req) {
   return raw ? JSON.parse(raw) : {};
 }
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+const todayInIstanbul = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
 async function summary(pool, filters = {}) {
   const values = [];
@@ -32,10 +33,11 @@ async function summary(pool, filters = {}) {
       u.display_name as "trainerName",
       u.email as "trainerEmail",
       coalesce(e.payable_period_start,date_trunc('month',e.occurred_at)::date) as month,
+      e.currency,
 
       sum(
         case
-          when e.status in ('PENDING','EARNED','PAYABLE','HELD')
+          when e.status in ('EARNED','PAYABLE','HELD','PAID')
            and e.entry_type<>'ADJUSTMENT'
           then e.amount_minor
           else 0
@@ -46,8 +48,9 @@ async function summary(pool, filters = {}) {
         case
           when e.status in ('EARNED','PAYABLE')
            and e.entry_type<>'ADJUSTMENT'
-           and (e.payable_at is null or e.payable_at::date<=current_date)
-          then e.amount_minor
+           and e.payable_at is not null
+           and (e.payable_at at time zone 'Europe/Istanbul')::date<=(now() at time zone 'Europe/Istanbul')::date
+           then greatest(0,e.amount_minor-coalesce(a.allocated_minor,0))
           else 0
         end
       )::bigint as "payableMinor",
@@ -56,20 +59,33 @@ async function summary(pool, filters = {}) {
         case
           when e.status in ('EARNED','PAYABLE')
            and e.entry_type<>'ADJUSTMENT'
-           and e.payable_at::date>current_date
-          then e.amount_minor
+           and e.payable_at is not null
+           and (e.payable_at at time zone 'Europe/Istanbul')::date>(now() at time zone 'Europe/Istanbul')::date
+           then greatest(0,e.amount_minor-coalesce(a.allocated_minor,0))
           else 0
         end
       )::bigint as "scheduledMinor",
 
+      sum(case when coalesce(a.allocated_minor,0)>0 then a.allocated_minor when e.status='PAID' then e.amount_minor else 0 end)::bigint as "paidMinor",
+
       sum(
         case
-          when e.status='PAID'
-           and e.entry_type<>'ADJUSTMENT'
-          then e.amount_minor
+          when e.entry_type<>'ADJUSTMENT'
+           and e.status in ('EARNED','PAYABLE','HELD')
+          then greatest(0,e.amount_minor-coalesce(a.allocated_minor,0))
           else 0
         end
-      )::bigint as "paidMinor",
+      )::bigint as "unpaidMinor",
+
+      sum(
+        case
+          when e.entry_type<>'ADJUSTMENT'
+           and e.status in ('EARNED','PAYABLE')
+           and e.payable_at is null
+          then greatest(0,e.amount_minor-coalesce(a.allocated_minor,0))
+          else 0
+        end
+      )::bigint as "unresolvedMinor",
 
       sum(
         case
@@ -81,9 +97,10 @@ async function summary(pool, filters = {}) {
 
       min(
         case
-          when e.status in ('EARNED','PAYABLE')
-           and e.entry_type<>'ADJUSTMENT'
-           and e.payable_at::date>current_date
+           when e.status in ('EARNED','PAYABLE')
+            and e.entry_type<>'ADJUSTMENT'
+            and e.payable_at is not null
+            and (e.payable_at at time zone 'Europe/Istanbul')::date>(now() at time zone 'Europe/Istanbul')::date
           then e.payable_at
           else null
         end
@@ -95,13 +112,18 @@ async function summary(pool, filters = {}) {
           'status',e.status,
           'effectiveStatus',
             case
+              when e.entry_type<>'ADJUSTMENT' and greatest(0,e.amount_minor-coalesce(a.allocated_minor,0))=0 then 'PAID'
               when e.status in ('EARNED','PAYABLE')
-               and (e.payable_at is null or e.payable_at::date<=current_date)
+               and e.payable_at is not null
+               and (e.payable_at at time zone 'Europe/Istanbul')::date<=(now() at time zone 'Europe/Istanbul')::date
               then 'PAYABLE'
               else e.status
             end,
           'entryType',e.entry_type,
           'amountMinor',e.amount_minor,
+           'allocatedMinor',coalesce(a.allocated_minor,0),
+           'remainingMinor',greatest(0,e.amount_minor-coalesce(a.allocated_minor,0)),
+           'currency',e.currency,
           'payableAt',e.payable_at,
           'sourceType',e.source_type,
           'sourceId',e.source_id,
@@ -119,13 +141,19 @@ async function summary(pool, filters = {}) {
     join platform_users u on u.id=e.trainer_user_id
     left join platform_users student on student.id=e.student_user_id
     left join training_programs tp on tp.id=e.training_program_id
+    left join lateral (
+      select coalesce(sum(pa.amount_minor),0)::bigint as allocated_minor
+      from r6_trainer_payout_allocations pa
+      where pa.earning_id=e.id
+    ) a on true
     where ${where.join(" and ")}
     group by
       e.trainer_user_id,
       u.display_name,
       u.email,
-      coalesce(e.payable_period_start,date_trunc('month',e.occurred_at)::date)
-    order by month desc,u.display_name
+      coalesce(e.payable_period_start,date_trunc('month',e.occurred_at)::date),
+      e.currency
+    order by month desc,u.display_name,e.currency
   `, values)).rows;
 
   return rows.map((row) => ({
@@ -134,6 +162,8 @@ async function summary(pool, filters = {}) {
     payableMinor: Number(row.payableMinor || 0),
     scheduledMinor: Number(row.scheduledMinor || 0),
     paidMinor: Number(row.paidMinor || 0),
+    unpaidMinor: Number(row.unpaidMinor || 0),
+    unresolvedMinor: Number(row.unresolvedMinor || 0),
     adjustmentMinor: Number(row.adjustmentMinor || 0),
   }));
 }
@@ -151,15 +181,19 @@ async function markPaid(client, principal, body) {
     || !body.periodStart
     || !body.periodEnd
     || !body.paymentDate
+    || !/^\d{4}-\d{2}-\d{2}$/u.test(String(body.paymentDate))
   ) {
     throw Object.assign(new Error("PAYOUT_FIELDS_REQUIRED"), { status: 400 });
+  }
+  if (String(body.paymentDate) > todayInIstanbul()) {
+    throw Object.assign(new Error("PAYOUT_DATE_IN_FUTURE"), { status: 400 });
   }
 
   await client.query("begin");
   try {
     await client.query(
       "select pg_advisory_xact_lock(hashtext($1))",
-      [`r6-payout:${trainerUserId}:${body.periodStart}:${body.periodEnd}`],
+      [`r6-payout:${trainerUserId}:${currency}`],
     );
 
     const unpaid = (await client.query(`
@@ -176,7 +210,8 @@ async function markPaid(client, principal, body) {
         and e.occurred_at::date between $3::date and $4::date
         and e.status in ('EARNED','PAYABLE')
         and e.entry_type<>'ADJUSTMENT'
-        and (e.payable_at is null or e.payable_at::date <= $5::date)
+        and e.payable_at is not null
+        and (e.payable_at at time zone 'Europe/Istanbul')::date <= $5::date
         and e.amount_minor>coalesce((
           select sum(a.amount_minor)
           from r6_trainer_payout_allocations a
@@ -190,6 +225,15 @@ async function markPaid(client, principal, body) {
     if (amountMinor > total) {
       throw Object.assign(new Error("PAYOUT_AMOUNT_EXCEEDS_DUE"), { status: 409 });
     }
+
+    const existing = (await client.query(`
+      select id from trainer_payout_register
+      where trainer_user_id=$1 and amount_minor=$2 and currency=$3
+        and period_start=$4::date and period_end=$5::date and payment_date=$6::date
+        and bank_reference is not distinct from $7
+      limit 1
+    `, [trainerUserId, amountMinor, currency, body.periodStart, body.periodEnd, body.paymentDate, String(body.bankReference || body.reference || "").trim().slice(0, 200) || null])).rows[0];
+    if (existing) throw Object.assign(new Error("PAYOUT_ALREADY_RECORDED"), { status: 409 });
 
     let remaining = amountMinor;
     const allocations = [];
@@ -223,7 +267,10 @@ async function markPaid(client, principal, body) {
       );
       if (allocation.full) {
         await client.query(
-          "update trainer_earning_ledger set status='PAID',paid_at=now() where id=$1 and status in ('EARNED','PAYABLE')",
+          `update trainer_earning_ledger e
+           set status='PAID',paid_at=coalesce(paid_at,now())
+           where e.id=$1 and e.status in ('EARNED','PAYABLE')
+             and e.amount_minor <= (select coalesce(sum(a.amount_minor),0) from r6_trainer_payout_allocations a where a.earning_id=e.id)`,
           [allocation.id],
         );
       }
@@ -270,7 +317,8 @@ async function addAdjustment(client, principal, body) {
     throw Object.assign(new Error("ADJUSTMENT_FIELDS_REQUIRED"), { status: 400 });
   }
 
-  const sourceId = String(body.sourceId || `manual:${Date.now()}`).slice(0, 160);
+  const sourceId = String(body.sourceId || "").trim().slice(0, 160);
+  if (!sourceId) throw Object.assign(new Error("ADJUSTMENT_SOURCE_REQUIRED"), { status: 400 });
   const adjustmentOfId = body.adjustmentOfId && UUID.test(String(body.adjustmentOfId)) ? body.adjustmentOfId : null;
 
   const row = (await client.query(
@@ -329,10 +377,15 @@ export default async function handler(req, res) {
     const client = await pool.connect();
     try {
       if (String(body.action || "markPaid").toLowerCase() === "adjustment") {
-        return json(res, 201, {
-          adjustment: await addAdjustment(client, principal, body),
-          status: "ADJUSTMENT",
-        });
+        await client.query("begin");
+        try {
+          const adjustment = await addAdjustment(client, principal, body);
+          await client.query("commit");
+          return json(res, 201, { adjustment, status: "ADJUSTMENT" });
+        } catch (error) {
+          try { await client.query("rollback"); } catch { /* preserve original */ }
+          throw error;
+        }
       }
       return json(res, 201, await markPaid(client, principal, body));
     } finally {

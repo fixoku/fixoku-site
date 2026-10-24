@@ -12,6 +12,7 @@ import {
   summarizeR6OfferLines,
 } from "../../src/server/domain/r6-offers.js";
 import { normalizeCurrency } from "../../src/server/domain/commerce.js";
+import { requireApplicationOrigin } from "../../src/server/auth/origin.js";
 
 const json = (res, status, body) => {
   res.statusCode = status;
@@ -25,9 +26,9 @@ const text = (value, max = 500) => String(value ?? "").trim().slice(0, max);
 const uuid = (value, code = "OFFER_ID_INVALID") => { if (!isR6OfferUuid(value)) throw Object.assign(new Error(code), { code, status: 400 }); return String(value); };
 
 function offerLink(token) {
-  const origin = String(process.env.APP_ORIGIN || process.env.BETTER_AUTH_URL || "").trim().replace(/\/$/u, "");
+  const origin = requireApplicationOrigin(process.env);
   const path = `/panel/ogrenci/paketler?token=${encodeURIComponent(token)}`;
-  return origin ? `${origin}${path}` : path;
+  return `${origin}${path}`;
 }
 
 async function queueOfferEmail(client, offer, token) {

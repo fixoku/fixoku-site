@@ -16,7 +16,7 @@ let claimCount = 0;
 const client = { query: async (sql) => {
   if (sql.startsWith("update notification_email_outbox set status='PROCESSING'")) {
     if (claimCount++) return { rows: [] };
-    return { rows: [{ id: "mail-1", recipient_email: "test@example.test", subject: "Konu", body: "Gövde", attempt_count: 1 }] };
+    return { rows: [{ id: "mail-1", event_type: "PROFILE_COMPLETION", recipient_email: "test@example.test", recipient_name: "Yerel kullanıcı", reference: "PANEL-003C", cta_path: "/panel/owner", subject: "Konu", body: "Gövde", attempt_count: 1 }] };
   }
   updates.push(sql);
   return { rows: [] };

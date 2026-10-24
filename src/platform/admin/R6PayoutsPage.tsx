@@ -18,6 +18,9 @@ type LedgerEntry = {
   effectiveStatus?: string;
   entryType: string;
   amountMinor: number | string;
+  allocatedMinor?: number | string;
+  remainingMinor?: number | string;
+  currency?: string;
   payableAt?: string | null;
   occurredAt?: string | null;
   studentName?: string | null;
@@ -69,7 +72,7 @@ type TabKey = "overview" | "earnings" | "payments" | "reports";
 type Period = "all" | "today" | "week" | "month" | "year";
 type Status = "all" | "PAYABLE" | "EARNED" | "PAID";
 type RecordLine = LedgerEntry & { trainerUserId: string; trainerName: string; trainerEmail: string; summaryMonth: string };
-type PaymentCandidate = { trainerUserId: string; trainerName: string; completionMonth: string; amountMinor: number; count: number };
+type PaymentCandidate = { trainerUserId: string; trainerName: string; completionMonth: string; currency: string; amountMinor: number; count: number };
 
 const tabItems: { key: TabKey; label: string }[] = [
   { key: "overview", label: "Genel Bakış" },
@@ -77,58 +80,33 @@ const tabItems: { key: TabKey; label: string }[] = [
   { key: "payments", label: "Ödemeler" },
   { key: "reports", label: "Raporlar" },
 ];
-const money = (value: number | string | null | undefined) =>
-  `${new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(toMinor(value) / 100)} ₺`;
+const money = (value: number | string | null | undefined, currency = "TRY") =>
+  value == null ? "—" : new Intl.NumberFormat("tr-TR", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(toMinor(value) / 100);
 const toMinor = (value: number | string | null | undefined) => {
   const n = Number(value ?? 0);
   return Number.isFinite(n) ? n : 0;
 };
-const dayKey = (value?: string | null) => String(value || "").slice(0, 10);
+const dayKey = (value?: string | null) => {
+  const raw = String(value || "");
+  if (!raw) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/u.test(raw)) return raw;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+};
 const todayKey = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 };
 const dateText = (value?: string | null) => {
   if (!value) return "—";
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" });
-};
-// FIXOKU_HAKEDIS_R3_FIRST_BUSINESS_DAY: V2 approved payment-date rule.
-// Next month's first BUSINESS day, not the assignment date.
-// The explicitly verified demo holiday calendar covers 2026–2028 only.
-const fixedTurkishHolidays = new Set(["01-01", "04-23", "05-01", "05-19", "07-15", "08-30", "10-29"]);
-const religiousHolidays: Record<number, string[]> = {
-  2026: ["03-20", "03-21", "03-22", "05-27", "05-28", "05-29", "05-30"],
-  2027: ["03-09", "03-10", "03-11", "05-16", "05-17", "05-18", "05-19"],
-  2028: ["02-26", "02-27", "02-28", "05-05", "05-06", "05-07", "05-08"],
-};
-const localDayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const firstBusinessNextMonth = (completed?: string | null): string | null => {
-  const key = dayKey(completed);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return null;
-  const completedDate = new Date(`${key}T12:00:00`);
-  if (Number.isNaN(completedDate.getTime()) || localDayKey(completedDate) !== key) return null;
-  const due = new Date(completedDate.getFullYear(), completedDate.getMonth() + 1, 1, 12);
-  // Outside the locally verified holiday years we don't guess a holiday-adjusted date.
-  if (!Object.prototype.hasOwnProperty.call(religiousHolidays, due.getFullYear())) return null;
-  for (let i = 0; i < 12; i += 1) {
-    const md = localDayKey(due).slice(5);
-    if (due.getDay() !== 0 && due.getDay() !== 6
-      && !fixedTurkishHolidays.has(md)
-      && !religiousHolidays[due.getFullYear()].includes(md)) return localDayKey(due);
-    due.setDate(due.getDate() + 1);
-  }
-  return null;
+  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul", day: "numeric", month: "short", year: "numeric" });
 };
 const dueDateForEntry = (entry: LedgerEntry): string | null => {
-  // No due day for a merely planned/pending or held earning.
+  // The server's persisted payable_at is the only payment-date authority.
+  // Missing dates remain unresolved and must never become payable by inference.
   if (!["EARNED", "PAYABLE", "PAID"].includes(entry.status)) return null;
-  const ruleDate = firstBusinessNextMonth(entry.occurredAt);
   const persistedDate = /^\d{4}-\d{2}-\d{2}$/.test(dayKey(entry.payableAt)) ? dayKey(entry.payableAt) : null;
-  // Do not permit early payment if the backend supplied an earlier date.
-  // A later recorded due day must also be respected.
-  if (ruleDate && persistedDate) return ruleDate > persistedDate ? ruleDate : persistedDate;
-  return ruleDate || persistedDate;
+  return persistedDate;
 };
 const activePeriod = (dateValue: string | null | undefined, period: Period) => {
   if (period === "all") return true;
@@ -153,6 +131,7 @@ const statusClass = (status: string) => ["PAYABLE", "PAID", "EARNED", "HELD", "P
 const isEligibleForPayment = (entry: LedgerEntry) =>
   entry.entryType !== "ADJUSTMENT"
   && (entry.status === "EARNED" || entry.status === "PAYABLE")
+  && toMinor(entry.remainingMinor ?? entry.amountMinor) > 0
   && Boolean(dueDateForEntry(entry) && dueDateForEntry(entry)! <= todayKey());
 const completionMonth = (entry: LedgerEntry) => dayKey(entry.occurredAt).slice(0, 7);
 const currentGroup = (group: TrainingGroup) =>
@@ -306,9 +285,10 @@ export function R6PayoutsPage() {
       if (!isEligibleForPayment(entry)) return;
       const month = completionMonth(entry);
       if (!/^\d{4}-\d{2}$/.test(month)) return;
-      const key = `${entry.trainerUserId}:${month}`;
-      const existing = map.get(key) || { trainerUserId: entry.trainerUserId, trainerName: entry.trainerName, completionMonth: month, amountMinor: 0, count: 0 };
-      existing.amountMinor += toMinor(entry.amountMinor);
+      const currency = String(entry.currency || "TRY").toUpperCase();
+      const key = `${entry.trainerUserId}:${month}:${currency}`;
+      const existing = map.get(key) || { trainerUserId: entry.trainerUserId, trainerName: entry.trainerName, completionMonth: month, currency, amountMinor: 0, count: 0 };
+      existing.amountMinor += toMinor(entry.remainingMinor ?? entry.amountMinor);
       existing.count++;
       map.set(key, existing);
     });
@@ -331,7 +311,7 @@ export function R6PayoutsPage() {
         body: JSON.stringify({
           trainerUserId: payCandidate.trainerUserId,
           amountMinor: payCandidate.amountMinor,
-          currency: "TRY",
+          currency: payCandidate.currency,
           periodStart: start,
           periodEnd: end,
           paymentDate,
@@ -350,7 +330,7 @@ export function R6PayoutsPage() {
   };
   // V4: Owner's financial overview is NOT tied to the report date filter.
   // The source of truth remains the existing GET /api/admin/payouts and R6 group GET.
-  const allUnpaid = recordLines.filter((entry) => ["EARNED", "PAYABLE"].includes(entry.status));
+  const allUnpaid = recordLines.filter((entry) => ["EARNED", "PAYABLE"].includes(entry.status) && toMinor(entry.remainingMinor ?? entry.amountMinor) > 0);
   const allDue = allUnpaid.filter(isEligibleForPayment);
   const allSoon = allUnpaid.filter((entry) => {
     const due = dayKey(dueDateForEntry(entry));
@@ -360,20 +340,24 @@ export function R6PayoutsPage() {
   });
   const allPaid = data?.payouts || [];
   const allPlanned = groups.filter(currentGroup);
-  const totalMinor = (items: Array<{ amountMinor: number | string }>) => items.reduce((sum, entry) => sum + toMinor(entry.amountMinor), 0);
+  const totalMinor = (items: Array<{ amountMinor: number | string; remainingMinor?: number | string; currency?: string }>, remaining = false) => {
+    const currencies = new Set(items.map((entry) => String(entry.currency || "TRY").toUpperCase()));
+    if (currencies.size > 1) return null;
+    return items.reduce((sum, entry) => sum + toMinor(remaining ? (entry.remainingMinor ?? entry.amountMinor) : entry.amountMinor), 0);
+  };
   const sumPlanned = (items: TrainingGroup[]) => items.reduce((sum, group) => sum + toMinor(group.projectedPayoutMinor), 0);
   const allTeacherDue = Array.from(new Set(allDue.map((item) => item.trainerUserId))).length;
   const openTrainerList = teacherList.map((teacher) => {
     const entries = allUnpaid.filter((entry) => entry.trainerUserId === teacher.id);
     const dates = entries.map(dueDateForEntry).filter((date): date is string => Boolean(date)).sort();
     const earliest = dates[0] || null;
-    return { ...teacher, entries, amount: totalMinor(entries), earliest, dueAmount: totalMinor(entries.filter(isEligibleForPayment)) };
+    return { ...teacher, entries, amount: totalMinor(entries, true), earliest, dueAmount: totalMinor(entries.filter(isEligibleForPayment), true) };
   }).filter((teacher) => teacher.entries.length > 0)
     .sort((a, b) => (a.earliest || "9999-12-31").localeCompare(b.earliest || "9999-12-31") || a.name.localeCompare(b.name, "tr"));
   const matchingTeacher = (id: string, fields: string) => (!trainerFilter || trainerFilter === id)
     && (!search || `${byName(id)} ${fields}`.toLocaleLowerCase("tr-TR").includes(search));
   const paymentQueue = paymentCandidates.map((candidate) => {
-    const eligible = allDue.filter((entry) => entry.trainerUserId === candidate.trainerUserId && completionMonth(entry) === candidate.completionMonth);
+    const eligible = allDue.filter((entry) => entry.trainerUserId === candidate.trainerUserId && completionMonth(entry) === candidate.completionMonth && String(entry.currency || "TRY").toUpperCase() === candidate.currency);
     const due = eligible.map(dueDateForEntry).filter((d): d is string => Boolean(d)).sort()[0] || null;
     return { ...candidate, due, eligible };
   }).filter((candidate) => matchingTeacher(candidate.trainerUserId, candidate.eligible.map((e) => `${e.studentName || ""} ${e.trainingTitle || ""}`).join(" ")))
@@ -390,10 +374,12 @@ export function R6PayoutsPage() {
   const reportBreakdown = new Map<string, { count: number; sum: number }>();
   reportRecords.forEach((entry) => {
     const id = reportMode === "teachers" ? entry.trainerName : (entry.trainingTitle || readableSource(entry.sourceType));
-    const current = reportBreakdown.get(id) || { count: 0, sum: 0 };
+    const currency = String(entry.currency || "TRY").toUpperCase();
+    const key = `${id} · ${currency}`;
+    const current = reportBreakdown.get(key) || { count: 0, sum: 0 };
     current.count += 1;
     current.sum += toMinor(entry.amountMinor);
-    reportBreakdown.set(id, current);
+    reportBreakdown.set(key, current);
   });
   const topBreakdown = Array.from(reportBreakdown.entries()).sort((a, b) => b[1].sum - a[1].sum);
   const reportMax = Math.max(1, ...topBreakdown.map(([, val]) => val.sum));
@@ -491,7 +477,7 @@ export function R6PayoutsPage() {
           <td>{person(group.trainerUserId || "", group.trainerName || byName(group.trainerUserId || ""))}</td><td>{readableGroup(group)}</td><td>{group.participants?.filter((p) => p.status === "ACTIVE").length || 0}</td><td>{dateText(group.createdAt)}</td>
           <td><strong className="hp4-money">{money(group.projectedPayoutMinor)}</strong></td><td><span className="hp4-pill hp4-pill-planned">{group.status === "IN_PROGRESS" ? "Devam ediyor" : "Planlandı"}</span></td></tr>), "Planlanan grup ataması yok.")}
           <p className="hp4-footnote">Yalnız doğrulanabilen R6 grup atamalarını gösteriyoruz; birebir atamalar bu kaynakta eksik olabilir. Planlanan tutar henüz ödeme borcu değildir.</p></> : <>{table(["Öğretmen / Öğrenci", "Eğitim", "Tamamlanma", "Ödeme günü", "Tutar", "Durum", "İşlem"], filteredRecords.filter((e) => statusFilter === "all" || e.status === statusFilter || (e.effectiveStatus || e.status) === statusFilter).map((entry) => {
-            const candidate = paymentCandidates.find((c) => c.trainerUserId === entry.trainerUserId && c.completionMonth === completionMonth(entry));
+            const candidate = paymentCandidates.find((c) => c.trainerUserId === entry.trainerUserId && c.completionMonth === completionMonth(entry) && c.currency === String(entry.currency || "TRY").toUpperCase());
             return <tr key={entry.id}><td>{person(entry.trainerUserId, entry.trainerName, entry.studentName || "")}</td><td>{entry.trainingTitle || readableSource(entry.sourceType)}</td><td>{dateText(entry.occurredAt)}</td><td>{dateText(dueDateForEntry(entry))}</td>
               <td><strong className="hp4-money">{money(entry.amountMinor)}</strong></td><td>{pill(entry.effectiveStatus || entry.status)}</td>
               <td>{candidate && isEligibleForPayment(entry) ? <button type="button" className="hp4-btn hp4-btn-small" onClick={() => { setTab("payments"); setPaymentsMode("due"); setTrainerFilter(entry.trainerUserId); }}>Ödeme dönemini gör →</button> : <span className="hp4-sub">—</span>}</td></tr>;

@@ -35,8 +35,11 @@ export function normalizeR6GroupInput(input = {}) {
     const enrollmentId = participant?.enrollmentId ? String(participant.enrollmentId).trim() : null;
     if (!studentUserId || (!childProfileId && !studentProfileId)) throw fail("R6_PARTICIPANT_TARGET_REQUIRED");
     if (childProfileId && studentProfileId) throw fail("R6_PARTICIPANT_TARGET_AMBIGUOUS");
-    if (seen.has(studentUserId)) throw fail("R6_DUPLICATE_PARTICIPANT");
-    seen.add(studentUserId);
+    // A guardian account may contribute multiple children to one group. The
+    // selected child/profile is the participant identity, not the owner user.
+    const participantKey = childProfileId ? `child:${childProfileId}` : `student:${studentProfileId}`;
+    if (seen.has(participantKey)) throw fail("R6_DUPLICATE_PARTICIPANT");
+    seen.add(participantKey);
     return { studentUserId, childProfileId, studentProfileId, enrollmentId };
   });
 
@@ -70,17 +73,23 @@ export function completionMonthBounds(value = new Date()) {
   const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
   if (Number.isNaN(date.getTime())) throw fail("R6_COMPLETION_DATE_INVALID");
 
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const local = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const year = Number(local.year);
+  const month = Number(local.month) - 1;
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 0 || month > 11) throw fail("R6_COMPLETION_DATE_INVALID");
+
   const start = new Date(Date.UTC(year, month, 1));
   const end = new Date(Date.UTC(year, month + 1, 0));
 
-  // Tamamlanan egitim, izleyen ayin ilk is gununde odenebilir.
-  // Bu fazda "is gunu" hafta sonu disi olarak tanimlidir.
+  // Owner kuralı: tamamlanma ayını izleyen ayın takvimdeki ilk günü.
+  // Hafta sonu, resmi tatil ve harici takvim verisi özellikle uygulanmaz.
   const payableAt = new Date(Date.UTC(year, month + 1, 1, 12, 0, 0, 0));
-  const weekday = payableAt.getUTCDay();
-  if (weekday === 6) payableAt.setUTCDate(payableAt.getUTCDate() + 2);
-  else if (weekday === 0) payableAt.setUTCDate(payableAt.getUTCDate() + 1);
 
   return {
     payablePeriodStart: start.toISOString().slice(0, 10),

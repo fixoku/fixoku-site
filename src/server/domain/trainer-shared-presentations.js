@@ -1,8 +1,10 @@
+/* global process */
 import fs from "node:fs";
 import path from "node:path";
 import pg from "pg";
 import { resolvePrincipal } from "../auth/authorization.js";
 import { assertTrainerPrincipal } from "./trainer-commerce.js";
+import { fetchPrivateObject, getDigitalStorageConfig, productionPrivateMediaAvailable } from "./digital-delivery.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const ROOT = path.resolve(process.cwd(), "private", "trainer-shared-presentations");
@@ -27,6 +29,7 @@ export async function authorizeSharedPresentation(req) {
     [key, Array.isArray(value) ? value.join(", ") : String(value)]));
   const principal = await resolvePrincipal(headers);
   if (!principal) return { status: 401 };
+  if (!productionPrivateMediaAvailable()) return { status: 503 };
 
   const url = new URL(req.url, "http://local");
   const packageId = String(url.searchParams.get("packageId") || "");
@@ -50,14 +53,18 @@ export async function authorizeSharedPresentation(req) {
     await pool.end();
   }
 
-  const manifestPath = path.join(ROOT, "manifest.json");
-  if (!fs.existsSync(manifestPath)) return { status: 404 };
+  const storage = getDigitalStorageConfig();
+  const remote = storage.provider === "S3" || storage.provider === "R2";
   let data;
-  try {
-    data = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-    if (!Array.isArray(data.presentations)) return { status: 503 };
-  } catch {
-    return { status: 503 };
+  if (remote) {
+    const response = await fetchPrivateObject(storage, "trainer-shared-presentations/manifest.json");
+    if (!response.ok) return { status: response.status === 404 ? 404 : 503 };
+    try { data = await response.json(); } catch { return { status: 503 }; }
+  } else {
+    const manifestPath = path.join(ROOT, "manifest.json");
+    if (!fs.existsSync(manifestPath)) return { status: 404 };
+    try { data = JSON.parse(fs.readFileSync(manifestPath, "utf8")); } catch { return { status: 503 }; }
   }
-  return { status: 200, packageId, presentations: data.presentations, root: ROOT, url };
+  if (!Array.isArray(data.presentations)) return { status: 503 };
+  return { status: 200, packageId, presentations: data.presentations, root: ROOT, storage, url };
 }

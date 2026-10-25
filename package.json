@@ -101,6 +101,7 @@
     "test:r89-visibility-contracts": "node scripts/test-r89-visibility-contracts.mjs",
     "test:r89-student-package-ui-contracts": "node scripts/test-r89-student-package-ui-contracts.mjs",
     "test:r89-owner-save-ux": "node scripts/test-r89-owner-save-ux.mjs",
+    "test:preview-db-identity": "node scripts/test-preview-db-identity.mjs",
     "test:r89-cart-contracts": "node scripts/test-r89-cart-contracts.mjs",
     "test:r71-legal-approval-contracts": "node scripts/test-r71-legal-approval-contracts.mjs",
     "build:r73-legal-v10": "node scripts/build-r73-legal-v10.mjs",

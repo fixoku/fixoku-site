@@ -65,7 +65,8 @@ try {
   await account({ method: "POST", url: "/api/account-lifecycle/password-reset-request", body: { email } }, requested);
   const resetMail = consumeLifecycleMail((item) => item.kind === "reset" && item.to === email);
   assert.ok(resetMail?.url, "reset mail captured without SMTP");
-  const resetToken = new URL(resetMail.url).pathname.split("/").at(-1);
+  const resetUrl = new URL(resetMail.url);
+  const resetToken = resetUrl.searchParams.get("token") || resetUrl.pathname.match(/\/reset-password\/([^/]+)/u)?.[1] || "";
   const nextPassword = "Release009-Reset-Password!";
   const reset = await auth.handler(new Request("http://local/api/auth/reset-password", { method: "POST", headers: { origin, "content-type": "application/json" }, body: JSON.stringify({ token: resetToken, newPassword: nextPassword }) }));
   assert.equal(reset.status, 200, "password reset");

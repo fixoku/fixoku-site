@@ -41,7 +41,10 @@ assert.match(commerce, /CHILD_ENROLLMENT_MIGRATION_REQUIRED/u);
 assert.match(commerce, /on conflict do nothing returning id/u);
 assert.match(commerce, /enrollmentChildColumnAvailable/u);
 const entitlements = read("api/student/entitlements.js");
-assert.match(entitlements, /beneficiary_child_profile_id \$\{beneficiaryTargetClause\}/u);
+assert.match(entitlements, /const beneficiaryTargetClause = \(alias\) =>/u);
+assert.match(entitlements, /beneficiaryTargetClause\("o"\)/u);
+assert.match(entitlements, /beneficiaryTargetClause\("pe"\)/u);
+assert.match(entitlements, /beneficiary_child_profile_id=\$2::uuid/u);
 assert.match(commerce, /\$3::uuid is null and beneficiary_child_profile_id is null/u);
 assert.match(read("src/server/domain/student-commerce.js"), /\$3::uuid is null and beneficiary_child_profile_id is null/u);
 

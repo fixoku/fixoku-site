@@ -5,25 +5,13 @@ import { useEffect, useState } from "react";
 const WAIT_SECONDS = 90;
 const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value);
 
-export default function TrainerVerificationResend({ email = "", allowEmailInput = false, highlighted = false }) {
+export default function TrainerVerificationResend({ email = "", allowEmailInput = false, highlighted = false, role = "TRAINER" }) {
   const [typedEmail, setTypedEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState(false);
-  const [availability, setAvailability] = useState("pending");
   const address = String(allowEmailInput ? typedEmail : email).trim().toLowerCase();
-
-  useEffect(() => {
-    let active = true;
-    fetch("/api/auth/verification-resend-capability", { credentials: "same-origin", cache: "no-store" })
-      .then((response) => response.ok ? response.json() : null)
-      .then((payload) => {
-        if (active) setAvailability(payload?.available === true ? "available" : "disabled");
-      })
-      .catch(() => { if (active) setAvailability("disabled"); });
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     if (secondsLeft <= 0) return undefined;
@@ -33,7 +21,7 @@ export default function TrainerVerificationResend({ email = "", allowEmailInput 
 
   async function requestVerification(event) {
     event.preventDefault();
-    if (availability !== "available" || busy || secondsLeft > 0) return;
+    if (busy || secondsLeft > 0) return;
     if (!isEmail(address)) {
       setError(true);
       setNotice("Önce geçerli bir e-posta adresi yazın.");
@@ -47,7 +35,7 @@ export default function TrainerVerificationResend({ email = "", allowEmailInput 
         method: "POST",
         credentials: "same-origin",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: address, callbackURL: "/ogretmen-girisi" }),
+        body: JSON.stringify({ email: address, callbackURL: role === "TRAINER" ? "/ogretmen-girisi" : role === "ADMIN" ? "/admin-girisi" : role === "OWNER" ? "/owner-girisi" : "/ogrenci-girisi" }),
       });
       if (response.status === 429) {
         setSecondsLeft(WAIT_SECONDS);
@@ -65,11 +53,10 @@ export default function TrainerVerificationResend({ email = "", allowEmailInput 
     }
   }
 
-  if (availability !== "available") return null;
-
-  return <section className="auth-trainer-verification-resend" aria-label="Eğitmen e-posta doğrulama bağlantısı" style={{ margin: "18px 0", padding: "16px", border: highlighted ? "1px solid #f6a15f" : "1px solid #e4e8ef", borderRadius: 12, background: "#fafbfe" }}>
+  const areaLabel = role === "TRAINER" ? "eğitmen paneline" : role === "ADMIN" ? "yönetici paneline" : role === "OWNER" ? "Owner alanına" : "öğrenci paneline";
+  return <section className="auth-trainer-verification-resend" aria-label="E-posta doğrulama bağlantısı" style={{ margin: "18px 0", padding: "16px", border: highlighted ? "1px solid #f6a15f" : "1px solid #e4e8ef", borderRadius: 12, background: "#fafbfe" }}>
     <strong style={{ display: "block", fontSize: 14, marginBottom: 7, color: "#173050" }}>Doğrulama e-postası gelmedi mi?</strong>
-    <p style={{ margin: "0 0 12px", fontSize: 13, color: "#52657d", lineHeight: 1.5 }}>E-posta adresiniz doğrulanmadan eğitmen paneline giriş yapamazsınız. Yeni bağlantıyı kendiniz isteyebilirsiniz.</p>
+    <p style={{ margin: "0 0 12px", fontSize: 13, color: "#52657d", lineHeight: 1.5 }}>E-posta adresiniz doğrulanmadan {areaLabel} giriş yapamazsınız. Yeni bağlantıyı kendiniz isteyebilirsiniz.</p>
     <form onSubmit={requestVerification}>
       {allowEmailInput && <label htmlFor="trainer-verification-email" style={{ display: "block", marginBottom: 10 }}>E-posta adresiniz
         <input id="trainer-verification-email" type="email" value={typedEmail} onChange={(event) => { setTypedEmail(event.target.value); setNotice(""); }} autoComplete="email" required maxLength={254} style={{ display: "block", width: "100%", boxSizing: "border-box", marginTop: 6 }} />

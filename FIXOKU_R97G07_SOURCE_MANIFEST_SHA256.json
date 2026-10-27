@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-27T11:37:49.7663704Z",
-  "sourceCommit": "7832ab98b3ab955bb9b3c7f7e81dc1d0cb06b57b",
+  "generatedAt": "2026-10-27T12:56:09.584Z",
+  "sourceCommit": "792e39e851c5296b5ac74749a1409ef843b2e43a",
   "migrationSourceCount": 44,
   "excluded": [
     ".env*",
@@ -13,7 +13,7 @@
     "historical reports/backups",
     "manifest self"
   ],
-  "fileCount": 972,
+  "fileCount": 976,
   "files": [
     {
       "path": ".gitignore",
@@ -332,8 +332,8 @@
     },
     {
       "path": "api/local-review/switch-user.js",
-      "sha256": "b56242beeea6a3924861d337e4d5236d65b0389af461635c4205ffeda4b4fef9",
-      "size": 7272
+      "sha256": "cc57d753fb70c05dd50bb84f8e2bc25f60afc804acec0769a97a671860cb14a6",
+      "size": 7518
     },
     {
       "path": "api/notifications.js",
@@ -947,8 +947,8 @@
     },
     {
       "path": "package.json",
-      "sha256": "0d7cfdf300fc0b67ada6fd8a1cbf38a9046c607abaf6112c1756eec1e6926d81",
-      "size": 10069
+      "sha256": "2915fe9624482c645035ba8219d9432962f977a0bc9cf1b997360dd5a6aabd7d",
+      "size": 10219
     },
     {
       "path": "playwright.config.ts",
@@ -2186,6 +2186,11 @@
       "size": 8955
     },
     {
+      "path": "scripts/prepare-r97g-test-users.mjs",
+      "sha256": "4e24f34f2c366ad2e504a6bed2ec52f09e968e88bfddf9521aaa1a8556ac89bd",
+      "size": 5402
+    },
+    {
       "path": "scripts/prerender.mjs",
       "sha256": "4d2a2141c27ac8235ece50f2d4be2b4c9124e4dc406f39654229094b1819c453",
       "size": 5502
@@ -2806,9 +2811,14 @@
       "size": 10647
     },
     {
+      "path": "scripts/test-r97g-local-review.mjs",
+      "sha256": "22e520a0404aaa05956000dcffba3def5ed2f001a0c88c6a1e42241278094388",
+      "size": 2770
+    },
+    {
       "path": "scripts/test-r97g-login-ux.mjs",
-      "sha256": "88a02e32bbddddf9cf16d60ec7af8bcd87e8c8e3102ab98f339886d4c7ad1fc3",
-      "size": 1370
+      "sha256": "a33424a8e5cb3c5a36ae5013d22e8bea04ec6401323b999f2644edc91aa1fb65",
+      "size": 1679
     },
     {
       "path": "scripts/test-rate-limit.mjs",
@@ -3317,8 +3327,8 @@
     },
     {
       "path": "src/pages/AuthLifecycle.jsx",
-      "sha256": "7fdd5560e76e93e132747813bc155c8e661b3b26200bb890226f5a8cb33f61c0",
-      "size": 43715
+      "sha256": "c895b1facf491f1d3aa3e4bac1e13e962a07f133761d3286c57e08dc6fb280fe",
+      "size": 43873
     },
     {
       "path": "src/pages/content/QuickReadingArticle.jsx",
@@ -3397,8 +3407,8 @@
     },
     {
       "path": "src/pages/local-review-data.js",
-      "sha256": "83b3872394f89c7fc391eec6c7d0298e415d919ae8e7717e226b002f7299627b",
-      "size": 1601
+      "sha256": "ab35f726f16914a98aae0e812cd6a05dc9f981e38b11954f3b59c2c6b2ce3f15",
+      "size": 1743
     },
     {
       "path": "src/pages/local-review-hub.css",
@@ -3452,8 +3462,8 @@
     },
     {
       "path": "src/pages/TrainerVerificationResend.jsx",
-      "sha256": "0a3346e5827ce8999b10099ee80712faff9ae01567e1ae4358090316fc890857",
-      "size": 4733
+      "sha256": "b39b03920b4f03429081426b2218f75a31ef4f030df175f18befe7e7e7b8bccf",
+      "size": 4415
     },
     {
       "path": "src/panel/assets/logo-fixoku.png",
@@ -4346,6 +4356,11 @@
       "size": 2590
     },
     {
+      "path": "src/server/auth/r97g-test-identities.js",
+      "sha256": "360b84decf531a8dc20da16c4d14c52245178e8047fc3eb15c5f9ddf4e1f8f22",
+      "size": 555
+    },
+    {
       "path": "src/server/db/client.js",
       "sha256": "068f6fbe6689743c9d1cbfb3a9f15c549b7bc3ff82e09475476a921f442a2b68",
       "size": 549
@@ -4654,6 +4669,11 @@
       "path": "src/shared/formatTrainerCourseTitle.ts",
       "sha256": "ceb9b2ccec5dc09a594f4ba9bac23d008958612f91c672a7bf43a15184b34069",
       "size": 644
+    },
+    {
+      "path": "src/shared/r97g-test-identities.js",
+      "sha256": "777bf0a011e544d66dbac5e4b9be261e13b144f7953b4f4fc17bf91f2b0c8fa6",
+      "size": 1262
     },
     {
       "path": "src/utils/purchaseIntent.d.ts",

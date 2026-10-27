@@ -79,7 +79,8 @@ export function RoleLoginPage({ role = "STUDENT" }) {
         if (response.status === 429 || code === "RATE_LIMITED") throw new Error("Çok fazla giriş denemesi yapıldı. Lütfen kısa bir süre bekleyin.");
         if (response.status === 403 && ["EMAIL_NOT_VERIFIED", "EMAIL_VERIFICATION_REQUIRED"].includes(code)) {
           setVerificationRequired(true);
-          throw new Error("E-postanızı doğrulamadan eğitmen paneline giriş yapamazsınız. Aşağıdaki butonla yeni doğrulama bağlantısı isteyebilirsiniz.");
+          const areaLabel = role === "TRAINER" ? "eğitmen paneline" : role === "ADMIN" ? "yönetici paneline" : role === "OWNER" ? "Owner alanına" : "öğrenci paneline";
+          throw new Error(`E-postanızı doğrulamadan ${areaLabel} giriş yapamazsınız. Aşağıdaki butonla yeni doğrulama bağlantısı isteyebilirsiniz.`);
         }
         if (response.status === 503 || response.status >= 500) throw new Error("Giriş hizmeti şu anda yapılandırılamadı. Lütfen daha sonra tekrar deneyin.");
         if (response.status === 401 || code === "INVALID_EMAIL_OR_PASSWORD") throw new Error("E-posta veya parola hatalı.");
@@ -107,7 +108,7 @@ export function RoleLoginPage({ role = "STUDENT" }) {
       <button type="submit" disabled={busy}>{busy ? "Giriş yapılıyor…" : "Giriş Yap →"}</button>
       <Message error>{error}</Message>
     </form>
-    {role === "TRAINER" && verificationRequired && <TrainerVerificationResend email={email} highlighted />}
+    {verificationRequired && <TrainerVerificationResend email={email} role={role} highlighted />}
     <nav className="auth-links" aria-label="Hesap bağlantıları"><span>{role === "STUDENT" ? "Henüz hesabınız yok mu?" : "Eğitmen hesabınız yok mu?"}</span>{copy.register && <Link to={withReturnTo(copy.register)}>{role === "STUDENT" ? "Hesap oluştur" : "Eğitmen başvurusu yap"}</Link>}{role !== "STUDENT" && role !== "TRAINER" && <Link to={withReturnTo("/giris")}>Diğer giriş seçenekleri</Link>}</nav>
   </Shell>;
 }

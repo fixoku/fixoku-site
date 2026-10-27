@@ -1,14 +1,19 @@
 import { base32 } from "@better-auth/utils/base32";
 import { createOTP } from "@better-auth/utils/otp";
 import { ownerLocalFixtureAllowed } from "../../src/server/auth/local-review-runtime.js";
+import { R97G_TEST_IDENTITIES } from "../../src/server/auth/r97g-test-identities.js";
 const configuredIdentity = (envKey, yedek) => Object.prototype.hasOwnProperty.call(process.env, envKey) ? process.env[envKey] : yedek;
-const identities = Object.freeze({
+const legacyIdentities = Object.freeze({
   "ersin": { email: configuredIdentity("FIXOKU_LOCAL_REVIEW_ERSIN_EMAIL", "ersin@fixoku.com.tr"), role: "OWNER", redirect: "/panel/owner", name: "Ersin", rateLimitIp: "127.0.0.11" },
   "fixoku-super-admin": { email: configuredIdentity("FIXOKU_LOCAL_REVIEW_SUPER_ADMIN_EMAIL", "super-admin.phase1c@example.test"), role: "SUPER_ADMIN", redirect: "/panel/admin", name: "Fixoku Test Super Admin", rateLimitIp: "127.0.0.16" },
   "ozlem-kaplan": { email: configuredIdentity("FIXOKU_LOCAL_REVIEW_OZLEM_EMAIL", "ozlem.kaplan@fixoku.com.tr"), role: "TRAINER", redirect: "/panel/egitmen", name: "Özlem KAPLAN", rateLimitIp: "127.0.0.12" },
   "elif-usta": { email: configuredIdentity("FIXOKU_LOCAL_REVIEW_ELIF_EMAIL", "elif.usta@fixoku.com.tr"), role: "TRAINER", redirect: "/panel/egitmen", name: "Elif USTA", rateLimitIp: "127.0.0.13" },
   "hatice-kubra-usta": { email: configuredIdentity("FIXOKU_LOCAL_REVIEW_HATICE_EMAIL", "hatice.kubra.usta@fixoku.com.tr"), role: "STUDENT", redirect: "/panel/ogrenci", name: "Hatice Kübra USTA", rateLimitIp: "127.0.0.14" },
   "ali-asaf-usta": { email: configuredIdentity("FIXOKU_LOCAL_REVIEW_ALI_EMAIL", "ali.asaf.usta@fixoku.com.tr"), role: "STUDENT", redirect: "/panel/ogrenci", name: "Ali Asaf USTA", rateLimitIp: "127.0.0.15" },
+});
+const identities = Object.freeze({
+  ...Object.fromEntries(R97G_TEST_IDENTITIES.map((identity) => [identity.slug, identity])),
+  ...legacyIdentities,
 });
 const loopback = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 const normalizeHost = (value) => String(value || "").trim().toLowerCase().replace(/^\[|\]$/gu, "");

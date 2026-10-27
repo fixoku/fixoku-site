@@ -1,0 +1,4 @@
+param()
+
+$ErrorActionPreference = "Stop"
+throw "LEGACY_R68B_LAUNCHER_DISABLED_USE_RUN_R68B_ISOLATED_CONTAINER_PS1"

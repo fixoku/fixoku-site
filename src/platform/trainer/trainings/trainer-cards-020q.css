@@ -1,0 +1,380 @@
+/* FIXOKU_020Q_TRAINER_CARDS
+   Scoped to Eğitimlerim. The catalog, permissions, media viewers, and purchase flow
+   are unchanged. Two columns on desktop; responsive single column on small screens. */
+.trainer-commerce-catalog .trainer-package-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:18px;
+}
+.trainer-commerce-catalog .trainer-package-card{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:380px;
+  border:1px solid #e9e7e5;
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 10px 26px rgba(32,42,53,.055);
+  overflow:hidden;
+}
+.trainer-commerce-catalog .trainer-package-card.is-owned{border-color:#efdccf;}
+.trainer-commerce-catalog .trainer-package-main-020q{display:flex;flex:1 0 auto;min-width:0;padding:16px;}
+.trainer-commerce-catalog .trainer-card-layout-020q{
+  display:grid;
+  grid-template-columns:minmax(155px,36%) minmax(0,1fr);
+  width:100%;min-width:0;min-height:315px;gap:18px;
+}
+.trainer-commerce-catalog .trainer-card-cover-020q{
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;min-width:0;min-height:302px;
+  padding:10px;border-radius:16px;
+  border:1px solid #f1e9e4;
+  background:linear-gradient(145deg,#fff7f1 0%,#fff 60%,#fff5ed 100%);
+}
+.trainer-commerce-catalog .trainer-card-cover-020q img{
+  display:block;width:100%;height:auto;max-height:100%;aspect-ratio:1/1;
+  object-fit:contain;object-position:center;border-radius:10px;
+}
+.trainer-commerce-catalog .trainer-card-cover-fallback-020q{
+  display:grid;place-items:center;color:#f46b16;
+  width:100%;aspect-ratio:1/1;border-radius:12px;background:#fff0e6;
+}
+.trainer-commerce-catalog .trainer-card-info-020q{
+  display:flex;flex-direction:column;min-width:0;min-height:310px;gap:0;
+}
+.trainer-commerce-catalog .trainer-card-top-020q{min-width:0;}
+.trainer-commerce-catalog .trainer-card-top-020q h3{
+  margin:11px 0 7px;color:#11213a;font-size:19px;font-weight:800;
+  letter-spacing:-.35px;line-height:1.23;overflow-wrap:anywhere;
+}
+.trainer-commerce-catalog .trainer-card-top-020q p{
+  margin:0;color:#768499;font-size:12.5px;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.trainer-commerce-catalog .trainer-card-modules-020q{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;
+  margin:16px 0 12px;
+}
+.trainer-commerce-catalog .trainer-card-modules-020q span{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;min-width:0;min-height:62px;padding:7px 3px;
+  border-radius:11px;background:#fff5ed;color:#d85e0b;
+  text-align:center;
+}
+.trainer-commerce-catalog .trainer-card-modules-020q span:nth-child(2){background:#f1f6fc;color:#3677b9;}
+.trainer-commerce-catalog .trainer-card-modules-020q span:nth-child(3){background:#f7f2fb;color:#8256b5;}
+.trainer-commerce-catalog .trainer-card-modules-020q strong{
+  font-size:10.5px;line-height:1.15;font-weight:750;overflow-wrap:anywhere;
+}
+.trainer-commerce-catalog .trainer-card-meta-020q{
+  display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:auto;
+  color:#738197;font-size:11px;
+}
+.trainer-commerce-catalog .trainer-card-meta-020q>span{display:inline-flex;align-items:center;gap:5px;}
+.trainer-commerce-catalog .trainer-card-meta-020q .trainer-package-price{
+  margin-left:auto;text-align:right;
+}
+.trainer-commerce-catalog .trainer-card-meta-020q .trainer-package-price strong{font-size:16px;margin-top:1px;}
+.trainer-commerce-catalog .trainer-card-info-020q>.trainer-package-actions{
+  display:block;margin-top:13px;
+}
+.trainer-commerce-catalog .trainer-card-info-020q .trainer-owned-actions{
+  display:flex;flex-direction:column;gap:8px;width:100%;margin:0;
+  max-width:none;
+}
+.trainer-commerce-catalog .trainer-card-info-020q .trainer-owned-actions :is(a,button),
+.trainer-commerce-catalog .trainer-card-info-020q>.trainer-package-actions>.trainer-package-inspect{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:43px;text-align:center;
+  border-radius:9px;font-size:13px;
+}
+.trainer-commerce-catalog .trainer-card-info-020q .trainer-package-primary{
+  background:linear-gradient(125deg,#f65a03,#ff7c1d);color:#fff;
+  border-color:#f36b13;box-shadow:0 5px 10px rgba(238,90,0,.11);
+}
+.trainer-commerce-catalog .trainer-package-note{
+  display:flex;align-items:center;gap:8px;min-height:43px;
+  padding:10px 18px;background:#fffaf7;border-top:1px solid #f2e8e1;
+  color:#48637c;font-size:12px;
+}
+.trainer-commerce-catalog .trainer-package-note::before{
+  content:"";display:block;width:9px;height:9px;flex:0 0 9px;
+  border-radius:50%;background:#57c984;
+}
+.trainer-commerce-catalog .trainer-package-details{padding-top:18px;}
+@media(max-width:1240px){
+  .trainer-commerce-catalog .trainer-card-layout-020q{grid-template-columns:minmax(142px,34%) minmax(0,1fr);gap:12px;}
+  .trainer-commerce-catalog .trainer-package-main-020q{padding:13px;}
+  .trainer-commerce-catalog .trainer-card-top-020q h3{font-size:17px;}
+  .trainer-commerce-catalog .trainer-card-modules-020q{gap:5px;}
+  .trainer-commerce-catalog .trainer-card-modules-020q strong{font-size:10px;}
+}
+@media(max-width:1050px){
+  .trainer-commerce-catalog .trainer-package-grid{grid-template-columns:1fr;}
+  .trainer-commerce-catalog .trainer-card-layout-020q{grid-template-columns:minmax(175px,32%) minmax(0,1fr);gap:20px;}
+}
+@media(max-width:600px){
+  .trainer-commerce-catalog .trainer-package-main-020q{padding:12px;}
+  .trainer-commerce-catalog .trainer-card-layout-020q{grid-template-columns:minmax(0,1fr);gap:12px;}
+  .trainer-commerce-catalog .trainer-card-cover-020q{min-height:0;padding:12px;}
+  .trainer-commerce-catalog .trainer-card-cover-020q img{width:min(100%,310px);}
+  .trainer-commerce-catalog .trainer-card-info-020q{min-height:0;}
+  .trainer-commerce-catalog .trainer-card-top-020q h3{font-size:19px;}
+  .trainer-commerce-catalog .trainer-card-modules-020q{margin-top:12px;}
+  .trainer-commerce-catalog .trainer-card-meta-020q{margin-top:4px;}
+}
+/* FIXOKU_020R_APPROVED_RESPONSIVE_START */
+/* FIXOKU 020R: approved Eğitimlerim design. CSS-only, all actions stay wired to existing routes/API. */
+/* Large screens: two equal columns, square covers, original package states and action links. */
+.trainer-commerce-catalog .trainer-package-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+.trainer-commerce-catalog .trainer-package-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 275px;
+  overflow: hidden;
+  border: 1px solid #e7e7ea;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 15px rgba(21, 35, 57, .055);
+}
+.trainer-commerce-catalog .trainer-package-card.is-owned { border-color: #e3ebdf; }
+.trainer-commerce-catalog .trainer-package-main-020q {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 12px;
+}
+.trainer-commerce-catalog .trainer-card-layout-020q {
+  display: grid;
+  grid-template-columns: minmax(0, 36%) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.trainer-commerce-catalog .trainer-card-cover-020q {
+  display: block;
+  align-self: start;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 11px;
+  border: 1px solid #f3ece7;
+  background: #fff5ed;
+}
+.trainer-commerce-catalog .trainer-card-cover-020q img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+}
+.trainer-commerce-catalog .trainer-card-cover-fallback-020q {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+.trainer-commerce-catalog .trainer-card-info-020q {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 0;
+}
+.trainer-commerce-catalog .trainer-card-top-020q { min-width: 0; }
+.trainer-commerce-catalog .trainer-card-top-020q h3 {
+  margin: 5px 0 3px;
+  font-size: clamp(14px, 1.08vw, 17px);
+  font-weight: 800;
+  line-height: 1.22;
+  letter-spacing: -.23px;
+  overflow-wrap: break-word;
+  color: #14233a;
+}
+.trainer-commerce-catalog .trainer-package-status {
+  padding: 4px 8px;
+  font-size: 10px;
+  line-height: 1.1;
+}
+.trainer-commerce-catalog .trainer-card-top-020q p {
+  display: none; /* Mockup: more room for the actual title, badges and actions. */
+}
+.trainer-commerce-catalog .trainer-card-modules-020q {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  margin: 9px 0 7px;
+}
+.trainer-commerce-catalog .trainer-card-modules-020q span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  min-height: 50px;
+  padding: 5px 2px;
+  border-radius: 8px;
+}
+.trainer-commerce-catalog .trainer-card-modules-020q svg { width: 19px; height: 19px; }
+.trainer-commerce-catalog .trainer-card-modules-020q strong {
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.1;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+.trainer-commerce-catalog .trainer-card-meta-020q {
+  display: flex;
+  gap: 3px 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0;
+  color: #7b8898;
+  font-size: 10px;
+}
+.trainer-commerce-catalog .trainer-card-meta-020q > span { min-width: 0; }
+.trainer-commerce-catalog .trainer-card-meta-020q .trainer-package-price {
+  margin-left: auto;
+  text-align: right;
+}
+.trainer-commerce-catalog .trainer-card-meta-020q .trainer-package-price strong { font-size: 14px; }
+.trainer-commerce-catalog .trainer-card-info-020q > .trainer-package-actions {
+  display: block;
+  margin-top: auto;
+  padding-top: 7px;
+}
+.trainer-commerce-catalog .trainer-card-info-020q .trainer-owned-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+.trainer-commerce-catalog .trainer-card-info-020q .trainer-owned-actions :is(a, button),
+.trainer-commerce-catalog .trainer-card-info-020q > .trainer-package-actions > .trainer-package-inspect {
+  display: flex;
+  width: 100%;
+  min-height: 33px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border-radius: 7px;
+  font-size: 11px;
+  line-height: 1.15;
+  text-align: center;
+}
+.trainer-commerce-catalog .trainer-card-info-020q .trainer-package-primary {
+  background: linear-gradient(110deg, #f45b06, #ff7919);
+  border-color: #ed6d18;
+  color: #fff;
+}
+.trainer-commerce-catalog .trainer-package-note {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  gap: 7px;
+  padding: 6px 12px;
+  border-top: 1px solid #f0eee9;
+  background: #fff;
+  color: #5e6d80;
+  font-size: 10px;
+}
+.trainer-commerce-catalog .trainer-package-note::before {
+  width: 7px;
+  height: 7px;
+  flex-basis: 7px;
+}
+.trainer-commerce-catalog .trainer-package-details { padding-top: 14px; }
+/* The desktop sidebar slogan stays in place. */
+@media (max-width: 1199px) {
+  .trainer-commerce-catalog .trainer-trainings-page { max-width: none; }
+  .trainer-commerce-catalog .trainer-card-layout-020q { gap: 10px; grid-template-columns: minmax(0, 36%) minmax(0, 1fr); }
+  .trainer-commerce-catalog .trainer-package-main-020q { padding: 10px; }
+  .trainer-commerce-catalog .trainer-card-modules-020q span { min-height: 45px; }
+  .trainer-commerce-catalog .trainer-card-top-020q h3 { font-size: 14px; }
+}
+/* Smaller tablets have one column. Desktop remains two columns. */
+@media (max-width: 930px) {
+  .trainer-commerce-catalog .trainer-package-grid { grid-template-columns: 1fr; }
+  .trainer-commerce-catalog .trainer-card-layout-020q { grid-template-columns: minmax(0, 30%) minmax(0, 1fr); gap: 16px; }
+  .trainer-commerce-catalog .trainer-package-card { min-height: 245px; }
+}
+/* Phone: one card per row, square photo next to course details, full-width buttons below. */
+@media (max-width: 680px) {
+  .trainer-trainings-page.trainer-commerce-catalog { padding: 12px 12px 22px; }
+  .trainer-commerce-catalog .trainings-heading { min-height: 0; margin-bottom: 10px; }
+  .trainer-commerce-catalog .trainings-heading .trainer-page-heading h2 { margin-top: 10px; font-size: 28px; }
+  .trainer-commerce-catalog .trainings-heading .trainer-page-heading > p { font-size: 13px; line-height: 1.4; }
+  .trainer-commerce-catalog .trainings-hero-art { margin: 10px 0 12px; border-radius: 10px; }
+  .trainer-commerce-catalog .trainer-package-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .trainer-commerce-catalog .trainer-package-card { min-height: 0; border-radius: 13px; }
+  .trainer-commerce-catalog .trainer-package-main-020q { display: block; padding: 10px; }
+  .trainer-commerce-catalog .trainer-card-layout-020q {
+    display: grid;
+    grid-template-columns: minmax(90px, 35%) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    gap: 6px 10px;
+    min-height: 0;
+    align-items: start;
+  }
+  .trainer-commerce-catalog .trainer-card-cover-020q {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    align-self: start;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+  .trainer-commerce-catalog .trainer-card-info-020q { display: contents; }
+  .trainer-commerce-catalog .trainer-card-top-020q { grid-column: 2; grid-row: 1; }
+  .trainer-commerce-catalog .trainer-card-top-020q h3 { margin-top: 4px; font-size: 14px; }
+  .trainer-commerce-catalog .trainer-card-modules-020q {
+    grid-column: 2;
+    grid-row: 2;
+    gap: 4px;
+    margin: 2px 0 0;
+  }
+  .trainer-commerce-catalog .trainer-card-modules-020q span { min-height: 43px; padding: 5px 1px; }
+  .trainer-commerce-catalog .trainer-card-modules-020q svg { width: 16px; height: 16px; }
+  .trainer-commerce-catalog .trainer-card-modules-020q strong { font-size: 8.5px; }
+  .trainer-commerce-catalog .trainer-card-meta-020q { grid-column: 2; grid-row: 3; margin: 1px 0 0; }
+  .trainer-commerce-catalog .trainer-card-info-020q > .trainer-package-actions {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    display: block;
+    padding-top: 5px;
+    margin: 0;
+  }
+  .trainer-commerce-catalog .trainer-card-info-020q .trainer-owned-actions { gap: 7px; }
+  .trainer-commerce-catalog .trainer-card-info-020q .trainer-owned-actions :is(a, button),
+  .trainer-commerce-catalog .trainer-card-info-020q > .trainer-package-actions > .trainer-package-inspect {
+    min-height: 37px;
+    font-size: 12px;
+  }
+  .trainer-commerce-catalog .trainer-package-note { min-height: 30px; }
+  /* Remove the sidebar's handwritten slogan and orange underline on phones only. */
+  .platform-panel:has(.trainer-trainings-page) .panel-sidebar-quote,
+  .platform-panel:has(.trainer-trainings-page) .panel-sidebar-quote-line {
+    display: none !important;
+  }
+}
+@media (max-width: 355px) {
+  .trainer-commerce-catalog .trainer-card-layout-020q { grid-template-columns: minmax(83px, 33%) minmax(0, 1fr); gap: 5px 7px; }
+  .trainer-commerce-catalog .trainer-card-top-020q h3 { font-size: 12.5px; }
+  .trainer-commerce-catalog .trainer-card-modules-020q strong { font-size: 8px; }
+}
+/* FIXOKU_020R_APPROVED_RESPONSIVE_END */

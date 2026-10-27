@@ -1,0 +1,8 @@
+/* RELEASE-017T: addition only. Do not touch existing video rail and watermark rules. */
+.trainer-video-thumb{position:relative;overflow:hidden}
+.trainer-video-thumb-lock{position:absolute;inset:0;display:grid;place-items:center;color:white;background:rgba(15,23,42,.62);backdrop-filter:grayscale(.35);z-index:2}
+.trainer-video-item.is-locked{cursor:not-allowed;opacity:.76}
+.trainer-video-item.is-locked .trainer-video-number{background:#f0f2f5;color:#465260}
+.trainer-video-item.is-locked .trainer-video-item-copy small{color:#7a8694}
+.trainer-video-item.is-locked:disabled{pointer-events:auto}
+.trainer-video-item.is-locked:hover{transform:none;box-shadow:none}

@@ -4,6 +4,7 @@ import {
 } from "../components/assessment/AssessmentTests.jsx";
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
+import SharedPromoVideo from "../components/SharedPromoVideo.jsx";
 import StudentStoriesSection from "../components/StudentStoriesSection.jsx";
 import {
   COMPLETED_FREE_TEST_COUNT,
@@ -282,9 +283,11 @@ export default function StudentReadingLanding() {
                 </div>
 
                 <div className="student-why-media-layout">
-                  <div className="student-why-play" aria-hidden="true">
-                    <span />
-                  </div>
+                  <SharedPromoVideo
+                    context="student"
+                    title="Neden Fixoku?"
+                    label="Neden Fixoku öğrenci tanıtım videosunu oynat"
+                  />
 
                   <div className="student-feature-list">
                     {featureCards.map((feature, index) => (

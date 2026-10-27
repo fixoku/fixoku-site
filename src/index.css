@@ -4162,10 +4162,28 @@ img {
 }
 
 .how-it-works-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
   gap: 24px;
   margin-bottom: 22px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 16px;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+}
+
+.how-it-works-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.how-it-works-grid .how-card {
+  flex: 0 0 calc((100% - 48px) / 3);
+  min-width: 0;
+  scroll-snap-align: start;
 }
 
 .how-card {
@@ -4345,6 +4363,10 @@ img {
     grid-template-columns: 1fr;
   }
 
+  .how-it-works-grid .how-card {
+    flex-basis: 82%;
+  }
+
   .how-it-works-panel {
     border-radius: 36px;
     padding: 16px;
@@ -4356,6 +4378,16 @@ img {
 }
 
 @media (max-width: 768px) {
+  .how-it-works-grid {
+    gap: 14px;
+    padding: 2px 0 14px;
+    margin-inline: -2px;
+  }
+
+  .how-it-works-grid .how-card {
+    flex-basis: 82%;
+  }
+
   .how-it-works-section {
     padding: 34px 16px 70px;
   }
@@ -4557,7 +4589,7 @@ img {
   font-size: 72px;
   line-height: 0.95;
   font-weight: 900;
-  color: #ef6418;
+  color: #d95514;
   letter-spacing: -1.5px;
   margin-bottom: 6px;
 }
@@ -4639,20 +4671,15 @@ img {
 .model-card-text {
   color: white;
   min-width: 0;
+  display: flex;
+  align-items: center;
 }
 
 .model-label {
   font-size: 44px;
   line-height: 1;
   font-weight: 300;
-  margin-bottom: 12px;
   letter-spacing: -0.8px;
-}
-
-.model-rate {
-  font-size: 58px;
-  line-height: 0.95;
-  font-weight: 300;
 }
 
 .education-model-desc {
@@ -4692,9 +4719,6 @@ img {
     font-size: 36px;
   }
 
-  .model-rate {
-    font-size: 46px;
-  }
 }
 
 @media (max-width: 1024px) {
@@ -4774,11 +4798,6 @@ img {
 
   .model-label {
     font-size: 28px;
-    margin-bottom: 8px;
-  }
-
-  .model-rate {
-    font-size: 38px;
   }
 
   .education-model-desc {
@@ -4811,10 +4830,6 @@ img {
 
   .model-label {
     font-size: 24px;
-  }
-
-  .model-rate {
-    font-size: 32px;
   }
 
   .education-model-desc {
@@ -5205,7 +5220,7 @@ img {
 }
 
 .process-pin-red span {
-  color: #ff6238;
+  color: #e9552f;
 }
 
 .process-pin-orange {
@@ -5214,7 +5229,7 @@ img {
 }
 
 .process-pin-orange span {
-  color: #ff9800;
+  color: #c47700;
 }
 
 .process-pin-yellow {
@@ -5223,7 +5238,7 @@ img {
 }
 
 .process-pin-yellow span {
-  color: #f1ab00;
+  color: #996600;
 }
 
 .process-pin-cyan {
@@ -5322,7 +5337,7 @@ img {
   align-items: center;
   gap: 12px;
   min-width: 0;
-  color: #ef6418;
+  color: #b94b11;
   font-size: 17px;
   line-height: 1.2;
   font-weight: 500;
@@ -5332,7 +5347,7 @@ img {
   font-size: 28px;
   line-height: 1;
   font-weight: 900;
-  color: #ef6418;
+  color: #b94b11;
   flex-shrink: 0;
 }
 
@@ -15386,3 +15401,823 @@ iframe {
   }
 }
 /* FIXOKU PREVERCEL SHORT DOTS V1 END */
+
+/* =========================================================
+   LIVE TOP ACHIEVEMENT BANNER
+   Inline SVG replaces the legacy raster banner while keeping
+   the existing orange header dimensions and responsive offsets.
+========================================================= */
+.top-achievement-banner {
+  width: 100%;
+  min-width: 0;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.desktop-top-header .top-center,
+.mobile-top-header .top-center {
+  width: min(100%, 920px);
+}
+
+.top-achievement-inner {
+  width: min(100%, 920px);
+  min-width: 0;
+  min-height: 72px;
+  padding: 2px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.5vw, 18px);
+}
+
+.top-achievement-art {
+  width: clamp(100px, 10vw, 138px);
+  height: 68px;
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.top-achievement-artwork {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.top-achievement-trophy {
+  opacity: 0;
+  will-change: transform, opacity;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: topAchievementTrophyDrop 1.7s cubic-bezier(.2,.76,.25,1) .05s both;
+}
+
+.top-achievement-arrow {
+  opacity: 0;
+  will-change: transform, opacity;
+  transform-box: fill-box;
+  transform-origin: 43px 55px;
+  animation: topAchievementArrowStrike .72s cubic-bezier(.2,.72,.25,1) 1.8s both;
+}
+
+@keyframes topAchievementTrophyDrop {
+  0% { opacity: 0; transform: translateY(-30px) rotate(-3deg); }
+  48% { opacity: 1; transform: translateY(5px) rotate(1.4deg); }
+  61% { opacity: 1; transform: translateY(-2px) rotate(-1deg); }
+  72% { opacity: 1; transform: translateY(1px) rotate(.65deg); }
+  82% { opacity: 1; transform: translateY(-.5px) rotate(-.35deg); }
+  91% { opacity: 1; transform: translateY(0) rotate(.15deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+@keyframes topAchievementArrowStrike {
+  0% { opacity: 0; transform: translateX(-78px) rotate(-4deg); }
+  68% { opacity: 1; transform: translateX(3px) rotate(.5deg); }
+  84% { opacity: 1; transform: translateX(-1px) rotate(-.2deg); }
+  100% { opacity: 1; transform: translateX(0) rotate(0); }
+}
+
+.top-achievement-copy {
+  min-width: 0;
+  min-height: 1.35em;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: .42em;
+  color: var(--fixoku-white-soft);
+  font-size: clamp(12px, 1.35vw, 19px);
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -.15px;
+  white-space: nowrap;
+}
+
+.top-achievement-prefix {
+  color: #fff;
+  flex: 0 1 auto;
+}
+
+.top-achievement-suffix {
+  min-width: 31ch;
+  display: inline-block;
+  color: #4b1e74;
+  font-weight: 800;
+  will-change: transform, opacity;
+  animation: topAchievementTextIn .45s ease both;
+}
+
+@keyframes topAchievementTextIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1100px) {
+  .mobile-top-header .top-center {
+    width: 100%;
+  }
+
+  .top-achievement-banner,
+  .top-achievement-inner {
+    min-height: 50px;
+  }
+
+  .top-achievement-inner {
+    width: min(100%, 760px);
+    padding: 3px 10px;
+    gap: 7px;
+  }
+
+  .top-achievement-art {
+    width: clamp(84px, 21vw, 126px);
+    height: 44px;
+  }
+
+  .top-achievement-copy {
+    gap: .32em;
+    font-size: clamp(10px, 1.65vw, 15px);
+    line-height: 1.12;
+  }
+
+  .top-achievement-suffix {
+    min-width: 22ch;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-top-header .top-achievement-banner,
+  .mobile-top-header .top-achievement-inner {
+    min-height: 42px;
+    height: 42px;
+  }
+
+  .mobile-top-header .top-achievement-inner {
+    width: 100%;
+    padding: 1px 8px;
+    gap: 5px;
+  }
+
+  .mobile-top-header .top-achievement-art {
+    width: clamp(72px, 23vw, 98px);
+    height: 39px;
+  }
+
+  .mobile-top-header .top-achievement-copy {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-content: center;
+    min-height: 2.2em;
+    gap: .28em;
+    font-size: clamp(8.4px, 2.42vw, 11.5px);
+    line-height: 1.08;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .mobile-top-header .top-achievement-prefix,
+  .mobile-top-header .top-achievement-suffix {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-top-header .top-achievement-suffix {
+    min-width: 0;
+    display: inline;
+  }
+}
+
+@media (max-width: 360px) {
+  .mobile-top-header .top-achievement-inner {
+    padding-inline: 5px;
+    gap: 3px;
+  }
+
+  .mobile-top-header .top-achievement-art {
+    width: 68px;
+    height: 36px;
+  }
+
+  .mobile-top-header .top-achievement-copy {
+    font-size: 8.35px;
+    letter-spacing: -.2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-achievement-trophy,
+  .top-achievement-arrow,
+  .top-achievement-suffix {
+    animation: none !important;
+  }
+
+  .top-achievement-trophy,
+  .top-achievement-arrow {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .top-achievement-suffix {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+.footer-consent-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.footer-consent-link:focus-visible { outline: 2px solid var(--fixoku-orange); outline-offset: 3px; border-radius: 4px; }
+
+/* =========================================================
+   PUBLIC SHARED VIDEO SLIDERS AND HOMEPAGE MODEL ALIGNMENT R2
+========================================================= */
+.stories-panel,
+.trainer-videos-panel {
+  overflow: hidden !important;
+}
+
+.stories-grid,
+.trainer-videos-grid {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  grid-template-columns: none !important;
+  gap: 22px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory !important;
+  scroll-behavior: smooth !important;
+  scrollbar-width: thin;
+  padding: 2px 2px 12px !important;
+}
+
+.story-card,
+.trainer-video-card {
+  flex: 0 0 calc((100% - 66px) / 4) !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  scroll-snap-align: start !important;
+}
+
+.story-badge {
+  min-height: 48px !important;
+  padding-inline: 10px !important;
+  font-size: clamp(11px, 1.05vw, 15px) !important;
+  white-space: nowrap !important;
+}
+
+.homepage-education-model-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 22px !important;
+}
+
+.homepage-education-model-grid .model-card {
+  display: grid !important;
+  grid-template-columns: 150px minmax(0, 1fr) !important;
+  align-items: center !important;
+  min-height: 144px !important;
+  overflow: hidden;
+}
+
+.homepage-education-model-grid .model-card-text {
+  min-width: 0;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+}
+
+.homepage-education-model-grid .model-label {
+  margin: 0 !important;
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .story-card,
+  .trainer-video-card {
+    flex-basis: calc((100% - 22px) / 2) !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .homepage-education-model-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .stories-grid,
+  .trainer-videos-grid {
+    gap: 14px !important;
+    margin-inline: -16px !important;
+    padding: 4px 16px 18px !important;
+    scrollbar-width: none;
+  }
+
+  .stories-grid::-webkit-scrollbar,
+  .trainer-videos-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .story-card,
+  .trainer-video-card {
+    flex: 0 0 74vw !important;
+    width: 74vw !important;
+    max-width: 300px !important;
+    min-width: 230px !important;
+  }
+
+  .story-badge {
+    min-height: 34px !important;
+    padding: 7px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .homepage-education-model-grid .model-card {
+    grid-template-columns: 110px minmax(0, 1fr) !important;
+    min-height: 120px !important;
+  }
+
+  .homepage-education-model-grid .model-card-text {
+    min-height: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .story-card,
+  .trainer-video-card {
+    flex-basis: 76vw !important;
+    width: 76vw !important;
+    max-width: 285px !important;
+  }
+
+  .homepage-education-model-grid .model-card {
+    grid-template-columns: 92px minmax(0, 1fr) !important;
+  }
+}
+
+/* Final R3 interaction override: arrows stay visible and native scrollbars stay hidden. */
+.stories-panel,
+.trainer-videos-panel {
+  overflow: visible !important;
+}
+
+.stories-grid,
+.trainer-videos-grid {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.stories-grid::-webkit-scrollbar,
+.trainer-videos-grid::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.story-slider-arrow,
+.trainer-slider-arrow {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Shared student/trainer modal sequence navigation. */
+.story-video-modal-inner {
+  width: min(920px, calc(100vw - 192px));
+}
+
+.story-video-modal-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: flex;
+  width: 54px;
+  height: 54px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ef6418, #5a137d);
+  color: #fff;
+  font-size: 42px;
+  line-height: 1;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .32);
+  transform: translateY(-50%);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.story-video-modal-arrow:hover {
+  box-shadow: 0 18px 36px rgba(0, 0, 0, .4);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.story-video-modal-arrow:disabled {
+  cursor: not-allowed;
+  opacity: .38;
+  box-shadow: none;
+}
+
+.story-video-modal-arrow:disabled:hover {
+  transform: translateY(-50%);
+}
+
+.story-video-modal-arrow:focus-visible,
+.trainer-video-close:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.story-video-modal-previous {
+  left: -72px;
+}
+
+.story-video-modal-next {
+  right: -72px;
+}
+
+.story-video-modal-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 6px 2px;
+  color: #fff;
+}
+
+.story-video-modal-details strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.story-video-modal-details span {
+  flex: none;
+  color: rgba(255, 255, 255, .76);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .story-video-modal {
+    padding: 16px 12px;
+  }
+
+  .story-video-modal-inner {
+    display: grid;
+    width: min(100%, 520px);
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 20px;
+  }
+
+  .story-video-modal .trainer-video-player,
+  .story-video-modal-details {
+    grid-column: 1 / -1;
+  }
+
+  .story-video-modal-arrow {
+    position: static;
+    grid-row: 3;
+    width: 100%;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 38px;
+    transform: none;
+  }
+
+  .story-video-modal-arrow:hover {
+    transform: none;
+  }
+
+  .story-video-modal-arrow:disabled:hover {
+    transform: none;
+  }
+
+  .story-video-modal-previous {
+    grid-column: 1;
+  }
+
+  .story-video-modal-next {
+    grid-column: 2;
+  }
+
+  .story-video-modal-details {
+    grid-row: 2;
+    padding: 4px 2px 0;
+  }
+
+  .story-video-modal-details strong {
+    font-size: 14px;
+  }
+
+  .story-video-modal .trainer-video-close {
+    top: -9px;
+    right: -5px;
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .story-video-modal-arrow {
+    width: 48px;
+    height: 48px;
+    font-size: 38px;
+  }
+
+  .story-video-modal-previous {
+    left: 12px;
+  }
+
+  .story-video-modal-next {
+    right: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-video-modal-arrow {
+    transition: none;
+  }
+}
+
+/* R5: mobile card rows rely on swipe and a visible next-card peek. Keep the
+   card-carousel controls removed at mobile widths; modal controls use the
+   separate .story-video-modal-arrow selector above and remain available. */
+@media (max-width: 768px) {
+  .stories-panel > .story-slider-arrow,
+  .trainer-videos-panel > .trainer-slider-arrow {
+    display: none !important;
+    pointer-events: none !important;
+  }
+
+  .stories-panel,
+  .trainer-videos-panel {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-top: 18px !important;
+  }
+
+  .stories-panel::after,
+  .trainer-videos-panel::after {
+    content: none !important;
+    display: none !important;
+  }
+}
+
+/* FIXOKU 022T: contact form guard rails only */
+.contact-page .contact-input-help {
+  display: block;
+  margin-top: 6px;
+  color: rgba(255,255,255,.78);
+  font-size: 12px;
+  font-weight: 650;
+}
+.contact-page .contact-form input[aria-invalid="true"] {
+  outline: 2px solid #ffab86;
+  outline-offset: 2px;
+}
+.contact-page .contact-whatsapp-icon {
+  display: block;
+  width: 27px;
+  height: 27px;
+  color: white;
+}
+.contact-page .contact-honeypot {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+.contact-page .contact-captcha-area { margin: 12px 0; min-height: 36px; }
+.contact-page .contact-captcha-area p {
+  margin: 0;
+  color: #ffe0b7;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.contact-page .contact-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.contact-page .contact-email-send { flex: 1 1 195px; }
+.contact-page .contact-preview-actions a { flex: 1 1 195px; }
+.contact-page .contact-preview-actions button[disabled] {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.contact-page .contact-mail-status {
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin: 10px 0;
+  line-height: 1.5;
+  font-size: 13px;
+}
+.contact-page .contact-mail-status-error {
+  background: rgba(255,95,95,.14);
+  color: #fff0ee;
+  border: 1px solid rgba(255,140,120,.5);
+}
+.contact-page .contact-mail-status-success {
+  background: rgba(27,163,103,.2);
+  color: #e2ffef;
+  border: 1px solid rgba(79,210,144,.6);
+}
+
+/* FIXOKU 022U - shared public article hero and contact confirmation */
+/* ONLY the shared content/article heroes: other hero designs stay untouched. */
+@media (min-width: 900px) {
+  body .content-hero {
+    height: auto !important;
+    min-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  body .content-hero .content-hero-inner {
+    width: min(calc(100% - 64px), 1360px) !important;
+    max-width: 1360px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-top: 43px !important;
+    padding-bottom: 43px !important;
+    min-height: 0 !important;
+  }
+  body .content-hero .content-hero-inner h1 {
+    max-width: none !important;
+    font-size: clamp(33px, 3.3vw, 54px) !important;
+    line-height: 1.12 !important;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+    margin-bottom: 14px !important;
+  }
+  body .content-hero .content-hero-inner .content-summary,
+  body .content-hero .content-hero-inner > p {
+    max-width: 1200px !important;
+    line-height: 1.55 !important;
+    margin-bottom: 14px !important;
+  }
+  body .content-hero .content-hero-inner .content-breadcrumbs,
+  body .content-hero .content-hero-inner nav[aria-label] {
+    margin-bottom: 14px !important;
+  }
+}
+@media (min-width: 600px) and (max-width: 899px) {
+  body .content-hero { min-height: 0 !important; height: auto !important; padding-block: 0 !important; }
+  body .content-hero .content-hero-inner {
+    width: calc(100% - 48px) !important;
+    max-width: none !important;
+    margin-inline: auto !important;
+    min-height: 0 !important;
+    padding-block: 36px !important;
+  }
+  body .content-hero .content-hero-inner h1 {
+    max-width: none !important;
+    font-size: clamp(30px, 4.5vw, 42px) !important;
+    line-height: 1.15 !important;
+  }
+  body .content-hero .content-hero-inner .content-summary { max-width: none !important; }
+}
+@media (max-width: 599px) {
+  body .content-hero { min-height: 0 !important; height: auto !important; padding-block: 0 !important; }
+  body .content-hero .content-hero-inner {
+    width: calc(100% - 32px) !important;
+    max-width: none !important;
+    margin-inline: auto !important;
+    min-height: 0 !important;
+    padding-top: 28px !important;
+    padding-bottom: 30px !important;
+  }
+  body .content-hero .content-hero-inner h1 {
+    max-width: none !important;
+    font-size: clamp(26px, 7.3vw, 36px) !important;
+    line-height: 1.16 !important;
+    overflow-wrap: break-word;
+  }
+  body .content-hero .content-hero-inner .content-summary { max-width: none !important; }
+}
+/* Align the confirmation actions, including WhatsApp SVG, without moving the form. */
+.contact-page .contact-preview { width: 100%; min-width: 0; }
+.contact-page .contact-preview-message { min-height: 150px; max-height: 320px; }
+.contact-page .contact-preview-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+}
+.contact-page .contact-preview-actions .contact-email-send,
+.contact-page .contact-preview-actions .contact-whatsapp-continue {
+  box-sizing: border-box;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 54px !important;
+  margin: 0 !important;
+  padding: 11px 12px !important;
+  border: 0;
+  flex: unset !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 15px !important;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+}
+.contact-page .contact-preview-actions .contact-whatsapp-continue {
+  background: linear-gradient(135deg,#25d366,#128c7e) !important;
+  color: #fff !important;
+  white-space: normal;
+}
+.contact-page .contact-whatsapp-continue .contact-whatsapp-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  color: #fff;
+}
+.contact-page .contact-whatsapp-continue .contact-whatsapp-label {
+  color: inherit;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-weight: 850;
+  white-space: normal;
+}
+.contact-page .contact-whatsapp-continue .contact-whatsapp-arrow {
+  color: inherit;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  flex-shrink: 0;
+}
+.contact-page .contact-preview-actions .contact-edit-btn {
+  grid-column: 1 / -1;
+  justify-self: end;
+  width: auto;
+  min-width: 124px;
+  min-height: 44px;
+  padding: 8px 20px;
+  margin: 0;
+}
+@media (max-width: 620px) {
+  .contact-page .contact-preview-actions { grid-template-columns: minmax(0,1fr) !important; }
+  .contact-page .contact-preview-actions .contact-edit-btn { grid-column: 1; }
+}
+/* FIXOKU_HOME_UX_20261021_V1 START | HOME ONLY */
+/* Kartlarin gorsel bolumu: iceride bosluk yok, tam tasma */
+.how-it-works-section .how-card-visual {
+  width: 100%;
+  aspect-ratio: 334 / 215;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: block;
+  overflow: hidden;
+}
+.how-it-works-section .how-card-illustration {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  aspect-ratio: auto !important;
+}
+.how-it-works-section .how-card-image {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 0 !important;
+  filter: none !important;
+}
+.how-it-works-section .how-card-clouds { display: none !important; }
+/* Tasmasina izin verilen dekor sekilleri, kartlarin ve yazinin ustune cikmasin */
+.fixoku-experience-section .fixoku-experience-hero {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+.fixoku-experience-section .fixoku-bg-shape { pointer-events: none !important; }
+.fixoku-experience-section .fixoku-experience-cards,
+.fixoku-experience-section .fixoku-experience-action,
+.fixoku-experience-section .fixoku-experience-bottom {
+  position: relative;
+  z-index: 2;
+}
+/* FIXOKU_HOME_UX_20261021_V1 END */

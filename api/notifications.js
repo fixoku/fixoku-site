@@ -1,0 +1,13 @@
+import pg from "pg";
+import { resolvePrincipal } from "../src/server/auth/authorization.js";
+const json=(res,status,body)=>{res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.setHeader("X-Content-Type-Options","nosniff");res.end(JSON.stringify(body));};
+const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,Array.isArray(v)?v.join(", "):String(v)]));
+async function read(req){if(req.body&&typeof req.body==="object")return req.body;if(typeof req.body==="string")return JSON.parse(req.body);let s="";for await(const c of req)s+=c;return s?JSON.parse(s):{};}
+export default async function handler(req,res){
+  if(req.method!=="GET"&&req.method!=="PATCH"&&req.method!=="POST")return json(res,405,{error:"METHOD_NOT_ALLOWED"});
+  let p;try{p=await resolvePrincipal(headers(req));}catch{return json(res,503,{error:"AUTHORITY_UNAVAILABLE"});}
+  if(!p)return json(res,401,{error:"UNAUTHENTICATED"});if(!p.user)return json(res,403,{error:"FORBIDDEN"});
+  const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});let c;try{c=await pool.connect();
+    if(req.method==="GET"){const [rowsResult,countResult]=await Promise.all([c.query("select id,event_type as \"eventType\",title,body,metadata_json as \"metadataJson\",read_at as \"readAt\",created_at as \"createdAt\" from panel_notifications where recipient_user_id=$1 order by created_at desc limit 100",[p.user.id]),c.query("select count(*)::int as count from panel_notifications where recipient_user_id=$1 and read_at is null",[p.user.id])]);return json(res,200,{notifications:rowsResult.rows,unreadCount:Number(countResult.rows[0]?.count||0)});}
+    let x;try{x=await read(req);}catch{return json(res,400,{error:"INVALID_JSON"});}if(!x||typeof x!=="object"||Array.isArray(x))return json(res,400,{error:"INVALID_BODY"});const all=x.all===true,id=typeof x.id==="string"?x.id.trim():"";if(!all&&!id)return json(res,400,{error:"NOTIFICATION_ID_REQUIRED"});await c.query("begin");if(all){await c.query("update panel_notifications set read_at=coalesce(read_at,now()) where recipient_user_id=$1",[p.user.id]);}else{const result=await c.query("update panel_notifications set read_at=coalesce(read_at,now()) where id=$1 and recipient_user_id=$2 returning id",[id,p.user.id]);if(!result.rowCount){await c.query("rollback");return json(res,404,{error:"NOTIFICATION_NOT_FOUND"});}}await c.query("commit");return json(res,200,{status:"READ"});
+  }catch{try{if(c)await c.query("rollback");}catch{ /* preserve original error */ }return json(res,503,{error:"NOTIFICATIONS_UNAVAILABLE"});}finally{if(c)c.release();await pool.end();}}

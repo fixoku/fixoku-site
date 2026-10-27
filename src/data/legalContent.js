@@ -1,3 +1,4 @@
+import { legalPublicPages2026 } from './legalPublicPages2026.js';
 export const contactPhones = {
   mobile: {
     label: "Cep / WhatsApp",
@@ -268,6 +269,9 @@ export const legalPages = [
     ],
   },
 ];
+
+// FIXOKU 021I: yerel kullanıcı bilgilendirme sayfaları. Yayın ve hukuki onay ayrıca doğrulanır.
+legalPages.splice(0, legalPages.length, ...legalPublicPages2026);
 
 export const legalContentByPath = Object.fromEntries(
   legalPages.map((page) => [page.path, page]),

@@ -1,6 +1,8 @@
+import TrainingArticlePackages from "../../components/content/TrainingArticlePackages.jsx";
 import ContentCta from "../../components/content/ContentCta.jsx";
 import ContentPageLayout from "../../components/content/ContentPageLayout.jsx";
 import RelatedContent from "../../components/content/RelatedContent.jsx";
+import SoftwareInterestForm from "../../components/content/SoftwareInterestForm.jsx";
 
 export default function TopicArticle({ article, contentByPath }) {
   return (
@@ -21,8 +23,10 @@ export default function TopicArticle({ article, contentByPath }) {
         </section>
       ))}
 
+      <TrainingArticlePackages />
       <RelatedContent contentByPath={contentByPath} paths={article.related} />
       <ContentCta cta={article.cta} />
+      {article.path === "/fixoku-egitimi/yazilim" && <SoftwareInterestForm />}
     </ContentPageLayout>
   );
 }

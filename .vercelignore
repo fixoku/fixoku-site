@@ -1,0 +1,23 @@
+.env
+.env.*
+**/.env
+**/.env.*
+.vercel
+node_modules
+dist/
+.prerender-server/
+test-results/
+playwright-report/
+.agents/
+.codex/
+# R89/R90 historical release packages and reports are never deploy sources.
+R89_*
+R90_*
+R90E_*
+R90I_*
+FIXOKU_R90*_*.md
+FIXOKU_R90*_*.json
+docs/release-candidate/
+docs/architecture/drafts/
+r92-recovery-*/
+FIXOKU_R92_*.md

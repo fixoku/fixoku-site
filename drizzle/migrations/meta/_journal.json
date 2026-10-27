@@ -1,0 +1,314 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1788883697297,
+      "tag": "0000_dear_donald_blake",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788884814470,
+      "tag": "0001_dashing_edwin_jarvis",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788885605268,
+      "tag": "0002_wild_shriek",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788885828443,
+      "tag": "0003_auth-user-mapping",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788887203989,
+      "tag": "0004_rate-limit",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788887370541,
+      "tag": "0005_ratelimit-id",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788898131070,
+      "tag": "0006_dashing_bloodstorm",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788901200520,
+      "tag": "0007_strong_klaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788906705644,
+      "tag": "0008_dazzling_fenris",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788909651320,
+      "tag": "0009_jittery_killmonger",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788910000000,
+      "tag": "0010_trainer_earning_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788911000000,
+      "tag": "0011_trainer_availability",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788912000000,
+      "tag": "0012_student_roster",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788920000000,
+      "tag": "0013_canonical_enrollment_assignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788950000000,
+      "tag": "0014_guardian_portal_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1789000000000,
+      "tag": "0015_package_catalog_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1789001000000,
+      "tag": "0016_trainer_assignment_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789002000000,
+      "tag": "0017_package_commerce_entitlement_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789003000000,
+      "tag": "0018_owner_trainer_authority",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789004000000,
+      "tag": "0019_fulfillment_download_notifications_finance",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1789005000000,
+      "tag": "0020_operational_products_shipments",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1789006000000,
+      "tag": "0021_download_delivery_email_outbox",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1789242544364,
+      "tag": "0022_panel_profile_payout_parity",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789400000000,
+      "tag": "0023_account_lifecycle_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1789500000000,
+      "tag": "0024_trainer_package_commerce",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1789501000000,
+      "tag": "0025_trainer_commerce_runtime",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1789720000000,
+      "tag": "0026_student_commerce_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1789800000000,
+      "tag": "0027_student_order_payment_method",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1789900000000,
+      "tag": "0028_admin_owner_005g_consolidated_package_product_fulfillment",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1790038303896,
+      "tag": "0029_r6_canonical_commerce",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1790080000000,
+      "tag": "0030_r6_post_apply_corrections",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1790100000000,
+      "tag": "0031_core001_price_catalog_shipping",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790100000001,
+      "tag": "0032_trainer_purchase_expertise",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1790100000002,
+      "tag": "0033_core_multi_student_capability",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1790100000003,
+      "tag": "0034_student_account_level_purchase",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1790100000004,
+      "tag": "0035_owner_admin_package_permissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790200000000,
+      "tag": "0036_family_offer_persistence",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1790200000001,
+      "tag": "0037_family_offer_cart_item",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1791852606000,
+      "tag": "0038_trainer_video_progress_indices",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792203392163,
+      "tag": "0039_trainer_candidate_activation",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792365881776,
+      "tag": "0040_r64_child_identity_isolation",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1792440000000,
+      "tag": "0041_owner_legal_vat_approval",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1792500000000,
+      "tag": "0042_order_refund_reversal_reconciliation",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1792600000000,
+      "tag": "0043_email_template_persistence",
+      "breakpoints": true
+    }
+  ]
+}

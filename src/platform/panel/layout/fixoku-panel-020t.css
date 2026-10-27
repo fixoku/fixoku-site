@@ -1,0 +1,95 @@
+/* FIXOKU_020T_PANEL_LAYOUT_START: UI-only, preserves panel actions and state. */
+.platform-panel .panel-topbar { position:relative; }
+.platform-panel .panel-topbar .fixoku-breadcrumb-020s {
+  display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:clamp(13px,1vw,16px); line-height:1.4;
+  color:#607289; min-width:0;
+}
+.platform-panel .panel-topbar .fixoku-breadcrumb-020s a { color:#64758a; font-weight:650; text-decoration:none; }
+.platform-panel .panel-topbar .fixoku-breadcrumb-020s a:hover { color:#e75c12; text-decoration:underline; }
+.platform-panel .panel-topbar .fixoku-breadcrumb-020s strong { color:#df5c13; font-weight:800; }
+.platform-panel .panel-topbar .fixoku-breadcrumb-step-020s { display:inline-flex; gap:6px; align-items:center; min-width:0; }
+.platform-panel .panel-topbar .fixoku-breadcrumb-step-020s svg { flex:none; color:#9da9b7; }
+.platform-panel .panel-topbar-title { min-width:0; flex:0 1 auto; }
+.platform-panel .fixoku-trainer-greeting-020t {
+  position:absolute; left:46%; top:50%; transform:translate(-50%,-50%);
+  display:flex; align-items:center; gap:9px; white-space:nowrap; color:#13263e;
+  font-size:clamp(15px,1.25vw,20px); letter-spacing:-.02em; pointer-events:none;
+}
+.platform-panel .fixoku-trainer-greeting-020t svg { color:#ed871a; }
+.platform-panel .panel-sidebar .panel-brand img {
+  width:194px !important; max-width:calc(100% - 12px) !important;
+  max-height:94px; height:auto !important; object-fit:contain;
+}
+.platform-panel .panel-sidebar .panel-brand { min-height:92px; }
+.platform-panel.trainer-panel .trainer-dashboard-hero {
+  display:block !important; height:auto !important; min-height:0 !important; padding:0 !important;
+  overflow:hidden; border-radius:0 0 15px 15px; background:transparent;
+}
+.platform-panel.trainer-panel .trainer-dashboard-hero > .trainer-banner {
+  display:block !important; position:static !important; width:100% !important;
+  max-width:none !important; height:auto !important; margin:0 !important; opacity:1 !important;
+  object-fit:cover !important; border-radius:0 !important; z-index:auto !important;
+}
+.platform-panel.trainer-panel .fixoku-assignments-refresh-bottom-020t {
+  display:flex; justify-content:flex-end; margin-top:18px; margin-bottom:14px;
+}
+.platform-panel.trainer-panel .fixoku-assignments-refresh-bottom-020t .ta4-refresh { min-height:40px; }
+.platform-panel.trainer-panel .trainer-students-page { padding-top:18px; }
+.platform-panel.trainer-panel .trainer-earnings-page { padding-top:22px; }
+/* Notification route: expand content; hide only duplicated inner route trail, not notification controls. */
+.platform-panel:has(.fixoku-notifications-route-020t) .panel-main main {
+  width:100% !important; max-width:none !important;
+  box-sizing:border-box;
+}
+.platform-panel:has(.fixoku-notifications-route-020t) .panel-main :is(.notification-center,.notifications-page,.notification-page,.panel-notifications-page,.notification-center-page) {
+  width:100% !important; max-width:none !important; box-sizing:border-box;
+}
+.platform-panel:has(.fixoku-notifications-route-020t) .panel-main main nav[aria-label="Sayfa yolu"],
+.platform-panel:has(.fixoku-notifications-route-020t) .panel-main :is(.notification-breadcrumb,.notifications-breadcrumb,.notification-back-breadcrumb) {
+  display:none !important;
+}
+@media (max-width:1250px) {
+  .platform-panel .fixoku-trainer-greeting-020t { left:40%; font-size:15px; }
+}
+@media (max-width:980px) {
+  .platform-panel .fixoku-trainer-greeting-020t {
+    position:static; transform:none; margin:0 auto 0 0;
+    white-space:normal; line-height:1.25;
+  }
+  .platform-panel .panel-topbar { flex-wrap:wrap; row-gap:10px; }
+}
+@media (max-width:760px) {
+  .platform-panel .panel-sidebar .panel-brand { min-height:68px; height:auto; }
+  .platform-panel .panel-sidebar .panel-brand img {
+    width:150px !important; max-height:70px !important;
+  }
+  .platform-panel .panel-topbar .fixoku-breadcrumb-020s { font-size:13px; }
+  .platform-panel .fixoku-trainer-greeting-020t { margin:0; font-size:15px; }
+  .platform-panel.trainer-panel .trainer-dashboard-hero { margin:0 12px; border-radius:12px; }
+  .platform-panel:has(.fixoku-notifications-route-020t) .panel-main main { padding-inline:14px !important; }
+}
+/* FIXOKU_020T_PANEL_LAYOUT_END */
+/* FIXOKU_020V_READABILITY_AND_HERO_START */
+/* Earlier shared skins used a gradient mask; the approved full-width banner must remain sharp. */
+.platform-panel.trainer-panel .trainer-dashboard-hero > img.trainer-banner {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+/* Only the earnings column labels: easier reading without changing tables in other panels. */
+.platform-panel.trainer-panel .trainer-earnings-page .earnings-table-wrap thead th {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  color: #23334b !important;
+  padding-block: 15px !important;
+}
+@media (max-width: 760px) {
+  .platform-panel.trainer-panel .trainer-earnings-page .earnings-table-wrap thead th {
+    font-size: 15px !important;
+  }
+}
+/* FIXOKU_020V_READABILITY_AND_HERO_END */

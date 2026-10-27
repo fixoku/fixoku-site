@@ -1,0 +1,4869 @@
+{
+  "generatedAt": "2026-10-26T22:27:06.8602220Z",
+  "sourceCommit": "78622a744b6864aa7acfdba6c08db247bba71f63",
+  "migrationSourceCount": 44,
+  "excluded": [
+    ".env*",
+    "credentials",
+    "private/protected media",
+    "node_modules",
+    "dist",
+    ".vercel",
+    "database dumps",
+    "historical reports/backups",
+    "manifest self"
+  ],
+  "fileCount": 970,
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "1301ab2a092aaf4d9e7bae7e1e37ae14343e3f87a4e9ef70daa7530a83a055ef",
+      "size": 364
+    },
+    {
+      "path": ".vercelignore",
+      "sha256": "0c3dbcda23141ff4e0837d82cfc898727452e90d45c95c5f7d5acc2186bd5954",
+      "size": 364
+    },
+    {
+      "path": "README.md",
+      "sha256": "a2648adf2f4e92d188d79e14c2b26e207bb0654e90beb5d99e7eb594d995fe65",
+      "size": 1043
+    },
+    {
+      "path": "api/account-lifecycle.js",
+      "sha256": "ac3b324733362b7a97afe6c0f9b93abf963b4115f0efc1ab063edfd8fd4990df",
+      "size": 16953
+    },
+    {
+      "path": "api/account-lifecycle/register.js",
+      "sha256": "5b4ae3e3760c215003588fd7d6a705cf3170ccc4d15c0fd64347952676fddd75",
+      "size": 339
+    },
+    {
+      "path": "api/admin/account-lifecycle.js",
+      "sha256": "cf4f92bc561339b341f28d0eaa0a6ad8dbfed13246dbc7cda668fb0b343354bc",
+      "size": 13271
+    },
+    {
+      "path": "api/admin/account-lifecycle/trainer-applications.js",
+      "sha256": "5b4ae3e3760c215003588fd7d6a705cf3170ccc4d15c0fd64347952676fddd75",
+      "size": 339
+    },
+    {
+      "path": "api/admin/account-lifecycle/trainer-invitations.js",
+      "sha256": "5b4ae3e3760c215003588fd7d6a705cf3170ccc4d15c0fd64347952676fddd75",
+      "size": 339
+    },
+    {
+      "path": "api/admin/assignment-requests.js",
+      "sha256": "df1a0dd1777a379faf377b8680c86d1e6f6da30d0c9d9cfe97dcd7c3ca868452",
+      "size": 3281
+    },
+    {
+      "path": "api/admin/assignment-requests/[id].js",
+      "sha256": "0f9b04c8ec193163daea084cd1a27cd3c1f21f0771b2bed396ba214c2af95c3e",
+      "size": 17736
+    },
+    {
+      "path": "api/admin/audit-actor-photo.js",
+      "sha256": "95a728561bb16a341a463180f7529003fd958a21151907817f63e9f554b5b65f",
+      "size": 2849
+    },
+    {
+      "path": "api/admin/audit-history.js",
+      "sha256": "9954bf8b632bef22b8f0b777752ca2cc508b5789dcc35b6fb671fc6e09f7d676",
+      "size": 11055
+    },
+    {
+      "path": "api/admin/catalog-image-upload.js",
+      "sha256": "ca7a9f83f7286d521701721d138531c6413ebc315e6a12569e933bd9eb7535c7",
+      "size": 3252
+    },
+    {
+      "path": "api/admin/education-presentations.js",
+      "sha256": "1139bf6fb981652898ab15825ae3614afceb9432d3c7e85195a21986a41a9c2f",
+      "size": 7493
+    },
+    {
+      "path": "api/admin/education-programs.js",
+      "sha256": "7dfc48aa9beb259ac2f224444163279f8315e2cef3bcaba54ae56f0b6340b1e3",
+      "size": 10625
+    },
+    {
+      "path": "api/admin/education-programs/[id].js",
+      "sha256": "d9db3da2a19be65ccc4345c3dd71339a6b410e65a9a5098f42a9b33acd885917",
+      "size": 53
+    },
+    {
+      "path": "api/admin/education-resources.js",
+      "sha256": "2c24af4c32539e06a2515de83168354ddaf274bcb48f7eef58e96250756137fa",
+      "size": 7163
+    },
+    {
+      "path": "api/admin/family-offers.js",
+      "sha256": "cb5b8744b768ef1d4da50f3baea462bc4f723a5e643cc0c2038f256726adb02e",
+      "size": 13671
+    },
+    {
+      "path": "api/admin/finance.js",
+      "sha256": "677d31f4b36da26316997c5ef23565bf8842fed902a3dbc854c1f1290d880d18",
+      "size": 17246
+    },
+    {
+      "path": "api/admin/inventory.js",
+      "sha256": "bc4709cbff0080d76284599667545c236107b7c3aa340786bf2c41587ff33041",
+      "size": 6216
+    },
+    {
+      "path": "api/admin/order-refunds.js",
+      "sha256": "80ca9edde3499876a84f6cce2cbd64799fcc47c6cd05c9178d08e6182c2493f8",
+      "size": 5545
+    },
+    {
+      "path": "api/admin/orders.js",
+      "sha256": "c93313651f28a6b16e5146d294fbd5233457017ea9804ff4f28bfb7f54ed9396",
+      "size": 38878
+    },
+    {
+      "path": "api/admin/owner-legal-approval.js",
+      "sha256": "76a3bcd93cce1bbf982375422f041f2f7f013d6309ac5b942ff9ae39b18b93f0",
+      "size": 21537
+    },
+    {
+      "path": "api/admin/owner-legal-editor.js",
+      "sha256": "b6ae9e802377c8559e1feff52a03578e24a912ff58fc6ac2737d1eb8af4e7ab4",
+      "size": 1994
+    },
+    {
+      "path": "api/admin/owner-legal-review-package.js",
+      "sha256": "473b911bf55099393c8846192d78a280932793a8379db8e507e19955cf6baec3",
+      "size": 2188
+    },
+    {
+      "path": "api/admin/owner-legal-v10-package.js",
+      "sha256": "8f6ea6ce187cd22d7440894b87a480ce0e8ce2b0a5d4ebb8fa11c227dd989d2a",
+      "size": 2134
+    },
+    {
+      "path": "api/admin/package-permissions.js",
+      "sha256": "9b0c81f7fdb8da453024f191582e07844b32be30ddf574540fd56b2c720983dd",
+      "size": 5448
+    },
+    {
+      "path": "api/admin/packages.js",
+      "sha256": "04456e430d526bd4673d790f4d90581adb1750b1e386bb9fb320ed9ab4464959",
+      "size": 3526
+    },
+    {
+      "path": "api/admin/packages/[id].js",
+      "sha256": "7c25fc2fbbf60c0500c562c39626a78d1af8112dd3931ae9d797f360ea30244e",
+      "size": 12406
+    },
+    {
+      "path": "api/admin/payments.js",
+      "sha256": "0c2b562a672c35860e5cea6d6fe979d58da2311ac1d0036240b3b1441a12288b",
+      "size": 4566
+    },
+    {
+      "path": "api/admin/payouts.js",
+      "sha256": "51ce5fd96a1244f6057696f3abb1f3df6d2b88d99337b119f124e5295f88a03d",
+      "size": 16784
+    },
+    {
+      "path": "api/admin/products.js",
+      "sha256": "d9410cef935153c437978aef89b5ace643d17ed24f11fb445f14321eae7e42af",
+      "size": 9867
+    },
+    {
+      "path": "api/admin/products/[id].js",
+      "sha256": "2fb93acb523ef14dade1d823af89156181e64f88a562f04d0ce11d65c3e90498",
+      "size": 7842
+    },
+    {
+      "path": "api/admin/r6-custom-offers.js",
+      "sha256": "e81ab2d1531ac65a8cc891a8eeac129e11b7e2e7a1fc46f53d5c3b0045374883",
+      "size": 23236
+    },
+    {
+      "path": "api/admin/r6-group-assignment-candidates.js",
+      "sha256": "a3f5d9315132336f01c594762f66074459b4676251c42bdcc7277e04b23077ef",
+      "size": 4899
+    },
+    {
+      "path": "api/admin/r6-qualifications.js",
+      "sha256": "8d3472587dce724d59328cb661da5747b1f4ece2282c87e543f4f9823b1c7e18",
+      "size": 9281
+    },
+    {
+      "path": "api/admin/r6-training-groups.js",
+      "sha256": "604bb85e22c23a27126914074828823c83c985b406d4b5a1c399e99db9b341c8",
+      "size": 21306
+    },
+    {
+      "path": "api/admin/r6-training-groups/[id].js",
+      "sha256": "1150dd13ec9ac9708e44af19dc04a1a06e7f542eeb57ad8c4e4e1da580a2dd45",
+      "size": 9265
+    },
+    {
+      "path": "api/admin/shipments.js",
+      "sha256": "5cd1e76b9b22d26cf8687075ea7ef47b69312d78c3b3c93904ab5196f45688e9",
+      "size": 3188
+    },
+    {
+      "path": "api/admin/shipments/[id].js",
+      "sha256": "3ccd756aa554c2cd4d28af793dbfb6910180395acdcf6a2f31e7575c39b0c479",
+      "size": 7744
+    },
+    {
+      "path": "api/admin/shipments/kolaygelsin-preflight.js",
+      "sha256": "4b704bdc58b1c2bcac8638b20ff8ce24a8b09b130f16a986dc0363890a4d9c15",
+      "size": 4219
+    },
+    {
+      "path": "api/admin/staging-smtp-test.js",
+      "sha256": "80c3a3177fdb39bebc770baeebc42d42de4938dbe7fc43a26f9ef397966228ca",
+      "size": 593
+    },
+    {
+      "path": "api/admin/student-account-capability.js",
+      "sha256": "a19a5f38af2363a939fa1dc7c3c4161ab677562c1ed2f0ce5cf51ced7360f473",
+      "size": 4309
+    },
+    {
+      "path": "api/admin/student-bank-transfers.js",
+      "sha256": "2b139f3739cdfb9d9e345fd972fd0bfe9a0f284a0ec66af4dca714bcaefc001c",
+      "size": 8472
+    },
+    {
+      "path": "api/admin/student-commerce-packages.js",
+      "sha256": "b309d67b0d6fc20cc8c5b2ce035554d70c3080edafc626ee739dc9d068cff07d",
+      "size": 32537
+    },
+    {
+      "path": "api/admin/students.js",
+      "sha256": "02820a3c57f3a91df92f7a8e7c72086f00e23ef6a98027785e0f2b4b6fcdf237",
+      "size": 6164
+    },
+    {
+      "path": "api/admin/trainer-bank-transfers.js",
+      "sha256": "6235db8732783b26c6d4df4e8618d7b8d55b8ea2cd3759e29bc11a666e239c73",
+      "size": 8370
+    },
+    {
+      "path": "api/admin/trainer-entitlements.js",
+      "sha256": "090ff822a024390f7a227a22600f238e75a8a44a7d780f51c77b1a68c12dcb72",
+      "size": 8280
+    },
+    {
+      "path": "api/admin/trainer-packages.js",
+      "sha256": "fec80cdf1560d0dcf18e7d1fa60a34ec61831f4212fa9b1804253aa39a6c4f62",
+      "size": 23397
+    },
+    {
+      "path": "api/admin/trainer-shipments/[id].js",
+      "sha256": "8eaec25d465648d75e6412a6c0fd64c404caddbf384b23985da031e923a9e91b",
+      "size": 3862
+    },
+    {
+      "path": "api/admin/trainers.js",
+      "sha256": "69862581871f7838c5b6161242665f91150f9a6be45e81c64f4fb7a974d47398",
+      "size": 7565
+    },
+    {
+      "path": "api/admin/trainers/[id].js",
+      "sha256": "04e5ac9bee153752788ed7f9b76143dceb1fd23bab6712ab323a306d6fcf427a",
+      "size": 2572
+    },
+    {
+      "path": "api/admin/users.js",
+      "sha256": "d2b0f72d731e3b128873af9c3c978335b36d52b556097f3fb765957e21f9c48f",
+      "size": 3592
+    },
+    {
+      "path": "api/auth/[...all].js",
+      "sha256": "15af28947f601b102d5f2b0dd2c01ef0edb5747345b386644717d34bdb360efe",
+      "size": 736
+    },
+    {
+      "path": "api/commerce/dev-settle.js",
+      "sha256": "59b95f9231ee6e75fca9ed1aa27e1b72c4f56521f0e974f7f00d04734f7170db",
+      "size": 2355
+    },
+    {
+      "path": "api/commerce/legal-snapshots.js",
+      "sha256": "fddef214240a2d271083a93b2747622440d5a5cc766a97da508a97ca8ffa0cff",
+      "size": 1125
+    },
+    {
+      "path": "api/commerce/orders.js",
+      "sha256": "5a111091273fcc2c7f12a832dde5fa52696bc5c01bbf2a14a948d3504c7bd1e6",
+      "size": 2227
+    },
+    {
+      "path": "api/commerce/webhooks.js",
+      "sha256": "048e69c1eb7577818922fed30021273eeb5330eabdf77b8ab683b6044e56c425",
+      "size": 2161
+    },
+    {
+      "path": "api/dev-login.js",
+      "sha256": "0a88850dfde94542bbf8872a49eafff7e7754ab3dc6e25750d7c5314cf41c4ae",
+      "size": 3093
+    },
+    {
+      "path": "api/institution-application.js",
+      "sha256": "468685dd8557baffe946c8896c9bc76e0086a116d72dcecb1b3fc7fd0f75936f",
+      "size": 10218
+    },
+    {
+      "path": "api/invitation-accept.js",
+      "sha256": "615624ebbb10c7f024e013e122313da72495efd49202f35a1cd24dbfbeaafdbd",
+      "size": 6907
+    },
+    {
+      "path": "api/invitation-accept/admin-invitation-accept.js",
+      "sha256": "412bac0708d43d31b2cd4d02192fb4e60e26151e3ca56fb9106a750f75badf3e",
+      "size": 339
+    },
+    {
+      "path": "api/invitation-accept/trainer-invitation-accept.js",
+      "sha256": "412bac0708d43d31b2cd4d02192fb4e60e26151e3ca56fb9106a750f75badf3e",
+      "size": 339
+    },
+    {
+      "path": "api/local-review/switch-user.js",
+      "sha256": "b56242beeea6a3924861d337e4d5236d65b0389af461635c4205ffeda4b4fef9",
+      "size": 7272
+    },
+    {
+      "path": "api/notifications.js",
+      "sha256": "394c645c438f15199529fb3997311b051a51804c558f6deabd1d19b71229f140",
+      "size": 2691
+    },
+    {
+      "path": "api/owner-2fa-enable.js",
+      "sha256": "f42bec29449e2d692052d7d5c53d1463cf944fa672416dbdfc5d4bef3e18c71d",
+      "size": 597
+    },
+    {
+      "path": "api/owner-2fa-verify.js",
+      "sha256": "a78f5ae38bd4d2d21f7881fb17ff20c5f877f5067bfc577a32837400af75cbc4",
+      "size": 604
+    },
+    {
+      "path": "api/owner-sign-in.js",
+      "sha256": "7c9dc9ec0b06ac4365dc9d41192c7cd97263eea64f6ae7cbe61e075ea1a8b2c6",
+      "size": 5136
+    },
+    {
+      "path": "api/owner/email-templates.js",
+      "sha256": "4ecdaa30c9c829cc59dbe05b669f3c7d0530f56cc2481fc779b2748d0bfc9b48",
+      "size": 10220
+    },
+    {
+      "path": "api/owner/finance.js",
+      "sha256": "45f47290114535d455d8121ea19a63ac3f4f817448072bff4f178e094a5ce1a7",
+      "size": 48
+    },
+    {
+      "path": "api/owner/payout-accounts.js",
+      "sha256": "7e14dffd0ead007906eda29ec04a1d2ff6bf6628fc38f2beb4aede544a5c9cb5",
+      "size": 1786
+    },
+    {
+      "path": "api/owner/payouts.js",
+      "sha256": "9fc9a0ace55ddf9d8cf19e8f829c72e64d454cc5f761579318e7fac8e8acbcdd",
+      "size": 48
+    },
+    {
+      "path": "api/panel-context.js",
+      "sha256": "de074b3def9ad2035dea0fcce1cf42fba18b1df3de5a3a4a9af0b82ac9288c10",
+      "size": 5272
+    },
+    {
+      "path": "api/paytr/callback.js",
+      "sha256": "32bedce117a79ea2f940d9f2b558af34f1dc423840ecb92fcaa8f8d54bef6f52",
+      "size": 2961
+    },
+    {
+      "path": "api/paytr/return-failure.js",
+      "sha256": "71fd7580438fae0b2d6c9764cba512db1a8de9c446cbd7562a50b0e93f77fe1e",
+      "size": 1677
+    },
+    {
+      "path": "api/paytr/return-success.js",
+      "sha256": "bbbebb35910f4cac2e4c21676b48f7f011b292d195bdd830693fee8a948a12e2",
+      "size": 1712
+    },
+    {
+      "path": "api/paytr/token.js",
+      "sha256": "d19e7e93fb18ed48c939acc05fff8335315ba97f6fc6988f815fd64412a1f38d",
+      "size": 3991
+    },
+    {
+      "path": "api/platform-sign-in.js",
+      "sha256": "d262011c29fb19e6ded5d4ed96fa7edd9a8e3ccb86d015bb78256a299cbad78a",
+      "size": 3371
+    },
+    {
+      "path": "api/provider-status.js",
+      "sha256": "1de69d3dfddbe90254d38d87d4d9d721bc7b8623b79d55c10bcc4064dc733ab2",
+      "size": 2918
+    },
+    {
+      "path": "api/public/contact-message.js",
+      "sha256": "9982038bc992c41bcc9eb54f8b22c4b7987d06e36f3d2242347c1f21ebceab83",
+      "size": 5628
+    },
+    {
+      "path": "api/public/student-commerce-packages.js",
+      "sha256": "b89756787e700f47ea6b6733cc2c387a2aecec9bf114cccb7abab0036a615a20",
+      "size": 4781
+    },
+    {
+      "path": "api/student/assigned-trainer.js",
+      "sha256": "58be41c8268a587ebb8a9e683474a1ca17183ad0aa36502c33fb4e003788e973",
+      "size": 6237
+    },
+    {
+      "path": "api/student/cart.js",
+      "sha256": "1711bf418417b062fc86652cc000ac0d879a84789ef939b1527a132a87098971",
+      "size": 8205
+    },
+    {
+      "path": "api/student/children.js",
+      "sha256": "3d96ab308f5b0ae75f794df56ca2c73a0ea90545d50f085b6dc706ceec0e9a2d",
+      "size": 9420
+    },
+    {
+      "path": "api/student/custom-offers.js",
+      "sha256": "14fdc01e441991d8df3b05d70f99eb0764c4d80f6ec52cb844f30c96faf41459",
+      "size": 24231
+    },
+    {
+      "path": "api/student/downloads/[id].js",
+      "sha256": "40c697f0fc1088a6a683d7a803b82082e0a835fd061bb07f6b5b4388d1575503",
+      "size": 5334
+    },
+    {
+      "path": "api/student/entitlements.js",
+      "sha256": "740dab1f80889d7fab45c003e77e5f11633d6998f2c54abbd835fe30efab0096",
+      "size": 6650
+    },
+    {
+      "path": "api/student/family-offers.js",
+      "sha256": "718ae62f111e0122abcde6330287de0aa85381705013995214c1e4db1c233138",
+      "size": 2606
+    },
+    {
+      "path": "api/student/orders.js",
+      "sha256": "1aab2d14beeaf1d23569f58da913fa6bb846f4dfdd20a894352ca297b1fa63ef",
+      "size": 1726
+    },
+    {
+      "path": "api/student/packages.js",
+      "sha256": "8bb1f4cad21a8734907f5337c6c6e4de371de5a7a33e9f118c6db4f5c21340cc",
+      "size": 5095
+    },
+    {
+      "path": "api/student/portal-context.js",
+      "sha256": "f8f45a6f58a3b5951146668586634e2f8e058c18287262f6ed7ea7b8474a085b",
+      "size": 10151
+    },
+    {
+      "path": "api/student/profile.js",
+      "sha256": "1b93afc0b165f955ec837d3a8fbfbbc7eca8d88b6290284e981cd4b4f1670da4",
+      "size": 11456
+    },
+    {
+      "path": "api/student/reviews.js",
+      "sha256": "25848dd0df6a079fcecc18236421b107effcdbb89c249256eb47477033819f65",
+      "size": 7700
+    },
+    {
+      "path": "api/student/shipments.js",
+      "sha256": "c731fe8c1522c18b4cb948c4a78d64f90b970cba8964225bceca4e4692a35d21",
+      "size": 1772
+    },
+    {
+      "path": "api/trainer-applications.js",
+      "sha256": "1ed840fb456eb983e5157f89bca6d90908bf9b7dd383ec4000d6b1ed79619033",
+      "size": 338
+    },
+    {
+      "path": "api/trainer-candidate.js",
+      "sha256": "618acaaa491b64b01cda9289275c54ea1c1759cfa4e22d8e3c6d59c42b552900",
+      "size": 9420
+    },
+    {
+      "path": "api/trainer/addresses.js",
+      "sha256": "4d6a58f84b2be51ab085ea509308e89352b57e4c811a2f955dcc5c1db2ce0784",
+      "size": 4656
+    },
+    {
+      "path": "api/trainer/assignment-followup-core.js",
+      "sha256": "24f57fbb4ab0a63f27145151911bd02c8451a02b285bf014076e4e7cc65d25d2",
+      "size": 978
+    },
+    {
+      "path": "api/trainer/assignment-followup.js",
+      "sha256": "d5e34b494ad2fb888a4bc3634c3985acb0672c2ec3f723e9dab505ad37220054",
+      "size": 9383
+    },
+    {
+      "path": "api/trainer/availability.js",
+      "sha256": "07be1f879a3e4dc12f1f9707b7800431b28a406611180e2e82bf1b5ae14ca664",
+      "size": 4408
+    },
+    {
+      "path": "api/trainer/bank-transfer.js",
+      "sha256": "f8652470f91fa5b33edb186c7961f19e3625457bf9faacfa37b6acd485308e6e",
+      "size": 4935
+    },
+    {
+      "path": "api/trainer/cart.js",
+      "sha256": "287924a82bec806e14f61305664a8e23ac6d89261c853ebc9fa1d81c6cffb00d",
+      "size": 1813
+    },
+    {
+      "path": "api/trainer/completions.js",
+      "sha256": "eeb5945233d94053339a1ed9620357ff608c2fb7d4ba877959f610859e786693",
+      "size": 7019
+    },
+    {
+      "path": "api/trainer/curriculum-media.js",
+      "sha256": "91f74f1b313a09f8d937bda3d482597228e8bc819db542ed1cc7e0cb179ff0fd",
+      "size": 6455
+    },
+    {
+      "path": "api/trainer/curriculum.js",
+      "sha256": "07f75ad5670cb00bdad7c8e504b111a1d2bdd75b956728a7d15d1eae0b7b4528",
+      "size": 4244
+    },
+    {
+      "path": "api/trainer/earnings.js",
+      "sha256": "7b2846ff3a2913ee9948752ce2f8cea565c806676cbee166b6750a6e1ec73c11",
+      "size": 2572
+    },
+    {
+      "path": "api/trainer/legal-documents.js",
+      "sha256": "c063e447dfcc08d7d28ca63ed64fecbf98f7d71ce67f25b4b13860ffafcf4f35",
+      "size": 2520
+    },
+    {
+      "path": "api/trainer/orders.js",
+      "sha256": "7455e078e2cb40db2f02cc04563a984a9117bc137218ba45482cc205fe56905e",
+      "size": 2597
+    },
+    {
+      "path": "api/trainer/packages.js",
+      "sha256": "4acf6651d591f58f26ec28a21b5c8139ba9e6c370c7495db58a8c243a2aec1c5",
+      "size": 1272
+    },
+    {
+      "path": "api/trainer/payout-account.js",
+      "sha256": "d79596d37f4af433eb9008a026f6c7225b305eae147358a5ebfc06d921e80e41",
+      "size": 4300
+    },
+    {
+      "path": "api/trainer/presentations.js",
+      "sha256": "25804d82d0f6b2cfcc2d8e29b4698aade2636c0d6d0fc09b92b3fb552f2e1d12",
+      "size": 2189
+    },
+    {
+      "path": "api/trainer/profile.js",
+      "sha256": "896e4a3ae8c360ffafbd0b07c32bd2254f9564dab6cca224f62289526dd5dad4",
+      "size": 11966
+    },
+    {
+      "path": "api/trainer/profile/photo.js",
+      "sha256": "c53c1090e4049b89a3c0600f1a77f99b78e2f380b920ff50f8fa7f6dab3f832a",
+      "size": 2141
+    },
+    {
+      "path": "api/trainer/progress.js",
+      "sha256": "1dfb9e404f1bf9985d3613b36034e24e3cf5c7debea3d36f5b0e2bf8f811961d",
+      "size": 5494
+    },
+    {
+      "path": "api/trainer/resources.js",
+      "sha256": "528274448187f6e96c62072ad45047835701e349462db9ebd566779e9c15b4dd",
+      "size": 1804
+    },
+    {
+      "path": "api/trainer/shared-presentation-catalog.js",
+      "sha256": "80721337c8564bdfbfe459e8e5f208dbe09d979557f6de574f22b2f6bf4ca733",
+      "size": 780
+    },
+    {
+      "path": "api/trainer/shared-presentation-media.js",
+      "sha256": "c8b5c0940a9b735f5d2fbf11624e9e2e71a9b742f49fbaf2326b751a7c0f92ff",
+      "size": 2091
+    },
+    {
+      "path": "api/trainer/students.js",
+      "sha256": "1b68bfd08ec58f5762584aa1c7d752d6cf4fad3c8312fe9ddd4d36d581c9af70",
+      "size": 3311
+    },
+    {
+      "path": "api/trainer/students/[id].js",
+      "sha256": "60a3ea9b9e0a01e23a80478f98642b88cdd9eb23ad636bff051a900276c527d7",
+      "size": 3781
+    },
+    {
+      "path": "api/trainer/trainings.js",
+      "sha256": "83477bb2c2c2397f5042aaa2df6bca8921c50cf1b3072d6beaecae3748692645",
+      "size": 2442
+    },
+    {
+      "path": "api/trainer/video-config.js",
+      "sha256": "88c45d5e847f6512a947ecaff449b834b18c046433ba3cc5cc4bb72ae33df43d",
+      "size": 1209
+    },
+    {
+      "path": "api/trainer/video-media.js",
+      "sha256": "51416ad31e93fbda7e8af21b647b857ea1a367c85602d0beb9d9a4169936871d",
+      "size": 4702
+    },
+    {
+      "path": "api/trainer/video-preview-progress.js",
+      "sha256": "0b80462c65811a35f82a7b9538b802fbfdd675de205f432460b95476fee7bd95",
+      "size": 4159
+    },
+    {
+      "path": "api/trainer/videos.js",
+      "sha256": "323528b220df4aebc30b7e8001294f7fcade51dac4bf1edad03c62b246a4bd5a",
+      "size": 6269
+    },
+    {
+      "path": "docker-compose.platform.yml",
+      "sha256": "f7ee3811625c5caab562d783e397eaab1b471fb28c0c1ade8bdacd53bbf421b4",
+      "size": 667
+    },
+    {
+      "path": "drizzle.config.ts",
+      "sha256": "cbd1ac9d8a6913b6560ab5536b79d4f33629a5ae8b2cfb08ab8db313d6331a51",
+      "size": 275
+    },
+    {
+      "path": "drizzle/migrations/0000_dear_donald_blake.sql",
+      "sha256": "d963d408cc7226b7dc8acbdfacd175add3b5a3e83b39fc66a4de250daddf0d74",
+      "size": 2258
+    },
+    {
+      "path": "drizzle/migrations/0001_dashing_edwin_jarvis.sql",
+      "sha256": "cedfecf1ec3b557a573bb6ec3d71eb141d719047048e21429fbfeac7b2b6f61d",
+      "size": 2084
+    },
+    {
+      "path": "drizzle/migrations/0002_wild_shriek.sql",
+      "sha256": "9da5d84dfee9679c6b1d8439370b4149619dbc9bc276a51408445ce74e1e6571",
+      "size": 580
+    },
+    {
+      "path": "drizzle/migrations/0003_auth-user-mapping.sql",
+      "sha256": "42abbdcd363d9167b385c93ae5062c184706ef7855489032d8e31dcfef9cd539",
+      "size": 73
+    },
+    {
+      "path": "drizzle/migrations/0004_rate-limit.sql",
+      "sha256": "9463367e926e005a8acf481faf0f530ea7f09d33df5f2c955cd4e14d740cf3c9",
+      "size": 129
+    },
+    {
+      "path": "drizzle/migrations/0005_ratelimit-id.sql",
+      "sha256": "0ea7fa237e6266061bf3faf59adf3074d8c433a35c1566f06327f4239bb1aff8",
+      "size": 514
+    },
+    {
+      "path": "drizzle/migrations/0006_dashing_bloodstorm.sql",
+      "sha256": "c59cf294757e716de9f30643efc1fe9ee9ebad0eb5adf69afb22fc687fde71c7",
+      "size": 633
+    },
+    {
+      "path": "drizzle/migrations/0007_strong_klaw.sql",
+      "sha256": "abd10f5c1b73b97c1a5cf72c87ea512ea29d295f11a80cbd76cd352b5f3f19ce",
+      "size": 2100
+    },
+    {
+      "path": "drizzle/migrations/0008_dazzling_fenris.sql",
+      "sha256": "5ac8562e516b62c9e79c9588cbc8630f83d03aaf4b813f4aefaca828f4490781",
+      "size": 1064
+    },
+    {
+      "path": "drizzle/migrations/0009_jittery_killmonger.sql",
+      "sha256": "49cd02dff8c0c55af21df42803386b3e90e0633579ef5d56beb8cb16475e4423",
+      "size": 1021
+    },
+    {
+      "path": "drizzle/migrations/0010_trainer_earning_ledger.sql",
+      "sha256": "9f28d4e4d77f895203fa23a811a77d51dd91b60c5d035f21310655c29b66b85c",
+      "size": 1786
+    },
+    {
+      "path": "drizzle/migrations/0011_trainer_availability.sql",
+      "sha256": "48c95e22b25560a2aa739fdfa0f7463336cbf33b5238a00e501e9bb9abce13d5",
+      "size": 1227
+    },
+    {
+      "path": "drizzle/migrations/0012_student_roster.sql",
+      "sha256": "c10488c563f2c6148ecf7c4c4401ba5a4401162acf4abaf187a4dc03a49e291c",
+      "size": 1816
+    },
+    {
+      "path": "drizzle/migrations/0013_canonical_enrollment_assignment.sql",
+      "sha256": "226f81fbd9ec833ec3695612b82fc8d5532660043e67640a2afcdb5ccad88ff9",
+      "size": 1985
+    },
+    {
+      "path": "drizzle/migrations/0014_guardian_portal_foundation.sql",
+      "sha256": "fdb6965aad3d67948e49b8e4fe88a9f5011fcaf141d3563cdc51b909ed4712b4",
+      "size": 1912
+    },
+    {
+      "path": "drizzle/migrations/0015_package_catalog_foundation.sql",
+      "sha256": "2e24ec571c4d45ee963d7619f53bd492d7d29e1e4c7f639cb7f749c7055d0d3d",
+      "size": 2316
+    },
+    {
+      "path": "drizzle/migrations/0016_trainer_assignment_foundation.sql",
+      "sha256": "15d40ff36ac6f3b58694d0f5d352ed2b7241be92efdca9467fbdce6884ec03ab",
+      "size": 2266
+    },
+    {
+      "path": "drizzle/migrations/0017_package_commerce_entitlement_foundation.sql",
+      "sha256": "d53685fa48aec53e507ca197a535867be62ca5e1f42b7494d8de414c30b6a275",
+      "size": 10879
+    },
+    {
+      "path": "drizzle/migrations/0018_owner_trainer_authority.sql",
+      "sha256": "cd07c1a69ddf0a50822cf691b78ba0338b9347d4ffd54e37d7e92b23c8496ed9",
+      "size": 6512
+    },
+    {
+      "path": "drizzle/migrations/0019_fulfillment_download_notifications_finance.sql",
+      "sha256": "63311261e9ff9c65e23cf7d18f0df03a091f5d1c2df70ea8695bfe21cb7c8f33",
+      "size": 11200
+    },
+    {
+      "path": "drizzle/migrations/0020_operational_products_shipments.sql",
+      "sha256": "9afb1fcf79b31e016e77ab73767fae2764aa18b824c0585c95edd8e85a6be908",
+      "size": 725
+    },
+    {
+      "path": "drizzle/migrations/0021_download_delivery_email_outbox.sql",
+      "sha256": "fe70ea31eaf9dbef2e5a5fb07205874b923517a4c4b65c84a09409fda8443d23",
+      "size": 1051
+    },
+    {
+      "path": "drizzle/migrations/0022_panel_profile_payout_parity.sql",
+      "sha256": "3cbf63026a8294f3d6bb914936f3bb95952fda44d3cc2d68f66855900951da3b",
+      "size": 1850
+    },
+    {
+      "path": "drizzle/migrations/0023_account_lifecycle_foundation.sql",
+      "sha256": "8cf5f609aca58a94539ad593156d190385476ae886db99e30890860bd51a7d78",
+      "size": 2591
+    },
+    {
+      "path": "drizzle/migrations/0024_trainer_package_commerce.sql",
+      "sha256": "3c11a0ca7112e8269a0fc7c766530dfbd66e8b7d6cb50785f93edea1bcfb4bf0",
+      "size": 2011
+    },
+    {
+      "path": "drizzle/migrations/0025_trainer_commerce_runtime.sql",
+      "sha256": "89dfcccdfeb5e177ce31e2b564b5b27885063e3a36a58ca7fdf901f98d7174dc",
+      "size": 12521
+    },
+    {
+      "path": "drizzle/migrations/0026_student_commerce_catalog.sql",
+      "sha256": "a997a0f077a18a2aba980e79eb21bb47ee5cac585e59f23b47b8f504f4336469",
+      "size": 9103
+    },
+    {
+      "path": "drizzle/migrations/0027_student_order_payment_method.sql",
+      "sha256": "f0c27584de650929365848bb67a839d2ee68ad5a2e8d832067dba6d96711be93",
+      "size": 255
+    },
+    {
+      "path": "drizzle/migrations/0028_admin_owner_005g_consolidated_package_product_fulfillment.sql",
+      "sha256": "ead47d4d7957bc03cf911046e22cc7d1cad9bdad787616abaceb1dcb4fa1ebf9",
+      "size": 7213
+    },
+    {
+      "path": "drizzle/migrations/0029_r6_canonical_commerce.sql",
+      "sha256": "874b773dfc6448e48415f75b025373c715049e5ea801cf34facb0917503e0d85",
+      "size": 44384
+    },
+    {
+      "path": "drizzle/migrations/0030_r6_post_apply_corrections.sql",
+      "sha256": "702ea62e9afa4ac3e64441aa9e69029f7187f7c182730a812439756e9031bccc",
+      "size": 337
+    },
+    {
+      "path": "drizzle/migrations/0031_core001_price_catalog_shipping.sql",
+      "sha256": "15ffab53c353cc2c6404c6a25b02fa936812cfba649294f12681113794601ece",
+      "size": 13784
+    },
+    {
+      "path": "drizzle/migrations/0032_trainer_purchase_expertise.sql",
+      "sha256": "f9c32d65149d883d5cb1e1a52c725146b687dda2786f411b87c9778ac11b9b62",
+      "size": 1279
+    },
+    {
+      "path": "drizzle/migrations/0033_core_multi_student_capability.sql",
+      "sha256": "67e6e06a0d8ded79d43d15a959871d572ff2f1ab97b81e70dc469893c0be13de",
+      "size": 332
+    },
+    {
+      "path": "drizzle/migrations/0034_student_account_level_purchase.sql",
+      "sha256": "0a1a7fdebf50706a30301b4c03d6e40c358992a390b4932f1dc192b4fea0ed3e",
+      "size": 1033
+    },
+    {
+      "path": "drizzle/migrations/0035_owner_admin_package_permissions.sql",
+      "sha256": "7d73a24f92aa3b62d2300cf7abbee72fd140b513b50efaf1a133c53e59e320a7",
+      "size": 1581
+    },
+    {
+      "path": "drizzle/migrations/0036_family_offer_persistence.sql",
+      "sha256": "f4009a5bc35a0f16b9edd0d70dde948266023b6dfe04efbfa472962cf2bcdf11",
+      "size": 4657
+    },
+    {
+      "path": "drizzle/migrations/0037_family_offer_cart_item.sql",
+      "sha256": "9613b01886c567e81215f96a48ce888482c129fd16ac2a7f8c8df7e1b4af52a3",
+      "size": 939
+    },
+    {
+      "path": "drizzle/migrations/0038_trainer_video_progress_indices.sql",
+      "sha256": "1fd80a2078062ff284b42d1ec70c41f29c7075e5711e273e198cc04d59dccad3",
+      "size": 1137
+    },
+    {
+      "path": "drizzle/migrations/0039_trainer_candidate_activation.sql",
+      "sha256": "d5645e0293ea8e6afd74e477de35bb6d713767e33012f0ee63ae304116c595f7",
+      "size": 567
+    },
+    {
+      "path": "drizzle/migrations/0040_r64_child_identity_isolation.sql",
+      "sha256": "92078dc934212e65088bfeb71935a1deb362fb3d8e1cd8bb69b2e978e9222c12",
+      "size": 4304
+    },
+    {
+      "path": "drizzle/migrations/0041_owner_legal_vat_approval.sql",
+      "sha256": "13b87032c982e9f16d1dc935afd9108417d8ad322e3f6d5e1fb5d59eaba3c8eb",
+      "size": 10309
+    },
+    {
+      "path": "drizzle/migrations/0042_order_refund_reversal_reconciliation.sql",
+      "sha256": "b0ce2adc7f7a71c27eed686f5c5632f27c575fe38eab948a8b2eaeb03260e24b",
+      "size": 2683
+    },
+    {
+      "path": "drizzle/migrations/0043_email_template_persistence.sql",
+      "sha256": "b2ecda78d5a2e1e21597fa0669cad4848844abc002ad2df6dbed982dad6f90fb",
+      "size": 3458
+    },
+    {
+      "path": "drizzle/migrations/meta/0000_snapshot.json",
+      "sha256": "500bb7eb710955982d08d8514456bce34c9d8c9d73d23442c32f518b3e449fd5",
+      "size": 8186
+    },
+    {
+      "path": "drizzle/migrations/meta/0001_snapshot.json",
+      "sha256": "50a1ee332f202b78eb0f5e4b9ef4b6a1d5c65393834f1bc5b813dc04fc79fc9a",
+      "size": 17309
+    },
+    {
+      "path": "drizzle/migrations/meta/0002_snapshot.json",
+      "sha256": "9a46b056b0d70454658e170c35c85e3a35067d220b8d1f8d8f59c459d63766ab",
+      "size": 17690
+    },
+    {
+      "path": "drizzle/migrations/meta/0003_snapshot.json",
+      "sha256": "5a6a225708eb90637bb688aa12977aa919935f68b255d5b81f17624d28765cf2",
+      "size": 17690
+    },
+    {
+      "path": "drizzle/migrations/meta/0004_snapshot.json",
+      "sha256": "e133496ec7f25d5b76bcb65ca5d8e62eb0edeff65d41c21e836aec0b6b25090f",
+      "size": 18455
+    },
+    {
+      "path": "drizzle/migrations/meta/0005_snapshot.json",
+      "sha256": "55f5215b9106e93fd01a5379838cee7a05e7983e8560cd32551260a53d87c1dc",
+      "size": 18788
+    },
+    {
+      "path": "drizzle/migrations/meta/0006_snapshot.json",
+      "sha256": "13bbd0422940451ad709ff0badb1fce7b245a00154e637371515dd6a60e44337",
+      "size": 21251
+    },
+    {
+      "path": "drizzle/migrations/meta/0007_snapshot.json",
+      "sha256": "6ea202c205594a27f73037a511dd42bc2f60de10722340f5e7fef0042ab809db",
+      "size": 27889
+    },
+    {
+      "path": "drizzle/migrations/meta/0008_snapshot.json",
+      "sha256": "9c8262b643e42ea27b5fa9f2e2aea3f0f8fa04c758b109cb07eccbadcc092cf6",
+      "size": 31680
+    },
+    {
+      "path": "drizzle/migrations/meta/0009_snapshot.json",
+      "sha256": "3f4a738e8cbe817821e6d2f2cd9ed69e0080679df96c7713a00f8aeb37432890",
+      "size": 35267
+    },
+    {
+      "path": "drizzle/migrations/meta/0022_snapshot.json",
+      "sha256": "6fbeb7105ba2a52e78220589eb754c7288a9afdb4c93d78f5d9980ebd0e63944",
+      "size": 173067
+    },
+    {
+      "path": "drizzle/migrations/meta/0040_snapshot.json",
+      "sha256": "f3f01b8ec71694627ee85c209b6ac1a97e444429f7aaf5252b5995e22ae38674",
+      "size": 316547
+    },
+    {
+      "path": "drizzle/migrations/meta/_journal.json",
+      "sha256": "f8e82e72b091b9293239b9c37cdf718319b4a5f4a240a4a0d59ea6b7cb65920a",
+      "size": 6836
+    },
+    {
+      "path": "eslint.config.js",
+      "sha256": "254240113c0ff0342728287a6c12b07e6c36d6d4dd32b3bbc245ce921180d681",
+      "size": 1046
+    },
+    {
+      "path": "index.html",
+      "sha256": "6868a5e5fe9d1b5842b3deb840e995648d1b8f94f91da85c6499aff9e99497f4",
+      "size": 634
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "1603b3626997b888a2b5012d6180cdac74a9e5560815d6b9b330e315b837e10a",
+      "size": 237919
+    },
+    {
+      "path": "package.json",
+      "sha256": "4e33249335349311dde4da78ca93e4f198bdffd1cac0d31359e0fd3b6c25557e",
+      "size": 10003
+    },
+    {
+      "path": "playwright.config.ts",
+      "sha256": "85fcd143ccf4c42d19d9dc1b24bbd9f7f38e4042aad6799c9d9188f610f6b511",
+      "size": 2066
+    },
+    {
+      "path": "public/1.webp",
+      "sha256": "ea8364efc098714ab7bb6cff32caf1694f37fca33d23e25dfc8b3bdd9e761077",
+      "size": 485866
+    },
+    {
+      "path": "public/11.webp",
+      "sha256": "84c899954007554fb309c93396fdeb849896bca5bc0d58a56669f45a22808b34",
+      "size": 516300
+    },
+    {
+      "path": "public/2.webp",
+      "sha256": "7964329f1c345daa7665b4b3f677a7c01c5754dcfac1de07368c8835a7a4421e",
+      "size": 702382
+    },
+    {
+      "path": "public/attention-games/fark-bul/ilkokul/set1-left.png",
+      "sha256": "757129ec05e20a5177d70e6080c9ac60a0d3d830d7317a174e14d75466dbc555",
+      "size": 97814
+    },
+    {
+      "path": "public/attention-games/fark-bul/ilkokul/set1-right.png",
+      "sha256": "8f717128ebc1b36433a2a6b87440378bfbfc6a5f110b3def475372a0e7be2a7a",
+      "size": 99583
+    },
+    {
+      "path": "public/attention-games/fark-bul/ilkokul/set2-left.png",
+      "sha256": "b578c6bc5530a6127f0ea836455c5ea93d2278e90e229a81edc6dad1a2bfa052",
+      "size": 62012
+    },
+    {
+      "path": "public/attention-games/fark-bul/ilkokul/set2-right.png",
+      "sha256": "ed59d45d1d2462eb47149be1aeb603a8b438e6af6e06e26e89872772f271e461",
+      "size": 68245
+    },
+    {
+      "path": "public/attention-games/fark-bul/ilkokul/set3-left.png",
+      "sha256": "5aefba44f00659c6c01f693f92d799e71763c4883ba6bb43cac7a938a63a2242",
+      "size": 146597
+    },
+    {
+      "path": "public/attention-games/fark-bul/ilkokul/set3-right.png",
+      "sha256": "20c070e18eb828e0db1dd08f7136fadc2a3812366211e4874fa4366c04c06544",
+      "size": 148474
+    },
+    {
+      "path": "public/attention-games/fark-bul/ilkokul/set4-left.png",
+      "sha256": "4ca7422f7bbdd2f2547e2a7f49b2acb53b13d5a295b81cab322158400c41b39c",
+      "size": 127695
+    },
+    {
+      "path": "public/attention-games/fark-bul/ilkokul/set4-right.png",
+      "sha256": "338d38f85bfcd6006e34f9e14bbf7c60e6d0c446397f91c4e709be101673b25b",
+      "size": 136071
+    },
+    {
+      "path": "public/attention-games/fark-bul/lise/set1-left.png",
+      "sha256": "8eb0b0a1f90fb9836be97f534182c3e0e8cb780259b244af57852dafe72a3bb2",
+      "size": 34377
+    },
+    {
+      "path": "public/attention-games/fark-bul/lise/set1-right.png",
+      "sha256": "2580d391419b338813d1963c552bcc05d6dddae504d9a2987fcd3aa32ea364e5",
+      "size": 35878
+    },
+    {
+      "path": "public/attention-games/fark-bul/lise/set2-left.png",
+      "sha256": "9407053447ef9135898999221df1d3597f889830df677d2ee442d064624f8882",
+      "size": 198506
+    },
+    {
+      "path": "public/attention-games/fark-bul/lise/set2-right.png",
+      "sha256": "3cc16fe57b3912131db14d3557a5887d18fc7640a5eda1bc05f7cdc85c40e271",
+      "size": 200875
+    },
+    {
+      "path": "public/attention-games/fark-bul/lise/set3-left.png",
+      "sha256": "dceac7b683200572f39b0d0885bdc1d58066c50d2f5dc977da0aae2e9fb4be6d",
+      "size": 225766
+    },
+    {
+      "path": "public/attention-games/fark-bul/lise/set3-right.png",
+      "sha256": "3c372d6d80c25d0d09d499fdbc2d88ddf802526a1ab51c03ef995debc2cc2dd3",
+      "size": 209643
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/ilkokul-set1.png",
+      "sha256": "29c743290e56d393100e3913960c23f0dca4122755c161deebd82bd7377be6be",
+      "size": 2706
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/ilkokul-set2.png",
+      "sha256": "2b05f108b65268cb15c9ab9464e94f61d3826db0765f1e18187927a8353238f4",
+      "size": 1350
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/ilkokul-set3.png",
+      "sha256": "eb96a70ce1994fd4663dd8c4123bd5aab459971649d3ebb4bca1656b368f5266",
+      "size": 1137
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/ilkokul-set4.png",
+      "sha256": "12c2702fa0c89ad4ddd439916dd825387ab58e3cf213069d64237842233fefaa",
+      "size": 4617
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/lise-set1.png",
+      "sha256": "72902b523b720dad868bb16280c6542f1fdd178ff7a9e51c456ba80bad29fdee",
+      "size": 955
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/lise-set2.png",
+      "sha256": "4ea984d8c684d805f65d9acbaeaf6672c68edc326284989cda2d5e1a1ecf8d17",
+      "size": 2843
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/lise-set3.png",
+      "sha256": "d68355799dc2071f458c0d48727f9548a78aff4d2f8d23c10950a82d50f93b94",
+      "size": 1604
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/ortaokul-set1.png",
+      "sha256": "234456c0625cbf432bce8b761d35f67f7a9ebfabecf42e82d31092c0ca4ff193",
+      "size": 984
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/ortaokul-set2.png",
+      "sha256": "b2f2e72459af190a1086ddabdf7b0687cb0dd9abf97749a92d2873933727fa9a",
+      "size": 3121
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/ortaokul-set3.png",
+      "sha256": "06acc5608d21794f25b01abc32a429b50d780d800ded78da00138d427aabba46",
+      "size": 1084
+    },
+    {
+      "path": "public/attention-games/fark-bul/masks/ortaokul-set4.png",
+      "sha256": "0b0f2809aca05e8cf32dddb923a716e6ca9408d93c64b574786dc31d5e87693b",
+      "size": 2269
+    },
+    {
+      "path": "public/attention-games/fark-bul/ortaokul/set1-left.png",
+      "sha256": "3d6229ba97aef42436d2648a6ab2a47f8bc87f3879ca5c5815fd6f7ae441f128",
+      "size": 144766
+    },
+    {
+      "path": "public/attention-games/fark-bul/ortaokul/set1-right.png",
+      "sha256": "09d13a7ebe51f04132f2c0a75f14a13ed2ee45886f7fbff325285cf2b4a9612d",
+      "size": 141390
+    },
+    {
+      "path": "public/attention-games/fark-bul/ortaokul/set2-left.png",
+      "sha256": "8d729f6142ce416fce83f3ffbd13772c7da695849d8a9b78453feb0ed52cac5e",
+      "size": 103520
+    },
+    {
+      "path": "public/attention-games/fark-bul/ortaokul/set2-right.png",
+      "sha256": "e290940b2d31c8b8968ea7d11d4860a7847d90901a0d2f8927bf5be9a9a042f2",
+      "size": 109071
+    },
+    {
+      "path": "public/attention-games/fark-bul/ortaokul/set3-left.png",
+      "sha256": "5b7b2de3162d049198b87415fd571e4929357b41f2bad99041c80c77d4133fa9",
+      "size": 80879
+    },
+    {
+      "path": "public/attention-games/fark-bul/ortaokul/set3-right.png",
+      "sha256": "9d61ce6b2d3a7a3a54adcbf0c202d89d504aecdbc35e4c2c24e013a328e44d12",
+      "size": 84614
+    },
+    {
+      "path": "public/attention-games/fark-bul/ortaokul/set4-left.png",
+      "sha256": "54a76e06a0cc642109d15a5015f00538fed1cdeb515825ba02c4084c35b91562",
+      "size": 134735
+    },
+    {
+      "path": "public/attention-games/fark-bul/ortaokul/set4-right.png",
+      "sha256": "91fe27bf316834851c17ea2e0571e91ac45990ed47e918fe32749d60cc6cd1fa",
+      "size": 133917
+    },
+    {
+      "path": "public/brand/fixoku-logo-schema-512.png",
+      "sha256": "b26d4c271a9af2a92a06613109a964a22528e17afa0c63198a44ee2792f84e89",
+      "size": 70478
+    },
+    {
+      "path": "public/egitici1.jpeg",
+      "sha256": "cef489b09e99370d317e01d1fe1475c6dd1f9cc153e6531549580fb1d857e37d",
+      "size": 303859
+    },
+    {
+      "path": "public/egitici2.jpeg",
+      "sha256": "341313b9bd47eed72c21f36be302bdfb132c80082729b0d8d1811d436419d92e",
+      "size": 239509
+    },
+    {
+      "path": "public/egitici3.jpeg",
+      "sha256": "f6cef26b255443fb3ac1a0e35dbfa62bf177781029111ed6228af6c626cf8b8f",
+      "size": 283270
+    },
+    {
+      "path": "public/egitici4.jpeg",
+      "sha256": "e38654135562fdc86ee4dfe2bf76753bae6467c4322dcc8a3b3f172f6342be12",
+      "size": 214584
+    },
+    {
+      "path": "public/favicon.svg",
+      "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "size": 9522
+    },
+    {
+      "path": "public/fixoku-favicon.svg",
+      "sha256": "d6fcc7126713d98097dd6b00ca984176ce4b82a27605fca63e43a94fabd381e3",
+      "size": 2997
+    },
+    {
+      "path": "public/fixoku-giris-beyaz-logo.png",
+      "sha256": "da0fc08cd8491c33eeacb5f9e97337fe0f84839abf4bde8f9b25a52676bae99b",
+      "size": 15516
+    },
+    {
+      "path": "public/fixoku-kargo-owner-v1/index.html",
+      "sha256": "173daa91d41680f62e05152a49cd4ed2935b0119b151d9321917ea9a462adb25",
+      "size": 37677
+    },
+    {
+      "path": "public/fixoku-kullanici-erisim-v2/index.html",
+      "sha256": "f42f8ab4e94a5223f01b550e87e86b6b20347a10e0ecd531e4c8df8eec0386d9",
+      "size": 39259
+    },
+    {
+      "path": "public/fixoku-trainer-badges/ilkokul-akici-okuma-egitmen-rozeti.png",
+      "sha256": "1f807b482d26c465ebba41981b00a1c905b32e48bda2b1c824e3e747122cba5d",
+      "size": 19589
+    },
+    {
+      "path": "public/fixoku-trainer-badges/kidemli-egitmen-rozeti.png",
+      "sha256": "237078633e2ea551d029a16f91e1fb26a30a5d5fd2c948e8782597cf70a362b3",
+      "size": 79164
+    },
+    {
+      "path": "public/fixoku-trainer-badges/lise-hizli-okuma-egitmen-rozeti.png",
+      "sha256": "5c5a09190b2d22eae3d8feba5040975379520363a5e76221591b35952197bd14",
+      "size": 19515
+    },
+    {
+      "path": "public/fixoku-trainer-badges/lise-paragraf-egitmen-rozeti.png",
+      "sha256": "7e0b541fc5cf1d56a6e1dab7247ba9a6c21a7b4e8a36a3960dc4a3fac4268d66",
+      "size": 16595
+    },
+    {
+      "path": "public/fixoku-trainer-badges/ortaokul-hizli-okuma-egitmen-rozeti.png",
+      "sha256": "a12e8e58f4718cbd049a3da46d0ba59e3a0fdf4049e6ee76414fc0341f419b89",
+      "size": 20080
+    },
+    {
+      "path": "public/fixoku-trainer-badges/ortaokul-paragraf-egitmen-rozet.png",
+      "sha256": "d3754cba41d447b01fa810ebdd96277044db36b8195a930f00248e30fcda450b",
+      "size": 45841
+    },
+    {
+      "path": "public/fixoku-trainer-badges/yetiskin-hizli-okuma-egitmen-rozet.png",
+      "sha256": "b5a97909eddcc4db8730dd03d4477c0e224f56e1f592832306de53f0d5a6f319",
+      "size": 50722
+    },
+    {
+      "path": "public/hero-fixoku-bg.svg",
+      "sha256": "baba1acb82959df09a6c6dcfb7cef0b44ad81da2496cdf370838de3228b3bf97",
+      "size": 3538
+    },
+    {
+      "path": "public/icons.svg",
+      "sha256": "d6fcc7126713d98097dd6b00ca984176ce4b82a27605fca63e43a94fabd381e3",
+      "size": 2997
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-adult-akilli-sistem.png",
+      "sha256": "1f23897d301265e90fc19565bf96ffdf40e291d4560d5ec2d842614943913d1f",
+      "size": 2537192
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-adult-baslangic.png",
+      "sha256": "616eb33812b7dc6c1c4ad3fbdbb48c647d6d83f2a6e990f1d44a207b1b7eae34",
+      "size": 2669039
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-adult-dijital-yapay-zeka-sistemi.png",
+      "sha256": "55816b71ef950ac29d35df1b87808df75abb24144c74c4e4b0d12631730fa9d6",
+      "size": 1922202
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-adult-platinum-egitim.png",
+      "sha256": "7ab726740bb824ff8509d2515f9cd23b8f7c21a1e8c9973fd90a0d00fdd81a4d",
+      "size": 3105076
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-adult-premium-egitim.png",
+      "sha256": "94b1a752b8128629d55a6957e947533509fc5466a2f46a9fbd023db30bc64ac3",
+      "size": 3108515
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-high-akilli-sistem.png",
+      "sha256": "7f5d63cad776b8165d8051f16b889405cba848f9be86a6a40cbafd53d9d55988",
+      "size": 2338828
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-high-baslangic.png",
+      "sha256": "afc4f15bc26a23f94f68bd9a844ae3d183c9c78f2d64b7920d717b9c975e2cf2",
+      "size": 2469010
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-high-dijital-yapay-zeka-sistemi.png",
+      "sha256": "55816b71ef950ac29d35df1b87808df75abb24144c74c4e4b0d12631730fa9d6",
+      "size": 1922202
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-high-paragraf-egitim.png",
+      "sha256": "74c594ad56e9957c7cef35440339fc6b5459d515b4260695d59d85fbc54a2a92",
+      "size": 3146010
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-high-paragraf-kitabi.png",
+      "sha256": "2a1b79160ff1d0128d55432b7b3e16ebd607d6eee8631a6ba9aef70b7ad4f269",
+      "size": 2537937
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-high-platinum-egitim.png",
+      "sha256": "c81df2a88184226954817a1c2fef70472faa75970dff712887bfe48beb4f8adf",
+      "size": 3061246
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-high-premium-egitim.png",
+      "sha256": "620238bdc182dc0aea976f98a39f2e5673126b8fbbf296bc99c00a9b25038ee4",
+      "size": 3067491
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-middle-akilli-sistem.png",
+      "sha256": "236ce4a46a89a601470b7dca2ba6e771fd57ac356d4c01bf4d26af78600346b5",
+      "size": 2803497
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-middle-baslangic.png",
+      "sha256": "876b882ac20ff39b1621a582478051e01919dfdd01b41971faf2c6da1eafe24a",
+      "size": 2654890
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-middle-dijital-yapay-zeka-sistemi.png",
+      "sha256": "3d89e884453bb04384f7e6910c0f0336d78dc30b87f873a431844286187f9e54",
+      "size": 2071465
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-middle-gelisim.png",
+      "sha256": "eca3861d83de4f56effc110a2e14f4200ab2cc6fc2ab592821284ab035278d3e",
+      "size": 2829278
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-middle-paragraf-egitim.png",
+      "sha256": "cc1c3efe47c7bd845a14395a1dd2707d26edf4a4609720c8b0d42ab47ebdd643",
+      "size": 3110646
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-middle-paragraf-kitabi.png",
+      "sha256": "34b6b00e25ffea02e155e269fc1e04234f40893793e72abe4dc4e54f107d6ede",
+      "size": 2669417
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-middle-platinum-egitim.png",
+      "sha256": "1273895394e4c3b993f29e7e7bda6753c6e67296c48ccd4f1634a802040e0800",
+      "size": 3087379
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-middle-premium-egitim.png",
+      "sha256": "f4290ec1b20b1e050ce9d2bf6d5bf0c37bc617db0ee5105c029a32505640e64a",
+      "size": 3233265
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-primary-akilli-sistem.png",
+      "sha256": "7dec7113dceba56c987ab417cf68f87fa0f0e5a3a94c24e7d3d06033d5720dd0",
+      "size": 2766398
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-primary-baslangic.png",
+      "sha256": "dd811d5e78cb1bb3d72e44bacfddbe3e1ab9ec64b98abff74872ab03e2e64d7d",
+      "size": 2514508
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-primary-dijital-yapay-zeka-sistemi.png",
+      "sha256": "f08463c24adcf486aa7c5df33b9b44d0134f9eb764735c9cb0fc907aa7222428",
+      "size": 1942323
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-primary-gelisim.png",
+      "sha256": "f4f4245531f2c5cc9164737ad3a5ae18e3d5100e76d2d2347b159396b3bdf7ea",
+      "size": 2677497
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-primary-platinum-egitim.png",
+      "sha256": "44680ecb86e5d6a6a9ec079756274221d4a7a562d4b49b1256e9d1719573a290",
+      "size": 3140940
+    },
+    {
+      "path": "public/images/fixoku-katalog/paketler/student-primary-premium-egitim.png",
+      "sha256": "f11fa8fcdcfb4e933a9ca266df287bfe38ad8f44c6d94de4204845771a59369b",
+      "size": 3225838
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/fixoku-yapay-zeka-destekli-yazilim.webp",
+      "sha256": "a02cb4aba681b5b906c1e736cbcd193adb8ab4b75663ffc9d7a91fc6df62fbf6",
+      "size": 223102
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ilkokul-akici-hizli-okuma-kitabi.webp",
+      "sha256": "8099e0d1d9edbf37f9535317be1a4aaa6a8d509edc340139f015cb33a94430ef",
+      "size": 320414
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ilkokul-birebir-egitimi.webp",
+      "sha256": "8eec30f26767659d69d67c534c83e12399c80714c12cce93681121154cc3adaa",
+      "size": 322964
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ilkokul-kucuk-grup-egitimi.webp",
+      "sha256": "4ad670f7fcaf8a1e5810209fb69fae02f9aefd6ec24de68aed633de6f883e8bd",
+      "size": 333356
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ilkokul-zihin-egzersizleri-kitabi.webp",
+      "sha256": "f32e0f7b424e450274e702098a5220b3a87259de80610cc5cfc49b6695ed300c",
+      "size": 325154
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/lise-birebir-egitimi.webp",
+      "sha256": "a01eff78eb1c4b8b468bff87f27a538f5b6312ce27b446b4a83a9752252a0c05",
+      "size": 273512
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/lise-hizli-okuma-kitabi.webp",
+      "sha256": "15bb9473d69db3e53800e6876b81e0d69121c94a7787c9f80003415aece4ee8d",
+      "size": 260440
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/lise-kucuk-grup-egitimi.webp",
+      "sha256": "43133c50fe0f455b68a307a16c2ee6d88b0aa3d8e6b64fe0f8daa8ffc506adb1",
+      "size": 305548
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/lise-paragraf-kitabi.webp",
+      "sha256": "6425c83f4ce529fdb14490c1a3a0706001ef29f874b3bc4c28b11b031ade35be",
+      "size": 217872
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ortaokul-birebir-egitimi.webp",
+      "sha256": "8dad5018eb751f45ad4395438027e3f2565fc563a0e0d68588628ad185cd6e17",
+      "size": 310262
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ortaokul-hizli-okuma-kitabi.webp",
+      "sha256": "b990e4fce99bec4f53c9b7c1181582bbe80e0cda6d49f097117ce4ed910762d1",
+      "size": 292658
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ortaokul-kucuk-grup-egitimi.webp",
+      "sha256": "827b1eb7efc8a7f625aba889626c91b003fb54e985eabfb85e271b01a03ebbda",
+      "size": 340010
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ortaokul-paragraf-kitabi.webp",
+      "sha256": "ebc6ecdd66d7c1b1878c403b632d2189cd5202f04ea60824e744f5d64d33de0b",
+      "size": 260004
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/ortaokul-zihin-egzersizleri-kitabi.webp",
+      "sha256": "de9412d01f3a20f27614596ded734c46af7301153fd6fdbb5af03632c2491b57",
+      "size": 308704
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/yetiskin-birebir-egitimi.webp",
+      "sha256": "5be92bf093ac93ddae54fca450cbf6f8709f1ac408b1569db8dccd59c582e97f",
+      "size": 222570
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/yetiskin-hizli-okuma-kitabi.webp",
+      "sha256": "5b42b8647c29dda08effb5a7fbe6b2c631c3c914cb5742952a2c068b3872130d",
+      "size": 322622
+    },
+    {
+      "path": "public/images/fixoku-katalog/urunler/yetiskin-kucuk-grup-egitimi.webp",
+      "sha256": "ef0893d56cc4ef7c82ee9f9ac29b1b9c34413b13eee1622956a0c3726624feb7",
+      "size": 258928
+    },
+    {
+      "path": "public/images/home/fixoku-system/fixoku-egitim-kitabi.png",
+      "sha256": "7490ca3c0100002bebd9b6566e535c8d1a30171e7e2f0c3746e6a87e7b8eeb06",
+      "size": 62091
+    },
+    {
+      "path": "public/images/home/fixoku-system/fixoku-kitaplari-icerikleri.png",
+      "sha256": "d9a5e5f0b4793ce78a83f4108c1860ed203e40111991ce3eeba06bff04439ec6",
+      "size": 344634
+    },
+    {
+      "path": "public/images/home/fixoku-system/fixoku-yazilim-uygulama-gorseli.png",
+      "sha256": "467e32236483364a3f243579c01ad8e7bf613dba7ac4af8b3124234ae23094e2",
+      "size": 192580
+    },
+    {
+      "path": "public/images/home/fixoku-system/fixoku-yazilim-uygulama.png",
+      "sha256": "7a032b5619c83368e6ccfb183f64b09db7b3d1886fa64e67af2db7d36eebde63",
+      "size": 371927
+    },
+    {
+      "path": "public/images/home/fixoku-system/uzman-egitmen-destegi.png",
+      "sha256": "249357fb3ac4faac00a59085bb6d4707a2768a2bba27c83d2c260302450f7f88",
+      "size": 156167
+    },
+    {
+      "path": "public/images/home/fixoku-system/yapay-zeka-destekli-yazilim.png",
+      "sha256": "169764ef759e71ee340806bf31e916a91936b199c615cc9e57827d7e4575edd4",
+      "size": 38578
+    },
+    {
+      "path": "public/images/institution-bees/bee-academy.webp",
+      "sha256": "8e9fbd2490eeeb2affdd752fa0ea7fcecddd61f5770a468ad901862700b1513d",
+      "size": 14148
+    },
+    {
+      "path": "public/images/institution-bees/bee-course.webp",
+      "sha256": "66592e88e871406bfb2dcc2fc387165064aa2a97e343dd11abfdee9967dc2cd0",
+      "size": 13778
+    },
+    {
+      "path": "public/images/institution-bees/bee-development.webp",
+      "sha256": "94a97c97317cb21188a6becb8165892635002e310765fbbd096b027792f0b393",
+      "size": 15586
+    },
+    {
+      "path": "public/images/institution-bees/bee-school.webp",
+      "sha256": "750b7a492316c37368f8f3a513e53e13b6eae75f61e1dc082a73de1a4d706359",
+      "size": 13584
+    },
+    {
+      "path": "public/images/institution-bees/bee-study.webp",
+      "sha256": "5ccb458c9e057d531e0012042676a755db9453a0030d260d7e6e49c011250b1f",
+      "size": 14060
+    },
+    {
+      "path": "public/images/instructor-landing/bilgisayar.png",
+      "sha256": "c7b4e966824acceeda6c66b5c36cbb145a8e7f4e5d083238eb94cf5a14b235c9",
+      "size": 4721349
+    },
+    {
+      "path": "public/images/instructor-landing/egitmen.png",
+      "sha256": "da23adb2e94b169b67e60bb996cabf4e57f659e90e3b8977ef1626542b06cbbf",
+      "size": 1615501
+    },
+    {
+      "path": "public/images/instructor-landing/telefon.png",
+      "sha256": "72035a79c9e43c69951b686d159d9be0a89bebfc4826b9c789dfde7155286c6f",
+      "size": 900003
+    },
+    {
+      "path": "public/images/landing/ogrenciler-icin-hizli-okuma-egitimi/ayakta-cocuk.png",
+      "sha256": "ee8d5eddd9bba0b9810a1ba852980c4d382999ccacdb66d4e97c779a3c565867",
+      "size": 819582
+    },
+    {
+      "path": "public/images/landing/ogrenciler-icin-hizli-okuma-egitimi/oturan-cocuk.png",
+      "sha256": "07c1f4f8eb3614479703d55fb1996e5a9cd78784ee58d73dd13585dbeab2030f",
+      "size": 1883351
+    },
+    {
+      "path": "public/images/login-gateway/platform-instructor.webp",
+      "sha256": "739b3eec79a3f3c6a87540b0df346cb71382ff0c979a5d02c2b623f636dd0d58",
+      "size": 164638
+    },
+    {
+      "path": "public/images/login-gateway/platform-roles.webp",
+      "sha256": "941643e101c5de0d438007e6a216bb0a2cc77a4c50ed5cbea0854e99453570a4",
+      "size": 139302
+    },
+    {
+      "path": "public/images/login-gateway/siyah-logo-fixoku.png",
+      "sha256": "381889cec37fd7f4428774cdb60476b6dc417f9a125bf3b84eb260cd7d9ffcd5",
+      "size": 15303
+    },
+    {
+      "path": "public/images/login-gateway/software-instructor.webp",
+      "sha256": "2c73f7faa0f5f47ae1bcd6ccc89980eb888550a95dc3021b3748331ef2e69ad7",
+      "size": 137820
+    },
+    {
+      "path": "public/images/login-gateway/software-student.webp",
+      "sha256": "2a5e500a08e577d76922004201ee55e8beb4fc6dc7628bf26e7d212fd62e7e99",
+      "size": 268900
+    },
+    {
+      "path": "public/images/packages/adult/fixoku-yetiskin-kitap-2400x1200.png",
+      "sha256": "616eb33812b7dc6c1c4ad3fbdbb48c647d6d83f2a6e990f1d44a207b1b7eae34",
+      "size": 2669039
+    },
+    {
+      "path": "public/images/packages/adult/fixoku-yetiskin-kitap-yazilim-2400x1200.png",
+      "sha256": "1f23897d301265e90fc19565bf96ffdf40e291d4560d5ec2d842614943913d1f",
+      "size": 2537192
+    },
+    {
+      "path": "public/images/packages/adult/fixoku-yetiskin-platinum-2400x1200.png",
+      "sha256": "7ab726740bb824ff8509d2515f9cd23b8f7c21a1e8c9973fd90a0d00fdd81a4d",
+      "size": 3105076
+    },
+    {
+      "path": "public/images/packages/adult/fixoku-yetiskin-premium-2400x1200.png",
+      "sha256": "94b1a752b8128629d55a6957e947533509fc5466a2f46a9fbd023db30bc64ac3",
+      "size": 3108515
+    },
+    {
+      "path": "public/images/packages/adult/fixoku-yetiskin-yazilim-2400x1200.png",
+      "sha256": "55816b71ef950ac29d35df1b87808df75abb24144c74c4e4b0d12631730fa9d6",
+      "size": 1922202
+    },
+    {
+      "path": "public/images/packages/high/fixoku-lise-akilli-sistem-2400x1200.png",
+      "sha256": "7f5d63cad776b8165d8051f16b889405cba848f9be86a6a40cbafd53d9d55988",
+      "size": 2338828
+    },
+    {
+      "path": "public/images/packages/high/fixoku-lise-dijital-yapay-zeka-2400x1200.png",
+      "sha256": "55816b71ef950ac29d35df1b87808df75abb24144c74c4e4b0d12631730fa9d6",
+      "size": 1922202
+    },
+    {
+      "path": "public/images/packages/high/fixoku-lise-hizli-okuma-2400x1200.png",
+      "sha256": "afc4f15bc26a23f94f68bd9a844ae3d183c9c78f2d64b7920d717b9c975e2cf2",
+      "size": 2469010
+    },
+    {
+      "path": "public/images/packages/high/fixoku-lise-platinum-2400x1200.png",
+      "sha256": "c81df2a88184226954817a1c2fef70472faa75970dff712887bfe48beb4f8adf",
+      "size": 3061246
+    },
+    {
+      "path": "public/images/packages/high/fixoku-lise-premium-2400x1200.png",
+      "sha256": "620238bdc182dc0aea976f98a39f2e5673126b8fbbf296bc99c00a9b25038ee4",
+      "size": 3067491
+    },
+    {
+      "path": "public/images/packages/middle/fixoku-ortaokul-akilli-sistem-2400x1200.png",
+      "sha256": "236ce4a46a89a601470b7dca2ba6e771fd57ac356d4c01bf4d26af78600346b5",
+      "size": 2803497
+    },
+    {
+      "path": "public/images/packages/middle/fixoku-ortaokul-dijital-yapay-zeka-2400x1200.png",
+      "sha256": "3d89e884453bb04384f7e6910c0f0336d78dc30b87f873a431844286187f9e54",
+      "size": 2071465
+    },
+    {
+      "path": "public/images/packages/middle/fixoku-ortaokul-egzersiz-2400x1200.png",
+      "sha256": "eca3861d83de4f56effc110a2e14f4200ab2cc6fc2ab592821284ab035278d3e",
+      "size": 2829278
+    },
+    {
+      "path": "public/images/packages/middle/fixoku-ortaokul-hizli-okuma-2400x1200.png",
+      "sha256": "876b882ac20ff39b1621a582478051e01919dfdd01b41971faf2c6da1eafe24a",
+      "size": 2654890
+    },
+    {
+      "path": "public/images/packages/middle/fixoku-ortaokul-platinum-2400x1200.png",
+      "sha256": "1273895394e4c3b993f29e7e7bda6753c6e67296c48ccd4f1634a802040e0800",
+      "size": 3087379
+    },
+    {
+      "path": "public/images/packages/middle/fixoku-ortaokul-premium-2400x1200.png",
+      "sha256": "f4290ec1b20b1e050ce9d2bf6d5bf0c37bc617db0ee5105c029a32505640e64a",
+      "size": 3233265
+    },
+    {
+      "path": "public/images/packages/paragraph/fixoku-lise-paragraf-egitimi-2400x1200.png",
+      "sha256": "74c594ad56e9957c7cef35440339fc6b5459d515b4260695d59d85fbc54a2a92",
+      "size": 3146010
+    },
+    {
+      "path": "public/images/packages/paragraph/fixoku-lise-paragraf-kitabi-2400x1200.png",
+      "sha256": "2a1b79160ff1d0128d55432b7b3e16ebd607d6eee8631a6ba9aef70b7ad4f269",
+      "size": 2537937
+    },
+    {
+      "path": "public/images/packages/paragraph/fixoku-lise-paragraf-kucuk-grup-2400x1200.png",
+      "sha256": "40125a790f6ccf1294b56ce4619587c85e9056dea4c286e8a62477607ab31089",
+      "size": 3146772
+    },
+    {
+      "path": "public/images/packages/paragraph/fixoku-ortaokul-paragraf-egitimi-2400x1200.png",
+      "sha256": "cc1c3efe47c7bd845a14395a1dd2707d26edf4a4609720c8b0d42ab47ebdd643",
+      "size": 3110646
+    },
+    {
+      "path": "public/images/packages/paragraph/fixoku-ortaokul-paragraf-kitabi-2400x1200.png",
+      "sha256": "34b6b00e25ffea02e155e269fc1e04234f40893793e72abe4dc4e54f107d6ede",
+      "size": 2669417
+    },
+    {
+      "path": "public/images/packages/paragraph/fixoku-ortaokul-paragraf-kucuk-grup-2400x1200.png",
+      "sha256": "59c874c91621b77989fdad4857b1cc9190855b2c90f1089e8bb34f721bc740a5",
+      "size": 3354046
+    },
+    {
+      "path": "public/images/packages/primary/fixoku-dijital-yapay-zeka-2400x1120.png",
+      "sha256": "f08463c24adcf486aa7c5df33b9b44d0134f9eb764735c9cb0fc907aa7222428",
+      "size": 1942323
+    },
+    {
+      "path": "public/images/packages/primary/fixoku-ilkokul-akici-hizli-okuma-2400x1120.png",
+      "sha256": "dd811d5e78cb1bb3d72e44bacfddbe3e1ab9ec64b98abff74872ab03e2e64d7d",
+      "size": 2514508
+    },
+    {
+      "path": "public/images/packages/primary/fixoku-ilkokul-akilli-sistem-2400x1120.png",
+      "sha256": "7dec7113dceba56c987ab417cf68f87fa0f0e5a3a94c24e7d3d06033d5720dd0",
+      "size": 2766398
+    },
+    {
+      "path": "public/images/packages/primary/fixoku-ilkokul-egzersiz-2400x1120.png",
+      "sha256": "f4f4245531f2c5cc9164737ad3a5ae18e3d5100e76d2d2347b159396b3bdf7ea",
+      "size": 2677497
+    },
+    {
+      "path": "public/images/packages/primary/fixoku-ilkokul-platinum-2400x1120.png",
+      "sha256": "44680ecb86e5d6a6a9ec079756274221d4a7a562d4b49b1256e9d1719573a290",
+      "size": 3140940
+    },
+    {
+      "path": "public/images/packages/primary/fixoku-ilkokul-premium-2400x1120.png",
+      "sha256": "f11fa8fcdcfb4e933a9ca266df287bfe38ad8f44c6d94de4204845771a59369b",
+      "size": 3225838
+    },
+    {
+      "path": "public/images/payments/paytr.svg",
+      "sha256": "31f61eb276e5b75f1ae4d3258e63fa00a62e3f06839500981dd4c8a8c4469c0a",
+      "size": 479707
+    },
+    {
+      "path": "public/images/profiles/ali-asaf.jpg",
+      "sha256": "8e887cfeae7527c324e901f0bc5fdb15a379bb555a6e6bf913cef2b239812e1b",
+      "size": 327711
+    },
+    {
+      "path": "public/images/profiles/elif.jpg",
+      "sha256": "0394c2bbfc0667e760126094cca7c6624b2857a5ff66503fa4c098481cc127bd",
+      "size": 64466
+    },
+    {
+      "path": "public/images/profiles/ersin.jpg",
+      "sha256": "3e1f72976dedba1e333d1d140f4d1796b390e314913186aa7756a9cd01bb837b",
+      "size": 268892
+    },
+    {
+      "path": "public/images/profiles/hatice.jpg",
+      "sha256": "38c9d6cc71ccf618a353d85d84b881b8c75a14a3b9f3c70d5acb5344e3e5817b",
+      "size": 51701
+    },
+    {
+      "path": "public/images/profiles/ozlem.jpg",
+      "sha256": "6a2df72041b77148c5897ca93a410226cd7bf9b16dbc1e0ce79d544d687b0d1b",
+      "size": 32574
+    },
+    {
+      "path": "public/images/student-packages/student-middle-akilli-sistem.webp",
+      "sha256": "340fb23ec59b0d7a77fadaddb1d6032b4bd4303b7be0d62212490f7f8d484b4e",
+      "size": 13060
+    },
+    {
+      "path": "public/images/student-packages/student-middle-baslangic.webp",
+      "sha256": "6b2f577af48c4aa296e2fc7a2f00013de42f7f27823c099251ef94bb0a8840f8",
+      "size": 8726
+    },
+    {
+      "path": "public/images/student-packages/student-middle-dijital-yapay-zeka-sistemi.webp",
+      "sha256": "8c80e47238d40179933d4ac6569063c4f3e543e9b2fa082ffa69f1e6b4dd3627",
+      "size": 9946
+    },
+    {
+      "path": "public/images/student-packages/student-middle-gelisim.webp",
+      "sha256": "be81c6bdc3727f9469a97fb6e9ee4c819d21d356ec9a2c9b7f256fcab7631ce6",
+      "size": 7670
+    },
+    {
+      "path": "public/images/student-packages/student-middle-platinum-egitim.webp",
+      "sha256": "6cc22d13a4dbb6d35d18d98693d66f123bf3755e012480b71020b398b014bbb8",
+      "size": 14464
+    },
+    {
+      "path": "public/images/student-packages/student-middle-premium-egitim.webp",
+      "sha256": "afd9e92518dfcebd156f9a9a52f26addd3aef815ab5adc2cd7a1f883751252b0",
+      "size": 14238
+    },
+    {
+      "path": "public/images/teacher-panel/banners/bilgi-paylastikca-cogalir.png",
+      "sha256": "782ebc394b60752828e15f7ea366323f3c1ce6e7d5af28c43cede36d2265e1bb",
+      "size": 1712509
+    },
+    {
+      "path": "public/images/teacher-panel/banners/bilgiyi-paylasmak-gelecegi-guclendirir.png",
+      "sha256": "96987a10e6217ac8d838771a0cdb6d7a2b850a4bb80831b3b5005750f5dc25ab",
+      "size": 1489749
+    },
+    {
+      "path": "public/images/teacher-panel/banners/egitimle-daha-guclu-yarinlara.png",
+      "sha256": "d1fb8a28ecd6c5afed83fb3ff71caa4d4832eed3f832a630c35298c2c45c476a",
+      "size": 1688808
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-dashboard-bottom.png",
+      "sha256": "9cd0e70454ca5cda3f54b2bf6580294ebb12d59d31a32de4b49d0ab285446192",
+      "size": 993849
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-dashboard-hero.png",
+      "sha256": "b159bb35077bb93a1f6210f5356f159157bb885b8fb795d26ab24806b6d853ef",
+      "size": 1147773
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-entitlements-hero.png",
+      "sha256": "6281ce5a0f74d26eb3c046dc55aa22605e90b492a3d3c99f7946d7b979d55c30",
+      "size": 248981
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-presentations-bottom.png",
+      "sha256": "a6ed0f3f777797a03735c008e70c21c70e3a97843fcffd0b50d49d7fd5e892ae",
+      "size": 440127
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-resources-bottom.png",
+      "sha256": "43a7fa184d98af65a03c163a2fecf1204edd26f54806888bd15778e5af2c3ebf",
+      "size": 529207
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-student-detail-bottom.png",
+      "sha256": "867be4592a81573d765992985512b562b38d8fa6c5143b32c4f4d45f1091dc2d",
+      "size": 219068
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-students-bottom.png",
+      "sha256": "0fd06177000769729f8bf2a460cc050eea8edb98d3058f60e2f2f201f4a80e6a",
+      "size": 1584426
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-students-hero.png",
+      "sha256": "6f27ee8374fb2ccbdd144321840792f901733973bff87379cb84f49ce56cf34e",
+      "size": 246142
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-trainings-bottom.png",
+      "sha256": "e4b1ca326624cc97e9c2d9e113f358f73690ffd5d8a7bf0d2566297d11b5ee6a",
+      "size": 379866
+    },
+    {
+      "path": "public/images/teacher-panel/banners/trainer-trainings-hero.png",
+      "sha256": "cfeef8a6dc025475cd52b95556c66abe503e248a6df0329343c1a8089e8a72bb",
+      "size": 1256505
+    },
+    {
+      "path": "public/images/teacher-panel/courses/ilkokul-akici-ve-hizli-okuma-egitmen-egitimi.png",
+      "sha256": "d36dfd854dae9354cbfe2756f254293e7ac9a547c3ee4422b6f37649c110f76e",
+      "size": 1909031
+    },
+    {
+      "path": "public/images/teacher-panel/courses/lise-hizli-okuma-egitmen-egitimi.png",
+      "sha256": "83153197d3a546fd75f819663bb782e484c3a5be3520a2523ffeb8bf1132cefd",
+      "size": 1992141
+    },
+    {
+      "path": "public/images/teacher-panel/courses/lise-paragraf-egitmen-egitimi.png",
+      "sha256": "0e1c703438425acbdd7a73fd3b8b0b5fc47a2db8c978bb06a523030a1899250c",
+      "size": 2001541
+    },
+    {
+      "path": "public/images/teacher-panel/courses/ortaokul-akici-ve-hizli-okuma-egitmen-egitimi.png",
+      "sha256": "d36dfd854dae9354cbfe2756f254293e7ac9a547c3ee4422b6f37649c110f76e",
+      "size": 1909031
+    },
+    {
+      "path": "public/images/teacher-panel/courses/ortaokul-hizli-okuma-egitmen-egitimi.png",
+      "sha256": "4fd1bd0946326cdebca57ee3f42fb8ad30523373a3ded95e3172b5c2b05a4566",
+      "size": 2020755
+    },
+    {
+      "path": "public/images/teacher-panel/courses/ortaokul-lise-paragraraf-egitmen-egitimi-2li-set.png",
+      "sha256": "1c0683d1e22ba62a56e95e62725df1d1b1703c62bee9d266bfd79a59bfb46fd2",
+      "size": 2044442
+    },
+    {
+      "path": "public/images/teacher-panel/courses/ortaokul-lise-yetiskin-hizli-okuma-egitmen-egitimi.png",
+      "sha256": "87c7a81320c2cb2d36354ec557c1608c5a157004692330cbe54a415425d9ddd8",
+      "size": 2096404
+    },
+    {
+      "path": "public/images/teacher-panel/courses/ortaokul-paragraf-egitmen-egitimi.png",
+      "sha256": "7675026215249a6751fa87ba3f28041373857110c9088691082fb100bd2677b5",
+      "size": 1981058
+    },
+    {
+      "path": "public/images/teacher-panel/courses/yetiskin-hizli-okuma-egitmen-egitimi.png",
+      "sha256": "faafb3b6d473e62ea3e4a8e82ae9ee9c680b31c3962fb17c01bf1ddb5deff96d",
+      "size": 1961506
+    },
+    {
+      "path": "public/images/teacher-panel/presentations/akici-okuma-sunumu.png",
+      "sha256": "c41650bef6820363040178b4cf37bbf229aedefda49628346333a87769812871",
+      "size": 181652
+    },
+    {
+      "path": "public/images/teacher-panel/presentations/ortaokul-hizli-okuma-sunumu.png",
+      "sha256": "6c7b195ccdccf8edaea94d4daaabc417e1ccc249a546640e939cd77f74cc7764",
+      "size": 181318
+    },
+    {
+      "path": "public/images/teacher-panel/presentations/paragraf-egitimi-sunumu.png",
+      "sha256": "d6c391097f241ca85dd551ebbb6e9df0eda8a86714359dd5e55d456be03649eb",
+      "size": 186115
+    },
+    {
+      "path": "public/images/teacher-panel/presentations/yetiskin-hizli-okuma-sunumu.png",
+      "sha256": "3468f465cb928bea45eb5e30eabbcf974166617edf7209418bc4d3f325f59e6b",
+      "size": 192797
+    },
+    {
+      "path": "public/images/teacher-panel/resources/basari-sertifikasi.png",
+      "sha256": "670cebfdfe3f2484766309f90d9b9d9622b7b2b497d700e8857075eca450cad0",
+      "size": 218751
+    },
+    {
+      "path": "public/images/teacher-panel/resources/katalog-ve-brosurler.png",
+      "sha256": "aba69e807fe1cfc295830f07b408e3c150289f0873cf0d806155e75a9e2b387d",
+      "size": 229183
+    },
+    {
+      "path": "public/images/teacher-panel/resources/tanitim-materyalleri.png",
+      "sha256": "e1e331cf90200b15dba0043a73f3dd175fd8d61c5a3be10e5bb02026cbe8c6e6",
+      "size": 228569
+    },
+    {
+      "path": "public/infografik_final.svg",
+      "sha256": "652cef91a413873dc405848b20ab31573f1aceec862ee5e2d78d9d732586d2eb",
+      "size": 3374833
+    },
+    {
+      "path": "public/kurumsal-egitim-uzmani.png",
+      "sha256": "6dd591a55295324b201f24b011cc78be1df62795e48b25b4419946bb4ec90dfe",
+      "size": 1098403
+    },
+    {
+      "path": "public/laptop.png",
+      "sha256": "9d75d752425a909aad3b712be096c7df5cf979d8f69626b633015ac8f7e6ac09",
+      "size": 407107
+    },
+    {
+      "path": "public/logo-fixoku.png",
+      "sha256": "c041311902ce6943d01c957163e14c5eb935648012d3e801af6d9023a3515439",
+      "size": 15345
+    },
+    {
+      "path": "public/media/promo/neden-fixoku-masa-ustu-ana-sayfa.jpg",
+      "sha256": "26c07ed002a3c11157e47dcc6ab7e77584738460a79f174ba3959931b912a188",
+      "size": 322283
+    },
+    {
+      "path": "public/media/promo/neden-fixoku-masa-ustu-egtmen-ol-sayfasi.jpg",
+      "sha256": "97493cecda21a5eb3642a645848c073a7434ea5ff10795103434701ca4f6558f",
+      "size": 370839
+    },
+    {
+      "path": "public/media/promo/neden-fixoku-masa-ustu-kurum-sayfasi.jpg",
+      "sha256": "85fc2094fc5d0a46f420bca1b8f47dafd7f06add12d3fe956c1e402de5a2b15e",
+      "size": 461601
+    },
+    {
+      "path": "public/media/promo/neden-fixoku-masa-ustu-ogrenci-sayfasi.jpg",
+      "sha256": "2fe88f0270da89ed7e1e921cef73690a593ca54e4b6640b1ac882ea1b9974198",
+      "size": 276363
+    },
+    {
+      "path": "public/media/promo/neden-fixoku-mobil-ana-sayfa.jpg",
+      "sha256": "424ededc5d223c40f1dcccb0a4086e85db1058e80b2b2a8de28ccdd5fd3eccb9",
+      "size": 173249
+    },
+    {
+      "path": "public/media/promo/neden-fixoku-mobil-egtmen-ol-sayfasi.png",
+      "sha256": "10a5467b509ea6ff48f2560aa19d3b7d88021cc06e98e5e31ae8b1d6136bf81a",
+      "size": 227166
+    },
+    {
+      "path": "public/media/promo/neden-fixoku-mobil-kurum-sayfasi.jpg",
+      "sha256": "1e2c11b531c1859ae845034f0b33d0ae99264624b9aa5e4adea7acce3661b998",
+      "size": 177887
+    },
+    {
+      "path": "public/media/promo/neden-fixoku-mobil-ogrenci-sayfasi.jpg",
+      "sha256": "0eaa18abe3d7f1fd3d00b8f95052ea65dd1da22470887e3cebd986652063297e",
+      "size": 167436
+    },
+    {
+      "path": "public/media/students/student-01.jpg",
+      "sha256": "608db1b138e81e5ca1f7c10b3fb64da6da7a27bb661e2a99d6dfafebcdec791a",
+      "size": 45473
+    },
+    {
+      "path": "public/media/students/student-02.jpg",
+      "sha256": "ef2d23ebb0d973922b0cc24d3f2011cab6d6efa0446402a64aadb141357224dc",
+      "size": 37934
+    },
+    {
+      "path": "public/media/students/student-03.jpg",
+      "sha256": "5afdfad68848347f5d5cc77ee4584d195daae9719726adc024a2cacfb8fb09ec",
+      "size": 43896
+    },
+    {
+      "path": "public/media/students/student-04.png",
+      "sha256": "cab47936207aee3f5b2524167d1495413f2d33a87bf4eda321b41cd6e064c598",
+      "size": 2163256
+    },
+    {
+      "path": "public/media/students/student-05.png",
+      "sha256": "a4bba5bf35ed03198778c1405858f8a896d91b5da2f936398570ab454729e1f6",
+      "size": 1905727
+    },
+    {
+      "path": "public/media/students/student-06.jpg",
+      "sha256": "375ef394cd2503bcda54eff078e5644213b50845324e5692ba12316cf628f457",
+      "size": 38348
+    },
+    {
+      "path": "public/media/students/student-07.jpg",
+      "sha256": "92accf59e223c3b3f98cb05575cc98570ca3f07c711d3e54193d2490486bb39e",
+      "size": 41601
+    },
+    {
+      "path": "public/media/students/student-08.png",
+      "sha256": "5f93031c7eb109c49b26e125a32b920ceddcef44b2fb792d7474e3664e96c0dc",
+      "size": 2088852
+    },
+    {
+      "path": "public/media/students/student-09.jpg",
+      "sha256": "dafb4fb705594de92fdd33fd847cf19c482ce7c0ffe52b5b6273d107a1dc27a7",
+      "size": 30055
+    },
+    {
+      "path": "public/media/trainer-landing/posters/trainer-video-01.jpg",
+      "sha256": "1a808c1976d188494ae827d010ee37667f4390626c7061b2a1030bb7e6039596",
+      "size": 3457142
+    },
+    {
+      "path": "public/media/trainer-landing/posters/trainer-video-02.jpg",
+      "sha256": "3cd86bbaae9be10fa0268ee3b18af7850d26c3b3a762649f15ec20ee01e925fe",
+      "size": 3461212
+    },
+    {
+      "path": "public/media/trainer-landing/posters/trainer-video-03.jpg",
+      "sha256": "0193c493a33200344c459061c091e236d2ab87770868c5072d7deb033fb5156f",
+      "size": 3462587
+    },
+    {
+      "path": "public/media/trainer-landing/posters/trainer-video-04.jpg",
+      "sha256": "cf937ee71784621ff88b050bef759f8d751493a2ddb241f4723362b524a1109d",
+      "size": 3459208
+    },
+    {
+      "path": "public/media/trainer-landing/posters/trainer-video-05.jpg",
+      "sha256": "01a2e91fde304514f4a7cb79d6a8c0e32aff8e076caf8f390eca597f954fb1c2",
+      "size": 3461798
+    },
+    {
+      "path": "public/media/trainers/trainer-01-ozlem-peksaygili-ilcigen.jpg",
+      "sha256": "a9bb01680278019390fc05337afd4225df760c311af377a499de6e3afb3c464d",
+      "size": 32524
+    },
+    {
+      "path": "public/media/trainers/trainer-02-ozlem-kaplan.jpg",
+      "sha256": "4ac08714447366a3eefe4e4fbfdaf604936ef1c73539afc1121354810a067949",
+      "size": 37082
+    },
+    {
+      "path": "public/media/trainers/trainer-03-sema-kursunlu.jpg",
+      "sha256": "ed3c693b68818c020a28949e1d2e154139dc30f40d9699967a226e0eb6366085",
+      "size": 35386
+    },
+    {
+      "path": "public/media/trainers/trainer-04-elif-usta.jpg",
+      "sha256": "202d480bec6fd7667a648cd104827290a19f964b3260189fdf573f971b990526",
+      "size": 37401
+    },
+    {
+      "path": "public/media/trainers/trainer-05-nihal-toprakci.jpg",
+      "sha256": "1b62c855ac8f9e70360dd15e99d6710028498c50c662c91036ddd2366da293e6",
+      "size": 34656
+    },
+    {
+      "path": "public/media/trainers/trainer-06-nurcan-yildirim.jpg",
+      "sha256": "839eb38bc441548e7e2d8fdf659cd1671e723831594e6aaa403ac9dd422959e8",
+      "size": 40099
+    },
+    {
+      "path": "public/media/trainers/trainer-07-selma-akyildiz-gelen.jpg",
+      "sha256": "1d9163efaf3a53d992a91e4217c4307f8f030f6c97e6309200c2b103e95ffc32",
+      "size": 36075
+    },
+    {
+      "path": "public/media/trainers/trainer-08-ferzan-yuca.jpg",
+      "sha256": "837596ef362ced5c50e14345367e8ddbb944200efe9a87042c43a40b2b133f4d",
+      "size": 33911
+    },
+    {
+      "path": "public/media/trainers/trainer-09-meral-oruc.jpg",
+      "sha256": "850db6e62a5117c41238b85627c2b2ef9272b4a9951541b77ec871a637fa8641",
+      "size": 45833
+    },
+    {
+      "path": "public/media/trainers/trainer-10-muharrem-gelen.jpg",
+      "sha256": "74641146d0a4360ef2dc804a795893d029d527b2dc2ea39a712a04f082d1d37e",
+      "size": 36538
+    },
+    {
+      "path": "public/robots.txt",
+      "sha256": "33048bc9e9cf9a8d06df396cf08bc76c6ef8be562b54d5c572d84254b90c7b93",
+      "size": 64
+    },
+    {
+      "path": "public/sitemap.xml",
+      "sha256": "d305ea196b6ab356663c76684ab7f7648149e51050ccaf2e679ece5fdebcbb24",
+      "size": 4677
+    },
+    {
+      "path": "public/siyah-logo-fixoku.png",
+      "sha256": "381889cec37fd7f4428774cdb60476b6dc417f9a125bf3b84eb260cd7d9ffcd5",
+      "size": 15303
+    },
+    {
+      "path": "public/top-banner.svg",
+      "sha256": "7fe0183272971fa109cb37dff3884bbda6d47aeb2d7b8d25124125066de2df6b",
+      "size": 2617
+    },
+    {
+      "path": "scripts/bootstrap-owner-production-safe.ps1",
+      "sha256": "84e672a1506f03c5ae21c0835438942ff372ee61af8ac25058bbb6c61c9f36a7",
+      "size": 29060
+    },
+    {
+      "path": "scripts/bootstrap-owner.mjs",
+      "sha256": "a111b238e55ab0da7e331f2d38fc27817125c04e571efdcf01da810a30f2d599",
+      "size": 675
+    },
+    {
+      "path": "scripts/build-owner-legal-review-package.mjs",
+      "sha256": "6b8827840f2092d668fc4f058ea661d5b2087fd9611d1540f6ac0f8e602686b9",
+      "size": 683
+    },
+    {
+      "path": "scripts/build-r73-legal-v10.mjs",
+      "sha256": "115c2acd251c6e33524016ac17dd05a5030699e6b8b10e9f563b5e98d505d85f",
+      "size": 29512
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "14061f9e8e2d09a97a3b1d10674afc3f7f4779f9f4bf0883149afbed26ca6823",
+      "size": 2019
+    },
+    {
+      "path": "scripts/capture-phase2b.mjs",
+      "sha256": "fae6e73391113eb423d7bc006685b0c54a756343d26d228b7c09d408dc69b765",
+      "size": 3050
+    },
+    {
+      "path": "scripts/create-r97a-manifest.mjs",
+      "sha256": "b13ebae6587235f1be8571383f892fbc5ba906e51078368242e4b5ec765dc4ed",
+      "size": 2759
+    },
+    {
+      "path": "scripts/data/fixoku-package-catalog-005g.json",
+      "sha256": "07f5136b06555053560ce01b0df8d385c05515486cb6fc34be04e6bf546ba26d",
+      "size": 141164
+    },
+    {
+      "path": "scripts/dev036d-presentation.mjs",
+      "sha256": "25d939112b8a38205675eb385a6c39d17e90bd7157788221cb65ba1acf71ec4a",
+      "size": 5760
+    },
+    {
+      "path": "scripts/dev036f-generator.mjs",
+      "sha256": "f0025e5ade406def627f114e73011ae7abfe566c02d0d5eb55c6d154388454ed",
+      "size": 31239
+    },
+    {
+      "path": "scripts/diagnose-migration-authority.mjs",
+      "sha256": "9b1cb2c015944500856dda4eececcf4c919c059a3c43aedb84d42d7f8b41f9f1",
+      "size": 7818
+    },
+    {
+      "path": "scripts/disposable-test-db.mjs",
+      "sha256": "eca9aa3cd3868c54e8552964bfd72d1438051064731ed2b743d062a9df9e03b2",
+      "size": 3719
+    },
+    {
+      "path": "scripts/generate-seo-files.mjs",
+      "sha256": "1ade63bf05fe39e457c740456d0546853ec5f939397220d82d9fca5504080fce",
+      "size": 1160
+    },
+    {
+      "path": "scripts/local-env.mjs",
+      "sha256": "46aff71380e7faddae7fa598bc194e5e6fa8c72a79c36a8a0094c6cfdd8113a4",
+      "size": 415
+    },
+    {
+      "path": "scripts/local-test-guard.mjs",
+      "sha256": "a2e84d6b1f50fd15720c41e9b802d83eaa4b2e55241dd1bcf8d003195347d215",
+      "size": 1475
+    },
+    {
+      "path": "scripts/phase2b-fixtures.mjs",
+      "sha256": "5417858c1fd60aaedf36b83bd77ed66440f6798816f64665bb411fbd2ec6eac4",
+      "size": 6221
+    },
+    {
+      "path": "scripts/preflight-r64-child-identity.mjs",
+      "sha256": "feda5e7e0050e4bca657c0ca170be0eac185fa6c15c07a6b15ac1ab7d7ae9059",
+      "size": 8955
+    },
+    {
+      "path": "scripts/prerender.mjs",
+      "sha256": "4d2a2141c27ac8235ece50f2d4be2b4c9124e4dc406f39654229094b1819c453",
+      "size": 5502
+    },
+    {
+      "path": "scripts/process-email-outbox.mjs",
+      "sha256": "6d703a5badde70ecc0a6fb24a4e3de2e92ba441376e80509c71aabaa52334b24",
+      "size": 436
+    },
+    {
+      "path": "scripts/r33-source-check.cjs",
+      "sha256": "a883efca7d546369a67b5b2ee96c4846e8d1949374d93fbcfef39e129531b6ba",
+      "size": 652
+    },
+    {
+      "path": "scripts/r96b-media-audit.mjs",
+      "sha256": "5b86b318b89b98d7f47f1c8123717000c689cd19fbd83a09ff7befbc6aa6d9e3",
+      "size": 4317
+    },
+    {
+      "path": "scripts/rendered-server.mjs",
+      "sha256": "6411dd1c6b088632e4c5d203ff9e109c3b264082741661b597d920af3d96200a",
+      "size": 4202
+    },
+    {
+      "path": "scripts/run-bundled-node.ps1",
+      "sha256": "89341f78d915e6403b603df67dd3b524fa13b70eca25f8a3c15ee7ee6bac9c90",
+      "size": 499
+    },
+    {
+      "path": "scripts/run-r68b-disposable.mjs",
+      "sha256": "4ac1236d9d6242fecc7da2875b99e634fc050e760bbccd30926010868ee51293",
+      "size": 34454
+    },
+    {
+      "path": "scripts/run-r68b-disposable.ps1",
+      "sha256": "2dfabd3e90df2c4d70415646327de5797570de7f18a230e42b886e4034d710a9",
+      "size": 115
+    },
+    {
+      "path": "scripts/run-r68b-isolated-container.ps1",
+      "sha256": "7da18d48a5ff246716376e6b9a741bfb2a9b84b6bfdae64b16ce460aae4095d9",
+      "size": 13267
+    },
+    {
+      "path": "scripts/secret-safety-audit.mjs",
+      "sha256": "8719713c7e1a1be916e04d0e2a2705fc514fe01e545f3910c71d3690688258d7",
+      "size": 2760
+    },
+    {
+      "path": "scripts/seed-auth-test.mjs",
+      "sha256": "01961651e65c8c67cf3dd9f9e54aa889ec40596300ff3dbcb4a87d191de53398",
+      "size": 4572
+    },
+    {
+      "path": "scripts/seed-package-catalog-shadow.mjs",
+      "sha256": "3591bdc698a9150dd68d5af5b7415dfd6ac184b0fef94f13ce07e7fb84d72fba",
+      "size": 2404
+    },
+    {
+      "path": "scripts/seed-panel-003d-demo.mjs",
+      "sha256": "035b304b1069a7d7d496de52285ef4b9f7b89f25e5b7af0e256dfb253092dd22",
+      "size": 22711
+    },
+    {
+      "path": "scripts/seed-presentations-test.mjs",
+      "sha256": "46e66f1748087f1970be20567247be96db8e7bab62e9f658e5ce61b87d49dd9a",
+      "size": 1930
+    },
+    {
+      "path": "scripts/seed-resources-test.mjs",
+      "sha256": "7a6ac4346afa9ac681838bb58af803fd836a28e3ca0f457510b6bbeaaae23919",
+      "size": 1698
+    },
+    {
+      "path": "scripts/seed-student-guardian-test.mjs",
+      "sha256": "c3d1fc22e10dd44704e58432b65e38a5debdaf84cad012b6ba7ee24c1f565d99",
+      "size": 1749
+    },
+    {
+      "path": "scripts/seed-students-test.mjs",
+      "sha256": "37e2150778930514c55bce364ff2967d94d4d9f1f5962c2a42d00ca7b1d91994",
+      "size": 6263
+    },
+    {
+      "path": "scripts/seed-trainings-test.mjs",
+      "sha256": "3f365dc3f8c9d555f4c04189cabd45732810833c38884eff7dc2583e529d90a9",
+      "size": 2551
+    },
+    {
+      "path": "scripts/setup-owner-local.ps1",
+      "sha256": "8cec2530d4bc354a0ed4d187c7f00a08d3ca54bdf92e11bf7167703bf9f3c479",
+      "size": 12220
+    },
+    {
+      "path": "scripts/setup-r96b-local-review.mjs",
+      "sha256": "9024cf101632b28de5530fc263a9b5493561e8fe88c5bc0f629d18c89fb7ba7e",
+      "size": 8396
+    },
+    {
+      "path": "scripts/start-owner-local.ps1",
+      "sha256": "8cfe10ee92f7fce2825961dffe986e95264391058e8b165c37458244755be076",
+      "size": 7285
+    },
+    {
+      "path": "scripts/start-r96p-final4-local.ps1",
+      "sha256": "f1a61e33e0da1d6964f0a78cf6e892bcbad4129ab576c00c14055aa9b6b03eec",
+      "size": 8812
+    },
+    {
+      "path": "scripts/test-account-closure-r2.mjs",
+      "sha256": "1ac8748d62be0a747a3c98c05dea6d019afb587783e4f2a045ccb30ed997fa9d",
+      "size": 1864
+    },
+    {
+      "path": "scripts/test-auth.mjs",
+      "sha256": "173631665118ac91150398149f8c9832e1f9fb057a4353bf20218c9ff0314a26",
+      "size": 3216
+    },
+    {
+      "path": "scripts/test-availability-api.mjs",
+      "sha256": "e7e8ab4cf6e4b6ba7f88915e5d526ea0ae55f50215838eab01e8f5e10179b7d7",
+      "size": 2315
+    },
+    {
+      "path": "scripts/test-book-shipping.mjs",
+      "sha256": "fefab6714566666657600994b900549b25631b7a84a07ea5cafaf63c5194171e",
+      "size": 1015
+    },
+    {
+      "path": "scripts/test-commerce-foundation.mjs",
+      "sha256": "0011148aec8e3fdf1dacdd46fc7bed1792ec3dfe388f8b67ca864936c50b2e53",
+      "size": 10702
+    },
+    {
+      "path": "scripts/test-commercial-calculations.mjs",
+      "sha256": "430bf96ce79f3b4e967a8eb019c33552221a8081f5f3530ab1b0a16ee42c4a12",
+      "size": 2884
+    },
+    {
+      "path": "scripts/test-core-multi-student-foundation.mjs",
+      "sha256": "c89ad7c4846d7073fdf5f2e269de1138a4288c829d7b577af4ca22e988e9dfe2",
+      "size": 2267
+    },
+    {
+      "path": "scripts/test-core001-atomic-publication.mjs",
+      "sha256": "ef427c140b6eb0489f4bb53653ec8795b6e601e7bec117671d26335924235cff",
+      "size": 5138
+    },
+    {
+      "path": "scripts/test-core001-contracts.mjs",
+      "sha256": "b294a9c5452bc3217dbdbaf322c94557bb31e7b775caa25da588e788535f9eeb",
+      "size": 2729
+    },
+    {
+      "path": "scripts/test-db.mjs",
+      "sha256": "ba5504fec6c5843aa972a77df7a44b864182fa894026b4c51ba25c2c8737a41f",
+      "size": 3904
+    },
+    {
+      "path": "scripts/test-dev-login.mjs",
+      "sha256": "c12a689a8b5ece65e4e74eb224b2ff4ef08932c393666615f75c9bc1bab16c1c",
+      "size": 1154
+    },
+    {
+      "path": "scripts/test-dev035-http.mjs",
+      "sha256": "ae38d395798d3554c30111be1c32fdf785fef01cee12a89e4f3e500a7f48b718",
+      "size": 15911
+    },
+    {
+      "path": "scripts/test-earnings-api.mjs",
+      "sha256": "9bc179cdb48b440c577c510374a71b21ddfaa79bb9fa8c72af9e1df50e4b93cd",
+      "size": 254
+    },
+    {
+      "path": "scripts/test-email-capture.mjs",
+      "sha256": "56bd28ee00bc533cbeb908cc27d296a809fa8e10b5caf9f32dfac0353dd7ab15",
+      "size": 1496
+    },
+    {
+      "path": "scripts/test-email-editorial-v1.mjs",
+      "sha256": "fc25bbf99b5930c5bbd468bffc8455b8d49c8860aa3f6d7acc1630ea3dd199ee",
+      "size": 2619
+    },
+    {
+      "path": "scripts/test-email-renderer.mjs",
+      "sha256": "0af562260def09360f3bb0a4c817977ebed2f596f5f660dd3cf52a9cfd059ed2",
+      "size": 2756
+    },
+    {
+      "path": "scripts/test-family-cart-0037-acceptance.mjs",
+      "sha256": "8340db8d70b7cef15b21770c52f306ab7b9372de4468ddb2814ec77045fb1feb",
+      "size": 10813
+    },
+    {
+      "path": "scripts/test-family-cart-contracts.mjs",
+      "sha256": "4f4fe5a06ffb83395d08c34eaa7a937106b18008d5c0c65b63ab092b69eae2af",
+      "size": 1568
+    },
+    {
+      "path": "scripts/test-family-offer-disposable-db.mjs",
+      "sha256": "ee15b06a488d700c94317132095efb7ec4fb504b5aa6585ed3665b16fee3312f",
+      "size": 9218
+    },
+    {
+      "path": "scripts/test-family-offer-owner-http.mjs",
+      "sha256": "72148a86d4516e8f964c59201704beb1ebef89ce8f0ab73bd34320367b494c6b",
+      "size": 8884
+    },
+    {
+      "path": "scripts/test-family-offer-persistence.mjs",
+      "sha256": "52fd4769504cf45016fef63757376e118c4ddca44de3204f9f01e609036a1bba",
+      "size": 1824
+    },
+    {
+      "path": "scripts/test-family-offers.mjs",
+      "sha256": "9d8382aa3ae8fb6c8fce8ca7fcfb259959bc48f58e7f3ebdaefa4117539df224",
+      "size": 6760
+    },
+    {
+      "path": "scripts/test-group-capacity-concurrency.mjs",
+      "sha256": "edcda22e5ddab05165836f6c003da2f33b5856ee4593abc23a2dc339f684500c",
+      "size": 5770
+    },
+    {
+      "path": "scripts/test-institution-application.mjs",
+      "sha256": "43e70d2c83084a26f46af4944cb2f473edbbae6c29a930b8f7d61fa877a4f05d",
+      "size": 6550
+    },
+    {
+      "path": "scripts/test-kolaygelsin-offline.mjs",
+      "sha256": "f71ede6befdeb9eac9056792dd82e75308d471b8bf9dd1aa22cafb3eb4d2ab85",
+      "size": 2939
+    },
+    {
+      "path": "scripts/test-kolaygelsin-order-preflight.mjs",
+      "sha256": "172042fa5d3ab82f650bc536cc3a008250f23e91e3ff7b207f371eacb5f0a78e",
+      "size": 2838
+    },
+    {
+      "path": "scripts/test-migration-from-zero.mjs",
+      "sha256": "90e33200adb60556c79be8c8b5a98c6933dd4ea53578935e3106aa198347a6d1",
+      "size": 2880
+    },
+    {
+      "path": "scripts/test-owner-admin-package-rbac-db.mjs",
+      "sha256": "8b63de8528022c2544677b88cea393dd7cf2f29623a167b68fd2b19a371b30e7",
+      "size": 3958
+    },
+    {
+      "path": "scripts/test-owner-admin-package-rbac-http.mjs",
+      "sha256": "4247091464863a4c42ad53f2879d4d74a0dc80111f03144b33bd49af9f7a5aab",
+      "size": 2732
+    },
+    {
+      "path": "scripts/test-owner-admin-package-rbac-live-cycle.mjs",
+      "sha256": "66cda4d6af31f611fd56a974a0eb0e496a0568dc5014dff9cb05bb93db349a57",
+      "size": 4400
+    },
+    {
+      "path": "scripts/test-owner-admin-package-rbac.mjs",
+      "sha256": "c47a8558121a339121303ab9fe4981c3defe3df52e763c8b2c12c587ec42b576",
+      "size": 1577
+    },
+    {
+      "path": "scripts/test-owner-local-review-contracts.mjs",
+      "sha256": "0070a1310b751b792e2632e9c8ea67719eb24c84339edd71f7dc87e3f11621ea",
+      "size": 3176
+    },
+    {
+      "path": "scripts/test-package-immutability.mjs",
+      "sha256": "eb1510473b5af37c357ab3c55b3f97e23b2516e4b2765ab7aa0c816e01f4fbea",
+      "size": 1652
+    },
+    {
+      "path": "scripts/test-package-visibility.mjs",
+      "sha256": "ccadca462099e60bcdb6cdd08c9eacc8cea7c3fb11bf3d5c6ee0bbd82e3fdd08",
+      "size": 2029
+    },
+    {
+      "path": "scripts/test-panel-003b-security.mjs",
+      "sha256": "712d8a0e2ae9954728994c0f2eca8a9c122f34fe7e6efd74e3fc402e76c9b9e1",
+      "size": 2544
+    },
+    {
+      "path": "scripts/test-panel-003c-delivery.mjs",
+      "sha256": "50c7e4ede643058f5eab482da443af46bf374a9cf22c8600884aebde0c4aac7b",
+      "size": 2373
+    },
+    {
+      "path": "scripts/test-panel-003c-profile.mjs",
+      "sha256": "81b7f8168e561ef93637326949938fce78434c0dd2de226d1ec2a16c51054ee4",
+      "size": 1140
+    },
+    {
+      "path": "scripts/test-panel-003f-acceptance.mjs",
+      "sha256": "4ff42833938e1f16d8937c3d82acaa4541c7487928e81fb963bc58e63d7dc41b",
+      "size": 15771
+    },
+    {
+      "path": "scripts/test-panel-text-integrity.mjs",
+      "sha256": "064a26bf9ac726368fd7a81ab85ba51467913e67a61100d112dcb1e3fb4d0896",
+      "size": 4090
+    },
+    {
+      "path": "scripts/test-paytr-callback-contract.mjs",
+      "sha256": "4e464b6c590e944d2958e00091ecf6543aaf0edf4c2b25dd536e041f6ae873e6",
+      "size": 2868
+    },
+    {
+      "path": "scripts/test-phase2b-a11y.mjs",
+      "sha256": "6abbf6313a7374d08711a90e16ff465018a5a045b2349fec799a81b9a214f37d",
+      "size": 2203
+    },
+    {
+      "path": "scripts/test-platform-contracts.mjs",
+      "sha256": "bf120124b91fdf64b4b8f3324c3dfb30480839a347990a6c254108d36a31803c",
+      "size": 2588
+    },
+    {
+      "path": "scripts/test-platform-foundation.mjs",
+      "sha256": "4d7540b6a685f8771e04fe10c3e165c19f0ce415d69775c0110fd4e2d3498690",
+      "size": 652
+    },
+    {
+      "path": "scripts/test-platform-phase1c.mjs",
+      "sha256": "016e9e5bccfc4da8cf53ee916c6cb712699dcd6e6468f97809df0bad6400fa66",
+      "size": 477
+    },
+    {
+      "path": "scripts/test-platform-phase2b.mjs",
+      "sha256": "ad098abf7236a1beade5dbc20331c3014387e07235884720f4fe26b338f258d0",
+      "size": 14119
+    },
+    {
+      "path": "scripts/test-presentations-api.mjs",
+      "sha256": "3ca5561b95bc4e9661face34407878e1c44c88512c48d34a9079c024325dfeb3",
+      "size": 1242
+    },
+    {
+      "path": "scripts/test-profile-api.mjs",
+      "sha256": "f5a7b57440f770c5bf4d80cb92a2c62ce4e93e1a16c7330087aba45befbadde4",
+      "size": 2904
+    },
+    {
+      "path": "scripts/test-provider-browser.mjs",
+      "sha256": "8d00c647d9c3eec76dcfc60d2c97731492f2e3dcef6f2d546ddc5a5eb5ad609f",
+      "size": 1902
+    },
+    {
+      "path": "scripts/test-provider-runtime.mjs",
+      "sha256": "83889e60099379d8a49112f873b4e52b2faf73a85be2fe82987e612dd4668b5d",
+      "size": 6232
+    },
+    {
+      "path": "scripts/test-r2-auth-contracts.mjs",
+      "sha256": "7f38cb794559fac93723c7d5d0aace957ea45e23cd0b716daddc7eab57031142",
+      "size": 1400
+    },
+    {
+      "path": "scripts/test-r2-residual-audit.mjs",
+      "sha256": "30f59b54800e96a8524ac8165c5c768e00d27196867e2f07c9a041290b0549e7",
+      "size": 1148
+    },
+    {
+      "path": "scripts/test-r3-auth-browser-matrix.mjs",
+      "sha256": "9861f5098104182f9ba04d751f79b235dcbd6f30ea45c66db5b369a9697100ae",
+      "size": 2970
+    },
+    {
+      "path": "scripts/test-r3-email-notification-matrix.mjs",
+      "sha256": "9dfeb19ce16a56404e1ec9e90b53314387196fd1963f30772a5bc7ce81a78876",
+      "size": 3258
+    },
+    {
+      "path": "scripts/test-r3-student-lifecycle.mjs",
+      "sha256": "f6858d3594b824d4b18e2fc3265af77025ddb3400ce06d972a6d468d61454361",
+      "size": 5021
+    },
+    {
+      "path": "scripts/test-r5b-trainer-fulfillment.mjs",
+      "sha256": "1ef909895ca1dfad744e1b44b588abeb6889db0cb4f585685c0a2e132db6ab3d",
+      "size": 7051
+    },
+    {
+      "path": "scripts/test-r6-authority.mjs",
+      "sha256": "35bf9b73917e9ce558cc4018f4d7252acfed72328f584f2b1d91409418025cef",
+      "size": 18176
+    },
+    {
+      "path": "scripts/test-r6-custom-offers.mjs",
+      "sha256": "5b66b15191f6cb33299808d70f7bf1151c64639dffa4a7272b79e5dddeb08706",
+      "size": 3145
+    },
+    {
+      "path": "scripts/test-r6-migration-rehearsal.mjs",
+      "sha256": "ab350a8ad980547da78db258fadb86739b685252572ed78f9b097eb34dcdc9d2",
+      "size": 3754
+    },
+    {
+      "path": "scripts/test-r6-runtime-contracts.mjs",
+      "sha256": "4b411483bc08c2f9f8ae2e47dd9d1f8def2ebcc2de188d27d057f34728e98f88",
+      "size": 5749
+    },
+    {
+      "path": "scripts/test-r60-email-lifecycle.mjs",
+      "sha256": "b1a10a3983bc358cf3034896b10c58d763d24ca0c7e43dc46bbe20a2519a5f28",
+      "size": 9913
+    },
+    {
+      "path": "scripts/test-r62-finance-contracts.mjs",
+      "sha256": "e313158d8932a3014dc0bdeb8ca8b97961dd1d6b609ea6a3d5e5517abddd2693",
+      "size": 2261
+    },
+    {
+      "path": "scripts/test-r62c-payment-date.mjs",
+      "sha256": "824829b201d990b42d4bdfe201866960f1a1bb6a2d69e972496af2e4a0933737",
+      "size": 1882
+    },
+    {
+      "path": "scripts/test-r63b-legal-closure.mjs",
+      "sha256": "eb280a0e2b297591eae960e613a4f586d5ed2be1bd0716c5c397bbaa65fa2a5b",
+      "size": 2974
+    },
+    {
+      "path": "scripts/test-r64-student-training-contracts.mjs",
+      "sha256": "565059a8005d24642c29496eba84bbabd867ccc4bc3a16c4ccc53369c6fb5714",
+      "size": 2878
+    },
+    {
+      "path": "scripts/test-r65-child-enrollment-contracts.mjs",
+      "sha256": "c2d70adb11cf1a11978b185da2124bfcad2d434a223c0980c053421521b55173",
+      "size": 3860
+    },
+    {
+      "path": "scripts/test-r71-legal-approval-contracts.mjs",
+      "sha256": "12e99e5d7b2706b502228dd1976828fd1558a53a12587b0a36d537590b80016b",
+      "size": 3784
+    },
+    {
+      "path": "scripts/test-r72-isolated-acceptance.mjs",
+      "sha256": "2f5eba1eb53038a49fb999b6ab4daad677e0b287a105594a6efc64275719558c",
+      "size": 22673
+    },
+    {
+      "path": "scripts/test-r73-legal-publication-preparation.mjs",
+      "sha256": "4c8a7b3cec94d55d52557976fd1d77f918881d415fb1e0c91baa7e2f8c0b03d8",
+      "size": 5302
+    },
+    {
+      "path": "scripts/test-r74-legal-readiness.mjs",
+      "sha256": "e13a209427361948b34d62458b8dbaaba2e047f889e3e7bb4380edbbfdff1c85",
+      "size": 3620
+    },
+    {
+      "path": "scripts/test-r75-resend-r2-contracts.mjs",
+      "sha256": "9838478d8a42a4b0ee9f62ca8a70efecda07b070dcbc38620fb6a9a64c817670",
+      "size": 5264
+    },
+    {
+      "path": "scripts/test-r76-owner-legal-isolated.mjs",
+      "sha256": "ae5fbc2f54139228a2c63fd82c258346efa3f8f23424f66fda1148c44aaaa640",
+      "size": 6553
+    },
+    {
+      "path": "scripts/test-r77a-worktree-guard.ps1",
+      "sha256": "b7e4ca8dad788ed72124cb74ab84635f1a2af5032d48666f5a239e4270d5dc23",
+      "size": 1380
+    },
+    {
+      "path": "scripts/test-r77b-postgres-guards.ps1",
+      "sha256": "8af04f93b705352ae2aef728ce9659a8b3b79f6e96c7d3a82bd94e34d3b16715",
+      "size": 5575
+    },
+    {
+      "path": "scripts/test-r77d-owner-legal-source.mjs",
+      "sha256": "cfd4f412846da24d9e3e90900797f95d4c51f817c6f77ea62abbf571e991d2f5",
+      "size": 3843
+    },
+    {
+      "path": "scripts/test-r77e-legal-integration.mjs",
+      "sha256": "6f5f4a33a07caf2afb7c345155f5be029c57de6b66e161459ea8962299014af4",
+      "size": 4107
+    },
+    {
+      "path": "scripts/test-r82-owner-direct-login.mjs",
+      "sha256": "16bd7dd6b04a692b59bb5255507532e21bbc201b23e221e9bb6e4c002bc8eba5",
+      "size": 3778
+    },
+    {
+      "path": "scripts/test-r83-owner-login-diagnostics.mjs",
+      "sha256": "f7e51e441a4770a17639708534d8c4a0309a979eb76eed23204d11ca49579db6",
+      "size": 2632
+    },
+    {
+      "path": "scripts/test-r84-commerce-contracts.mjs",
+      "sha256": "3a3f2bd73d25247e6d570bcf9c5a05ff64241322f5d1894ef220296b6945e927",
+      "size": 1858
+    },
+    {
+      "path": "scripts/test-r85-owner-student-version.mjs",
+      "sha256": "4c6f2a035fd8aef0b9f42b906e06a28c5f56b5f13f4f39eafe28b70792b9a99a",
+      "size": 4998
+    },
+    {
+      "path": "scripts/test-r85-owner-trainer-version.mjs",
+      "sha256": "051459b0a528c8b21bbb61c8a3e8f4f826f0d92c3cba067df637822dcdc0e330",
+      "size": 3919
+    },
+    {
+      "path": "scripts/test-r85-product-visibility-contracts.mjs",
+      "sha256": "d33eb50e56551509a051a05e7d67f360bf1e85ee312cccd499aec47386774e19",
+      "size": 2810
+    },
+    {
+      "path": "scripts/test-r86-owner-contracts.mjs",
+      "sha256": "54dbe460b914013e22faaa47e598a5efda4e258added5617a22eded0bdf368e6",
+      "size": 2112
+    },
+    {
+      "path": "scripts/test-r86-owner-staged-http.mjs",
+      "sha256": "6ed23e7d09c32109f5b3d6d749081caa59f8e93fc18355309be90595dfd70682",
+      "size": 17337
+    },
+    {
+      "path": "scripts/test-r87-commerce-isolated.mjs",
+      "sha256": "794f9e02651727fff70f9dd1810caf0cd94d0cf10bdb2d895391ebc19a1e06c6",
+      "size": 23292
+    },
+    {
+      "path": "scripts/test-r89-cart-contracts.mjs",
+      "sha256": "6ab435d562fe2e9a10726f7f29112d9c75ff005ea752718a7362286ec6f4df9d",
+      "size": 1888
+    },
+    {
+      "path": "scripts/test-r89-owner-save-ux.mjs",
+      "sha256": "1c28cba159010408be6bb8a92bc0fb88a37130f391926508e8c12767e2c7ad8d",
+      "size": 1273
+    },
+    {
+      "path": "scripts/test-r89-student-package-ui-contracts.mjs",
+      "sha256": "6bd54e51534b94788bc8a5b5d7e39772528c42ecc3b7988634ca957c93da9ed5",
+      "size": 1857
+    },
+    {
+      "path": "scripts/test-r89-visibility-contracts.mjs",
+      "sha256": "f2b442fcb1cede61e719ed8425193f7d66a5dad45ed1a718e80c643f092dafd4",
+      "size": 2878
+    },
+    {
+      "path": "scripts/test-r90i-auth-regression.mjs",
+      "sha256": "b043d6e08593d669336150ceca4860dadf05bd9c4f150fbfa230bdf2f5435848",
+      "size": 11822
+    },
+    {
+      "path": "scripts/test-r96b-panel-media-http.mjs",
+      "sha256": "b9aa4db14f320217ae8241bab64be8281bf00a2eaaa8056993e3139f7c70cd69",
+      "size": 9774
+    },
+    {
+      "path": "scripts/test-r96b-panel-media-integration.mjs",
+      "sha256": "c653a75610f1f72bca8c9fc30262cc2d73e4fc8459a06a85f70851c8e986f530",
+      "size": 8880
+    },
+    {
+      "path": "scripts/test-r96d1-video-http.mjs",
+      "sha256": "2ef030b07ed8390b28b5d5b4c67af54c69c40e6e6d6bc6d42b1180a4e554d442",
+      "size": 8249
+    },
+    {
+      "path": "scripts/test-r96d6-student-assignment-payout.mjs",
+      "sha256": "b407703dd7ef922e594fd968092cc30e43edc6fd884405eec5954b3262aee3e0",
+      "size": 21368
+    },
+    {
+      "path": "scripts/test-r96d6c-migration-acceptance.mjs",
+      "sha256": "40b6cf207b1dca9f811d960fac7613cfad9a373a67a2d11f590f70a068227be1",
+      "size": 3662
+    },
+    {
+      "path": "scripts/test-r96d6c-refund-contracts.mjs",
+      "sha256": "a4592ad95250516f37fecb853635ddb336f3bfe163de3b83330d3b9eaedee548",
+      "size": 1569
+    },
+    {
+      "path": "scripts/test-r96p-badges.mjs",
+      "sha256": "3e8a6177b573870c5bd3c938054d51e69117bb137d3b9a7cf1cb9d142ad7f1ac",
+      "size": 1303
+    },
+    {
+      "path": "scripts/test-r96p-local-review-http.mjs",
+      "sha256": "fd2fe919698225f08cddaf4b2ab8c4b69859be515fe11cc151ae4a581fd0cfe1",
+      "size": 2461
+    },
+    {
+      "path": "scripts/test-r96p-owner-catalog-contracts.mjs",
+      "sha256": "820e232c1ac216d8b3ff17ceff60170a1465ae82e8fc67bf85011a650eba1118",
+      "size": 2456
+    },
+    {
+      "path": "scripts/test-r96p-profile-notifications.mjs",
+      "sha256": "7055d501115d8c4ab070839e998d7c9363e2502192b732af3c983425d1e491fb",
+      "size": 1494
+    },
+    {
+      "path": "scripts/test-r96s-student-e2e.mjs",
+      "sha256": "a1232881d056d9b8f942f0129940e1a9cd5cac00be1e89f3b97e8c0f0095768b",
+      "size": 25622
+    },
+    {
+      "path": "scripts/test-r97d2-unified-acceptance.mjs",
+      "sha256": "f78ab1829e12f44c52d43fac54656baa393c8ebcf1b6fd87485bd107574a525a",
+      "size": 30551
+    },
+    {
+      "path": "scripts/test-r97e2-email-templates.mjs",
+      "sha256": "9e57a74f46f13a6ac33928217f1375b5fc3cfaf08523daaf12e4ca30cf9d8a66",
+      "size": 10647
+    },
+    {
+      "path": "scripts/test-rate-limit.mjs",
+      "sha256": "5fceec1127880274f41d8b96d5dd8693cc3b6d738ce33f25aaa8511e73075a59",
+      "size": 922
+    },
+    {
+      "path": "scripts/test-rbac-runtime.mjs",
+      "sha256": "0445e89ee8f6f8d99264f3b3846ea9a6de6877354ab5eb9b7b34267b7f27b423",
+      "size": 1753
+    },
+    {
+      "path": "scripts/test-rbac.mjs",
+      "sha256": "754d3aec79776b4b7b15e9536664861b3033adbdc2740e87c1b0eda533454156",
+      "size": 2361
+    },
+    {
+      "path": "scripts/test-relationship-notification.mjs",
+      "sha256": "2d3b4029e97776be377bad12fdc685b1a8cef0ced28e927a436c1ea4f90ca7fe",
+      "size": 2455
+    },
+    {
+      "path": "scripts/test-release009-auth.mjs",
+      "sha256": "dfcc7e01f38cdf4f31bb350e8ca33a6dc50f2d6cc50435d46811d70f4b7b18f6",
+      "size": 7146
+    },
+    {
+      "path": "scripts/test-release009-paytr.mjs",
+      "sha256": "7098ed8edc813179af7964ddb3ae973e62c22821911285691f9d075c96afa7d0",
+      "size": 4501
+    },
+    {
+      "path": "scripts/test-release011f-student-bank-transfer.mjs",
+      "sha256": "9136a48d0268d4a6e5e99ddd428bd6f7cc027be1182c45a8ac1678893ed00367",
+      "size": 15884
+    },
+    {
+      "path": "scripts/test-release012d-browser.mjs",
+      "sha256": "c972ba82d2a6cc1a2c63c1637d35032174db57a0bfe5f453b61e38e1ef5db20a",
+      "size": 25217
+    },
+    {
+      "path": "scripts/test-resources-api.mjs",
+      "sha256": "669c0c2f093cb06afcbfb6b03992313fb422a560e579c5fffb25b147395535b0",
+      "size": 1216
+    },
+    {
+      "path": "scripts/test-seed-guard.mjs",
+      "sha256": "e70a2c0ba6f2e2be45621f4b93cbb8641a1f25f335b289cc130597f5e47e50eb",
+      "size": 2923
+    },
+    {
+      "path": "scripts/test-student-commerce-db.mjs",
+      "sha256": "f9b063c89b91762fe7df120cec29a19e11a4dff217fff28e59ff4fc2458c1785",
+      "size": 12295
+    },
+    {
+      "path": "scripts/test-student-commerce.mjs",
+      "sha256": "bd4bc9d2cc324aebfb5bb50d4fc56202e80739916f962af24c809d923bd4a75e",
+      "size": 1681
+    },
+    {
+      "path": "scripts/test-student-guardian-api.mjs",
+      "sha256": "ba4d45de08d9c58573bd55e01e863b316e42b55338ea88ba209e54cd1f518955",
+      "size": 2341
+    },
+    {
+      "path": "scripts/test-student-payment-method-source.mjs",
+      "sha256": "6df09ad33d64bbfffbb7dfc0d0739b454e5f72994e5de2435cd4c88e455eac0c",
+      "size": 732
+    },
+    {
+      "path": "scripts/test-students-api.mjs",
+      "sha256": "ea80757e919792ec50b854c4564c39d8035caafa125b1f4310cf325e8e689744",
+      "size": 617
+    },
+    {
+      "path": "scripts/test-students-canonical-api.mjs",
+      "sha256": "55748fbbd32bbf89b4ea279936bacfe049ae1761200b7f279c2b5a668e564f02",
+      "size": 1120
+    },
+    {
+      "path": "scripts/test-students-negative-matrix.mjs",
+      "sha256": "c311e182cf068ef806ccb046a31d678153e5a474a5ab904f24e16a8ff7b548f6",
+      "size": 3094
+    },
+    {
+      "path": "scripts/test-trainer-commerce-integration.mjs",
+      "sha256": "2602bd1348466b3da0f4b9ac4ae9ce063006d8208870935c718444bc22c1c1c3",
+      "size": 5687
+    },
+    {
+      "path": "scripts/test-trainings-api.mjs",
+      "sha256": "5935184e428cbc5d7f340369abc037b4a6c22fc06cb9c03629b6ec5a7bb195b8",
+      "size": 1405
+    },
+    {
+      "path": "scripts/test-visual-authority.mjs",
+      "sha256": "ac9f196f0b02704c796182f66c123389f611b00421f37732154bba2ce7db5e33",
+      "size": 1849
+    },
+    {
+      "path": "scripts/validate-reading-content.mjs",
+      "sha256": "dfd59c926d0382b347a869a6cc2c1e1dfb2263130bf5cb074b30576056bae4ab",
+      "size": 1461
+    },
+    {
+      "path": "scripts/validate-rendered-seo.mjs",
+      "sha256": "3d9598cf3bc73fc40b23de4c707cc8d88af5e4d822d51add25e603c72c04a59a",
+      "size": 35833
+    },
+    {
+      "path": "scripts/validate-seo.mjs",
+      "sha256": "4fe2e7ecea507fcb1dec09070c4b46ef19d079012142a9d531cc7bc388c2ed15",
+      "size": 67877
+    },
+    {
+      "path": "scripts/verify-owner-local.mjs",
+      "sha256": "156bbd26088f92d6b3ba46308b7eda279f983e98e31f4941f2bf427cc9360773",
+      "size": 10000
+    },
+    {
+      "path": "scripts/verify-platform.mjs",
+      "sha256": "04d4f556b96c046eceb6f61fc837a91bf6bd49441db9c08dfb39e2ffdff5b252",
+      "size": 2366
+    },
+    {
+      "path": "scripts/verify-r96p-disposable-runtime.mjs",
+      "sha256": "9dcce01b76624b80ce8836faf75e4108de8a916918c990355a52c8d2f1e2fa02",
+      "size": 5376
+    },
+    {
+      "path": "src/2index.css",
+      "sha256": "8d1c6008103c6eebbc8d8d78ac3eb4f7024cf535fb19c655feb792bac005aa50",
+      "size": 233850
+    },
+    {
+      "path": "src/App.css",
+      "sha256": "c2571ce7245629994b8adc84f6c48e1920f047a4e7e29c89a4aeb51eeb1b5433",
+      "size": 3075
+    },
+    {
+      "path": "src/App.jsx",
+      "sha256": "68a749679b307d55b7e1c2e3a94e93c559b9a9697bb6f5ba1fe1ed3600148eb5",
+      "size": 52649
+    },
+    {
+      "path": "src/AppRoutes.jsx",
+      "sha256": "b6781a98bd578dfdd8e904b5c14c7eec817edeaf75cbfe12c9fea1db224d496f",
+      "size": 18986
+    },
+    {
+      "path": "src/AttentionFocusTest.jsx",
+      "sha256": "caaad58789d9454d164a3c355248059804e12524d3b2a7147f48c98141724da7",
+      "size": 116135
+    },
+    {
+      "path": "src/FlyingBee.jsx",
+      "sha256": "f830f7e38b6ec33b85507ef8fdd298b0fc26ea5c77cf77b742d02109158c8d17",
+      "size": 965
+    },
+    {
+      "path": "src/ReadingSpeedTest.jsx",
+      "sha256": "135e6751fe93c6dfed99456040d1cdd37a568c99283cdb219f4bd48f36a8dd7b",
+      "size": 17353
+    },
+    {
+      "path": "src/assets/hero.png",
+      "sha256": "72a860570eddf1dd9988f26c7106c67be286bc9f2fd3303c465ce87edb1ae6cd",
+      "size": 44919
+    },
+    {
+      "path": "src/assets/react.svg",
+      "sha256": "35ef61ed53b323ae94a16a8ec659b3d0af3880698791133f23b084085ab1c2e5",
+      "size": 4126
+    },
+    {
+      "path": "src/assets/vite.svg",
+      "sha256": "2f1f6c6f90a0ef7422cbb4cfafcd8ad329c507a18afdc34cc21fa72179b9c54a",
+      "size": 8710
+    },
+    {
+      "path": "src/components/Footer.jsx",
+      "sha256": "4f045c14703d2f045cf3621d1a53764bf4fa9cf95269b06005a74076798a6ca5",
+      "size": 11864
+    },
+    {
+      "path": "src/components/Header.jsx",
+      "sha256": "d7cfc54aaf2257945b2729777eb9c763f9860c1879ecc20af9f04f8955baa1d4",
+      "size": 55783
+    },
+    {
+      "path": "src/components/LiveEducationEngine.jsx",
+      "sha256": "7a0e39d34db346805658e6057bc448b6d487ca3f56708365818490793a22361c",
+      "size": 14926
+    },
+    {
+      "path": "src/components/ScrollToTop.jsx",
+      "sha256": "1857b0e96718fbd3612c7108eaa2a362807b50342ae9f7903cd35a10e99adbc8",
+      "size": 821
+    },
+    {
+      "path": "src/components/SharedPromoVideo.jsx",
+      "sha256": "8fb44909d3c0dc42db8e5808b8bad087d783675ca159245b5a9c541b21e41ace",
+      "size": 2439
+    },
+    {
+      "path": "src/components/StoryVideoModal.jsx",
+      "sha256": "329c080eb149377d99363aa6154cba20183c9eff2e7d097410b83687ef46cd30",
+      "size": 4396
+    },
+    {
+      "path": "src/components/StudentStoriesSection.jsx",
+      "sha256": "60f7421eb42abe54ddd0890e1b6c71af2866bfef2c93a8b72ecb01096a8f0c59",
+      "size": 5336
+    },
+    {
+      "path": "src/components/TopAchievementBanner.jsx",
+      "sha256": "bcbf1fd1e445887fd98c5e5ab6fa047b80a081bfbbabb20412b8528f7c35a547",
+      "size": 4879
+    },
+    {
+      "path": "src/components/TrainerIntroVideoSection.jsx",
+      "sha256": "fccfa79b2fc5cca1f4dd669b2c665556fdbd9491c337c767490373a93dce54a1",
+      "size": 5539
+    },
+    {
+      "path": "src/components/TrainerStoriesSection.jsx",
+      "sha256": "18b0a8bbbd504c3ea62a3b63374f6904eb42c3c788fb752204c061a634ebdd05",
+      "size": 4196
+    },
+    {
+      "path": "src/components/assessment/AssessmentTests.jsx",
+      "sha256": "7cb6508dd6548eea786780dc9cf29f384b0b0d00e5a7cdaed97105f419b3d3d0",
+      "size": 10469
+    },
+    {
+      "path": "src/components/content/Breadcrumbs.jsx",
+      "sha256": "3d6e53408d0c7874ab99352e0f4162df7396a3ec5fc981913e1cfb73dbb2268f",
+      "size": 610
+    },
+    {
+      "path": "src/components/content/ContentCta.jsx",
+      "sha256": "f4b37dda656b7382cf113338dd50e95644914841e0563f8a1b9bce07234b4f00",
+      "size": 759
+    },
+    {
+      "path": "src/components/content/ContentExplorer.jsx",
+      "sha256": "c76455bfcda1d1bda1efee45ee127251d75510cc9ca72dd8e7de1136e66d0464",
+      "size": 6087
+    },
+    {
+      "path": "src/components/content/ContentPageLayout.jsx",
+      "sha256": "c525ba286498a295492d20233a5aea5db1a7647510f91ca355bf08426320e615",
+      "size": 1919
+    },
+    {
+      "path": "src/components/content/ContentTableOfContents.jsx",
+      "sha256": "1ffc81fcea0fc38d4edc9c89df115a437290bf19797fa42fe13d68852934455d",
+      "size": 463
+    },
+    {
+      "path": "src/components/content/RelatedContent.jsx",
+      "sha256": "5c653c0f271bdb3c84a643aef121a0c9b0bd1eaff9f83ce0dedbf51425471450",
+      "size": 855
+    },
+    {
+      "path": "src/components/content/SoftwareInterestForm.jsx",
+      "sha256": "84b2c61bd73853099344dea7b6ae54b6c1b0c4d96a6b47d22ac77f433a0eb696",
+      "size": 10008
+    },
+    {
+      "path": "src/components/content/TrainingArticlePackages.jsx",
+      "sha256": "87f9f9b0483e60a6502307468835316ded2544403b4d1683a6ea0b969c65ee80",
+      "size": 9344
+    },
+    {
+      "path": "src/components/content/software-interest-form.css",
+      "sha256": "11997931af6efa6e9d70313eaa4825f13350d10186650b92deb6ef4bee97edd9",
+      "size": 4878
+    },
+    {
+      "path": "src/components/content/training-article-packages.css",
+      "sha256": "db60b04b3814911d0045a6e26871a5cd5fd0b809160412d6e85ff3286c6026c3",
+      "size": 5064
+    },
+    {
+      "path": "src/components/home/HomeStudentPackagesShowcase.jsx",
+      "sha256": "c112b86358e1d29b62436a1995a731df0183d83905340cb344b48251742b521e",
+      "size": 11472
+    },
+    {
+      "path": "src/components/home/home-student-packages-showcase.css",
+      "sha256": "9e2013d6097893f1d0c31117f3a95a6b4e7b3c5e68f89a97b197facba5e10c19",
+      "size": 7723
+    },
+    {
+      "path": "src/components/seo/Seo.jsx",
+      "sha256": "360235c863381ce56173aafba7051beeed5161ebe347d22b204fa496e11956d6",
+      "size": 3892
+    },
+    {
+      "path": "src/components/shared-promo-video.css",
+      "sha256": "7a018df6b7c552eeb8035623443bb28ca2b1662bafffae00b706024d1a5bc0b5",
+      "size": 3728
+    },
+    {
+      "path": "src/components/trainer-intro-video-section.css",
+      "sha256": "46238d59e6a189a650d14750e93cd992354d3ef4ead9f93102e57c3337a5c10e",
+      "size": 10000
+    },
+    {
+      "path": "src/config/site.js",
+      "sha256": "5e357e114b2dacce4dc61e550c33188c189b60070fb24df97e9ddc6977ec904a",
+      "size": 614
+    },
+    {
+      "path": "src/content.css",
+      "sha256": "982929078bf99e90b14ba95a0dcdac899c751bf800cd59a86f73fe30346ca110",
+      "size": 21591
+    },
+    {
+      "path": "src/data/attentionFocusContent.js",
+      "sha256": "695a154145f96ada57dc75cdd831492ac9ebe7b55ff7222e0f28129ce6a981c8",
+      "size": 28987
+    },
+    {
+      "path": "src/data/blogContent.js",
+      "sha256": "c8715855d381881051a9bcba0a0470b459b8bf4aa025ab5489794520a7cdc77e",
+      "size": 28306
+    },
+    {
+      "path": "src/data/contentCatalog.js",
+      "sha256": "0163952da5de16d0530f396fa503a7f96a390acc581f3cca277206aec67b8ade",
+      "size": 752
+    },
+    {
+      "path": "src/data/contentExplorer.js",
+      "sha256": "005a131fa72e34768c66f33a09713c6c6c2a5db3aaeccfdb2ca51873974e8a2c",
+      "size": 1407
+    },
+    {
+      "path": "src/data/contentRoutes.js",
+      "sha256": "fb424768eeddbc6274086f5a9f4d25318e8c09ebc2631227baa2f7d06eaf1084",
+      "size": 7325
+    },
+    {
+      "path": "src/data/corporateContent.js",
+      "sha256": "dde43c1364292cbee6561361bd05ae939f8c7a58ece521c97c8b56c281b50469",
+      "size": 38255
+    },
+    {
+      "path": "src/data/fixokuEducationContent.js",
+      "sha256": "8c5d6495a4ea77cb126bc1466781a97a2f5ac95ed3d5b6c3ba4a38608f39ecac",
+      "size": 33464
+    },
+    {
+      "path": "src/data/fixokuPackageCardContent.ts",
+      "sha256": "02a61f1fb89de5905b7075e17a0c892caf0808eb4c237857d68d8d811fc30ed1",
+      "size": 11847
+    },
+    {
+      "path": "src/data/fixokuPackageMedia.ts",
+      "sha256": "9a9d815f80863f047978ad4a0bf68cd1dfaa77b57062541de93a3579f9223b7d",
+      "size": 9362
+    },
+    {
+      "path": "src/data/institutionReadingLanding.js",
+      "sha256": "c44ff322c547322ba5dd15c39e3fe46d396398d1aff0c648ef5771959fc75f80",
+      "size": 14688
+    },
+    {
+      "path": "src/data/instructorReadingLanding.js",
+      "sha256": "b0fced7077da336473e08c1a0f8ee2aa31910ad1b362b1e9c92f506df878eeaf",
+      "size": 8982
+    },
+    {
+      "path": "src/data/knowledgeCenterContent.js",
+      "sha256": "26a997d8fce286dabe3b755ab9e4e6d2bf18f3f5078099f671481491dee2bafc",
+      "size": 5510
+    },
+    {
+      "path": "src/data/legalContent.js",
+      "sha256": "4cb5ffc29c2615b57a6c2f37aae211e7745e4e179c17e24e1560d29eb4c28711",
+      "size": 20205
+    },
+    {
+      "path": "src/data/legalPublicPages2026.js",
+      "sha256": "3dc88e3b4cef494d1362efc268c24b1a1c0a319164f72705083c5517a4deabf0",
+      "size": 43009
+    },
+    {
+      "path": "src/data/legalSourceContent.js",
+      "sha256": "d064da940e84686566e5675334e40f023f35806f1eb1c76b51d631fba08268f9",
+      "size": 886
+    },
+    {
+      "path": "src/data/promoVideoMedia.js",
+      "sha256": "10da4a0081d81864071fb425c640d3f845ff81a1e1d1e898ec23656613f8135e",
+      "size": 828
+    },
+    {
+      "path": "src/data/publicVideoMedia.js",
+      "sha256": "fbefc8a947e7290427d9007b837459e3381c7c867ceee068e83e3277d2da4222",
+      "size": 5548
+    },
+    {
+      "path": "src/data/quickReadingContent.js",
+      "sha256": "29ec3ee269454bce894fe1bb69702da705e963505bcb4ceeb23beb0053544c38",
+      "size": 29620
+    },
+    {
+      "path": "src/data/readingMeasurementTexts.js",
+      "sha256": "f09e2054f260b49598c73ff67c96220391a3c19775813391c62a2c0c7ca7260f",
+      "size": 352889
+    },
+    {
+      "path": "src/data/socialProof.js",
+      "sha256": "cba1bf220354e167acb6dbc6e0f608c6e1ab4274d7e76da1ddc0cbface4bd865",
+      "size": 193
+    },
+    {
+      "path": "src/data/trainerLandingVideoMedia.js",
+      "sha256": "80c9a49453dd3e3574158351cc260460e8746c29636d0601df915a466c5d23e6",
+      "size": 1223
+    },
+    {
+      "path": "src/data/trainerStories.js",
+      "sha256": "ee44824857c88d2ad24f4555e21d83b9f1c22f257003c967a87236292d2007ef",
+      "size": 124
+    },
+    {
+      "path": "src/data/trainingContent.js",
+      "sha256": "8b8d3fd0cab747783952df5a7e69acafa2d5216062b19873f653e516fa6e2234",
+      "size": 39651
+    },
+    {
+      "path": "src/data/turkeyLocations.d.ts",
+      "sha256": "9c70f95e7f0d01c29b9dc6750304081860aa61b2e4c7be720cf15d392f67117a",
+      "size": 646
+    },
+    {
+      "path": "src/data/turkeyLocations.js",
+      "sha256": "a5c2eac86cd163bf9ab74f7b5ae31c238c10567109de1358510335fa0c852194",
+      "size": 48787
+    },
+    {
+      "path": "src/entry-server.jsx",
+      "sha256": "11fbd4c9ed69c5d9571cfd74ffb4affff178e2426a2580e8d9d580bde92ca8aa",
+      "size": 381
+    },
+    {
+      "path": "src/hakkimizda.css",
+      "sha256": "f696ef27b9f373b583982acff39e1db555cf918d2f9cd855ac4e08e75f078102",
+      "size": 7126
+    },
+    {
+      "path": "src/index.css",
+      "sha256": "437cd771fcb4aa19aeef2884fba3b0f5f5e55fc328e5f5c7af635c7328cbb3fc",
+      "size": 380715
+    },
+    {
+      "path": "src/main.jsx",
+      "sha256": "4e08e7b96e347ffc30c295ab09ad3776251d047793594d300c675efc84ee8492",
+      "size": 555
+    },
+    {
+      "path": "src/martech/ConsentManager.jsx",
+      "sha256": "ca7b55e692f09e09e54eb995a2cd968c2222fc0212a9405bbed86203a7e9e2cc",
+      "size": 6186
+    },
+    {
+      "path": "src/martech/adapters.js",
+      "sha256": "8c02fa35e50283795933f861a8112d9979c433e106c3a67bb2cd8c00b23b2e77",
+      "size": 823
+    },
+    {
+      "path": "src/martech/consent.css",
+      "sha256": "2cabcdf55f6e61c66289277d3d415bee432f506ff00cfeb5391bf0f04a907b78",
+      "size": 3336
+    },
+    {
+      "path": "src/martech/consent.js",
+      "sha256": "55565223785f5fa31caaa011637a1f4b84cd1b74f2ff1471c82641efcfbf0ba1",
+      "size": 3984
+    },
+    {
+      "path": "src/martech/events.d.ts",
+      "sha256": "714d795c9fc0f0aa6b8892e7b30303b24e16e681d7a0a733a56e431d4b9412f5",
+      "size": 357
+    },
+    {
+      "path": "src/martech/events.js",
+      "sha256": "a246f5e6bd535c5c60c40937b9c39cd3e270a4dcc347da6db4d540249cc92ba4",
+      "size": 7557
+    },
+    {
+      "path": "src/martech/googleTagManager.js",
+      "sha256": "7adad6a9da16de908c99fd2a2c8d124025c88ad7084cdd4393a989397602d24a",
+      "size": 2886
+    },
+    {
+      "path": "src/pages/AuthLifecycle.jsx",
+      "sha256": "c34f54fe18e4562638b070027d61cd0b0bd488b63afef31b9217afd8eaa62fb4",
+      "size": 43714
+    },
+    {
+      "path": "src/pages/EducationPackagesPage.jsx",
+      "sha256": "0d2cd703777ba13bc49bb831eb566c89cd2b7517d390bdba380968638aaf8ed9",
+      "size": 10587
+    },
+    {
+      "path": "src/pages/Giris.css",
+      "sha256": "9b40e2e107224f14c6a09e36aa8c27ac865880ddb1e594d695fd38d67079951d",
+      "size": 2322
+    },
+    {
+      "path": "src/pages/Giris.jsx",
+      "sha256": "a6b083ce6ef6d22ddc6c4b00ed530b8f4bdf0c0492a2422f458673d75af688d9",
+      "size": 4386
+    },
+    {
+      "path": "src/pages/InstitutionReadingLanding.jsx",
+      "sha256": "0a9a18e393320a4334873e9e279ffb19918a73ba3a29aed5c884bee7cc9cda14",
+      "size": 40330
+    },
+    {
+      "path": "src/pages/InstructorReadingLanding.jsx",
+      "sha256": "aec97c54a6c20adfcd56fbf139fd16fed5c3d412621264ed8ce2806d6e7c1c5f",
+      "size": 31207
+    },
+    {
+      "path": "src/pages/LegalPage.jsx",
+      "sha256": "5ed7f762b44c45bc8f8995c9cf89e9635d79ae8a1c6065a6ab972b88ae39fd5d",
+      "size": 5133
+    },
+    {
+      "path": "src/pages/LocalReviewHub.jsx",
+      "sha256": "e0bc84b115c93b903f3cc18e1a1ca4478dac3022aea096208edf633ad1dc9fa6",
+      "size": 5794
+    },
+    {
+      "path": "src/pages/LoginGatewayPage.jsx",
+      "sha256": "91d1613344be21e5ba8d1efe6e9dd530e660676953596f3646a471dbe6c523e1",
+      "size": 5555
+    },
+    {
+      "path": "src/pages/NotFound.jsx",
+      "sha256": "29c13e93ca6489464a11a3dc49bb3c7691c83fa11779774896024b70a30b985f",
+      "size": 953
+    },
+    {
+      "path": "src/pages/OwnerPrivateLogin.jsx",
+      "sha256": "9cb031086a7b5be0d744128b1ee6697ff5a78fe29de2ea0d223a624b6600d36f",
+      "size": 4086
+    },
+    {
+      "path": "src/pages/StudentReadingLanding.jsx",
+      "sha256": "28739a5faeb36b2fd2bb27ff32f12df2aac06a72939bc62b46f145a28f7f5033",
+      "size": 16997
+    },
+    {
+      "path": "src/pages/TrainerCandidatePage.jsx",
+      "sha256": "0fdc28ce3c644ce5082c9febc045f31e54b331db2f882067946457520ee84c87",
+      "size": 7152
+    },
+    {
+      "path": "src/pages/TrainerVerificationResend.jsx",
+      "sha256": "3f97493b6b790a315b2c6442fe3d6ded8b64a2fc0b1a7a95c39c6b1a944ee7ec",
+      "size": 4132
+    },
+    {
+      "path": "src/pages/auth-lifecycle.css",
+      "sha256": "34f0f4da667deaeaf90a1a7a929763f1fd4cdc65d7452967fd4bfc91e92e48bb",
+      "size": 2041
+    },
+    {
+      "path": "src/pages/auth-unified-v4.css",
+      "sha256": "78fb0a0cc8dd9368b2c4ba4aa08a1a977e6f94c9c7199ec2d6ed59f2ffa1cce6",
+      "size": 9318
+    },
+    {
+      "path": "src/pages/content/QuickReadingArticle.jsx",
+      "sha256": "52da4ee71cd57b1c2e23f8495c2d01598271a55d78470c25fb217e6f97984136",
+      "size": 266
+    },
+    {
+      "path": "src/pages/content/QuickReadingHub.jsx",
+      "sha256": "10b1ac37ea3910cf8c32c9c224bd9560008d6a5501a4c461c242dfeff48a4296",
+      "size": 260
+    },
+    {
+      "path": "src/pages/content/TopicArticle.jsx",
+      "sha256": "c3c9a6d190bfb929bb22cd8166772955d2a823fb7ba1b312474b4e3e326cf398",
+      "size": 1298
+    },
+    {
+      "path": "src/pages/content/TopicHub.jsx",
+      "sha256": "db48bc2db86c332edaa5abe2e5425c8ce266ab4dfe5a803c8f3f5e11076f23b8",
+      "size": 4509
+    },
+    {
+      "path": "src/pages/education-packages-owner-v1.css",
+      "sha256": "93b58286eed49a115ac79ce1dc0267e530c246a689bafdedf3c8b9fb4b414bf0",
+      "size": 5277
+    },
+    {
+      "path": "src/pages/iletisim.jsx",
+      "sha256": "179ff0af8610c2210cebe056fcf833f7229b2e1d6373d3b0bb55566d0d783295",
+      "size": 22761
+    },
+    {
+      "path": "src/pages/institution-reading-landing.css",
+      "sha256": "bcb2b48a8164401e2e5edd35103f1081c3a3a4cd0c8bf4233b3f01afa8fda119",
+      "size": 84526
+    },
+    {
+      "path": "src/pages/instructor-reading-landing.css",
+      "sha256": "243e2010fed5f46454d36ccd82088926a229ce8e745235b01ed4208cf005eca2",
+      "size": 31710
+    },
+    {
+      "path": "src/pages/local-review-data.d.ts",
+      "sha256": "1dde22921710cc910bfb7846b7a7525dd22fc5ca60bcce36097a6fa0a2949e10",
+      "size": 295
+    },
+    {
+      "path": "src/pages/local-review-data.js",
+      "sha256": "83b3872394f89c7fc391eec6c7d0298e415d919ae8e7717e226b002f7299627b",
+      "size": 1601
+    },
+    {
+      "path": "src/pages/local-review-hub.css",
+      "sha256": "0ecfb75942ff53eced0b490f2e9768625c98213a3d91611afca4ef4f6415de93",
+      "size": 10773
+    },
+    {
+      "path": "src/pages/login-gateway.css",
+      "sha256": "ab0ce0b4e73fe098318d36898b28dad3639acbe850b46444588aeda97da4cf20",
+      "size": 7673
+    },
+    {
+      "path": "src/pages/owner-private-login.css",
+      "sha256": "421ff1e252bc3fca1753a6db4cf649f536304a186c7b04c035a44b6777e35f50",
+      "size": 1687
+    },
+    {
+      "path": "src/pages/student-reading-landing.css",
+      "sha256": "42dfc0b486b5f0f391e1e700aa91a42880dd4d831674f8da44093f6b1e0928dc",
+      "size": 24925
+    },
+    {
+      "path": "src/panel/PanelApp.jsx",
+      "sha256": "5adffcd2115e85bad9e5c300cde2d16968884d7c77ccb2e51e51908b9ffd37e8",
+      "size": 2001
+    },
+    {
+      "path": "src/panel/assets/logo-fixoku.png",
+      "sha256": "319c3ab2eb32cae3964e491651bcf00e89e1669f0bd394af3dd9d6b2ad18fb16",
+      "size": 51685
+    },
+    {
+      "path": "src/panel/assets/yusuf.jpg",
+      "sha256": "ca8b0d0694a55d6d811803c50bfb04cb9de0f68c5bb3e1af6b45d9a041d01a97",
+      "size": 184752
+    },
+    {
+      "path": "src/panel/components/AreaChartCard.jsx",
+      "sha256": "187f374b12def5194538d28fa86b4746bfcbf76345c20be3bdb48721242e0572",
+      "size": 1101
+    },
+    {
+      "path": "src/panel/components/CategoryCard.jsx",
+      "sha256": "9526fd310334618bd6dab11030247a37fe6e23072d7727253a7508eb2605c78c",
+      "size": 580
+    },
+    {
+      "path": "src/panel/components/Icon.jsx",
+      "sha256": "e32886a7540300366a49bdfe1159a7d82b5c93387fa8e55d484024c216020793",
+      "size": 2617
+    },
+    {
+      "path": "src/panel/components/ProgressCircle.jsx",
+      "sha256": "5159cc97a0d4a8c085275b845b472fd3ebed407a60eddcd267a07389df9a1273",
+      "size": 386
+    },
+    {
+      "path": "src/panel/components/StatCard.jsx",
+      "sha256": "b73ce93a942435da54e68964b7636c83ee187b34e664d78cc11223422baf3233",
+      "size": 305
+    },
+    {
+      "path": "src/panel/data/mockData.js",
+      "sha256": "3a5480aaae75d9538530d705b43af0dea320dd344b5a46cae2bc3bc6fd2c8134",
+      "size": 3346
+    },
+    {
+      "path": "src/panel/data/studentData.js",
+      "sha256": "27cbe38e22da2282896f499f721b44a672f42bceeef2da0abcfdd577f15e1c00",
+      "size": 1565
+    },
+    {
+      "path": "src/panel/layouts/DashboardLayout.jsx",
+      "sha256": "af98e079319e015d2469116d1373c90160b90500deffe2cf6135b490ad45040b",
+      "size": 3354
+    },
+    {
+      "path": "src/panel/layouts/StudentLayout.jsx",
+      "sha256": "c710d6b4502cc4ca390602378e39cb66f6c4f7515b908a72af84c480eaca22bc",
+      "size": 2536
+    },
+    {
+      "path": "src/panel/pages/AdminDashboard.jsx",
+      "sha256": "dd6b623a6dda0bf837bd5b0e3755e97a52b54b35a4d38e7f96d38da68249cb90",
+      "size": 1492
+    },
+    {
+      "path": "src/panel/pages/InstitutionDashboard.jsx",
+      "sha256": "5bce4f6bcf92002630299f6d79436c69a51d293a2af6801a53654d2f0dcbcf1f",
+      "size": 1468
+    },
+    {
+      "path": "src/panel/pages/Login.jsx",
+      "sha256": "13fea5631c57c6182650de0746538c76d4d15389b99179c3773c13766caaf169",
+      "size": 2161
+    },
+    {
+      "path": "src/panel/pages/StudentDashboard.jsx",
+      "sha256": "6e30c07b2a5058b101f745047f92aa0a8f7846dc10b3a34a864e2468ae9e3b72",
+      "size": 3712
+    },
+    {
+      "path": "src/panel/pages/StudentPanel.jsx",
+      "sha256": "7f2bc4ba6041b81f8f8d69685d09dee3782c70f15904b51289a8d5a59b263b9a",
+      "size": 49770
+    },
+    {
+      "path": "src/panel/pages/TeacherDashboard.jsx",
+      "sha256": "04982fbed0f69b5a5bbdc530ac2b1538c74509c08721d7b177fbc26f47b3eb2b",
+      "size": 1453
+    },
+    {
+      "path": "src/panel/panel.css",
+      "sha256": "7d80e785e7e30b01256e7509066f477336d2369c82b3c70a17406b3c52773bf1",
+      "size": 68110
+    },
+    {
+      "path": "src/platform/README.md",
+      "sha256": "5a31f477a932ded93cb6b2e1673bfe3abd96a61860e1763e0a87c34b39e6ea07",
+      "size": 2731
+    },
+    {
+      "path": "src/platform/admin/AdminAssignmentPage.tsx",
+      "sha256": "b893a1324eb1e083309d0e7b0887e48a283d607af77ab9c0c26a6a83e5abaebc",
+      "size": 17107
+    },
+    {
+      "path": "src/platform/admin/AdminAuditHistoryPage.tsx",
+      "sha256": "476e62337dd1532faad3e85d5c46cb9232f2e6011354034e1571cc66152a0b41",
+      "size": 46887
+    },
+    {
+      "path": "src/platform/admin/AdminDashboardPage.tsx",
+      "sha256": "3c29b0363f647765582e04ae177eaeb08076e757c9bdbf37999813725445aeda",
+      "size": 2703
+    },
+    {
+      "path": "src/platform/admin/AdminDataTable.tsx",
+      "sha256": "bc6ff745649fcf77c9cd3e46cfb638e015f78388cb36e62b0f9b75d182c0a084",
+      "size": 1778
+    },
+    {
+      "path": "src/platform/admin/AdminEducationProgramsPage.tsx",
+      "sha256": "580d27b7a530b2398cfd3d73dacf32d38b3ee8785e5a8314e067bd9f34ca2ca1",
+      "size": 18811
+    },
+    {
+      "path": "src/platform/admin/AdminOrdersPage.tsx",
+      "sha256": "1fe377822ce06e0d5673d35373cd393c2d0afdb6e4f8bbc32932e4f80e18423b",
+      "size": 30695
+    },
+    {
+      "path": "src/platform/admin/AdminPackageDetailPage.tsx",
+      "sha256": "2d9f849da2279372a5f913232f9f236f5edcdb6311ff7f5ba1996bfb1d103e66",
+      "size": 7089
+    },
+    {
+      "path": "src/platform/admin/AdminPackagesPage.tsx",
+      "sha256": "4afd7e46c169e297f2b66f77322c77b0598cba2c420f9e3b03032329214b79e5",
+      "size": 3497
+    },
+    {
+      "path": "src/platform/admin/AdminPaymentsPage.tsx",
+      "sha256": "fcf74902eec81305da08355c9c89629cfae08331a368c2050d9f98547ee51467",
+      "size": 11138
+    },
+    {
+      "path": "src/platform/admin/AdminProductDetailPage.tsx",
+      "sha256": "f16631c4b50e7eb63b0268d5560645064ac66ef78c5a73b543a43b4122733b75",
+      "size": 4092
+    },
+    {
+      "path": "src/platform/admin/AdminProductsPage.tsx",
+      "sha256": "e6d214e00c1d44cb9129fb1c3768ae985b967cf186f07d66831ee9b6164da8b5",
+      "size": 6082
+    },
+    {
+      "path": "src/platform/admin/AdminQueryProvider.tsx",
+      "sha256": "b5400b176148d8f107446371cbf3d26da9995d62f446b3a3f5db828f41e84921",
+      "size": 437
+    },
+    {
+      "path": "src/platform/admin/AdminShipmentsPage.tsx",
+      "sha256": "3cee0de167d721038be41b4b38769073351a6be3768cc88aaf9659edd66bfdac",
+      "size": 26651
+    },
+    {
+      "path": "src/platform/admin/AdminStudentCommercePage.tsx",
+      "sha256": "de9e1d824704fa317dfaf259a88c711296ba84c508f98003bc43015a05d89204",
+      "size": 39864
+    },
+    {
+      "path": "src/platform/admin/AdminStudentsPage.tsx",
+      "sha256": "8ad163cd3d0e67fe86d705234e86986c1d5cb6bcdf63fa53490d575d6b584203",
+      "size": 24986
+    },
+    {
+      "path": "src/platform/admin/AdminTrainerCommercePage.tsx",
+      "sha256": "01238d927f5845bd1053ae0e77099ae84c9077768d5120b91601bc52112bf71d",
+      "size": 56341
+    },
+    {
+      "path": "src/platform/admin/AdminTrainersPage.tsx",
+      "sha256": "91ce12a813e0f4d0de1f69b17109cec39c1e60d0cd2794f07934998c7b0b4f3a",
+      "size": 27473
+    },
+    {
+      "path": "src/platform/admin/AdminUserOperationsPage.tsx",
+      "sha256": "85a0cb0d7b639956b6e14a3acd3d3c79d7951f2e9e09cbce190b5fadda2a278d",
+      "size": 32840
+    },
+    {
+      "path": "src/platform/admin/EmailTemplatesPage.tsx",
+      "sha256": "5f166152c1f731efdc7c66b3e6beb1b78bf3b1a9db7c62d3a6da887dbf006b97",
+      "size": 12980
+    },
+    {
+      "path": "src/platform/admin/FamilyOfferBuilder.tsx",
+      "sha256": "63e974d829927fd58a2b647f6e70c138862e16c96b34ecd88df4bc3df842026c",
+      "size": 11029
+    },
+    {
+      "path": "src/platform/admin/FamilyOfferPage.tsx",
+      "sha256": "caab17e534e992a3ad98446bad52c55bc35deffea6f8f068a90d21ca92ed54f8",
+      "size": 16315
+    },
+    {
+      "path": "src/platform/admin/FixokuApprovedCatalogV41.ts",
+      "sha256": "d0f40aba7c3c231e2ad4bff1df7a4d33256e4c634185544695ebaffc5a3cd5df",
+      "size": 4204
+    },
+    {
+      "path": "src/platform/admin/FixokuCatalogAssetsV41F.tsx",
+      "sha256": "6c504e99fa5b2ad7c6a043346c33b2db0d8b7cfea8e0b372a2f754fb3df63e42",
+      "size": 6637
+    },
+    {
+      "path": "src/platform/admin/FixokuCatalogIconV40.tsx",
+      "sha256": "c399a56df6b5a5470ad0b63b25cad3888b7437e429eafd98916a03886c354740",
+      "size": 2923
+    },
+    {
+      "path": "src/platform/admin/FixokuImageUploadV41F.tsx",
+      "sha256": "a3ddaa3f317fb5bfe0f9add78a81944c7752461e68d210a63d061bf1ec4c9264",
+      "size": 2997
+    },
+    {
+      "path": "src/platform/admin/LegalPreparationPage.tsx",
+      "sha256": "b1a638e673033eb5798d703d0fdd425e90175146cb0996a43d7ea17b2dc19452",
+      "size": 32438
+    },
+    {
+      "path": "src/platform/admin/MeasurementPage.tsx",
+      "sha256": "df172ed5af8a5ca172a8e8d59e6038cb8b1ab5358cd2cab0c1fffeffb6716127",
+      "size": 5464
+    },
+    {
+      "path": "src/platform/admin/OwnerAdminPackagePermissions.tsx",
+      "sha256": "c21113435072b60d26b2e104f74d9b9ae56f73960a3f0fcf553912eaba8f0bfe",
+      "size": 3636
+    },
+    {
+      "path": "src/platform/admin/OwnerDashboardPage.tsx",
+      "sha256": "29198ddcbb852875c04fce6bc0e1eefd71c9c135cc779ce2223846aec3e23d71",
+      "size": 28168
+    },
+    {
+      "path": "src/platform/admin/OwnerFinancePage.tsx",
+      "sha256": "cbdd36797a18111dcb0738e02181710d0af0db37f39c585cb522848d98abc3f9",
+      "size": 15016
+    },
+    {
+      "path": "src/platform/admin/OwnerRefundWorkspacePage.tsx",
+      "sha256": "b221e729b8086d21c783578281b13c1a2ed9086ed35baa587f625737e5c4ef48",
+      "size": 15244
+    },
+    {
+      "path": "src/platform/admin/OwnerTrainerPackagesPage.tsx",
+      "sha256": "9c2265a822906f3c53fb58f8849b8feee54f0acd0a74b6ddf6fac9e6f3c8b767",
+      "size": 43971
+    },
+    {
+      "path": "src/platform/admin/ProviderStatusPage.tsx",
+      "sha256": "93a294bb2ab084a451852c7b81727a6d1dac5a314b10e2ce90e001f10c55809e",
+      "size": 4654
+    },
+    {
+      "path": "src/platform/admin/R6CustomOffersPage.tsx",
+      "sha256": "2d52c5c15f47a2e047b4d3f87a6d54489f846e9c53167ca20c5fe907f2c340ea",
+      "size": 36032
+    },
+    {
+      "path": "src/platform/admin/R6PayoutsPage.tsx",
+      "sha256": "7ea395e7ccee6600554abbc8e25ad662204bee8d9ac47c7a26d56eb1fdb8ea7c",
+      "size": 44409
+    },
+    {
+      "path": "src/platform/admin/R6TrainingGroupsPage.tsx",
+      "sha256": "6006a1bdf756dac20a19d505c1012ea461eab1aa2568b284252b7f1a74836594",
+      "size": 23352
+    },
+    {
+      "path": "src/platform/admin/StudentProductCatalogV39C.tsx",
+      "sha256": "ebc9a380542136f9c5f6a6ec5723015edc7ee9ee2510e6db8e33ad85629d745f",
+      "size": 17754
+    },
+    {
+      "path": "src/platform/admin/admin-audit-actor-process-v9.css",
+      "sha256": "95caf0914df0761652c6248c54df58f509d311e88db33d4cc624696b4c20d555",
+      "size": 1851
+    },
+    {
+      "path": "src/platform/admin/admin-audit-export-v6.css",
+      "sha256": "5f63708b330ecc26b62487bcc3260cc5600d836158a1ab3d135344408b22c0e2",
+      "size": 2749
+    },
+    {
+      "path": "src/platform/admin/admin-audit-owner-v2.css",
+      "sha256": "374f3facb24665eafb80e7868162c64b50d4636da98d20f3721ca4335780902e",
+      "size": 22557
+    },
+    {
+      "path": "src/platform/admin/admin-audit-role-photo-v7.css",
+      "sha256": "d09bfc2e03dc78d268d2c8ede9190a503e357433363499f744760cfb42fec8c0",
+      "size": 1371
+    },
+    {
+      "path": "src/platform/admin/admin-panel.css",
+      "sha256": "7bad500552b4ed799612c619c64b18b02354dd22d1a756c710778c6bcd9d58a9",
+      "size": 691908
+    },
+    {
+      "path": "src/platform/admin/audit-export-v6.ts",
+      "sha256": "1b35bbb9adea48e714e6d33cd5ad1e42bde1b00f2fee0b86aee33caa89ef945b",
+      "size": 8058
+    },
+    {
+      "path": "src/platform/admin/email-templates-owner-ux-v1.css",
+      "sha256": "5ff1cedab4a69d27e3023fc5a3d4afa4937f8b2e5be0710d4eb17c1402f1b1f4",
+      "size": 3675
+    },
+    {
+      "path": "src/platform/admin/email-templates-owner-ux-v2.css",
+      "sha256": "638057c48cb111d593a25241f990a3eb6446093f27bb2a6338f1e70834ecb3a6",
+      "size": 3906
+    },
+    {
+      "path": "src/platform/admin/email-templates-owner-ux-v3.css",
+      "sha256": "320401e77b02995b0ed9a60892825b4a80e99ebc288b2081466d679a2fda9c9e",
+      "size": 1519
+    },
+    {
+      "path": "src/platform/admin/email-templates-owner-ux-v4.css",
+      "sha256": "7418975c686e8bb48f1ffd2381b5e6fbc911ebe16368780582aca000d438ad64",
+      "size": 6955
+    },
+    {
+      "path": "src/platform/admin/email-templates-owner-ux-v5.css",
+      "sha256": "6d438405a792e9b5180087dc7d718cd8b46aaa9a82e20e745b7cdaf1e07b6ae5",
+      "size": 9638
+    },
+    {
+      "path": "src/platform/admin/fixoku-cargo-owner-v2.css",
+      "sha256": "3b0b1bc1a5a444ecbb735250fad6395457fb1d641407cb0d72d3423f5a7a363e",
+      "size": 15240
+    },
+    {
+      "path": "src/platform/admin/legal-020c-editor.css",
+      "sha256": "228925cc7a0ea7f66449188c47572e7281ad9e0f82b857d558d754eaec7af62e",
+      "size": 1117
+    },
+    {
+      "path": "src/platform/admin/legal-document-integration-v10.d.ts",
+      "sha256": "0d4d5f91c3b9d2e70149b6a8237f6148ef61b4f66e4ebbb20bda9e911ca3c9a6",
+      "size": 754
+    },
+    {
+      "path": "src/platform/admin/legal-document-integration-v10.js",
+      "sha256": "582d8105a8ba1402dac37d314445873529b883c398700ce457192962fb4f5e0b",
+      "size": 4528
+    },
+    {
+      "path": "src/platform/admin/legal-owner-documents-v10-customer.json",
+      "sha256": "aeff577c6f9bc38013eafcb1f965f86dbcf98b766021296ee3ce412ff40f2a37",
+      "size": 44868
+    },
+    {
+      "path": "src/platform/admin/legal-owner-documents-v10.json",
+      "sha256": "b01267d622fa99b1eac753b58dfcd28ba0fb039bd3903758343f75c6e2f69fa0",
+      "size": 63032
+    },
+    {
+      "path": "src/platform/admin/legal-owner-documents-v3-customer.json",
+      "sha256": "4d6fe06806b3b19560136f664cf1be9baae2c21914ba726dbed038cbdab85bcc",
+      "size": 63800
+    },
+    {
+      "path": "src/platform/admin/legal-owner-documents-v3.css",
+      "sha256": "d69ab050db001a50bc0d2681735da286532dc0c322a7453c67725b1d8ca00d21",
+      "size": 17708
+    },
+    {
+      "path": "src/platform/admin/legal-owner-documents-v3.json",
+      "sha256": "f7aac4b95c68c617ad5017f9e9273aeec72e6c3c81640167434bb4580e4e3ab5",
+      "size": 80529
+    },
+    {
+      "path": "src/platform/admin/legal-readiness-owner-v2.css",
+      "sha256": "9120a0867df07aa027d42ee3fa42f27def7d93a0cc365a055ac447cce0545257",
+      "size": 11040
+    },
+    {
+      "path": "src/platform/admin/owner-legal-approval-config.ts",
+      "sha256": "eabbf5b76aefd45f26fa8693beb0139fbeae6b6c6c2d71391d1cb866de030cfc",
+      "size": 3864
+    },
+    {
+      "path": "src/platform/admin/owner-payout-v3.css",
+      "sha256": "0b61c750c6b20a80ce39a9c492574b12585d5d463e99a638fc0eb3951d89b1be",
+      "size": 14841
+    },
+    {
+      "path": "src/platform/admin/owner-payout-v4.css",
+      "sha256": "962ec0a7f01111320b172d0af978c97b2634707e1bcff465acfb93835d8de875",
+      "size": 17198
+    },
+    {
+      "path": "src/platform/admin/owner-refund-workspace.css",
+      "sha256": "01594075f2f87f28c293d3a911b41a6e23d2d6cb92f5a7da0d73d511cd8ba8fe",
+      "size": 4976
+    },
+    {
+      "path": "src/platform/admin/owner-trainer-020p.css",
+      "sha256": "4868d6e8f842b7efb06faeb6878c1d3afd7cb7dcbb48c06f0e441ea0264db63d",
+      "size": 2148
+    },
+    {
+      "path": "src/platform/admin/owner-trainer-packages.css",
+      "sha256": "35a19e9a006d41336656e2dad6b65e3ea296eef308b481a68515000262dc71ee",
+      "size": 22839
+    },
+    {
+      "path": "src/platform/admin/user-operations-owner-v3.css",
+      "sha256": "06b4d5e34759bc7d51884d077d0890ef6b97f696fffd4b33a13a6c8cd7d47a2d",
+      "size": 18393
+    },
+    {
+      "path": "src/platform/auth/ProtectedPanelEntry.tsx",
+      "sha256": "f654166f7f862274124d6039a219cd2b069e9768505021d5c0ee1911b1b573fb",
+      "size": 17495
+    },
+    {
+      "path": "src/platform/commerce/BankTransferPayment.tsx",
+      "sha256": "f5d4f518f40d13a177fba71dd2820e213241b5611583489709191308175fe6f6",
+      "size": 3363
+    },
+    {
+      "path": "src/platform/commerce/CheckoutLegalConsents.jsx",
+      "sha256": "91fabd82adffa4191e50967f5eabdf989cf081f855960380588da701bbb856e1",
+      "size": 1434
+    },
+    {
+      "path": "src/platform/commerce/PaytrCheckout.jsx",
+      "sha256": "ee3d8ff74f4bfbe7652771cf36447c5fc5d0da73f778dafbbf9bf18fbdf5eebf",
+      "size": 2993
+    },
+    {
+      "path": "src/platform/core/screenContracts.ts",
+      "sha256": "089b98f335e5fbda6bccbdd73ee2f2115acf16a67294d82ac2bef12f4c16503f",
+      "size": 2332
+    },
+    {
+      "path": "src/platform/jsx-modules.d.ts",
+      "sha256": "3bbb0f5010c153774668fb87fd8acb5f306033e024221b6cca4061b1e4d66fc2",
+      "size": 247
+    },
+    {
+      "path": "src/platform/panel/components/PanelCard.tsx",
+      "sha256": "0b7179fe6a0567cb4b2bfe7126283d6317688827c247d3a25b4ab5349ac661d7",
+      "size": 229
+    },
+    {
+      "path": "src/platform/panel/components/PanelIcon.tsx",
+      "sha256": "7edc2ff1425bd4fffced0d912509346e60fa93477449a0acdf63a42a4689140f",
+      "size": 3300
+    },
+    {
+      "path": "src/platform/panel/components/PanelQuickActions.tsx",
+      "sha256": "f17b2a6bf4e2219a70271d02b7748bc89c0e72be86da96a4be32c250ab8389db",
+      "size": 1097
+    },
+    {
+      "path": "src/platform/panel/components/PanelStatCard.tsx",
+      "sha256": "0a425e2b803664294d53fa02e939c5df1b03408bcf7f04486e379dab4116b97f",
+      "size": 1593
+    },
+    {
+      "path": "src/platform/panel/layout/PanelShell.tsx",
+      "sha256": "48ea49cdeb7d568126b36753716e0e971c0b3184df50752126701be6c084eb98",
+      "size": 1480
+    },
+    {
+      "path": "src/platform/panel/layout/PanelSidebar.tsx",
+      "sha256": "f14a889d3ee1531c4e8274d092d66676cafc8710a959f6fc133e01275feb1a3d",
+      "size": 14371
+    },
+    {
+      "path": "src/platform/panel/layout/PanelTopbar.tsx",
+      "sha256": "da8a3dba715fd1990436c73314173f89ec80732f74429b9f742993f740a38b6f",
+      "size": 16113
+    },
+    {
+      "path": "src/platform/panel/layout/fixoku-panel-020t.css",
+      "sha256": "99959d769cfad6e0e4744b2dc925dfe39add17238ababab9bff9aebeec705c78",
+      "size": 5232
+    },
+    {
+      "path": "src/platform/panel/layout/fixoku-panel-020u.css",
+      "sha256": "49ad9540c2ba7dc0d0d16884f20e8741f5ab7b065d5a736d9f8e11dc3319bc68",
+      "size": 1173
+    },
+    {
+      "path": "src/platform/panel/layout/logo-020a.css",
+      "sha256": "00fb682e1fc23bc10232df987e995052f73338f556c40ea882068c88f82ec19d",
+      "size": 996
+    },
+    {
+      "path": "src/platform/panel/layout/trainer-breadcrumbs-020s.css",
+      "sha256": "2d766d81814de5b308c0989fa1abdd117f952b498148954d814008c87735eef0",
+      "size": 3213
+    },
+    {
+      "path": "src/platform/panel/notifications/NotificationCenterPage.tsx",
+      "sha256": "91f74f304269a493d305bee0d2483c1787df2ef81fc45cfa0d880941622719e7",
+      "size": 10022
+    },
+    {
+      "path": "src/platform/panel/notifications/notification-center.css",
+      "sha256": "fee861750aaf6f780f36d881051864238e9765ba60f8eb6134480f8c08fe21a9",
+      "size": 5308
+    },
+    {
+      "path": "src/platform/panel/profileAvatar.ts",
+      "sha256": "486a6656baf813c26c7c58028493a5eeaa250423519588e33c3f4fc9b761725e",
+      "size": 1275
+    },
+    {
+      "path": "src/platform/panel/styles/management-foundation.css",
+      "sha256": "f3f7cf955d751069522641daf5f9ba97c8b8ea2f8b0fcea75418654309ab4255",
+      "size": 8509
+    },
+    {
+      "path": "src/platform/panel/styles/panel-layout-consistency.css",
+      "sha256": "0cc420cfd4b5dbbdd361099bd51d7a866e6d51b4364c270d8e80220697d5a45e",
+      "size": 14855
+    },
+    {
+      "path": "src/platform/panel/styles/premium-foundation.css",
+      "sha256": "963629a9d1227942f2303d3d8250cfc16432cbac7e6d4ad01a60f693ce9ced54",
+      "size": 35640
+    },
+    {
+      "path": "src/platform/panel/styles/trainer-dashboard.css",
+      "sha256": "87fb04543f492a46a2b0fa48d86ffb65b7186bde0bf1a52f04d49ae4fa7c1c85",
+      "size": 13476
+    },
+    {
+      "path": "src/platform/panel/styles/trainer-parity.css",
+      "sha256": "4ae188f8ab9756a8110507f9086b183e3faa5c2d2eaee70aea8e46b34c967be9",
+      "size": 14606
+    },
+    {
+      "path": "src/platform/panel/styles/trainer-visual.css",
+      "sha256": "26f1cdac033531021ea7bb0a054e1ae21a8acb7f360b731055bdd960b8384833",
+      "size": 38046
+    },
+    {
+      "path": "src/platform/student/StudentCartPage.tsx",
+      "sha256": "24920c5826c86b5bda0b67ca0c4f0009bb5338fd0e9d57329705b4236e08f923",
+      "size": 8157
+    },
+    {
+      "path": "src/platform/student/StudentCheckoutPage.tsx",
+      "sha256": "89ce691967ae5098dc7478173de3d125ba56e932c2b7a3a8be0fcf11167fdfec",
+      "size": 32781
+    },
+    {
+      "path": "src/platform/student/StudentChildrenPage.tsx",
+      "sha256": "9d9d7050f19b9f8aa9a1d0a011e898fa285526f7a2ebbbad83197294841c5c0f",
+      "size": 3219
+    },
+    {
+      "path": "src/platform/student/StudentPackagesPage.tsx",
+      "sha256": "45dd301a36a23770b948740d4115e8d359e4a601212e5082678a75e90cabfbd0",
+      "size": 22389
+    },
+    {
+      "path": "src/platform/student/StudentPanelShell.tsx",
+      "sha256": "6ae0a3e540f389a18c6b1908d2010213a5b2fd1b71462dd9bafcf64faaeb68db",
+      "size": 806
+    },
+    {
+      "path": "src/platform/student/StudentPortalPage.tsx",
+      "sha256": "42906a1acc72d75560e64f5cfcd82140671a85965f8a94d9b670bbd0ddd9f272",
+      "size": 12242
+    },
+    {
+      "path": "src/platform/student/StudentProfilePage.tsx",
+      "sha256": "3a8aab1b01dcba603c2f7bfbddcb06f1fab63393f786507250d974a9af035111",
+      "size": 26895
+    },
+    {
+      "path": "src/platform/student/StudentR6CommercePanel.tsx",
+      "sha256": "e0b0970827c3d354016f2c688a3383fb8f2dc29691cd833586e812d483d32bd7",
+      "size": 9382
+    },
+    {
+      "path": "src/platform/student/StudentShipmentsPage.tsx",
+      "sha256": "0c4cfe2207678c9569d04e466c55c38c23c54f1ab54fe308f8b54d618c7589ed",
+      "size": 2231
+    },
+    {
+      "path": "src/platform/student/child-profiles-021a.css",
+      "sha256": "50e6072c06e7344462d713e77851e1a47244875452e345c485452f2482916110",
+      "size": 8495
+    },
+    {
+      "path": "src/platform/student/student-portal.css",
+      "sha256": "8a0edba39921e791128cb2b04200d8ead77f7c3c4e8f7b9587e3ebe1f8fab06e",
+      "size": 82877
+    },
+    {
+      "path": "src/platform/student/student-trainer-badges-r9.css",
+      "sha256": "8cb8a073c0b1939a6cd5890eaf5c68ab7d27ace5a6f8e53869e340a94991055d",
+      "size": 6205
+    },
+    {
+      "path": "src/platform/student/studentMiddlePackageReference.ts",
+      "sha256": "872ef584a66b592eee3b2b5e2273711b599046cc014da818d53332a6aaaab9ce",
+      "size": 5029
+    },
+    {
+      "path": "src/platform/styles.d.ts",
+      "sha256": "9be7ea778895c94059af08e9d0386027594def4a9cd488504959de7fa7bd3590",
+      "size": 25
+    },
+    {
+      "path": "src/platform/test-support/deterministicFixtures.ts",
+      "sha256": "0dda3db99a2865021afde5894e189906631ff5c114ea53db24e75d39e53ef194",
+      "size": 1095
+    },
+    {
+      "path": "src/platform/trainer/availability/TrainerAvailabilityPage.tsx",
+      "sha256": "6ee8a4611f52e21ddaaeebc395de7e57f8d3e5d30b61cad86a9463cee92efe3f",
+      "size": 306
+    },
+    {
+      "path": "src/platform/trainer/availability/trainer-availability.css",
+      "sha256": "a0a4718356f5eeb0a302d1a2fc0c2dac4065f82aba723dea19b667e9af6638aa",
+      "size": 2641
+    },
+    {
+      "path": "src/platform/trainer/commerce/TrainerCartPage.tsx",
+      "sha256": "9440d397e429d8c72cb15c8d1684db1ae6208173f9a559b0287bba360d48af43",
+      "size": 3975
+    },
+    {
+      "path": "src/platform/trainer/commerce/TrainerCheckoutPage.tsx",
+      "sha256": "2f91353430a94de89ce76ac92fd1238b3f18c019fbe2b0eec9e334268b73307c",
+      "size": 47753
+    },
+    {
+      "path": "src/platform/trainer/commerce/TrainerCurriculumTab.tsx",
+      "sha256": "827bd534296d3f292b3f3621addb982866d96fab844c8a448c1f46c41bca942c",
+      "size": 22929
+    },
+    {
+      "path": "src/platform/trainer/commerce/TrainerPhysicalProducts.tsx",
+      "sha256": "3f47342257ef0ae0b91a379fd258d764fe9684c9282411148c7c4cc34ebeb8f0",
+      "size": 1073
+    },
+    {
+      "path": "src/platform/trainer/commerce/TrainerPresentationsPage.tsx",
+      "sha256": "f36c526f00ac74fbcf16421084f91d059df6ff30cfaf9f2328c766b723dd26c8",
+      "size": 858
+    },
+    {
+      "path": "src/platform/trainer/commerce/TrainerPresentationsTab.tsx",
+      "sha256": "fe01325e1adbb94238fdddb3849734c4847a650f65f78374bf56d5658619ea5d",
+      "size": 8257
+    },
+    {
+      "path": "src/platform/trainer/commerce/TrainerVideoPage.tsx",
+      "sha256": "2715e6e32ab234ef636733bd4f36f37bb1a01b6dd414439b7773e81af9a01e87",
+      "size": 15196
+    },
+    {
+      "path": "src/platform/trainer/commerce/trainer-commerce.css",
+      "sha256": "6a75e1c01e3141d8dc56fd3d07ef3f995a8e34b6c17cf49e0ca9717f13ce28c9",
+      "size": 65734
+    },
+    {
+      "path": "src/platform/trainer/commerce/trainer-shared-presentations.css",
+      "sha256": "ee51ea17cda3ceb85ee761555550f36057bcc8baec7863129d7244785ffbb975",
+      "size": 6573
+    },
+    {
+      "path": "src/platform/trainer/commerce/trainer-video-sequential-preview.css",
+      "sha256": "9f9b7eff70a0f41c6770892bc6a6bead19ca98ef359e7577bfb6ad0b13cd7691",
+      "size": 665
+    },
+    {
+      "path": "src/platform/trainer/components/TrainerIcon.tsx",
+      "sha256": "1f553130622bb000f2a97887f0b378acb19e1b32dd21dd4097c4869ad72e4cac",
+      "size": 4969
+    },
+    {
+      "path": "src/platform/trainer/components/TrainerVisual.tsx",
+      "sha256": "b1f30a853c9773369590000c439d00cd1281a55da0f85784294a98a1fb996af6",
+      "size": 1166
+    },
+    {
+      "path": "src/platform/trainer/components/trainerAssets.ts",
+      "sha256": "3d0010348aa968b8f966aefd476ea896e00c31c21da5265edf140f63897a5e3e",
+      "size": 1254
+    },
+    {
+      "path": "src/platform/trainer/components/trainerCourseCovers020P.ts",
+      "sha256": "abf4e9dd905c4b613ebcebee8e3105417b0197171d50086470d266371308c0c8",
+      "size": 1818
+    },
+    {
+      "path": "src/platform/trainer/dashboard/TrainerDashboardPreview.tsx",
+      "sha256": "8eabe666a42a1ba912bfe63d234cfdd9611ab8787981701848049e4b3b1da645",
+      "size": 4047
+    },
+    {
+      "path": "src/platform/trainer/dashboard/trainerDashboardModel.tsx",
+      "sha256": "21ccf1a3ee79322caed706a5b19f21f9483237424d0ccef2a4ce933171250a8d",
+      "size": 1938
+    },
+    {
+      "path": "src/platform/trainer/earnings/TrainerEarningsPage.tsx",
+      "sha256": "4a436a2152708afd3edc9b483602e613f475fb9a925ff7f5df4c6c7ebae2c2e3",
+      "size": 6343
+    },
+    {
+      "path": "src/platform/trainer/earnings/trainer-earnings.css",
+      "sha256": "be2e9a1ef3585752fa9f94e6742a87befc1ef1aa90b97050728e71c3c740ffcb",
+      "size": 4299
+    },
+    {
+      "path": "src/platform/trainer/payout/TrainerPayoutAccountPage.tsx",
+      "sha256": "d67018d89d33752fab649186db1086d1923d3dea445914219f9cf1eebf14e44f",
+      "size": 4104
+    },
+    {
+      "path": "src/platform/trainer/profile/TrainerProfilePage.tsx",
+      "sha256": "9e0b6c2eefd3a4026cc48bfd1a6b2ceec2aaa71fbdac959f5ef92db2ab3cc6f9",
+      "size": 28625
+    },
+    {
+      "path": "src/platform/trainer/profile/trainer-badges-r9.css",
+      "sha256": "df057c8bab889490a102b855f51a1f900e60d6d5c176f34f88cac4e7d37e70f3",
+      "size": 6945
+    },
+    {
+      "path": "src/platform/trainer/profile/trainer-profile.css",
+      "sha256": "5abfb3cd3949d0c37b00e4c425d8ba4e5ddb8f3c736ec3bee0edb62c05815eb1",
+      "size": 26577
+    },
+    {
+      "path": "src/platform/trainer/resources/TrainerResourcesPage.tsx",
+      "sha256": "3a4f043276afcf3ac45ade2a87a0eda422304fa14369cbe40025e63d64d9bd79",
+      "size": 3313
+    },
+    {
+      "path": "src/platform/trainer/resources/trainer-resources.css",
+      "sha256": "ddfcffe6da9ddd58bdeb58d110b3507677e981b2a4a5f69b4d0c470f2958e0b0",
+      "size": 3475
+    },
+    {
+      "path": "src/platform/trainer/students/TrainerStudentDetailPage.tsx",
+      "sha256": "795d596a747aa3876afc9c150b31bd2815357275d40efbcd32a94861a7e192a9",
+      "size": 4218
+    },
+    {
+      "path": "src/platform/trainer/students/TrainerStudentRail.tsx",
+      "sha256": "28a2c852426bee3351e1790d6e326123d93bd88b91bb475e56cc8471ef0f9b54",
+      "size": 1558
+    },
+    {
+      "path": "src/platform/trainer/students/TrainerStudentsPage.tsx",
+      "sha256": "37b89e54e90034233800c6f72d1ac9e06659e88549d2a11cb71e008bd903befb",
+      "size": 5011
+    },
+    {
+      "path": "src/platform/trainer/students/trainer-roster-v20.css",
+      "sha256": "02b4cd431aa0f8577854f9b6cb60c03e6ee1c3df9f5e113c500d3e6286e2e9d4",
+      "size": 4458
+    },
+    {
+      "path": "src/platform/trainer/students/trainer-students.css",
+      "sha256": "478b822d2dff9bad6939a70cd97aaa1184972bd650167606e900545c59ebdb65",
+      "size": 6190
+    },
+    {
+      "path": "src/platform/trainer/students/trainerAssignmentRoster.ts",
+      "sha256": "1a2bf32ecebba2372ee1f7b01d35369666e102bb17a5723765dee71a05507e78",
+      "size": 7017
+    },
+    {
+      "path": "src/platform/trainer/trainings/TrainerAssignmentsPage.tsx",
+      "sha256": "db00cbe4c6c2303f2afc90a001b8e348d2c2f49acf148c5d25b6288e63f16f7e",
+      "size": 14814
+    },
+    {
+      "path": "src/platform/trainer/trainings/TrainerTrainingsPage.tsx",
+      "sha256": "083c57ab73eb22e8f8e89b5778a1841c9511d44ceef3b230a6937e0455ffde04",
+      "size": 9294
+    },
+    {
+      "path": "src/platform/trainer/trainings/localReviewCatalog.ts",
+      "sha256": "18ab87779e44d8eaddc555b0f83793686cc1286a3577af0f20f64c2a720088bf",
+      "size": 639
+    },
+    {
+      "path": "src/platform/trainer/trainings/trainer-assignments-modern.css",
+      "sha256": "bbdfbf82006dbbf2dde0bfc0fee772dd0c520964c866999d1f092eff76e238b5",
+      "size": 7767
+    },
+    {
+      "path": "src/platform/trainer/trainings/trainer-assignments-v4.css",
+      "sha256": "14d2c06b1a1fa824043feadc15eb70a88b2ce8b90762b21c01e29b9095bc8f95",
+      "size": 8508
+    },
+    {
+      "path": "src/platform/trainer/trainings/trainer-cards-020q.css",
+      "sha256": "f9a5feba85c18acb644c29f5faba3fa9eee07edc5b524f97a3d594eb6b5f8702",
+      "size": 15066
+    },
+    {
+      "path": "src/platform/trainer/trainings/trainer-course-covers-020p.css",
+      "sha256": "c7bcc3c4bd0a1c28e2ff311b446ae1ccc5722b98b16d82bd463f82df13c6d17c",
+      "size": 731
+    },
+    {
+      "path": "src/platform/trainer/trainings/trainer-trainings.css",
+      "sha256": "36cf2f57980f31eed6817cca6c55395f1f88d020595b917f3d5959067144eb64",
+      "size": 13121
+    },
+    {
+      "path": "src/server/auth/admin-permission-contracts.js",
+      "sha256": "ea4983964d5fedb20705a8ce9bfecbed0277c3b78d53558937ee2a9cffe6a164",
+      "size": 286
+    },
+    {
+      "path": "src/server/auth/auth-schema.js",
+      "sha256": "656cb16048a2d059ab5af8212902a6476f826e596ac705740348ee4b35b7fa4d",
+      "size": 2724
+    },
+    {
+      "path": "src/server/auth/auth-schema.ts",
+      "sha256": "529be34ed575ab2d750acfca338d880cef81d2d5ef7f73ab614ed64c63fffe78",
+      "size": 3734
+    },
+    {
+      "path": "src/server/auth/auth.js",
+      "sha256": "9c93bf73aaad59c163198b337485990ff98bb70d7963c3bc1dcb0aad68b4aae5",
+      "size": 7059
+    },
+    {
+      "path": "src/server/auth/auth.ts",
+      "sha256": "3bd9b0c48cecd34c38b49568d329eba8c4329743b48ed1a89b7853a5ceaff2fa",
+      "size": 4552
+    },
+    {
+      "path": "src/server/auth/authorization.js",
+      "sha256": "8ed9e4ce1edc42e271dc8193f7915e07f53d5ff31d5caca57f6b1c4d3c4a78bf",
+      "size": 9418
+    },
+    {
+      "path": "src/server/auth/invitations.js",
+      "sha256": "74d7fad3ca2952f527cc74bf3e1d2d99dd0d50308c01118553af16d72f42d06d",
+      "size": 1945
+    },
+    {
+      "path": "src/server/auth/local-review-runtime.js",
+      "sha256": "316d6d4c4d7c6f92bc23b98177d905a88a1309cb09445906ada5d742ece64387",
+      "size": 1768
+    },
+    {
+      "path": "src/server/auth/origin.d.ts",
+      "sha256": "b13cc07d4c8519a71fad0dbac78a17087c3f93310eb0b490ca131c1969c47c9d",
+      "size": 282
+    },
+    {
+      "path": "src/server/auth/origin.js",
+      "sha256": "38c124711878b59b7e447246a8299af1a62386d7be8303de7e428d16d0bdddaa",
+      "size": 4323
+    },
+    {
+      "path": "src/server/auth/owner-bootstrap.js",
+      "sha256": "b68dacfd1c877255552895ba3906cee0da1ff94682432c0b508b9e87c63e1bd0",
+      "size": 2590
+    },
+    {
+      "path": "src/server/db/client.js",
+      "sha256": "068f6fbe6689743c9d1cbfb3a9f15c549b7bc3ff82e09475476a921f442a2b68",
+      "size": 549
+    },
+    {
+      "path": "src/server/db/client.ts",
+      "sha256": "528b0e273adbe8218352f9a860247cf721ed7ec9f69ff0a6c1429c27e056bfb0",
+      "size": 515
+    },
+    {
+      "path": "src/server/db/schema.js",
+      "sha256": "5a20b1269188b716dde6112dd766456f0cd16783cf56365432db8258be79d72c",
+      "size": 91092
+    },
+    {
+      "path": "src/server/db/schema.ts",
+      "sha256": "0c7f86a466650c13a6431ba5a9cf5c9a80cd3e2131b0d27bf2eb8fb4c77ac5a9",
+      "size": 91685
+    },
+    {
+      "path": "src/server/domain/admin-education.js",
+      "sha256": "1a91967289bafc98973e871a6e1d2f573abda960d6e6b54e11d59f79f5ace215",
+      "size": 3419
+    },
+    {
+      "path": "src/server/domain/book-shipping.js",
+      "sha256": "900cae6ea230817e5aac099317980c011018a3e7ffb9992b730c19fbb7ae63e2",
+      "size": 1031
+    },
+    {
+      "path": "src/server/domain/commerce.js",
+      "sha256": "6730443396e968674f885565a5d20d84ccd2cb55e99fe6c455b9119d865bde49",
+      "size": 32123
+    },
+    {
+      "path": "src/server/domain/commercial-calculations.js",
+      "sha256": "6685079a2577bedf54da202f4adec3cdbc80d947acf4bef215af2a090f601e4f",
+      "size": 9342
+    },
+    {
+      "path": "src/server/domain/digital-delivery.js",
+      "sha256": "61eb2984847146356f4e85e5f9484c5bf416367b8b7f28aad95276fc3c5f4b42",
+      "size": 7062
+    },
+    {
+      "path": "src/server/domain/email-editorial-v1.js",
+      "sha256": "c094306cbef040e7c2b07d7b628cebe0a42b9e74c9cf3f0eac16bf32e7514780",
+      "size": 27975
+    },
+    {
+      "path": "src/server/domain/email-outbox.d.ts",
+      "sha256": "3cdae4179386a2fbe0e6eb222b7826cd789b1ee8811b009a67432e1e9cd63feb",
+      "size": 902
+    },
+    {
+      "path": "src/server/domain/email-outbox.js",
+      "sha256": "47ae7e3a99a0ac2919343093e8ffb4b5a74f888848b958a96373f9a6ca2f0fa5",
+      "size": 7100
+    },
+    {
+      "path": "src/server/domain/email-renderer.d.ts",
+      "sha256": "3b472f87705b90f199765cec723ae35dca40680646861da541512156b54bf180",
+      "size": 1390
+    },
+    {
+      "path": "src/server/domain/email-renderer.js",
+      "sha256": "3c66ac11bfd54cd5e2f3ea1433028530110500e71c81fb991c0cb3a9863f483e",
+      "size": 20580
+    },
+    {
+      "path": "src/server/domain/email-templates.js",
+      "sha256": "aa15be285f58ddee15f59b02a03d5e6a6ee8039ec7dc9ed5635ccfd3f05d48b8",
+      "size": 14242
+    },
+    {
+      "path": "src/server/domain/family-offers.js",
+      "sha256": "72e68114ebe654842399fe70d15bc4e14ef2cb69d4335f74c2936327db55ab68",
+      "size": 11377
+    },
+    {
+      "path": "src/server/domain/fixoku-audit-policy.js",
+      "sha256": "d8e0253816afdac65e5cbb164af0df7cf501066450bfb5822f993baef0d54d5d",
+      "size": 17431
+    },
+    {
+      "path": "src/server/domain/fixoku-catalog-assets-v41f.js",
+      "sha256": "be318a87c6df77adcf42a7fd285acbbacbe483a785a46ed51487aa3a60d3ab4f",
+      "size": 2440
+    },
+    {
+      "path": "src/server/domain/order-refunds.js",
+      "sha256": "b2e09f06c4463b263ffa9829348e79b04bb68d9ab23c896d25415a5060150c9b",
+      "size": 19112
+    },
+    {
+      "path": "src/server/domain/owner-legal-review-package.js",
+      "sha256": "60ada2295cdab9f14ff0725f3e0b20d8a65f5dcbbdc32c1aa2aacd11148b1592",
+      "size": 2365
+    },
+    {
+      "path": "src/server/domain/owner-legal-revisions.js",
+      "sha256": "1935644c5177fa87342ceccd4ba5b1743cff836708257a5bd5db585e08b916d2",
+      "size": 2906
+    },
+    {
+      "path": "src/server/domain/owner-legal-source.js",
+      "sha256": "24dc5bdfe33962b7cc4f02666304157263d310769a9e3fe872d90ec461c164d0",
+      "size": 3255
+    },
+    {
+      "path": "src/server/domain/owner-legal-v10-package.js",
+      "sha256": "50afd0dac9ec9be8cbd8c707733681453a25e73d9a41d6a437ea060e38331937",
+      "size": 3217
+    },
+    {
+      "path": "src/server/domain/package-domain.js",
+      "sha256": "acdf641a80014d48d52719be94ea49172e031ec790aaad982c30023f022553fc",
+      "size": 1056
+    },
+    {
+      "path": "src/server/domain/package-version.js",
+      "sha256": "f1a9999ea13ee628f6e32e6c81ca0c0942e34fb8c94c687cf0b3736169de6bf9",
+      "size": 14811
+    },
+    {
+      "path": "src/server/domain/panel-notifications.js",
+      "sha256": "b08315c6310f18733b8508ffcc7ac99cdd61ae9ecf76b59ff9f3a4046d805bd0",
+      "size": 3607
+    },
+    {
+      "path": "src/server/domain/profile-media.js",
+      "sha256": "75ae5f8066244b65e1d3390240805d3e04cd9ea8c0394a80c888bb654d22343b",
+      "size": 3555
+    },
+    {
+      "path": "src/server/domain/provider-runtime.js",
+      "sha256": "060a14036a4dad38030524505c17ba4e7c3063db995aa4890d7d17377de74a8a",
+      "size": 1243
+    },
+    {
+      "path": "src/server/domain/r6-offers.js",
+      "sha256": "d6ea600bcf6f064fcfb91002ae29166ab7595567e0abcaecefe62a8dd7a81d3d",
+      "size": 9723
+    },
+    {
+      "path": "src/server/domain/r6-training-lifecycle.js",
+      "sha256": "0198d9ecda5f0b0ff45f6e0e7ffd0d894905d7e229ac4268a26d506fa39c53ec",
+      "size": 5100
+    },
+    {
+      "path": "src/server/domain/r6-training.js",
+      "sha256": "9abc6c6dcb0eb10e6aa52a3b2ed61f02a684059562985f15a1943265d7991255",
+      "size": 5672
+    },
+    {
+      "path": "src/server/domain/staging-smtp-diagnostic.js",
+      "sha256": "2300f79ffb0ac6a4d6f40aaafb3f7ec677dfa0aa8366f3e57b0c90db20078236",
+      "size": 9944
+    },
+    {
+      "path": "src/server/domain/student-account-capability.js",
+      "sha256": "22ecdcaeaf2cde429c0b37477bd41cdcdafd09b7ac3c864698d792ef5c78aa43",
+      "size": 479
+    },
+    {
+      "path": "src/server/domain/student-commerce-catalog.d.ts",
+      "sha256": "02be3cc8de5ffa0275887a9422eaa05f1977541fe0febb910ad1435e4e5a5e57",
+      "size": 398
+    },
+    {
+      "path": "src/server/domain/student-commerce-catalog.js",
+      "sha256": "f7a0c8c8915c276c764693ace98617798bb797e14bc58c10b6dbe376a8a8399b",
+      "size": 4740
+    },
+    {
+      "path": "src/server/domain/student-commerce.d.ts",
+      "sha256": "667202e148bd7452b326d01cfb5676f7dd3b722f0622056e5ca67d60f4db2de4",
+      "size": 371
+    },
+    {
+      "path": "src/server/domain/student-commerce.js",
+      "sha256": "2e0b4d5fdd29d7cb70e0c493e3d3cbb9206a1f5803f2043dd72a3b31b518e845",
+      "size": 33882
+    },
+    {
+      "path": "src/server/domain/student-segment.d.ts",
+      "sha256": "0c93e1928073d474b1df1b7a393c68c8d8be63a2ca8ca06b33c3a5105f9de65f",
+      "size": 778
+    },
+    {
+      "path": "src/server/domain/student-segment.js",
+      "sha256": "5d0fac30058faa09a0c3d3fd53aa192da8df751ed55a7bd6cff69739710055b7",
+      "size": 2007
+    },
+    {
+      "path": "src/server/domain/test-email-capture.d.ts",
+      "sha256": "5896cfd26a04a08f7d8874b2e1aea6f006b150f31cb073ef428561d250c811fc",
+      "size": 496
+    },
+    {
+      "path": "src/server/domain/test-email-capture.js",
+      "sha256": "99d785841e6094aa799fad8163c7b81353aa8ac30d85f5af298178ab5ad4553e",
+      "size": 1159
+    },
+    {
+      "path": "src/server/domain/test-mail-sink.js",
+      "sha256": "05903ed60366b44411347ccd428fdbc4aa50cedfa6bb9b0b1c231c3c7f81bba1",
+      "size": 348
+    },
+    {
+      "path": "src/server/domain/trainer-commerce.js",
+      "sha256": "d6f091814083393e198238dcd688007b0275e9a00bd03ed34dfd3e0ad887e221",
+      "size": 27805
+    },
+    {
+      "path": "src/server/domain/trainer-expertise.js",
+      "sha256": "befef70c9ac906e3a3de7741c07e750d48cbd86bf33448bfa99cc06e25f3487a",
+      "size": 8662
+    },
+    {
+      "path": "src/server/domain/trainer-legal-documents.js",
+      "sha256": "bd76c31cf5d83af3e952af8eae3a6db94369f65413a6559c3e23ff07a81a445a",
+      "size": 8875
+    },
+    {
+      "path": "src/server/domain/trainer-legal-preview.js",
+      "sha256": "3b4cf6a93f15c48b9a7d820f830afc77fc1bd0c98771dcb6059bbece18d57b84",
+      "size": 3679
+    },
+    {
+      "path": "src/server/domain/trainer-shared-presentations.js",
+      "sha256": "4f008b9543cd957b2fae77d5c5a9d0105c14809d6b791b0c969fb041b9001fb7",
+      "size": 3902
+    },
+    {
+      "path": "src/server/invoice/adapter.js",
+      "sha256": "84fa7b12bfa3216605aa6d8e6cfc3aabab0b461c9affb97d2cca55f53d080ccb",
+      "size": 583
+    },
+    {
+      "path": "src/server/payments/paytr.js",
+      "sha256": "972c45e133432d3987ca16986553d04530d71058f526871685f2ccf9954e9127",
+      "size": 7281
+    },
+    {
+      "path": "src/server/payments/refund-adapter.js",
+      "sha256": "11fae724dd1632a94aeec7f7729979c9ad05212f7a224d6e7c45bafba7e5237b",
+      "size": 3766
+    },
+    {
+      "path": "src/server/shipping/adapter.js",
+      "sha256": "e6f07ee7ab646e35223555aca4bf83c467cf0ccb23be552b9a4b1e7c655c6f4c",
+      "size": 4442
+    },
+    {
+      "path": "src/server/shipping/carriers.js",
+      "sha256": "772e8b80ac5303d56abcd3aeea07e77ffe82da763cf87e820561873bdd3ef434",
+      "size": 992
+    },
+    {
+      "path": "src/server/shipping/kolaygelsin.js",
+      "sha256": "5de89755b3b16c7469d7489f049c5b14dfb2c881e3e9f7e556b20cc80a99c5f5",
+      "size": 5740
+    },
+    {
+      "path": "src/server/shipping/order-preflight.js",
+      "sha256": "0a563b7135ebb298b52f1f9eacff00510484c77e71f4eee0d14d812c5aacc7b8",
+      "size": 3420
+    },
+    {
+      "path": "src/shared/FixokuTrainerBadgeR5.tsx",
+      "sha256": "e0175de03aefa95845c8453720c45c39249cf9a4270e791866a6826b6f1df931",
+      "size": 2591
+    },
+    {
+      "path": "src/shared/fixokuTrainerBadgeDom.ts",
+      "sha256": "174ffa65c86205fa6a3ea756fe840e8ccf813183ae9dab84be786ca137ec523c",
+      "size": 1947
+    },
+    {
+      "path": "src/shared/fixokuTrainerBadgeMapR5.ts",
+      "sha256": "819558c066d0b86170434af092794e805adf4998a23216429db7ce53b0771d3a",
+      "size": 2894
+    },
+    {
+      "path": "src/shared/fixokuTrainerBadgeR5.css",
+      "sha256": "8a4a12196997a38b0966af0b6a06d41152f9cb8e831f0dd00567f8bfecad6d27",
+      "size": 2370
+    },
+    {
+      "path": "src/shared/fixokuTrainerBadgeRuntime.ts",
+      "sha256": "545386be385b684150a41869000461f4f55d7507380e4e75adc1b61b7c7c85dd",
+      "size": 4554
+    },
+    {
+      "path": "src/shared/fixokuTrainerBadges.css",
+      "sha256": "7dbaba5a680c4ca501ba0c069b8f88a3c1b66261de6870ac1af9c155b1cd9b8c",
+      "size": 871
+    },
+    {
+      "path": "src/shared/fixokuTrainerBadges.ts",
+      "sha256": "70a6633d0f6aac7860f91ffa03a7dbe311c9a927330de5c472128750ef91fead",
+      "size": 2062
+    },
+    {
+      "path": "src/shared/formatTrainerCourseTitle.ts",
+      "sha256": "ceb9b2ccec5dc09a594f4ba9bac23d008958612f91c672a7bf43a15184b34069",
+      "size": 644
+    },
+    {
+      "path": "src/utils/purchaseIntent.d.ts",
+      "sha256": "c7a01d31d9c8a5c85711241a2b22784430ea05254d5b6e21f8650c76b79d7bd0",
+      "size": 249
+    },
+    {
+      "path": "src/utils/purchaseIntent.js",
+      "sha256": "de8776a1025d3ec40962bce6974fce99d7a27e2261af480ab23ab2e5756b0e06",
+      "size": 1278
+    },
+    {
+      "path": "src/utils/readingTextRotation.js",
+      "sha256": "64479fd3825ef1a3a8923b2229ab84a6f9a62cd9678369462401954cca143db6",
+      "size": 3645
+    },
+    {
+      "path": "src/utils/seoSchemas.js",
+      "sha256": "5b4bf4bdf936de98b06045fe01bc4cff2a91b87f97a4090fa677638752ea33f7",
+      "size": 5521
+    },
+    {
+      "path": "tests/accessibility/smoke.spec.ts",
+      "sha256": "7fbb099031eae44d6ac69d6c491050f8e932db65ebc54c0988c3deb0d1e42811",
+      "size": 1830
+    },
+    {
+      "path": "tests/accessibility/student-guardian-portal.spec.ts",
+      "sha256": "e1040fa58a91e326737e28a7e2718a10052a44672088992fcfe53179e9e8d986",
+      "size": 1355
+    },
+    {
+      "path": "tests/accessibility/trainer-availability.spec.ts",
+      "sha256": "02ce93ae33ee16c886b27db86e61b7e6f691ec3f20c47b0c14b64de2f699604b",
+      "size": 693
+    },
+    {
+      "path": "tests/accessibility/trainer-dashboard.spec.ts",
+      "sha256": "e170244153cb2f4972ccc74f76165bef684fc6698216d7e28385720f09d97cae",
+      "size": 1437
+    },
+    {
+      "path": "tests/accessibility/trainer-earnings.spec.ts",
+      "sha256": "05415ba0cd87c308e0abeec8d4dbbf602e23e1baf74a6606588e084c421814f0",
+      "size": 681
+    },
+    {
+      "path": "tests/accessibility/trainer-presentations.spec.ts",
+      "sha256": "a77b189615cbfb6973e5330325245db2e6f5a0bdc0bd5fb00033bec828e49dc9",
+      "size": 848
+    },
+    {
+      "path": "tests/accessibility/trainer-profile.spec.ts",
+      "sha256": "7c66ec56e989f06fb5c16f5b6564f74b67f343a4ed3665864818fa16a2757a78",
+      "size": 890
+    },
+    {
+      "path": "tests/accessibility/trainer-resources.spec.ts",
+      "sha256": "e5073c539fc40d07cb33252ac6645e827c3850d56168a29e0befc6a216c02fa2",
+      "size": 850
+    },
+    {
+      "path": "tests/accessibility/trainer-student-detail.spec.ts",
+      "sha256": "ece7635eefc154eac2ecfcd054e5d54e82a72641c6d98a510a2a2b6c625e4772",
+      "size": 942
+    },
+    {
+      "path": "tests/accessibility/trainer-students.spec.ts",
+      "sha256": "cd9cf00ff5d3a7dcda0038452942399cd4f5a859230ac3cdbe765076e297520b",
+      "size": 791
+    },
+    {
+      "path": "tests/accessibility/trainer-trainings.spec.ts",
+      "sha256": "50aa7496ec3b4ab58589a59a04f2c0b53dd19d20397726961f6e3bddde33e423",
+      "size": 863
+    },
+    {
+      "path": "tests/audit-export-v6.test.mjs",
+      "sha256": "4882be24146e67cfa098c36ef848321801e00b6f59ef8c77389063653682e468",
+      "size": 1318
+    },
+    {
+      "path": "tests/audit-policy-v5.test.mjs",
+      "sha256": "b813e504f9b8f2dd3024a36caf6032852c817519edf55c46fe4849e4df10bf92",
+      "size": 1599
+    },
+    {
+      "path": "tests/audit-role-v9.test.mjs",
+      "sha256": "3fad571f3f849ecbebb14eeaadaa9c3a48257112bd9ab84842ea7ebc3181a7d2",
+      "size": 1976
+    },
+    {
+      "path": "tests/e2e/public-smoke.spec.ts",
+      "sha256": "bf474b7496a37a18aaea32b79f488602a0a05ac772719490e403ecacba58d58b",
+      "size": 1752
+    },
+    {
+      "path": "tests/e2e/student-guardian-portal.spec.ts",
+      "sha256": "4771f774f1f16be5da94360216638b8d727d15b6f8fb122e4d27e38fafd71804",
+      "size": 3282
+    },
+    {
+      "path": "tests/e2e/student-guardian-utf8.spec.ts",
+      "sha256": "d27af99e8ae944f642749d2b0b2f9e441f549ffd33fd45297f636ce0ab2f6815",
+      "size": 1335
+    },
+    {
+      "path": "tests/e2e/trainer-availability.spec.ts",
+      "sha256": "773a1755f6b82c0b606fb917cf4a4137ff78c1b1c2dd39635b34d1099991227d",
+      "size": 635
+    },
+    {
+      "path": "tests/e2e/trainer-dashboard.spec.ts",
+      "sha256": "77042618f8a228ca3ef21452376312d6ff59bbae7e338cf9811cbdfdbb6d504e",
+      "size": 2584
+    },
+    {
+      "path": "tests/e2e/trainer-earnings.spec.ts",
+      "sha256": "18449c2dcf2a60ea69a29540c704a9c979739d8add137cf7565d451b3c2f2bef",
+      "size": 618
+    },
+    {
+      "path": "tests/e2e/trainer-presentations.spec.ts",
+      "sha256": "5448de7c82042b8816a2d3903682c939b8d457039eb129de65cb6b89ff99c3fc",
+      "size": 903
+    },
+    {
+      "path": "tests/e2e/trainer-profile.spec.ts",
+      "sha256": "87293c73a3f3a867d1fee09c9b0e607c4998d286a86732418767e2bbb6bbb27f",
+      "size": 1658
+    },
+    {
+      "path": "tests/e2e/trainer-resources.spec.ts",
+      "sha256": "af2baa0a4552fe81c0c8f6dd831d3ef87593eb9433df13b4594b39dc24ec1d2e",
+      "size": 909
+    },
+    {
+      "path": "tests/e2e/trainer-students.spec.ts",
+      "sha256": "631c17361deeb5dd3cd903e48a7aaf2315c35b3a08dbdd0ed81b79c003e82bd4",
+      "size": 922
+    },
+    {
+      "path": "tests/e2e/trainer-trainings.spec.ts",
+      "sha256": "ab04c2e495467cbf02b344d1f576122bc7e8a9dc55de6daf88126a55a55a138d",
+      "size": 1543
+    },
+    {
+      "path": "tests/support/consent.ts",
+      "sha256": "3e9a06a0a823e7dee70afd960680537200ad876d9063716b850c39deb95103fe",
+      "size": 1388
+    },
+    {
+      "path": "tests/support/globalSetup.ts",
+      "sha256": "f9978919f50f732b041d7d9f372718605256d3ed0bdd4eb2f951c2e3f393e4bf",
+      "size": 726
+    },
+    {
+      "path": "tests/support/referenceAuthority.ts",
+      "sha256": "6a74b4f585ba83b0d75f00fdc5dc8889d0ba353730b12d6d5d5c1568a5764827",
+      "size": 1267
+    },
+    {
+      "path": "tests/support/trainer-reference-lock.json",
+      "sha256": "8537603b92919ad52334ca227a8f9c3f91635ce3939b79a909e1069c97781839",
+      "size": 2416
+    },
+    {
+      "path": "tests/support/visualComparison.ts",
+      "sha256": "65ec7984db4a5f58671c27ef3b361baade4be3976e607ab3c6728001fe4ed417",
+      "size": 2629
+    },
+    {
+      "path": "tests/visual/authority.test.ts",
+      "sha256": "e2662fe16c9fb2e560951cef68ed7149e3eee0784aeed2cc18f67f6420a88cbe",
+      "size": 4175
+    },
+    {
+      "path": "tests/visual/overnight-screens.spec.ts",
+      "sha256": "9b9a2c5a57dd57c3d1733e0a6a904286ec6526e2ba53fbb196eed641538f11a5",
+      "size": 1474
+    },
+    {
+      "path": "tests/visual/trainer-dashboard.spec.ts",
+      "sha256": "c80677526a4c9a93ce4d10e8052d1dc0c29eb46792570df89d788280ea692317",
+      "size": 3457
+    },
+    {
+      "path": "tests/visual/trainer-presentations.spec.ts",
+      "sha256": "37e21eb4d837369b21e6ff3494a471dcab8420c990560b22d0b416f674907db4",
+      "size": 957
+    },
+    {
+      "path": "tests/visual/trainer-profile.spec.ts",
+      "sha256": "3626af4e890ab42830d87c394be26f98e76bf6b0d03066b356f3e5188eb3ff09",
+      "size": 1130
+    },
+    {
+      "path": "tests/visual/trainer-resources.spec.ts",
+      "sha256": "6e71a1dd6e427e8a46ea33e1b06744a79eb1f9974f6c818b2ae1f500d29829d2",
+      "size": 955
+    },
+    {
+      "path": "tests/visual/trainer-trainings.spec.ts",
+      "sha256": "c24595f184ba62d88aa62d0ae9bbeb965a3cd69a41119a5454d2574c2396b4c4",
+      "size": 1084
+    },
+    {
+      "path": "tsconfig.platform.json",
+      "sha256": "8f63c12fd482e3c9da4defeaa7dcb54694f930ed74398dc72c3d79cc7f9f4eaa",
+      "size": 554
+    },
+    {
+      "path": "vercel.json",
+      "sha256": "5dd722fbfdf4b10d3880cc455a9ecd4cb0e73c58b62546dacf8bac518ee91434",
+      "size": 2722
+    },
+    {
+      "path": "vite.config.js",
+      "sha256": "550847fca802c51686e5e509116d5955680984811ea2027e92ed8d5f12592c27",
+      "size": 26971
+    }
+  ]
+}

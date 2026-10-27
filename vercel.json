@@ -1,6 +1,26 @@
 {
+    "git": {
+        "deploymentEnabled": false
+    },
     "cleanUrls":  true,
     "trailingSlash":  false,
+    "headers":  [
+                    {
+                        "source":  "/(.*)",
+                        "has":  [
+                                    {
+                                        "type":  "host",
+                                        "value":  "staging.fixoku.com"
+                                    }
+                                ],
+                        "headers":  [
+                                        {
+                                            "key":  "X-Robots-Tag",
+                                            "value":  "noindex, nofollow"
+                                        }
+                                    ]
+                    }
+                ],
     "rewrites":  [
                      {
                          "source":  "/panel",
@@ -9,9 +29,34 @@
                      {
                          "source":  "/panel/:path*",
                          "destination":  "/panel.html"
+                     },
+                     {
+                         "source":  "/sifre-sifirla",
+                         "destination":  "/index.html"
+                     },
+                     {
+                         "source":  "/e-posta-dogrula",
+                         "destination":  "/index.html"
+                     },
+                     {
+                         "source":  "/ogretmen-aday-aktivasyon",
+                         "destination":  "/index.html"
+                     },
+                     {
+                         "source":  "/ogretmen-aktivasyon",
+                         "destination":  "/index.html"
+                     },
+                     {
+                         "source":  "/admin-davet-kabul",
+                         "destination":  "/index.html"
                      }
                  ],
     "redirects":  [
+                      {
+                          "source":  "/egitmen-girisi",
+                          "destination":  "/ogretmen-girisi",
+                          "permanent":  true
+                      },
                       {
                           "source":  "/egitmen-ol",
                           "destination":  "/hizli-okuma-egitmeni-ol",

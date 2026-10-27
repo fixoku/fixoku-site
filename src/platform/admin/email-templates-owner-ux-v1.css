@@ -1,0 +1,70 @@
+/* FIXOKU EMAIL UX V1: yalnizca E-posta Sablonlari ekranina ozeldir. */
+@media (min-width: 900px) {
+  .platform-panel .panel-main > main.email-template-review,
+  .platform-panel .panel-main > .email-template-review,
+  main.platform-foundation-panel.admin-panel.email-template-review,
+  .admin-panel.email-template-review {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    align-self: stretch !important;
+    width: calc(100% - 28px) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 14px !important;
+    padding: 18px clamp(14px, 1.7vw, 28px) 50px !important;
+    box-sizing: border-box !important;
+  }
+}
+.email-template-review {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+}
+/* Farkli surumlerde kullanilan ara kapsayicilarda dar max-width sinirini kaldir. */
+.email-template-review :where([class*="email-template-"][class*="layout"],[class*="email-template-"][class*="workspace"],[class*="email-template-"][class*="shell"]) {
+  max-width: none !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+.email-template-review > :where(section,div,article),
+.email-template-review :where(.email-template-toolbar,.email-template-meta,.email-template-preview-card,.email-template-frame) {
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+}
+/* Var olan sol kutuphane ve sag onizleme isleyisini koruyarak yan yana yerlesimi ferahlat. */
+@media (min-width: 1180px) {
+  .email-template-review :where(.email-template-workspace,.email-template-layout,.email-template-content-grid,.email-template-review-grid,.email-template-grid,.email-template-owner-layout) {
+    display: grid !important;
+    grid-template-columns: minmax(260px, 26%) minmax(0, 1fr) !important;
+    gap: clamp(16px, 1.5vw, 24px) !important;
+    width: 100% !important;
+    max-width: none !important;
+    align-items: start;
+  }
+  .email-template-review :where(.email-template-library,.email-template-catalog,.email-template-sidebar,.email-template-preview-pane) {
+    min-width: 0 !important;
+    max-width: none !important;
+    box-sizing: border-box;
+  }
+}
+.email-template-review :where(h1) {font-size:clamp(27px,2vw,36px) !important;line-height:1.15;letter-spacing:-.025em;}
+.email-template-review :where(h2) {line-height:1.25;}
+.email-template-review .email-template-frame {min-height:700px;padding:16px;border-radius:13px;}
+.email-template-review .email-template-frame iframe {min-height:680px;height:740px;max-width:100%;}
+.email-template-review .email-template-frame-mobile iframe {max-width:390px;}
+.email-template-review .email-template-preview-card {width:100%;min-width:0;}
+.email-template-review .email-template-toolbar {width:100%;box-sizing:border-box;}
+.email-template-review :where(input,button,select) {font-size:14px;}
+.email-template-review :where(.email-template-identity-list,.email-template-identities,.email-template-address-list,.email-template-addresses) {max-width:none!important;width:100%;}
+@media (max-width: 899px) {
+  .email-template-review {width:100%!important;max-width:none!important;margin:0!important;padding:18px 14px 38px!important;}
+  .email-template-review :where(.email-template-workspace,.email-template-layout,.email-template-content-grid,.email-template-review-grid,.email-template-grid,.email-template-owner-layout) {
+    grid-template-columns:minmax(0,1fr)!important;
+    width:100%!important;
+  }
+  .email-template-review .email-template-frame {min-height:520px;padding:9px;}
+  .email-template-review .email-template-frame iframe {height:570px;min-height:520px;}
+}

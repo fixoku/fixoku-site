@@ -1,0 +1,201 @@
+/* FIXOKU_BADGES_R10: narrow sidebar, one row, real active qualifications only. */
+.trainer-panel .trainer-specialty-badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  justify-content: safe center !important;
+  align-items: center !important;
+  gap: 4px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 12px auto 6px !important;
+  padding: 3px 0 8px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin;
+}
+.trainer-panel .trainer-specialty-badge {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  position: relative !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  flex: 0 0 34px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.trainer-panel .trainer-specialty-badge > .fixoku-trainer-badge-r5 {
+  display: inline-flex !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  flex: 0 0 34px !important;
+}
+.trainer-panel .trainer-specialty-badge > .fixoku-trainer-badge-r5 img {
+  display: block !important;
+  width: 34px !important;
+  height: 34px !important;
+  max-width: none !important;
+  object-fit: contain !important;
+}
+.trainer-panel .trainer-specialty-badge:hover::before,
+.trainer-panel .trainer-specialty-badge:hover::after { content: none !important; }
+
+/* FIXOKU_WIDE_BADGES_R11_START: only the trainer profile page. */
+.platform-panel.trainer-panel .panel-main > main.trainer-profile-page,
+.trainer-panel .panel-main > main.trainer-profile-page {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
+  padding-inline: 30px !important;
+}
+.trainer-panel .trainer-profile-page .trainer-profile-heading,
+.trainer-panel .trainer-profile-page .trainer-profile-layout {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+.trainer-panel .trainer-profile-page .trainer-profile-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(375px, 28%) !important;
+  gap: 22px !important;
+}
+.trainer-panel .trainer-profile-page .trainer-profile-card,
+.trainer-panel .trainer-profile-page .trainer-profile-rail {
+  min-width: 0 !important;
+}
+.trainer-panel .trainer-profile-page .trainer-specialty-badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  align-items: center !important;
+  justify-content: safe center !important;
+  gap: 7px !important;
+  padding: 8px 0 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+.trainer-panel .trainer-profile-page .trainer-specialty-badge,
+.trainer-panel .trainer-profile-page .trainer-specialty-badge > .fixoku-trainer-badge-r5 {
+  box-sizing: border-box !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  flex: 0 0 48px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.trainer-panel .trainer-profile-page .trainer-specialty-badge > .fixoku-trainer-badge-r5 > img {
+  width: 48px !important;
+  height: 48px !important;
+  object-fit: contain !important;
+}
+@media (max-width: 1040px) {
+  .trainer-panel .trainer-profile-page .trainer-profile-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .trainer-panel .trainer-profile-page .trainer-profile-rail {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 640px) {
+  .platform-panel.trainer-panel .panel-main > main.trainer-profile-page,
+  .trainer-panel .panel-main > main.trainer-profile-page {
+    padding-inline: 16px !important;
+  }
+  .trainer-panel .trainer-profile-page .trainer-specialty-badges {
+    justify-content: flex-start !important;
+  }
+}
+/* FIXOKU_WIDE_BADGES_R11_END */
+
+/* FIXOKU_PROFILE_BADGES_R13B_TRAINER */
+@media (min-width: 1181px) {
+  .trainer-panel .trainer-profile-page .trainer-profile-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(455px, 34%) !important;
+  }
+}
+@media (max-width: 1180px) {
+  .trainer-panel .trainer-profile-page .trainer-profile-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+.trainer-panel .trainer-profile-page .trainer-specialty-badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  justify-content: safe center !important;
+  gap: 6px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 8px 0 12px !important;
+}
+.trainer-panel .trainer-profile-page .trainer-specialty-badge,
+.trainer-panel .trainer-profile-page .trainer-specialty-badge > .fixoku-trainer-badge-r5,
+.trainer-panel .trainer-profile-page .trainer-specialty-badge > .fixoku-trainer-badge-r5 > img {
+  box-sizing: border-box !important;
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  max-height: 64px !important;
+  flex: 0 0 64px !important;
+  object-fit: contain !important;
+}
+
+/* FIXOKU_TRAINER_BADGES_R16B_VISIBLE_76PX */
+/* Give all six visible badges enough room in the trainer's own profile. */
+@media (min-width: 1341px) {
+  .trainer-panel .trainer-profile-page .trainer-profile-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(540px, 38%) !important;
+  }
+}
+@media (max-width: 1340px) {
+  .trainer-panel .trainer-profile-page .trainer-profile-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+.trainer-panel .trainer-profile-page .trainer-specialty-badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  align-items: center !important;
+  justify-content: safe center !important;
+  gap: 8px !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 10px 2px 12px !important;
+  scrollbar-width: thin;
+}
+.trainer-panel .trainer-profile-page .trainer-specialty-badge,
+.trainer-panel .trainer-profile-page .trainer-specialty-badge > .fixoku-trainer-badge-r5,
+.trainer-panel .trainer-profile-page .trainer-specialty-badge > .fixoku-trainer-badge-r5 > img {
+  box-sizing: border-box !important;
+  width: 76px !important;
+  min-width: 76px !important;
+  max-width: 76px !important;
+  height: 76px !important;
+  min-height: 76px !important;
+  max-height: 76px !important;
+  flex: 0 0 76px !important;
+  object-fit: contain !important;
+}
+/* FIXOKU_TRAINER_BADGES_R16B_END */

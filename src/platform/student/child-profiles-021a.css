@@ -1,0 +1,130 @@
+/* FIXOKU 021A | Student child profiles only | 2026-10-15
+   Route scoped via the live NavLink active class; no impact on other roles. */
+@layer fixokuChild021a {
+  body:has(.panel-sidebar a.panel-nav-item.is-active[href="/panel/ogrenci/profiller"]) {
+    --child-orange:#ef5a13;
+    --child-navy:#11243d;
+    --child-line:#e1e8f0;
+  }
+}
+/* Match both the standard NavLink class and the explicit active marker. */
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main {
+  width:100%; min-width:0; max-width:none; background:#f5f7fa;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main :is(main, article, section, div)[style*="max-width"],
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main :is(main, article, section, div)[style*="max-width"] {
+  max-width:none !important; min-width:0; box-sizing:border-box;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main > :is(main,div),
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main > :is(main,div) {
+  width:100%; max-width:none; min-width:0;
+}
+/* Content gutter in the page component, not the topbar. */
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main :is(.student-portal, .student-profile-page, .student-children-page),
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main :is(.student-portal, .student-profile-page, .student-children-page) {
+  width:100% !important;max-width:none !important; margin-inline:0 !important;
+  padding:clamp(16px,2vw,30px) !important; background:#f5f7fa !important;
+  box-sizing:border-box;
+}
+/* The child profile page has ordinary sections (with h2 headings), not the
+   student profile CSS classes. This is the bug in the 020Z-only styling. */
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main :is(section,article,div):has(>h2):has(>form),
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main :is(section,article,div):has(>h2):has(>form),
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main :is(section,article):has(>h2):not(:has(form)),
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main :is(section,article):has(>h2):not(:has(form)) {
+  width:100% !important;max-width:none !important;min-width:0;
+  padding:clamp(20px,2vw,30px) !important;margin:0 0 18px !important;
+  background:#fff !important;border:1px solid #e1e8f0 !important;
+  border-radius:18px !important;
+  box-shadow:0 8px 28px rgba(24,45,70,.05) !important;
+  box-sizing:border-box;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main h1,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main h1 {
+  color:#11243d !important; font-size:clamp(26px,2vw,32px) !important;
+  letter-spacing:-.025em;line-height:1.15 !important;
+  font-weight:800 !important;margin:0 0 8px !important;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main h2,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main h2 {
+  font-size:20px !important;line-height:1.3 !important;color:#11243d !important;
+  font-weight:800 !important;margin:0 0 20px !important;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main h1 + p,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main h1 + p {
+  color:#64748b!important;line-height:1.5;font-size:14px;
+  margin:0 0 20px !important;
+}
+/* Standalone form that renders without a design system. */
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form {
+  display:grid !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  align-items:end !important; column-gap:18px !important;row-gap:18px !important;
+  width:100% !important;max-width:none !important;
+  margin:0 !important; padding:0 !important;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form label,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form label {
+  display:flex !important;flex-direction:column !important;align-items:stretch;
+  gap:8px !important;color:#2e4057 !important;
+  font-size:14px !important;font-weight:700 !important;min-width:0;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form :is(input,select),
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form :is(input,select) {
+  display:block !important;width:100% !important;max-width:100%;min-width:0;
+  min-height:48px !important;box-sizing:border-box !important;
+  padding:11px 13px !important;
+  border:1px solid #dbe4ed !important;border-radius:11px !important;
+  background:#fbfcfe !important;color:#11243d !important;
+  font:inherit !important;font-size:15px !important;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form :is(input,select):focus,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form :is(input,select):focus {
+  border-color:#f46a22 !important;outline:3px solid rgba(244,106,34,.11) !important;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form button,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form button {
+  min-height:48px !important; padding:0 24px !important;
+  border:1px solid #e95711 !important;border-radius:11px !important;
+  background:#f56217 !important;color:#fff !important;
+  font:inherit !important;font-weight:800 !important;
+  cursor:pointer;box-shadow:0 5px 12px rgba(236,91,19,.13);
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form button:hover,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form button:hover {
+  background:#e85110 !important;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form button:disabled,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form button:disabled {
+  opacity:.55;cursor:not-allowed;
+}
+/* Existing profiles list, if present. */
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main :is(ul,ol):has(li),
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main :is(ul,ol):has(li) {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+  list-style:none;padding:0;margin:12px 0;
+}
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main :is(ul,ol) > li,
+body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main :is(ul,ol) > li {
+  border:1px solid #e2e9f0;background:#f8fafc;border-radius:12px;padding:14px;
+}
+@media(max-width:1120px) {
+  body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form,
+  body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:680px) {
+  body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main form,
+  body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main form,
+  body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main :is(ul,ol):has(li),
+  body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main :is(ul,ol):has(li) {
+    grid-template-columns:1fr !important;
+  }
+  body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"].is-active) .panel-main,
+  body:has(.panel-sidebar a[href="/panel/ogrenci/profiller"][data-panel-active-v30b="true"]) .panel-main {
+    padding-inline:14px;
+  }
+}
+/* /FIXOKU 021A */

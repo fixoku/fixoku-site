@@ -1,0 +1,114 @@
+.shared-promo-video {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 280px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 28px;
+  background: #210b33;
+  color: #fff;
+  cursor: pointer;
+  isolation: isolate;
+  box-shadow: 0 20px 42px rgba(49, 16, 64, .2);
+}
+
+.shared-promo-video picture,
+.shared-promo-video img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shared-promo-video img {
+  min-height: 280px;
+  object-fit: cover;
+  object-position: center;
+  transition: transform .35s ease;
+}
+
+/* The home artwork is supplied at 558x420. Keep the card at that ratio so
+   the logo, headline, people, feature blocks, and bottom metrics stay inside
+   the rendered poster instead of being cropped by the taller grid row. */
+.shared-promo-video.shared-promo-video-home {
+  align-self: start;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 558 / 420;
+}
+
+.shared-promo-video.shared-promo-video-home img {
+  min-height: 0;
+}
+
+/* The trainer artwork is 664x420 on desktop and 402x250 on mobile. Matching
+   those supplied ratios prevents the intermediate tablet/mobile slots from
+   using the legacy placeholder height and cropping the side artwork. */
+.shared-promo-video.shared-promo-video-instructor {
+  align-self: start;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 664 / 420;
+}
+
+.shared-promo-video.shared-promo-video-instructor img {
+  min-height: 0;
+}
+
+.shared-promo-video:hover img,
+.shared-promo-video:focus-visible img {
+  transform: scale(1.025);
+}
+
+.shared-promo-video-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(18, 1, 29, .04), rgba(18, 1, 29, .72));
+}
+
+.shared-promo-video-play {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  width: 82px;
+  height: 82px;
+  transform: translate(-50%, -50%);
+}
+
+.shared-promo-video-play svg { width: 100%; height: 100%; filter: drop-shadow(0 8px 18px rgba(0,0,0,.24)); }
+/* The supplied artwork already contains its own Neden Fixoku headline. Keep
+   the accessible button label, but remove the duplicate overlay so it cannot
+   cover the bottom metrics baked into the poster. */
+.shared-promo-video-caption { display: none; }
+
+.shared-promo-video-modal { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(15, 0, 24, .84); backdrop-filter: blur(10px); }
+.shared-promo-video-modal-inner { position: relative; width: min(980px, 96vw); padding: 14px; border-radius: 28px; background: #12001d; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+.shared-promo-video-close { position: absolute; right: -14px; top: -14px; z-index: 2; width: 46px; height: 46px; border: 0; border-radius: 50%; background: #ef6418; color: #fff; font-size: 32px; font-weight: 700; cursor: pointer; }
+.shared-promo-video-player { display: block; width: 100%; max-height: 78vh; border-radius: 18px; background: #000; }
+
+@media (max-width: 768px) {
+  .shared-promo-video { min-height: 220px; border-radius: 22px; }
+  .shared-promo-video img { min-height: 220px; }
+  .shared-promo-video-caption { left: 16px; right: 16px; bottom: 14px; font-size: 20px; }
+
+  .shared-promo-video.shared-promo-video-home {
+    min-height: 0;
+    aspect-ratio: 402 / 260;
+  }
+
+  .shared-promo-video.shared-promo-video-home img { min-height: 0; }
+
+  .shared-promo-video.shared-promo-video-instructor {
+    min-height: 0;
+    aspect-ratio: 402 / 250;
+  }
+
+  .shared-promo-video.shared-promo-video-instructor img { min-height: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shared-promo-video img { transition: none; }
+}

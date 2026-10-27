@@ -1,0 +1,479 @@
+[
+  {
+    "id": 1,
+    "title": "Satıcı / Sağlayıcı Künyesi",
+    "category": "Kurum bilgileri",
+    "placement": "Site alt bilgisi · Satıcı künyesi · Sipariş",
+    "internal": false,
+    "markdown": "# Satıcı / Sağlayıcı Künyesi\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nFiyatlar tüketiciye KDV dâhil gösterilir. İşletme kararı kitap kaleminde %0, diğer ürün ve hizmetlerde %20'dir. Vergisel işlem türü ve faturadaki istisna kodu mali müşavir incelemesi tamamlanana kadar etkinleştirilmez. İlk ticari açılış dijital eğitimler ve eğitmenli paketlerle sınırlıdır; fiziksel kitap ve kargo satışı bu açılışta kapalıdır.\n\nMavi Yeşil Ajans Ersin USTA, FIXOKU üzerinden kendi dijital eğitim paketlerini ve eğitmenli hizmetlerini doğrudan sunar. Eğitmenler bağımsız hizmet sağlayıcılarıdır; müşterinin sözleşmesi satıcıyla kurulur. Çocuk öğrenciler için hesap ve satın alma işlemi veli veya kanuni temsilci tarafından yapılır. Görüntülü dersler kaydedilmez. Başarılı ödeme doğrulamasından sonra satın alınan dijital eğitim hakkı ilgili paket koşullarına göre açılır.\n\nBu künye, FIXOKU'nun satıcı ve hizmet modelini açıklar. Tüketicinin diğer yasal hakları saklıdır.\n",
+    "originalSha256": "bd9996b13240378f8a031d5b04f4253fad45a4eb98a1a5ea9ee87f520c6ab69c",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "253005de1bbc384897d4d373a92cd19a766e2235e9d209bc47c046ec55ee8349",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Güncel vergi levhası ve resmî vergi kimlik bilgisinin teyidi",
+      "Ticaret sicil numarası 171925 için resmî belge"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 2,
+    "title": "Fixoku Üyelik ve Platform Kullanım Koşulları",
+    "category": "Hesap ve üyelik",
+    "placement": "Üye olma ekranı · Üyelik koşulları",
+    "internal": false,
+    "markdown": "# Fixoku Üyelik ve Platform Kullanım Koşulları\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\n1. Kapsam\nFixoku; dijital eğitim, eğitmenli eğitim ve ilgili hesap hizmetlerini sunan bir platformdur. Satışa ilişkin bilgiler, sipariş öncesi Ön Bilgilendirme Formu ve siparişe özel Mesafeli Satış Sözleşmesi ile birlikte değerlendirilir.\n\n2. Hesap ve güvenlik\nKullanıcı doğru ve güncel bilgi verir, hesap güvenliğini korur ve şüpheli işlemleri destek@fixoku.com adresine bildirir. Erişim sınırlandırmaları ölçülü uygulanır; kanuni başvuru hakları saklıdır.\n\n3. Satın alma ve erişim\nÖdeme seçenekleri: PayTR kredi/banka kartı ve FIXOKU'nun kendi banka hesabına Havale/EFT/FAST. PayTR'nin Havale/EFT ürünü kullanılmaz. Banka transferinde eğitim veya dijital erişim, yalnızca FIXOKU yetkili işletme sorumlusunun gerçek banka hareketini doğrulamasından sonra açılır; dekont veya ekran görüntüsü tek başına ödeme kanıtı değildir.\nBaşarılı ödeme doğrulamasından sonra paket kapsamındaki dijital eğitim hakkı açılır. Paket süresi, seans sayısı, kapsam ve teknik gereksinimler satın alma ekranında ve sipariş özetinde gösterilir.\n\n4. Çocuk öğrenciler\nÇocuk öğrencinin hesabı ve satın alma işlemi veli veya kanuni temsilci tarafından yapılır. Çocuğun tek başına sözleşme onayı verdiği varsayılmaz; temsil ve yaş doğrulaması uygulanır.\n\n5. Eğitmenli hizmet\nEğitmenler bağımsız hizmet sağlayıcılarıdır. İlk ders başlamadan yapılan uygun iptal taleplerinde tam iade uygulanır; cayma, ayıplı veya eksik ifa ve diğer tüketici hakları saklıdır. Görüntülü dersler kaydedilmez.\n\n6. Fikrî haklar, veri ve değişiklikler\nİçerikler sözleşmede tanınan kullanım amacıyla kullanılır. Kişisel veriler ilgili aydınlatma metinlerinde açıklanan amaçlarla sınırlı işlenir. Pazarlama izinleri üyelik veya satın alma şartı değildir.\n",
+    "originalSha256": "a3d2e196ee00e5d31c4116aedc900e4420bc0cc6f27ded2381006d29330bc686",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "61fc55663cde2e2416a10077d55c079726b4a270b004ce88ed0bd53c669155ea",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Güncel satıcı kimliğinin hukuki incelemesi",
+      "Çocuk kanuni temsil doğrulama akışı"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 3,
+    "title": "Mesafeli Satış Ön Bilgilendirme Formu",
+    "category": "Satın alma",
+    "placement": "Ödeme öncesi ön bilgilendirme · Siparişe özel",
+    "internal": false,
+    "markdown": "# Mesafeli Satış Ön Bilgilendirme Formu\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nFiyatlar tüketiciye KDV dâhil gösterilir. İşletme kararı kitap kaleminde %0, diğer ürün ve hizmetlerde %20'dir. Vergisel işlem türü ve faturadaki istisna kodu mali müşavir incelemesi tamamlanana kadar etkinleştirilmez. İlk ticari açılış dijital eğitimler ve eğitmenli paketlerle sınırlıdır; fiziksel kitap ve kargo satışı bu açılışta kapalıdır.\n\nÖdeme seçenekleri: PayTR kredi/banka kartı ve FIXOKU'nun kendi banka hesabına Havale/EFT/FAST. PayTR'nin Havale/EFT ürünü kullanılmaz. Banka transferinde eğitim veya dijital erişim, yalnızca FIXOKU yetkili işletme sorumlusunun gerçek banka hareketini doğrulamasından sonra açılır; dekont veya ekran görüntüsü tek başına ödeme kanıtı değildir.\n\nBu form, her sipariş için gerçek sipariş verileriyle oluşturulur ve ödeme adımından önce tüketiciye gösterilir. Ürün veya hizmet satırları; ad, kapsam, adet, kullanım süresi, seans niteliği, teknik gereksinim ve bedel bilgilerini içerir. Alıcı, sipariş kimliği, fiyat, vergi, ödeme yöntemi, varsa teslimat ve ilgili onay kayıtları gerçek işlemden alınır. Boş veya gerçek veriye bağlanmamış sipariş alanlarıyla satış tamamlanmaz.\n\nDijital eğitim hakkı, PayTR'nin doğrulanmış başarılı ödeme bildirimi veya FIXOKU banka hesabındaki gerçek tahsilatın yetkili işletme sorumlusu tarafından teyidi sonrasında açılır. Fiziksel kitap ve kargo satışı ilk ticari açılışta kullanılmaz.\n\nTüketicinin cayma, iade, ayıplı ifa, eksik ifa ve diğer yasal hakları saklıdır. Eğitmenli hizmette ilk ders başlamadan yapılan uygun iptal talebinde tam iade uygulanır. Dijital içeriğe erişim ve olası cayma istisnaları, sipariş türüne ve gerekli ayrı açık onaya göre değerlendirilir.\n",
+    "originalSha256": "8de1e025e6ce798276a352a675a352fca91c0b02ffcd8c232b5664acfd22307d",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "ffa5a31dee5b2e8b2e5189f7687d4c2dbbb9dc58b18cfd8ae4270ba6accde997",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Sipariş alanlarının gerçek checkout verisinden üretimi",
+      "Ürün bazlı cayma ve KDV kararı",
+      "Satıcı tanımlayıcılarının teyidi"
+    ],
+    "dynamicFields": [
+      "buyer",
+      "legalRepresentative",
+      "orderLines",
+      "unitPrices",
+      "discount",
+      "tax",
+      "paymentMethod",
+      "delivery",
+      "cancellationBasis",
+      "snapshotVersion",
+      "acceptedAt",
+      "orderId"
+    ],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 4,
+    "title": "Mesafeli Satış Sözleşmesi (Siparişe Özgü)",
+    "category": "Satın alma",
+    "placement": "Siparişe özgü mesafeli satış sözleşmesi",
+    "internal": false,
+    "markdown": "# Mesafeli Satış Sözleşmesi (Siparişe Özgü)\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nBu sözleşme, FIXOKU üzerinden verilen belirli bir sipariş için gerçek alıcı, ürün, bedel, vergi, ödeme, teslim veya hizmet ifası ve onay kayıtları kullanılarak oluşturulur. Siparişe özel metin, ödeme öncesinde tüketiciye gösterilir ve satın alma sonrasında kalıcı veri saklayıcısıyla iletilir.\n\nÖdeme seçenekleri: PayTR kredi/banka kartı ve FIXOKU'nun kendi banka hesabına Havale/EFT/FAST. PayTR'nin Havale/EFT ürünü kullanılmaz. Banka transferinde eğitim veya dijital erişim, yalnızca FIXOKU yetkili işletme sorumlusunun gerçek banka hareketini doğrulamasından sonra açılır; dekont veya ekran görüntüsü tek başına ödeme kanıtı değildir.\n\nDijital eğitim hakkı gerçek tahsilat doğrulamasından sonra açılır. Çocuk öğrencinin siparişi veli veya kanuni temsilci tarafından verilir. Eğitmenli hizmette ilk ders başlamadan yapılan uygun iptal talebinde tam iade uygulanır; kanuni cayma, ayıplı veya eksik ifa ve diğer tüketici hakları saklıdır. Görüntülü dersler kaydedilmez.\n\nİlk ticari açılışta fiziksel kitap ve kargo satışı yapılmaz. Karma veya ileride açılacak fiziksel ürün siparişlerinde ürün satırları, teslimat ve kargo bilgileri gerçek işlem verilerinden ayrıca gösterilir.\n",
+    "originalSha256": "10a904b3e2399541314a644f71b1267ede1b13915a358b98c5f826ced3cb1020",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "230a08ef80299deed7eaf08ec16f64c9394af24e35555b5f796e2a13a067ff58",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Sipariş snapshot ve immutable sürüm kaydı",
+      "Ürün, vergi, teslimat ve onay alanlarının gerçek verilerden üretimi"
+    ],
+    "dynamicFields": [
+      "buyer",
+      "orderId",
+      "orderDate",
+      "orderLines",
+      "taxInclusiveTotal",
+      "payment",
+      "delivery",
+      "snapshotVersion",
+      "acceptanceRecord"
+    ],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 5,
+    "title": "Cayma, İptal, İade ve Geri Ödeme Politikası",
+    "category": "Satış sonrası",
+    "placement": "Cayma · İptal · İade · Destek",
+    "internal": false,
+    "markdown": "# Cayma, İptal, İade ve Geri Ödeme Politikası\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\n1. Genel ilke\nTüketicinin cayma, iade, ayıplı mal veya hizmet, eksik ifa ve diğer kanuni hakları korunur. Bu politika hiçbir yasal hakkı genel bir hükümle ortadan kaldırmaz.\n\n2. Eğitmenli hizmet\nİlk ders başlamadan yapılan uygun iptal talebinde tahsil edilen bedelin tamamı iade edilir. İlk ders başladıktan sonra başvurular hizmetin fiilî durumu ve uygulanabilir tüketici mevzuatına göre değerlendirilir. Eğitmenin ertelemesi veya hizmetin eksik ya da ayıplı ifası satıcının tüketiciye karşı yükümlülüklerini ortadan kaldırmaz.\n\n3. Dijital eğitim\nErişim gerçek ödeme doğrulamasından sonra açılır. Dijital içeriğin ifasına başlanması veya cayma hakkı istisnası, ürün türü ve tüketicinin gerekli ayrı açık talebi/onayına göre değerlendirilir; paket açıldı diye tüm dijital alımlar otomatik olarak iade dışı bırakılamaz.\n\n4. Ödeme ve başvuru\nÖdeme seçenekleri: PayTR kredi/banka kartı ve FIXOKU'nun kendi banka hesabına Havale/EFT/FAST. PayTR'nin Havale/EFT ürünü kullanılmaz. Banka transferinde eğitim veya dijital erişim, yalnızca FIXOKU yetkili işletme sorumlusunun gerçek banka hareketini doğrulamasından sonra açılır; dekont veya ekran görüntüsü tek başına ödeme kanıtı değildir.\nCayma ve iade talepleri sipariş numarasıyla destek@fixoku.com adresine iletilebilir. İade, ödeme yöntemine ve uygulanabilir yasal süreye uygun olarak yürütülür.\n\n5. Fiziksel ürünler\nFiziksel kitap ve kargo satışı ilk ticari açılışta kapalıdır. Fiziksel satış açılırsa teslim, iade taşıyıcısı, ücret ve ürün bazlı kurallar ödeme öncesinde ayrıca gösterilir.\n",
+    "originalSha256": "ca718c249259ac2a8ab2a5740c386669794cf0b9b95105a59dbb3d15f0ad0066",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "e31ef95d01342672ca1dbdea92e89223b662e574254fc4444a238b43579977fb",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Ürün bazlı cayma istisnası ve iade akışı",
+      "Mali müşavir KDV/fatura değerlendirmesi"
+    ],
+    "dynamicFields": [
+      "orderId",
+      "productType",
+      "paymentReference",
+      "refundReference"
+    ],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 6,
+    "title": "Kitap ve Fiziksel Ürün Teslimat Politikası",
+    "category": "Satış sonrası",
+    "placement": "Kitap · Kargo · Teslimat",
+    "internal": false,
+    "markdown": "# Kitap ve Fiziksel Ürün Teslimat Politikası\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nFiziksel kitap ve kargo satışı FIXOKU'nun ilk ticari açılışında yapılmaz. Bu nedenle ilk açılışta tüketiciden kitap veya kargo bedeli alınmaz.\n\nFiziksel ürün satışı ileride açılırsa ürün sayfasında ve sipariş özetinde gerçek stok, taşıyıcı, kargo ücreti, hazırlama süresi, azami teslim süresi, takip bilgisi, iade adresi ve iade taşıyıcısı ödeme öncesinde gösterilir. Sahte takip numarası veya doğrulanmamış teslim taahhüdü oluşturulmaz.\n\nYanlış, eksik veya hasarlı teslimat ile gecikme başvuruları destek@fixoku.com üzerinden alınır. Tüketicinin cayma, ayıplı ifa ve diğer yasal hakları saklıdır. İade adresi: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir.\n",
+    "originalSha256": "356c91b652ddb43e8731ab224b47164b28810debc4587abf9fda5e759e41840d",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "3ed85aaaefb60df5100ff32a944c3e26681387ccff18f27fb3a0769e91274bc5",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Fiziksel ürün satışının yeniden açılması için taşıyıcı, tarife ve süre kanıtı"
+    ],
+    "dynamicFields": [
+      "deliveryAddress",
+      "carrier",
+      "shippingFee",
+      "deliveryDeadline",
+      "trackingReference"
+    ],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 7,
+    "title": "Dijital İçerik ve Eğitim Hizmeti Koşulları",
+    "category": "Eğitim hizmetleri",
+    "placement": "Paket detayları · Dijital içerik · Eğitmenli eğitim",
+    "internal": false,
+    "markdown": "# Dijital İçerik ve Eğitim Hizmeti Koşulları\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nFiyatlar tüketiciye KDV dâhil gösterilir. İşletme kararı kitap kaleminde %0, diğer ürün ve hizmetlerde %20'dir. Vergisel işlem türü ve faturadaki istisna kodu mali müşavir incelemesi tamamlanana kadar etkinleştirilmez. İlk ticari açılış dijital eğitimler ve eğitmenli paketlerle sınırlıdır; fiziksel kitap ve kargo satışı bu açılışta kapalıdır.\n\n1. Hizmet kapsamı\nFIXOKU dijital eğitim içerikleri, birebir veya grup eğitmenli hizmetleri ve ilgili paketleri ayrı veya birlikte sunabilir. Her ürünün erişim süresi, seans sayısı, kapsamı, kontenjanı, teknik gereksinimleri ve bedeli satın alma ekranında açıklanır.\n\n2. Ödeme ve erişim\nÖdeme seçenekleri: PayTR kredi/banka kartı ve FIXOKU'nun kendi banka hesabına Havale/EFT/FAST. PayTR'nin Havale/EFT ürünü kullanılmaz. Banka transferinde eğitim veya dijital erişim, yalnızca FIXOKU yetkili işletme sorumlusunun gerçek banka hareketini doğrulamasından sonra açılır; dekont veya ekran görüntüsü tek başına ödeme kanıtı değildir.\nBaşarılı ödeme doğrulamasından sonra satın alınan dijital eğitim hakkı açılır.\n\n3. Çocuk öğrenciler ve kayıt\nÇocuk adına hesap ve satın alma veli veya kanuni temsilci tarafından yapılır. Görüntülü dersler kaydedilmez. Öğretmen erişimi yalnızca ilgili aktif atamanın gerektirdiği ölçüde verilir.\n\n4. Eğitmenli hizmet ve iade\nİlk ders başlamadan yapılan uygun iptal talebinde tam iade uygulanır. Hizmetin başlamaması, eksik veya ayıplı ifası ve diğer tüketici hakları mevzuata göre değerlendirilir. Eğitmenler bağımsız hizmet sağlayıcılarıdır; bu durum FIXOKU'nun tüketiciye karşı yükümlülüklerini ortadan kaldırmaz.\n\n5. Eğitmen paketleri\nBir eğitmen eğitim paketinin kapsadığı uzmanlıklar, başarılı ödeme doğrulamasıyla teknik olarak ilgili hesaba tanımlanabilir. Bu tanım, mevzuatın aradığı mesleki ruhsat veya sertifikanın verildiği anlamına gelmez.\n",
+    "originalSha256": "bda1069fc366b240f4668a7ab9a7fa223c540f7402d9ced46ac980d1c63195ef",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "1e8fb38fb48b5ed20009dfffb6062809d1fde3803e34392e0fb5a88df74d1b02",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Paket süreleri, kapsamı ve seans bilgilerinin katalogla eşleştirilmesi",
+      "Hukuki inceleme ve KDV kararı"
+    ],
+    "dynamicFields": [
+      "packageId",
+      "accessPeriod",
+      "sessionCount",
+      "scope",
+      "startAt"
+    ],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 8,
+    "title": "KVKK Aydınlatma Metni: Genel Platform ve Müşteriler",
+    "category": "Kişisel veriler",
+    "placement": "Üyelik · Satın alma · KVKK aydınlatması",
+    "internal": false,
+    "markdown": "# KVKK Aydınlatma Metni: Genel Platform ve Müşteriler\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\n1. Veri sorumlusu\nMavi Yeşil Ajans Ersin USTA, FIXOKU hizmetleri bakımından veri sorumlusudur. Başvurular kvkk@fixoku.com adresinden alınır.\n\n2. İşlenen veri grupları\nHesap, iletişim, sipariş, ödeme doğrulaması, eğitim ve atama kayıtları; çocuk öğrenciler bakımından gerekli temsil ve eğitim bilgileri; eğitmenler bakımından başvuru, uzmanlık, atama ve hakediş bilgileri; destek başvuruları ve güvenlik kayıtları, hizmetin gerektirdiği ölçüde işlenebilir. Gerçekte toplanmayan veri kategorileri işlenmiş gibi gösterilmez.\n\n3. Amaç ve hukuki sebep\nVeriler hesap ve sözleşmenin kurulması veya ifası, ödeme ve muhasebe yükümlülükleri, hizmet güvenliği, destek ve uyuşmazlık yönetimi amaçlarıyla gerekli ölçüde işlenir. Zorunlu olmayan analiz ve pazarlama faaliyetleri ayrı ve geçerli izin kurallarına tabidir.\n\n4. Aktarım ve saklama\nÖdeme için PayTR ve banka, hizmet için gerekli teknik sağlayıcılar ve eğitmenler, yalnızca işlem amacı ve yetki sınırları içinde alıcı olabilir. Görüntülü ders kaydı tutulmaz. Hizmet sağlayıcı, ülke, saklama ve aktarım ayrıntıları gerçek veri envanterine göre açıklanır; doğrulanmamış bir sağlayıcı veya süre kesin bilgi gibi sunulmaz.\n\n5. Çocuklar ve haklar\nÇocuk öğrencilerin verilerine yaşa uygun bilgilendirme, kanuni temsilci doğrulaması ve asgari yetki ilkesiyle erişilir. İlgili kişiler 6698 sayılı Kanun kapsamındaki hakları için kvkk@fixoku.com adresine başvurabilir.\n",
+    "originalSha256": "e9879418bd06803b69da662fd58bd26ef26cdc650361f8f0c2866a38bcb9764e",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "13a799a150c833fd2d0aca5a296d5f93608dd3a05ec408345ac2eb180a67bf37",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Gerçek veri envanteri, sağlayıcı/ülke ve saklama çizelgesi",
+      "Resmî veri sorumlusu tanımlayıcıları"
+    ],
+    "dynamicFields": [
+      "dataCategories",
+      "providers",
+      "retentionSchedule"
+    ],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 9,
+    "title": "Çocuk Öğrenci ve Kanuni Temsilci Bilgilendirmesi",
+    "category": "Kişisel veriler",
+    "placement": "Çocuk öğrenciler · Kanuni temsilci işlemleri",
+    "internal": false,
+    "markdown": "# Çocuk Öğrenci ve Kanuni Temsilci Bilgilendirmesi\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nÇocuk öğrencinin ilk hesabı ve satın alma işlemi veli veya kanuni temsilci tarafından yapılır. Çocuğun eğitim ve ilerleme kayıtları ayrı çocuk profiliyle yönetilir; öğretmen erişimi yalnızca aktif atamanın gerektirdiği ölçüdedir. Görüntülü dersler kaydedilmez.\n\nÇocuğa açıklama\nFixoku, eğitimini planlamak ve gelişimini takip etmek için adın, sınıfın, eğitim paketin ve öğrenme çalışmaların gibi gerekli bilgileri kullanabilir. Bu bilgilere yalnızca görevi gerektiren kişiler erişir. Şifreni paylaşma; yardıma ihtiyacın olursa güvendiğin yetişkinden veya destek@fixoku.com adresinden yardım iste.\n\nVeli veya kanuni temsilci; temsil yetkisi, yaşa uygun bilgilendirme, satın alma, veri erişimi ve gerektiğinde onay süreçlerinden sorumludur. Genel üyelik kabulü çocuğun adına tüm işlemleri kendiliğinden geçerli kılmaz. Temsil doğrulaması ve veri erişimi, işlemin niteliğine göre uygulanır. Çocuğun görüntüsü, başarı ölçümü veya referansı reklam amacıyla gerekli ayrı değerlendirme ve izin olmadan kullanılmaz.\n",
+    "originalSha256": "222f0d6fe1ab35a7eae2d946834f0141383d160b4466953432abee30f2bf8229",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "d78427f57c0f01badab08b380e0aa26048917ea2deca7d90871f7a8495e0aa97",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Yaş, velayet ve kanuni temsil doğrulama yöntemi",
+      "Çocuk veri erişimi ve temsil geri çekme akışı"
+    ],
+    "dynamicFields": [
+      "childProfileId",
+      "representativeVerification",
+      "accessScope"
+    ],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 10,
+    "title": "Eğitmen ve Başvuru Sahipleri KVKK Aydınlatması",
+    "category": "Kişisel veriler",
+    "placement": "Eğitmen başvurusu · Eğitmen profili",
+    "internal": false,
+    "markdown": "# Eğitmen ve Başvuru Sahipleri KVKK Aydınlatması\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nEğitmenler FIXOKU personeli değil, bağımsız hizmet sağlayıcılarıdır. Eğitmen başvurusu, davet, uzmanlık, öğrenci veya grup ataması, profil, hakediş ve ödeme süreçleri için gerekli kişisel veriler amaçla sınırlı işlenir.\n\nİsim, iletişim, profil, uzmanlık, atama, hakediş ve ödeme bilgileri; sözleşmenin yürütülmesi, ödeme ve vergi yükümlülükleri, güvenlik ve uyuşmazlık yönetimi için gerekli ölçüde kullanılabilir. Gereksiz özel nitelikli veri veya öğrenci verisi talep edilmez.\n\nEğitmene yalnızca aktif atamasını yürütmek için gerekli öğrenci bilgisi gösterilir. Atama sona erdiğinde erişim güncellenir; kişisel pazarlama veya ilgisiz üçüncü taraf paylaşımı yapılmaz. Hakedişin vergisel belgelendirme ve ödeme biçimi, eğitmenin durumuna ve uygulanabilir mevzuata göre belirlenir.\n\nBaşvuru ve KVKK talepleri kvkk@fixoku.com adresinden iletilebilir.\n",
+    "originalSha256": "b4d1c32a1c4dedd1b533084c5f4bc97b5042acc1de04301663d0a811fdecfc02",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "4c22f566cd5f239d47b61966d612d0cd3b9177decec997026d728c3ce0dec95f",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Bağımsız eğitmen sözleşme ve hakediş vergilendirme modeli",
+      "Gerçek veri kategorileri ve saklama süreleri"
+    ],
+    "dynamicFields": [
+      "trainerProfile",
+      "assignmentScope",
+      "payoutReference"
+    ],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 11,
+    "title": "Gizlilik ve Bilgi Güvenliği Politikası",
+    "category": "Kişisel veriler",
+    "placement": "Gizlilik · Hesap güvenliği · Site alt bilgisi",
+    "internal": false,
+    "markdown": "# Gizlilik ve Bilgi Güvenliği Politikası\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nFIXOKU, hesap, sipariş ve eğitim bilgilerinin yetkisiz erişim, kayıp ve amaç dışı kullanımı riskini azaltmak için rol ve görev temelli erişim, güvenli kimlik doğrulama, yetki iptali, denetim kayıtları ve olay değerlendirmesi gibi uygun kontrolleri uygular. Kullanıcı verileri yalnızca gerekli amaç ve yetki kapsamında erişilebilir.\n\nÖdeme kartı bilgileri PayTR'nin ödeme akışı üzerinden işlenir; FIXOKU tam kart bilgisi saklamaz. Görüntülü dersler kaydedilmez. Çocuk öğrencilerin eğitim ve ilerleme kayıtlarına asgari yetkiyle erişilir.\n\nBir güvenlik şüphesi destek@fixoku.com, kişisel veri başvurusu kvkk@fixoku.com üzerinden bildirilir. Teknik kontroller ve hizmet sağlayıcı bilgileri yalnızca fiilen kullanılan ve doğrulanan yapı için açıklanır; sınırsız güvenlik garantisi verilmez.\n",
+    "originalSha256": "7977e8dd4edd45315e19dc397eeb3830fbc677c5cff70f5cd0841995c38fb199",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "240f57c329d3350090389dd6474c6eda8f4923427cc6fd7acf07d6849510f319",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Fiilî barındırma, yedekleme, erişim ve olay yönetimi kanıtı"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 12,
+    "title": "Çerez Politikası ve Tercih Yönetimi",
+    "category": "Kişisel veriler",
+    "placement": "Çerez tercihleri · Çerez politikası",
+    "internal": false,
+    "markdown": "# Çerez Politikası ve Tercih Yönetimi\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nFixoku web sitesi ve kullanıcı panellerinde kullanılan çerezler ve benzer teknolojiler, işlevlerin yürütülmesi ve tercihlerin yönetilmesi amacıyla kullanılır.\n\nKesinlikle gerekli teknolojiler; oturum, giriş, sepet ve güvenlik gibi hizmet için zorunlu işlevlerle sınırlıdır. Tercih, analiz ve pazarlama teknolojileri gerekli bilgilendirme ve aktif kullanıcı tercihi olmadan başlatılmaz. Kullanıcı Kabul et, Reddet ve Tercihleri yönet seçeneklerine dengeli biçimde erişebilir; verdiği tercihleri sonradan değiştirebilir.\n\nÇerez tercihi e-posta, SMS veya WhatsApp ticari ileti izni değildir. Gerçek çerez adı, sağlayıcısı, alan adı, süresi, kategorisi, aktarım bilgisi ve rıza gereği kullanılan teknolojiye göre çerez tercih panelinde gösterilir. Sorular kvkk@fixoku.com adresinden alınır.\n",
+    "originalSha256": "a3cfd6c203d3d0d7c166cac63d607d70eb51e6728e564b9ab23e64cd4bd7ba83",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "60c0619da726e4f859e37202e08c29785ee22030dd6cefbfdb8ebc0cc9df4c0f",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Gerçek çerez/CMP envanteri ve yurt dışı aktarım değerlendirmesi"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 13,
+    "title": "Ticari Elektronik İleti İzin Metni ve Ret Mekanizması",
+    "category": "Pazarlama ve izin",
+    "placement": "İsteğe bağlı ileti izni · E-posta/SMS/WhatsApp",
+    "internal": false,
+    "markdown": "# Ticari Elektronik İleti İzin Metni ve Ret Mekanizması\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nTicari elektronik iletiler isteğe bağlıdır ve üyelik ya da satın alma hizmetinin şartı değildir. Sipariş, ödeme, hesap güvenliği ve şifre gibi işlemsel bildirimler pazarlama iletilerinden ayrı yürütülür.\n\nKullanıcı, FIXOKU eğitimleri ve kampanyaları için e-posta, SMS veya WhatsApp kanallarını ayrı ayrı seçebilir. Önceden işaretli kutu kullanılmaz; kanal, kapsam, metin sürümü, tarih ve izin kanıtı kaydedilir. Kullanıcı iznini kolayca geri çekebilir ve ret talebi nedeniyle ek ücret veya hizmet kaybı yaşamaz.\n\nİletilerde gönderici kimliği ve kolay ret yöntemi bulunur. İYS ve diğer mevzuat yükümlülükleri tamamlanmadan pazarlama gönderimi başlatılmaz. Ret talepleri destek@fixoku.com üzerinden alınır; uygun kanallardaki doğrudan ret yöntemi ayrıca işletilir.\n",
+    "originalSha256": "9b1bedafc6f463328d46703e8d1dff095e608ade6bc9d5aaa9c7396fa1f21d8b",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "aff66e754dab76c481d0ea8de3b77cbd4ed712ae80e37d27c4128adb6b272234",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "İYS kaydı, mevcut izin kanıtları ve çalışan ret mekanizması"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 14,
+    "title": "KVKK Açık Rıza: Ayrı ve İsteğe Bağlı Örnek Metin",
+    "category": "Pazarlama ve izin",
+    "placement": "Açık rıza gereken özel işlemler · Ayrı onay",
+    "internal": false,
+    "markdown": "# KVKK Açık Rıza: Ayrı ve İsteğe Bağlı Örnek Metin\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nAçık rıza, aydınlatma yükümlülüğünden ayrı ve isteğe bağlıdır. Yalnızca belirli, açıkça anlatılmış ve hizmet için zorunlu olmayan bir işleme amacı için alınır; üyelik veya satın alma rızaya bağlanmaz.\n\nKişiselleştirilmiş ürün önerisi, analiz veya reklam gibi bir amaç için rıza istenirse işlenecek veri kategorileri, amaç, alıcılar, saklama süresi, yurt dışı aktarım güvenceleri ve geri çekme yöntemi rıza ekranında açıkça gösterilir. Bu bilgiler gösterilmeden ilgili seçenek sunulmaz.\n\nRıza kaydı metin sürümü, amaç, kanal ve tarih bilgisiyle tutulur. Rıza ileriye dönük işlemler bakımından her zaman geri çekilebilir. Çocuklar için yaş ve kanuni temsil koşulları ayrıca değerlendirilir.\n",
+    "originalSha256": "2c90c95993f39f8388d09ed60179495ee2ea343ef0cdc7d974d60206e1e675d8",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "84f7da87c511a01760a27e85d13b7eceb94c2d4537a664eba557662b85ad7817",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Amaç, veri kategorisi, alıcı, saklama ve aktarım alanlarının doldurulması"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 15,
+    "title": "KVKK Başvuru ve Veri Talep Prosedürü",
+    "category": "Kişisel veriler",
+    "placement": "KVKK başvuru ve veri talebi",
+    "internal": false,
+    "markdown": "# KVKK Başvuru ve Veri Talep Prosedürü\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nKVKK kapsamındaki talepler kvkk@fixoku.com adresine veya mevzuatta öngörülen geçerli diğer kanallara iletilebilir. İlgili kişi veya yetkili kanuni temsilci, başvurunun işlenmesi için gerekli asgari kimlik ve temsil bilgisini sunar; gereksiz kimlik belgesi istenmez.\n\nBaşvuru; referans, kanal, tarih ve talep türüyle kaydedilir. Kimlik ve temsil yetkisi ölçülü biçimde doğrulanır. Erişim, düzeltme, silme, aktarım, itiraz ve diğer talepler ilgili süreç sahibine yönlendirilir. Kanuni cevap süresi izlenir ve yanıt gerekçeli olarak iletilir. Kanuni saklama yükümlülüğü bulunan kayıtlar korunur ve gerekçe açıklanır.\n\nBaşvuruda şifre, kart numarası veya gereksiz özel nitelikli veri paylaşılmamalıdır.\n",
+    "originalSha256": "36c9b9a3da9aad875693406a1840d061fd2a69a644a65f342d50cc7a5a91fdc8",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "130f9d7d531a79d5305db8bfea8631a14ef95477efce1f7a38adf0c6259554e9",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Kimlik/temsil doğrulama ve başvuru kayıt sorumlusu"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 16,
+    "title": "Müşteri Şikâyetleri ve Uyuşmazlık Çözüm Süreci",
+    "category": "Satış sonrası",
+    "placement": "Destek · Şikâyet · Uyuşmazlık",
+    "internal": false,
+    "markdown": "# Müşteri Şikâyetleri ve Uyuşmazlık Çözüm Süreci\n\n**Belge sürümü:** 1.0 · **Tarih:** 20.10.2026\n\nSatıcı / sağlayıcı: Mavi Yeşil Ajans Ersin USTA\nŞahıs işletmesi sahibi: Ersin USTA\nVergi dairesi: Ege Vergi Dairesi\nTicaret sicil numarası: 171925\nFIXOKU marka tescili: 2023 118161\nAlan adı: https://fixoku.com\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nİletişim: destek@fixoku.com · KVKK başvuruları: kvkk@fixoku.com\nTelefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\n\nSipariş, ödeme, dijital erişim, eğitmen ataması, teslimat, fatura ve iade başvuruları destek@fixoku.com üzerinden alınır. Başvuru için sipariş numarası ve sorunun kısa açıklaması yeterlidir; gereksiz veri istenmez.\n\nBaşvuruya bir takip numarası verilir; konu, sorumlu, uygulanabilir yasal süre, sonraki işlem ve sonuç izlenir. Gerekli hallerde düzeltme, telafi, iade veya ilgili uzman değerlendirmesi yapılır. Eğitmenli hizmette ilk ders başlamadan yapılan uygun iptal talebinde tam iade uygulanır; ders sonrasında kanuni tüketici hakları korunur.\n\nTüketiciler, yürürlükteki parasal sınırlar ve yetki kuralları çerçevesinde tüketici hakem heyeti veya tüketici mahkemelerine başvurabilir. KVKK talepleri 15 numaralı başvuru sürecine göre yürütülür.\n",
+    "originalSha256": "93c81fdf6988f062cb9b90f521668a1bd048ac2bf1d65391ab734aee90060f81",
+    "sourceVersion": "1.0",
+    "sourceDate": "2026-10-20",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "contentSha256": "0a2568d00e8bee228779e0115139f99082bc2e1c4bf4baeb355c1560d1af9979",
+    "publicationStatus": "BLOCKED_P0",
+    "requiredEvidence": [
+      "Şikâyet kayıt sistemi, yasal süre takibi ve karar yetkisi"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç taslak, onay ve geliştirme notları çıkarıldı; satış modeli, tüketici hakları ve gerçek sipariş alanları korunarak sadeleştirildi."
+  },
+  {
+    "id": 17,
+    "title": "KVKK Veri İşleme Envanteri ve Saklama Planı",
+    "category": "İç yönetim",
+    "placement": "Veri envanteri · Saklama ve silme planı",
+    "internal": true,
+    "markdown": "# KVKK Veri İşleme Envanteri ve Saklama Planı\n\nKVKK Veri İşleme Envanteri ve Saklama Planı\nBelge sürümü: 0.2 (inceleme taslağı) · Tarih: 19.10.2026 · Durum: TASLAK / ERSİN USTA VE UZMAN İNCELEMESİ BEKLENİYOR\nİşletme: Mavi Yeşil Ajans Ersin USTA (şahıs işletmesi)\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nDestek: destek@fixoku.com · KVKK: kvkk@fixoku.com · Telefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\nYAYIN DURUMU: İÇ TASLAK. Bu belge hukuki onay veya teknik kabul oluşturmaz.\n________________________________________\nAmaç ve durum\nBu metin KVKK veri envanterinin iç yönetim çalışma taslağıdır. Gerçek veri tabanı tabloları, hizmet sağlayıcılar ve ülkeleri, kullanım amaçları, saklama süreleri ve hukuki dayanakları son doğrulama gerektirir.\nVeri grupları\n• Hesap: ad, iletişim, parola özeti ve oturum bilgileri. Amaç: kimlik doğrulama ve üyelik. Saklama ve sağlayıcı/ülke: [TEKNİK ENVANTER GEREKLİ].\n• Öğrenci/çocuk: sınıf, eğitim paketi, gelişim ölçümleri ve atamalar. Erişim: veli/kanuni temsilci ve atanmış ilgili eğitmen; kapsamı rol tabanlı izinle doğrulanacak.\n• Sipariş/ödeme: ürün satırı, KDV oranı, ödeme durumu, PayTR kart bildirimi veya FIXOKU banka transferi Owner onayı. Tam kart bilgileri platformda saklanmamalı.\n• Eğitmen: profil, uzmanlık, atama, hakediş ve ödeme kayıtları. Serbest çalışma statüsü ve vergi belgesi prosedürü mali müşavirin değerlendirmesine bağlıdır.\n• Destek: iade, şikâyet, KVKK başvuruları; kayıtlar yasal sürelerle uyumlu tutulmalı.\n• Kargo: İlk dijital açılışta fiziksel ürün satışı kapalı tutulursa zorunlu olmayan teslimat verisi talep edilmemeli.\n• Çerez ve analiz: kullanım envanteri teknik taramayla doldurulmalı; gerekli olmayan işleme için uygun rıza alınmadan başlatılmamalı.\nHizmet sağlayıcı ve ülke incelemesi\nPayTR, Vercel, Neon, Cloudflare veya seçilecek depolama ve SMTP sağlayıcılarının gerçek veri akışları, erişim ülkeleri ve veri işleyen sözleşmeleri ayrı kontrol edilmelidir. Bir platformun adı geçmesi fiilen etkin olduğu anlamına gelmez.\nYurt dışına aktarım\nKVKK m.9 kapsamında aktarımlar ve hukuki aktarım mekanizması doğrulanmadan kesin aktarım beyanı yayımlanmayacak.\nSaklama ve silme\nHer veri grubu için başlama olayı, kanuni saklama gerekçesi, süre, silme/anomimleştirme yöntemi, yedekten temizleme ve sorumlu kişi tanımlanacak. Çocukların eğitim verileri ayrıca ele alınacak.\nAçık işler\n[ ] Sistem envanteri [ ] İşleme dayanağı [ ] Sağlayıcı/ülke [ ] Saklama süreleri [ ] Çocuk verileri erişim testi [ ] Yurt dışı aktarım değerlendirmesi\n\n\n---",
+    "originalSha256": "11ad20a8f20b03540c1c2a9c2926d6b2ea6e78b8fdc6abc1da8cc542ca4a4e7e",
+    "sourceVersion": "0.2",
+    "sourceDate": "2026-10-19",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "publicationStatus": "INTERNAL_ONLY",
+    "requiredEvidence": [
+      "İç inceleme kapsamında Owner ve hukuk kanıtı"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç yönetim belgesi korunmuştur; public route/API için kapalıdır."
+  },
+  {
+    "id": 18,
+    "title": "Ersin USTA Onay ve Eksikler Kontrol Listesi",
+    "category": "İç yönetim",
+    "placement": "Ersin USTA kontrol ve onay listesi",
+    "internal": true,
+    "markdown": "# Ersin USTA Onay ve Eksikler Kontrol Listesi\n\nErsin USTA Onay ve Eksikler Kontrol Listesi\nBelge sürümü: 0.2 (inceleme taslağı) · Tarih: 19.10.2026 · Durum: TASLAK / ERSİN USTA VE UZMAN İNCELEMESİ BEKLENİYOR\nİşletme: Mavi Yeşil Ajans Ersin USTA (şahıs işletmesi)\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nDestek: destek@fixoku.com · KVKK: kvkk@fixoku.com · Telefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\nYAYIN DURUMU: İÇ TASLAK. Bu belge hukuki onay veya teknik kabul oluşturmaz.\n________________________________________\nTamamlanmış veya belgeyle desteklenmiş bilgiler\n• İşletme sahibi: Ersin USTA; ticaret unvanı: Mavi Yeşil Ajans; vergi dairesi: Ege (2024 vergi levhası).\n• 2024 vergi levhası görüldü; 2026 güncel mükellefiyet ve değişiklikler henüz teyit edilmedi.\n• Ticaret odası sicil numarası: 171925 (işletme beyanı, resmî kayıtla teyit edilecek).\n• FIXOKU markası TÜRKPATENT tescil belgesi: 2023 118161, sahibi Ersin USTA, sınıflar 16/35/41 (gönderilen belge).\n• Ana ticari alan adı: fixoku.com. Eski fixoku.com.tr ileride kapanacak; bağlantı ve sözleşmeleri geçiş bitene kadar korunacak.\n• İlk aşamada dijital öğrenci/eğitmen eğitimleri ve birebir/grup eğitim hizmetleri; kitap/kargo satışı yayın sonrası.\n• KDV dahil fiyat gösterimi. Kullanıcının açıkladığı hesaplama kararı: kitap bileşeni %0, diğer bileşenler %20, karma paketlerde satır bazlı. Kitabın fatura istisna kodu ve diğer sınıflamaları mali müşavir tarafından onaylanmalı.\n• PayTR kartlı ödeme ve FIXOKU'nun kendi hesabına havale/EFT/FAST; PayTR Havale/EFT ürünü kullanılmayacak. Banka transferinde hakları yalnız Owner'ın gerçek tahsilat teyidi açar.\n• Çocuk hesabı ve satın alma: veli/kanuni temsilci. Görüntülü ders kaydı tutulmayacak.\n• Eğitmen bağımsız hizmet sunar; vergi/ödeme belgesi yöntemi henüz uzman onayı bekliyor.\n• Eğitmenli hizmet için ilk ders başlamadan geçerli iptal talebinde tam iade; ilk ders sonrası ekstra gönüllü tam iade sözü yok, yasal haklar saklıdır.\nAçılışı engelleyen hukukî / vergisel kararlar\n[ ] ETBİS kaydı ve kapsamı [ ] MERSİS/sicil teyidi [ ] 2026 güncel vergi levhası [ ] Fatura KDV kodları ve uzman değerlendirmesi\n[ ] Eğitmen hakedişlerinin vergisel belge yöntemi [ ] 21 metnin avukat incelemesi [ ] Veli/temsilci kontrolü ve özel dijital onay\n[ ] Veri envanteri/uluslararası aktarım [ ] Gerçek çerez, İYS ve pazarlama izinleri [ ] Dinamik sözleşme ve kalıcı veri iletimi\nTeknik açılış engelleri\n[ ] Satış checkout hukuk ve KDV onay zinciri [ ] PayTR yeni mağaza / callback ve banka transferi yetki testi [ ] Siparişin öğrenci/eğitmen haklarına dönüşümü [ ] 0040 veri tabanı migration teyidi [ ] SMTP/özel medya\nİşletme onay tutanağı\nBelge paketi: FIXOKU-LEGAL-REVIEW-2026-10-19 · Durum: İNCELEME\nKarar: [ ] Revizyon istendi [ ] İş bilgileri teyit edildi [ ] Hukuk incelemesi tamamlandı [ ] Yayın için ayrıca izin verildi\nGerekçe: .................................................\nİşletme sahibi / tarih: .................................................\nNot: İşletme onayı, hukukçu incelemesi veya production sistemi onayı yerine geçmez.\n\n\n---",
+    "originalSha256": "c4e7d92102c06352d3bd9ed5ac434641e0c101be6355cbc52dfa760f2cff10f8",
+    "sourceVersion": "0.2",
+    "sourceDate": "2026-10-19",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "publicationStatus": "INTERNAL_ONLY",
+    "requiredEvidence": [
+      "İç inceleme kapsamında Owner ve hukuk kanıtı"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç yönetim belgesi korunmuştur; public route/API için kapalıdır."
+  },
+  {
+    "id": 19,
+    "title": "Uygulama Entegrasyonu ve Kabul Testi Sözleşmesi",
+    "category": "İç yönetim",
+    "placement": "Yazılım entegrasyonu · Kabul testleri",
+    "internal": true,
+    "markdown": "# Uygulama Entegrasyonu ve Kabul Testi Sözleşmesi\n\nUygulama Entegrasyonu ve Kabul Testi Sözleşmesi\nBelge sürümü: 0.2 (inceleme taslağı) · Tarih: 19.10.2026 · Durum: TASLAK / ERSİN USTA VE UZMAN İNCELEMESİ BEKLENİYOR\nİşletme: Mavi Yeşil Ajans Ersin USTA (şahıs işletmesi)\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nDestek: destek@fixoku.com · KVKK: kvkk@fixoku.com · Telefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\nYAYIN DURUMU: İÇ TASLAK. Bu belge hukuki onay veya teknik kabul oluşturmaz.\n________________________________________\nAmaç\n21 taslak metni otomatik olarak yayımlamadan, sürümlü ve denetlenebilir Owner onayıyla FIXOKU'ya bağlamak.\nBelge yaşam döngüsü\n• Her belge için document_key, version, status (DRAFT/REVIEW/APPROVED/PUBLISHED/ARCHIVED), hash, approved_by, approved_at, published_at tutulur.\n• Sipariş sırasında geçerli belge sürümü, müşteri tarafı, ürün satırları, vergiler, sözleşme/önbilgilendirme ve kabul zamanı değişmez kayıtlarla eşleştirilir.\n• Hukuk/KDV kararları tamamlanmadıysa checkout fail-closed kalır; sahte onay üretilmez.\nSipariş akışı\n• Öğrenci/veli veya eğitmen gerekli sözleşmeleri ödeme öncesinde okur; ticari ileti izni ve KVKK rızası bundan ayrıdır.\n• PayTR kart ödemesinde doğrulanmış callback; FIXOKU'nun kendi havale/EFT/FAST ödemesinde yalnız Owner banka tahsilat teyidi hak doğurur.\n• PayTR'nin Havale/EFT ürününü hiçbir ekran veya API kullanmaz.\n• Veli/kanuni temsilci çocuk adına işlem yapar; çocuk profilindeki haklar ayrı tutulur.\n• İlk ders öncesi geçerli eğitmenli hizmet iptalinde tam iade; ders başladıktan sonra tüketici kanunundan doğan haklar saklıdır.\n• Dijital eğitim, ödeme kesinleştiğinde hemen açılır; cayma istisnası için uygulanabilir ayrı ön talep/onay koşulları hukukça onaylanır.\n• KDV dahil gösterim ve satır bazlı hesaplama: kitap %0, diğerleri %20 işletme kararı; fatura vergi kodu mali müşavir kontrolüne bağlıdır.\nKabul testleri\n[ ] Eksik satıcı kimliği ve belge sürümü checkout'u durduruyor.\n[ ] Gerekli açık izin olmadan ilgili özel dijital istisna uygulanmıyor.\n[ ] PayTR imza/hash/replay kontrolü ve manuel havale Owner onay mekanizması ayrışıyor.\n[ ] Beş kişilik grup, eşzamanlı atama ve iki çocuk hak ayrımı korunuyor.\n[ ] Atama sonunda öğretmen erişimi kesiliyor, panel yetkileri çalışıyor.\n[ ] SMS/e-posta pazarlaması onaysız gönderilmiyor; zorunlu sipariş mesajları ayrışıyor.\n[ ] Belge sürümü değişse eski sipariş kanıtı silinmiyor.\n[ ] Uygulamanın aktif veritabanında migration, storage, SMTP ve backup kabulü yapıldı.\nYayın kararı\nOwner onayı + gerekli mevzuat incelemesi + bağımsız üretim kabul kanıtı olmadan satış kapısı açılmaz.\n\n\n---",
+    "originalSha256": "98a60dde13ff393a63557b3f7d0e436ec5fcbdff82960a893f1920ecdd2b60e4",
+    "sourceVersion": "0.2",
+    "sourceDate": "2026-10-19",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "publicationStatus": "INTERNAL_ONLY",
+    "requiredEvidence": [
+      "İç inceleme kapsamında Owner ve hukuk kanıtı"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç yönetim belgesi korunmuştur; public route/API için kapalıdır."
+  },
+  {
+    "id": 20,
+    "title": "Mevcut Fixoku Sitesi ve Yeni Taslakların Farkları",
+    "category": "İç yönetim",
+    "placement": "Eski site ve yeni taslakların farkları",
+    "internal": true,
+    "markdown": "# Mevcut Fixoku Sitesi ve Yeni Taslakların Farkları\n\nMevcut Fixoku Sitesi ve Yeni Taslakların Farkları\nBelge sürümü: 0.2 (inceleme taslağı) · Tarih: 19.10.2026 · Durum: TASLAK / ERSİN USTA VE UZMAN İNCELEMESİ BEKLENİYOR\nİşletme: Mavi Yeşil Ajans Ersin USTA (şahıs işletmesi)\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nDestek: destek@fixoku.com · KVKK: kvkk@fixoku.com · Telefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\nYAYIN DURUMU: İÇ TASLAK. Bu belge hukuki onay veya teknik kabul oluşturmaz.\n________________________________________\nEski site ve yeni model\nEski fixoku.com.tr adresinin mevcut metinleri aracılık modelini ve eski marka/artık ifadeleri içerebilir. Yeni fixoku.com doğrudan mal/dijital içerik/eğitim hizmeti satan Mavi Yeşil Ajans Ersin USTA modeliyle işletilecektir.\nÖnemli farklılıklar\n• Eski sitedeki öğrenci ile eğitmen arasında yalnız aracılık yapıldığına dair ifadeler yeni satış sözleşmelerine aktarılmayacaktır.\n• Satıcı, kendi hizmetinin hiç/eksik/ayıplı ifasında zorunlu hukukî sorumluluklardan genel feragat etmeyecektir.\n• Eski belgelerde geçen Dersfix.com gibi başka marka adları yeni kamuya açık sözleşmelerden çıkarılacaktır.\n• Yeni sistem öğrenci, veli/kanuni temsilci, eğitmen, Owner rolleri; sipariş, ödeme, eğitim, hakediş ve atama kayıtları tutacaktır. KVKK politikası buna göre gözden geçirilmelidir.\n• Yeni ana alan adı fixoku.com'dur. fixoku.com.tr kapanmadan önce mevcut müşteri sözleşmeleri, içerik ve PayTR mağaza bağlantısı korunur; geçiş için ayrı plan hazırlanır.\n• Kredi/banka kartı ödemeleri yeni fixoku.com PayTR mağazasına bağlanacaktır; mevcut .com.tr mağazasının callback'i izinsiz değiştirilmez.\n• FIXOKU'nun kendi havale/EFT/FAST yöntemi Owner banka teyidi şartıyla korunacaktır. PayTR Havale/EFT ürünü kullanılmayacaktır.\n• Paketlerde kitap %0, diğer kalemler %20 olarak gösterilmek istenmektedir; fatura istisna kodunun ayrı uzman doğrulaması gerekir.\n• 'En az iki kat gelişim garantisi' gibi somut sonuç vaadi, dayanak olmadan yeni reklam/sözleşmeye eklenmeyecektir.\nEski site referansları (geçiş sırasında kontrol edilecek)\nhttps://fixoku.com.tr/diger/sozlesme\nhttps://fixoku.com.tr/diger/kvkk-gizlilik-sozlesmesi\nhttps://fixoku.com.tr/\nNot: Bu maddeler farklılıkların çalışma özetidir; eski siteye ilişkin canlı karşılaştırmanın güncel tarama ile tekrar yapılması gerekir.\n\n\n---",
+    "originalSha256": "0afa06cb2c19829b59f54b092a3b4c500e5a3de4fa8fcd2a5b1ab54fe4f2294e",
+    "sourceVersion": "0.2",
+    "sourceDate": "2026-10-19",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "publicationStatus": "INTERNAL_ONLY",
+    "requiredEvidence": [
+      "İç inceleme kapsamında Owner ve hukuk kanıtı"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç yönetim belgesi korunmuştur; public route/API için kapalıdır."
+  },
+  {
+    "id": 21,
+    "title": "Mevzuat Kaynakları, Hukuk İncelemesi ve Yayın Sınırı",
+    "category": "İç yönetim",
+    "placement": "Mevzuat kaynakları · Hukuk incelemesi",
+    "internal": true,
+    "markdown": "# Mevzuat Kaynakları, Hukuk İncelemesi ve Yayın Sınırı\n\nMevzuat Kaynakları, Hukuk İncelemesi ve Yayın Sınırı\nBelge sürümü: 0.2 (inceleme taslağı) · Tarih: 19.10.2026 · Durum: TASLAK / ERSİN USTA VE UZMAN İNCELEMESİ BEKLENİYOR\nİşletme: Mavi Yeşil Ajans Ersin USTA (şahıs işletmesi)\nAdres: Temsil Plaza, Mersinli Mah. (Yenişehir), 1202/2. Sk. No: 80/L, 35170 Konak / İzmir\nDestek: destek@fixoku.com · KVKK: kvkk@fixoku.com · Telefon: +90 232 462 07 43 / +90 533 478 92 53\nÇalışma saatleri: Pazartesi–Cumartesi 08.30–20.00\nYAYIN DURUMU: İÇ TASLAK. Bu belge hukuki onay veya teknik kabul oluşturmaz.\n________________________________________\nTemel resmî kaynaklar\n• Ticaret Bakanlığı Mesafeli Sözleşmeler Bilgilendirmesi (17.08.2026): https://tuketici.ticaret.gov.tr/yayinlar/tuketici-bilgi-rehberi/mesafeli-sozlesmeler-hakkinda-bilgilendirme\n• Gelir İdaresi Başkanlığı, 3065 sayılı KDV Kanunu ve kitap teslimi istisnası: https://www.gib.gov.tr/mevzuat/kanun/436\n• GİB, 25 Seri No'lu KDV Genel Tebliğ değişikliği, 13/n kitap teslimi: https://gib.gov.tr/mevzuat/kanun/436/teblig/9077\n• KVKK Aydınlatma Yükümlülüğü: https://www.kvkk.gov.tr/Icerik/2033/Aydinlatma-Yukumlulugu-\n• KVKK Çerez Rehberi: https://www.kvkk.gov.tr/Icerik/7353/Cerez-Uygulamalari-Hakkinda-Rehber\n• Ticaret Bakanlığı ETBİS: https://ticaret.gov.tr/ic-ticaret/sikca-sorulan-sorular/elektronik-ticaret\n• Ticaret Bakanlığı İYS: https://ticaret.gov.tr/ic-ticaret/ticari-elektronik-iletiler/ileti-yonetim-sistemi-iys\nÖzellikle inceleme gerektiren konular\n1. Kitap teslimleri için müşteriye %0 gösterim, fatura/istisna kodu ve muhasebe uyumu.\n2. Tüketicinin 14 günlük hakkı, dijital içerikte anında ifa ve eğitmenli hizmete başlama, özel onay yöntemleri.\n3. İlk ders başlamadan sunulan gönüllü tam iade ile ders sonrası zorunlu kanuni haklar arasındaki fark.\n4. Çocuğun kanuni temsilinin ölçülü ispatı ve eğitim verilerine erişim/aktarım.\n5. Eğitmen bağımsız hizmet ilişkisi, hakediş ve vergi belgesi yöntemi.\n6. Siparişe özgü hukuki kayıtlar ve canlı ödeme öncesi onay kapıları.\n7. ETBİS, İYS ve veri envanteri; fiilî sağlayıcılar ve yurt dışı aktarım koşulları.\nYayın sınırı\nİşletme sahibinin iş kuralı bildirimi veya bu taslağın üretilmiş olması hukuki yayın onayı değildir. 21 belge, ilgili uzman değerlendirmesi ve Owner'ın ayrı kayıtlı kararı olmadan PUBLISHED durumuna geçirilmez.",
+    "originalSha256": "4bbaf05096969203e2cae79c1fd31d5f50fce73c11abba5a2b755764da74ec0e",
+    "sourceVersion": "0.2",
+    "sourceDate": "2026-10-19",
+    "sourceFile": "FIXOKU_21_Hukuki_Belge_Revize_Inceleme_Taslagi_20261019.md",
+    "derivedFromVersion": "0.2",
+    "publicationStatus": "INTERNAL_ONLY",
+    "requiredEvidence": [
+      "İç inceleme kapsamında Owner ve hukuk kanıtı"
+    ],
+    "dynamicFields": [],
+    "changeSummary": "İç yönetim belgesi korunmuştur; public route/API için kapalıdır."
+  }
+]

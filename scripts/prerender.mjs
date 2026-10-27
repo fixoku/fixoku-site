@@ -118,6 +118,8 @@ const panelHtml = applyTemplate(template, {
   renderMode: "client",
 });
 await writeRouteHtml("panel.html", panelHtml);
+await writeRouteHtml("seniseviim.html", panelHtml);
+console.log("[prerender] /seniseviim -> dist/seniseviim.html");
 console.log("[prerender] /panel/* -> dist/panel.html");
 
 const notFoundMarkup = renderRoute("/__fixoku-static-404__");

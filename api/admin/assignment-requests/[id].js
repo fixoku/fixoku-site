@@ -1,0 +1,109 @@
+import crypto from "node:crypto";
+import pg from "pg";
+import { resolvePrincipal, requirePermission } from "../../../src/server/auth/authorization.js";
+import { effectiveTrainerQualificationPredicate } from "../../../src/server/domain/trainer-expertise.js";
+import { queueEmailOutbox } from "../../../src/server/domain/panel-notifications.js";
+
+const json=(res,status,body)=>{res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(body));};
+const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,String(v)]));
+async function readBody(req){let raw="";for await(const chunk of req)raw+=chunk;return raw?JSON.parse(raw):{};}
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+
+async function readEnrollmentQualification(client, enrollmentId) {
+  return (await client.query(`
+    select distinct q.id,q.code,q.title
+    from package_entitlement_enrollments pee
+    join package_entitlements pe on pe.id=pee.package_entitlement_id and pe.status='ACTIVE' and pe.revoked_at is null
+    join orders o on o.id=pe.source_order_id and o.status in ('PAID','PARTIALLY_REFUNDED')
+    join order_items oi on oi.id=pee.source_order_item_id
+    join package_components pc on pc.package_version_id=oi.package_version_id and pc.is_active=true
+    join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id)
+      and pp.is_active=true and pp.r6_product_type='TRAINING_SERVICE' and pp.service_mode='INDIVIDUAL'
+    join enrollments e on e.id=pee.enrollment_id
+    left join r6_student_child_profiles c on c.id=e.beneficiary_child_profile_id and c.status='ACTIVE'
+    left join student_profiles sp on sp.user_id=e.student_user_id
+    join r6_qualification_definitions q on q.service_type=pp.service_type
+      and q.education_stage=coalesce(c.education_stage,sp.education_stage)
+    where pee.enrollment_id=$1
+    order by q.code
+    limit 1
+  `, [enrollmentId])).rows[0] || null;
+}
+
+export { assertTrainerEligibleForEnrollment, readEnrollmentQualification };
+
+async function assertTrainerEligibleForEnrollment(client, trainerUserId, enrollmentId) {
+  const r6Qualification = await readEnrollmentQualification(client, enrollmentId);
+  if (r6Qualification) {
+    const eligible = (await client.query(`
+      select exists(
+        select 1 from platform_memberships m
+        join r6_trainer_qualification_grants g on g.trainer_user_id=m.user_id
+        where m.user_id=$1 and m.role='TRAINER' and m.scope_type='TRAINER' and m.scope_id=m.user_id and m.status='ACTIVE'
+          and g.qualification_id=$2
+          and ${effectiveTrainerQualificationPredicate("g")}
+      ) as eligible
+    `, [trainerUserId, r6Qualification.id])).rows[0]?.eligible === true;
+    if (!eligible) throw Object.assign(new Error("TRAINER_NOT_ELIGIBLE"), { status: 403 });
+    return r6Qualification;
+  }
+  const legacy = (await client.query(
+    "select q.id from trainer_qualifications q where q.trainer_user_id=$1 and q.training_program_id=(select training_program_id from enrollments where id=$2) and q.status='ACTIVE' and q.valid_from<=now() and (q.valid_until is null or q.valid_until>now())",
+    [trainerUserId, enrollmentId],
+  )).rows[0];
+  if (!legacy) throw Object.assign(new Error("TRAINER_NOT_ELIGIBLE"), { status: 403 });
+  return null;
+}
+
+export default async function handler(req,res){
+  const principal=await resolvePrincipal(headers(req)); if(!principal)return json(res,401,{error:"UNAUTHENTICATED"});
+  const denied=requirePermission(principal,"assignment.manage"); if(denied)return json(res,denied.status,denied.body);
+  const id=String(req.url||"").split("/").pop().split("?")[0]; if(!UUID.test(id))return json(res,400,{error:"INVALID_REQUEST_ID"});
+  const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});const c=await pool.connect();
+  try{
+    const requestRow=(await c.query("select r.id,r.status,r.requested_at as \"requestedAt\",u.display_name as \"studentName\",u.email as \"studentEmail\",tp.title as \"programTitle\",e.id as \"enrollmentId\",e.training_program_id as \"trainingProgramId\",e.student_user_id as \"studentUserId\" from trainer_assignment_requests r join enrollments e on e.id=r.enrollment_id join platform_users u on u.id=e.student_user_id join training_programs tp on tp.id=e.training_program_id where r.id=$1",[id])).rows[0];
+    if(!requestRow)return json(res,404,{error:"NOT_FOUND"});
+    if(req.method==='GET'){
+      const parsed=new URL(req.url,"http://local");const availabilityOnly=parsed.searchParams.get("availabilityOnly")==="true";
+      const currentAssignment=(await c.query("select a.id,a.trainer_user_id as \"trainerUserId\",tu.display_name as \"trainerName\",a.status,a.created_at as \"createdAt\",a.ended_at as \"endedAt\",a.ended_reason as \"endedReason\" from trainer_assignments a join platform_users tu on tu.id=a.trainer_user_id where a.enrollment_id=$1 and a.status='ACTIVE' order by a.created_at desc limit 1",[requestRow.enrollmentId])).rows[0]||null;
+      const history=(await c.query("select h.id,h.assignment_id as \"assignmentId\",h.trainer_user_id as \"trainerUserId\",u.display_name as \"trainerName\",h.event_type as \"eventType\",h.reason,h.changed_by as \"changedBy\",h.occurred_at as \"occurredAt\" from trainer_assignment_history h join platform_users u on u.id=h.trainer_user_id where h.enrollment_id=$1 order by h.occurred_at desc",[requestRow.enrollmentId])).rows;
+      const candidates=(await c.query(`select u.id,u.display_name as name,u.email,tp.city,q.status as qualification,max(coalesce(to_jsonb(tp)->>'photo_url',to_jsonb(tp)->>'photoUrl')) as "photoUrl",max(coalesce(to_jsonb(tp)->>'photo_storage_key',to_jsonb(tp)->>'photoStorageKey')) as "photoStorageKey",count(distinct a.id)::int as workload,(count(distinct s.id)>0) as "hasFutureAvailability" from platform_users u join platform_memberships m on m.user_id=u.id and m.role='TRAINER' and m.scope_type='TRAINER' and m.scope_id=u.id and m.status='ACTIVE' left join trainer_profiles tp on tp.user_id=u.id left join trainer_qualifications q on q.trainer_user_id=u.id and q.training_program_id=$1 left join trainer_assignments a on a.trainer_user_id=u.id and a.status='ACTIVE' left join enrollments ae on ae.id=a.enrollment_id and ae.status='ACTIVE' left join availability_slots s on s.trainer_user_id=u.id and s.status='OPEN' and s.starts_at>now() where ((q.status='ACTIVE' and (q.valid_until is null or q.valid_until>now())) or exists (select 1 from package_entitlement_enrollments pee join package_entitlements pe on pe.id=pee.package_entitlement_id and pe.status='ACTIVE' and pe.revoked_at is null join orders o on o.id=pe.source_order_id and o.status in ('PAID','PARTIALLY_REFUNDED') join order_items oi on oi.id=pee.source_order_item_id join package_components pc on pc.package_version_id=oi.package_version_id and pc.is_active=true join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id) and pp.is_active=true and pp.r6_product_type='TRAINING_SERVICE' and pp.service_mode='INDIVIDUAL' join enrollments e on e.id=pee.enrollment_id left join r6_student_child_profiles c on c.id=e.beneficiary_child_profile_id and c.status='ACTIVE' left join student_profiles sp on sp.user_id=e.student_user_id join r6_qualification_definitions rq on rq.service_type=pp.service_type and rq.education_stage=coalesce(c.education_stage,sp.education_stage) join r6_trainer_qualification_grants rg on rg.trainer_user_id=u.id and rg.qualification_id=rq.id where pee.enrollment_id=$3 and ${effectiveTrainerQualificationPredicate("rg")})) and ($2::boolean=false or s.id is not null) group by u.id,tp.city,q.status`,[requestRow.trainingProgramId,availabilityOnly,requestRow.enrollmentId])).rows;
+      return json(res,200,{request:requestRow,currentAssignment,history,candidates});
+    }
+    if(req.method!=='POST')return json(res,405,{error:"METHOD_NOT_ALLOWED"});
+    const input=await readBody(req);if(!input.trainerId)return json(res,400,{error:"TRAINER_REQUIRED"});if(!UUID.test(String(input.trainerId)))return json(res,403,{error:"TRAINER_NOT_ELIGIBLE"});
+    await c.query('begin');await c.query('select pg_advisory_xact_lock(hashtext($1))',[id]);
+    const locked=(await c.query("select * from trainer_assignment_requests where id=$1 for update",[id])).rows[0];if(!locked)throw Object.assign(new Error('NOT_FOUND'),{status:404});
+    const isReassignment=locked.status==='ASSIGNED' && input.reassign===true;
+    if(locked.status==='ASSIGNED'&&!isReassignment)throw Object.assign(new Error('ALREADY_ASSIGNED'),{status:409});
+    if(locked.status!=='PENDING'&&!isReassignment)throw Object.assign(new Error('ALREADY_ASSIGNED'),{status:409});
+    if(isReassignment&&!String(input.reassignmentReason||'').trim())throw Object.assign(new Error('REASSIGNMENT_REASON_REQUIRED'),{status:400});
+    const trainer=(await c.query("select u.id,u.email from platform_users u join platform_memberships m on m.user_id=u.id and m.role='TRAINER' and m.scope_type='TRAINER' and m.scope_id=u.id and m.status='ACTIVE' where u.id=$1",[input.trainerId])).rows[0];
+    if(!trainer)throw Object.assign(new Error('TRAINER_NOT_ELIGIBLE'),{status:403});
+    const activeEntitlement=(await c.query("select 1 from package_entitlement_enrollments pee join package_entitlements pe on pe.id=pee.package_entitlement_id and pe.status='ACTIVE' and pe.revoked_at is null join orders o on o.id=pe.source_order_id and o.status in ('PAID','PARTIALLY_REFUNDED') join enrollments e on e.id=pee.enrollment_id and e.status in ('ACTIVE','PAUSED') where pee.enrollment_id=$1 limit 1",[requestRow.enrollmentId])).rows[0];
+    if(!activeEntitlement)throw Object.assign(new Error('ACTIVE_ENTITLEMENT_REQUIRED'),{status:409});
+    await assertTrainerEligibleForEnrollment(c,input.trainerId,requestRow.enrollmentId);
+    if(input.availabilityOnly===true){const slot=(await c.query("select id from availability_slots where trainer_user_id=$1 and status='OPEN' and starts_at>now() limit 1",[input.trainerId])).rows[0];if(!slot)throw Object.assign(new Error('TRAINER_NOT_AVAILABLE'),{status:403});}
+    const previous=(await c.query("select a.*,u.email as \"oldTrainerEmail\",u.display_name as \"oldTrainerName\" from trainer_assignments a join platform_users u on u.id=a.trainer_user_id where a.enrollment_id=$1 and a.status='ACTIVE' for update",[locked.enrollment_id])).rows[0]||null;
+    if(!isReassignment&&previous)throw Object.assign(new Error('ALREADY_ASSIGNED'),{status:409});
+    if(isReassignment&&previous?.trainer_user_id===input.trainerId)throw Object.assign(new Error('SAME_TRAINER'),{status:400});
+    const previousWork=previous ? Number((await c.query("select count(*)::int as count from trainer_earning_ledger where assignment_id=$1 and status<>'REVERSED'",[previous.id])).rows[0]?.count||0) : 0;
+    if(isReassignment&&previousWork>0&&!['PRESERVE','ADJUST_PENDING'].includes(String(input.compensationDecision||'')))throw Object.assign(new Error('COMPENSATION_DECISION_REQUIRED'),{status:400});
+    if(isReassignment&&previous) await c.query("update trainer_assignments set status='ARCHIVED',ended_at=now(),ended_reason=$1,updated_at=now() where id=$2",[String(input.reassignmentReason).trim().slice(0,500),previous.id]);
+    const assignment=(await c.query("insert into trainer_assignments(trainer_user_id,enrollment_id,status) values($1,$2,'ACTIVE') returning id",[input.trainerId,locked.enrollment_id])).rows[0];
+    const comp=(await c.query("select r.* from trainer_compensation_rules r join package_entitlement_enrollments pee on pee.training_program_id=$2 join order_items oi on oi.id=pee.source_order_item_id and oi.package_version_id=r.package_version_id where pee.enrollment_id=$1 and (r.trainer_user_id=$3 or r.trainer_user_id is null) order by (r.trainer_user_id is not null) desc,r.created_at desc limit 1",[locked.enrollment_id,requestRow.trainingProgramId,input.trainerId])).rows[0];
+    if(!comp || (comp.type==='FIXED_AMOUNT' && (!Number.isSafeInteger(Number(comp.rate_minor)) || Number(comp.rate_minor)<0)) || (comp.type==='PERCENTAGE' && (!Number.isSafeInteger(Number(comp.percentage_bps)) || Number(comp.percentage_bps)<0 || Number(comp.percentage_bps)>10000))) throw Object.assign(new Error('COMPENSATION_RULE_REQUIRED'),{status:409});
+    await c.query("insert into trainer_compensation_snapshots(assignment_id,trainer_user_id,enrollment_id,type,rate_minor,percentage_bps,calculation_base,currency,package_version_id) values($1,$2,$3,coalesce($4,'FIXED_AMOUNT')::trainer_compensation_type,$5,$6,coalesce($7,'ORDER_TOTAL'),coalesce($8,'TRY'),$9)",[assignment.id,input.trainerId,locked.enrollment_id,comp?.type||null,comp?.rate_minor??0,comp?.percentage_bps??null,comp?.calculation_base||null,comp?.currency||null,comp?.package_version_id||null]);
+    await c.query("insert into trainer_assignment_history(assignment_id,enrollment_id,trainer_user_id,event_type,reason,changed_by) values($1,$2,$3,$4,$5,$6)",[assignment.id,locked.enrollment_id,input.trainerId,isReassignment?'REASSIGNED_IN':'ASSIGNED',isReassignment?String(input.reassignmentReason).trim().slice(0,500):null,principal.user.id]);
+    if(isReassignment&&previous) await c.query("insert into trainer_assignment_history(assignment_id,enrollment_id,trainer_user_id,event_type,reason,changed_by) values($1,$2,$3,'REASSIGNED_OUT',$4,$5)",[previous.id,locked.enrollment_id,previous.trainer_user_id,`${String(input.reassignmentReason).trim().slice(0,500)}${previousWork === 0 ? " · Mevcut hak ediş korunmadı" : String(input.compensationDecision).toUpperCase() === "PRESERVE" ? " · Mevcut hak ediş korundu" : " · Ayrı hak ediş kararı gerekli"}`,principal.user.id]);
+    await c.query("update trainer_assignment_requests set status='ASSIGNED',trainer_assignment_id=$1,assigned_at=coalesce(assigned_at,now()),updated_at=now() where id=$2",[assignment.id,id]);
+    const dedupeBase=isReassignment?`reassignment:${id}:${input.trainerId}`:`assignment:${id}`;
+    await c.query("insert into panel_notifications(recipient_user_id,event_type,title,body,metadata_json,dedupe_key) values($1,$2,$3,$4,$5,$6) on conflict(dedupe_key) do nothing",[input.trainerId,isReassignment?'TRAINER_REASSIGNMENT':'TRAINER_ASSIGNMENT',isReassignment?'Yeni eğitmen ataması':'Yeni öğrenci ataması',`${requestRow.studentName} öğrencisi için ${requestRow.programTitle} ataması yapıldı.`,JSON.stringify({path:'/panel/egitmen/atamalarim',assignmentId:assignment.id,enrollmentId:locked.enrollment_id,reason:input.reassignmentReason||null}),`${dedupeBase}:trainer`]);
+    await c.query("insert into panel_notifications(recipient_user_id,event_type,title,body,metadata_json,dedupe_key) values($1,$2,$3,$4,$5,$6) on conflict(dedupe_key) do nothing",[requestRow.studentUserId,isReassignment?'TRAINER_REASSIGNMENT':'TRAINER_ASSIGNMENT',isReassignment?'Eğitmen değişikliği':'Eğitmen ataması',`${requestRow.programTitle} eğitiminiz için ${isReassignment?'yeni eğitmen atandı':'eğitmen atandı'}.`,JSON.stringify({path:'/panel/ogrenci',assignmentId:assignment.id,enrollmentId:locked.enrollment_id,reason:input.reassignmentReason||null}),`${dedupeBase}:student`]);
+    if(isReassignment&&previous) await c.query("insert into panel_notifications(recipient_user_id,event_type,title,body,metadata_json,dedupe_key) values($1,'TRAINER_REASSIGNMENT','Atama değişikliği',$2,$3,$4) on conflict(dedupe_key) do nothing",[previous.trainer_user_id,`${requestRow.studentName} öğrencisinin eğitmen ataması değiştirildi.`,JSON.stringify({assignmentId:assignment.id,enrollmentId:locked.enrollment_id,reason:input.reassignmentReason}),`${dedupeBase}:old-trainer`]);
+    await queueEmailOutbox(c,{recipientUserId:input.trainerId,eventType:isReassignment?'TRAINER_REASSIGNMENT':'TRAINER_ASSIGNMENT',recipientEmail:trainer.email,subject:isReassignment?'Yeni eğitmen ataması':'Yeni öğrenci ataması',body:`${requestRow.studentName} öğrencisi için ${requestRow.programTitle} ataması panelinizde hazır.`,metadata:{path:'/panel/egitmen/atamalarim',studentName:requestRow.studentName,programName:requestRow.programTitle},dedupeKey:`${dedupeBase}:trainer-email`});
+    await queueEmailOutbox(c,{recipientUserId:requestRow.studentUserId,eventType:'TRAINER_ASSIGNMENT',recipientEmail:requestRow.studentEmail,subject:'Eğitmen ataması',body:`${requestRow.programTitle} eğitiminiz için eğitmen atandı.`,metadata:{path:'/panel/ogrenci',programName:requestRow.programTitle},dedupeKey:`${dedupeBase}:student-email`});
+    await c.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,$2,'trainer_assignment_request',$3,'SUCCESS',$4,$5)",[principal.user.id,isReassignment?'trainer.assignment.reassigned':'trainer.assignment.assign',id,crypto.randomUUID(),JSON.stringify({enrollmentId:locked.enrollment_id,trainerUserId:input.trainerId,previousTrainerUserId:previous?.trainer_user_id||null,trainerAssignmentId:assignment.id,reason:input.reassignmentReason||null,previousWork,compensationDecision:previousWork>0?input.compensationDecision:'ZERO_WORK',emailNotificationQueued:true})]);
+    await c.query('commit');return json(res,200,{status:'ASSIGNED',reassigned:isReassignment,trainerAssignmentId:assignment.id,previousTrainerUserId:previous?.trainer_user_id||null,previousWork,compensationDecision:previousWork>0?input.compensationDecision:'ZERO_WORK',notificationsCreated:isReassignment&&previous?3:2,emailNotificationsQueued:2});
+  }catch(err){try{await c.query('rollback')}catch{ /* preserve original error */ }return json(res,err.status||409,{error:err.message||'ASSIGNMENT_FAILED'});}finally{c.release();await pool.end();}
+}

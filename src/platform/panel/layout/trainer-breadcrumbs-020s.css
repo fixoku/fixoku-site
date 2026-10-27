@@ -1,0 +1,109 @@
+/* FIXOKU_020S_TRAINER_BREADCRUMBS_START
+   Only trainer pages. Do not hide functional section titles, filters, warnings,
+   transaction details, course sections, table headers or CTA buttons.
+   Other roles keep their current header/section layout unchanged.
+*/
+.trainer-panel .panel-topbar .fixoku-breadcrumb-020s {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 6px 0;
+  color: #667588;
+  font-size: clamp(13px, 1.05vw, 16px);
+  line-height: 1.5;
+}
+.trainer-panel .panel-topbar .fixoku-breadcrumb-020s a {
+  color: #62738a;
+  text-decoration: none;
+  font-weight: 600;
+}
+.trainer-panel .panel-topbar .fixoku-breadcrumb-020s a:hover {
+  color: #e95f13;
+  text-decoration: underline;
+}
+.trainer-panel .panel-topbar .fixoku-breadcrumb-020s strong {
+  color: #dc5c13;
+  font-weight: 800;
+}
+.trainer-panel .panel-topbar .fixoku-breadcrumb-step-020s {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.trainer-panel .panel-topbar .fixoku-breadcrumb-step-020s svg {
+  flex: none;
+  color: #a9b2bf;
+}
+.trainer-panel .panel-topbar .panel-topbar-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* Remove only the repeated top-level page title, subtitle and old inner crumbs. */
+.trainer-panel .trainer-page-heading,
+.trainer-panel .trainer-profile-heading,
+.trainer-panel .students-breadcrumb,
+.trainer-panel .students-heading > div:first-child,
+.trainer-panel .ta4-intro > div:first-child,
+.trainer-panel .entitlements-heading > .trainer-breadcrumb,
+.trainer-panel .entitlements-heading > h2,
+.trainer-panel .entitlements-heading > p,
+.trainer-panel .trainer-commerce-page:not(.trainer-video-page) .trainer-commerce-heading > h2,
+.trainer-panel .trainer-commerce-page:not(.trainer-video-page) .trainer-commerce-heading > p,
+.trainer-panel .detail-heading > div:first-child {
+  display: none !important;
+}
+
+/* Keep the existing hero artwork and functional controls, without empty title space. */
+.trainer-panel .trainings-heading,
+.trainer-panel .resources-heading,
+.trainer-panel .entitlements-heading {
+  min-height: 0 !important;
+}
+.trainer-panel .trainings-heading {
+  margin-bottom: 0 !important;
+}
+.trainer-panel .trainings-hero-art {
+  margin-top: 0 !important;
+}
+.trainer-panel .resources-hero-art {
+  margin-top: 0 !important;
+}
+.trainer-panel .students-heading {
+  display: block !important;
+  margin-bottom: 14px !important;
+}
+.trainer-panel .students-heading .students-hero-art {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+.trainer-panel .ta4-intro {
+  justify-content: flex-end !important;
+  margin-bottom: 12px !important;
+}
+.trainer-panel .detail-heading {
+  justify-content: flex-end !important;
+  margin-bottom: 14px !important;
+}
+.trainer-panel .trainer-commerce-heading {
+  margin-bottom: 10px;
+}
+.trainer-panel .trainer-commerce-heading:empty { display: none; }
+
+@media (max-width: 700px) {
+  .trainer-panel .panel-topbar .fixoku-breadcrumb-020s {
+    font-size: 12px;
+    gap: 4px;
+  }
+  .trainer-panel .panel-topbar .fixoku-breadcrumb-step-020s {
+    gap: 4px;
+  }
+  .trainer-panel .trainings-hero-art { margin-top: 0 !important; }
+}
+/* FIXOKU_020S_TRAINER_BREADCRUMBS_END */

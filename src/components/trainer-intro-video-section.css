@@ -1,0 +1,513 @@
+.trainer-intro-video {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.82fr) minmax(340px, 1.18fr);
+  gap: 34px;
+  align-items: center;
+}
+
+.trainer-intro-video .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.trainer-intro-video-preview-column {
+  min-width: 0;
+}
+
+.trainer-intro-video-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1890 / 3360;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 34px;
+  background: #1b0723;
+  box-shadow: 0 28px 56px rgba(43, 13, 53, 0.2);
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.trainer-intro-video-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transition: transform 220ms ease;
+}
+
+.trainer-intro-video-preview:hover img,
+.trainer-intro-video-preview:focus-visible img {
+  transform: scale(1.025);
+}
+
+.trainer-intro-video-preview:focus-visible,
+.trainer-intro-video-item:focus-visible,
+.trainer-intro-video-modal-arrow:focus-visible,
+.trainer-intro-video-close:focus-visible {
+  outline: 4px solid rgba(241, 92, 24, 0.35);
+  outline-offset: 4px;
+}
+
+.trainer-intro-video-preview-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(23, 9, 29, 0.04), rgba(23, 9, 29, 0.62));
+}
+
+.trainer-intro-video-play {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 94px;
+  height: 94px;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.84);
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(107, 26, 128, 0.92), rgba(241, 92, 24, 0.94));
+  box-shadow: 0 16px 30px rgba(23, 9, 29, 0.28);
+  transform: translate(-50%, -50%);
+}
+
+.trainer-intro-video-play svg {
+  width: 42px;
+  height: 42px;
+  margin-left: 4px;
+}
+
+.trainer-intro-video-copy {
+  padding: 16px 8px 0;
+}
+
+.trainer-intro-video-eyebrow {
+  color: var(--instructor-orange);
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.trainer-intro-video-copy h3 {
+  margin: 8px 0 8px;
+  color: var(--instructor-plum);
+  font-size: clamp(1.35rem, 2.5vw, 2rem);
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.trainer-intro-video-list {
+  display: grid;
+  gap: 13px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trainer-intro-video-list li {
+  min-width: 0;
+}
+
+.trainer-intro-video-item {
+  display: grid;
+  width: 100%;
+  min-height: 78px;
+  grid-template-columns: 50px minmax(0, 1fr) 34px;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 16px;
+  border: 1px solid var(--instructor-border);
+  border-radius: 18px;
+  color: var(--instructor-plum);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 30px rgba(72, 27, 84, 0.09);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.trainer-intro-video-item:hover,
+.trainer-intro-video-item.is-active {
+  border-color: rgba(241, 92, 24, 0.48);
+  background: linear-gradient(105deg, #fff1e8, #fff 70%);
+  box-shadow: 0 18px 34px rgba(107, 26, 128, 0.14);
+  transform: translateY(-2px);
+}
+
+.trainer-intro-video-number {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, var(--instructor-orange), var(--instructor-purple));
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.trainer-intro-video-item-title {
+  min-width: 0;
+  color: var(--instructor-plum);
+  font-size: 0.96rem;
+  font-weight: 900;
+  line-height: 1.28;
+}
+
+.trainer-intro-video-item-play {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--instructor-purple);
+  background: #f0ddf5;
+}
+
+.trainer-intro-video-item-play svg {
+  width: 18px;
+  height: 18px;
+}
+
+.trainer-intro-video-item.is-active .trainer-intro-video-item-play {
+  color: #fff;
+  background: var(--instructor-orange);
+}
+
+.trainer-intro-video-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 0, 24, 0.86);
+  backdrop-filter: blur(10px);
+}
+
+.trainer-intro-video-modal-inner {
+  position: relative;
+  width: min(1040px, 96vw);
+  padding: 14px;
+  border-radius: 26px;
+  background: #12001d;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.trainer-intro-video-player {
+  display: block;
+  width: 100%;
+  max-height: 78vh;
+  border-radius: 18px;
+  background: #000;
+}
+
+.trainer-intro-video-close,
+.trainer-intro-video-modal-arrow {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+}
+
+.trainer-intro-video-close {
+  top: -15px;
+  right: -15px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--instructor-orange);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.trainer-intro-video-modal-arrow {
+  top: 50%;
+  width: 48px;
+  height: 68px;
+  border-radius: 14px;
+  background: rgba(23, 9, 29, 0.78);
+  font-size: 42px;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.trainer-intro-video-modal-arrow.is-previous { left: -23px; }
+.trainer-intro-video-modal-arrow.is-next { right: -23px; }
+
+.trainer-intro-video-modal-details {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 4px 0;
+  color: #fff;
+}
+
+.trainer-intro-video-modal-details strong {
+  font-size: 1rem;
+}
+
+.trainer-intro-video-modal-details span {
+  color: #f8c8a8;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+@media (max-width: 900px) {
+  .trainer-intro-video {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .trainer-intro-video-preview {
+    aspect-ratio: 1890 / 3360;
+    border-radius: 24px;
+  }
+
+  .trainer-intro-video-play {
+    width: 78px;
+    height: 78px;
+  }
+
+  .trainer-intro-video-play svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .trainer-intro-video-copy {
+    padding-inline: 2px;
+  }
+
+  .trainer-intro-video-item {
+    min-height: 72px;
+    grid-template-columns: 42px minmax(0, 1fr) 30px;
+    gap: 11px;
+    padding: 11px 12px;
+    border-radius: 16px;
+  }
+
+  .trainer-intro-video-item-title {
+    font-size: 0.88rem;
+  }
+
+  .trainer-intro-video-modal {
+    padding: 10px;
+  }
+
+  .trainer-intro-video-modal-inner {
+    width: 100%;
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  .trainer-intro-video-modal-arrow {
+    top: auto;
+    bottom: 55px;
+    width: 42px;
+    height: 50px;
+    border-radius: 11px;
+    font-size: 32px;
+    transform: none;
+  }
+
+  .trainer-intro-video-modal-arrow.is-previous { left: 16px; }
+  .trainer-intro-video-modal-arrow.is-next { right: 16px; }
+
+  .trainer-intro-video-modal-details {
+    padding-inline: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trainer-intro-video-preview img,
+  .trainer-intro-video-item {
+    transition: none;
+  }
+}
+
+/* FIXOKU_022O_VIDEO_LAYOUT_START */
+/* Local, scoped layout refinement. Existing video interaction is untouched. */
+.trainer-intro-video {
+  width: 100%;
+  grid-template-columns: minmax(270px, 0.62fr) minmax(0, 1.38fr);
+  gap: clamp(28px, 3.2vw, 52px);
+  align-items: start;
+}
+
+.trainer-intro-video-preview-column {
+  width: 100%;
+  max-width: 365px;
+  min-width: 0;
+  justify-self: center;
+}
+
+.trainer-intro-video-preview {
+  width: 100%;
+  border-radius: 23px;
+  box-shadow: 0 18px 42px rgba(49, 13, 65, 0.17);
+}
+
+.trainer-intro-video-play {
+  width: 76px;
+  height: 76px;
+  box-shadow: 0 10px 26px rgba(23, 9, 29, 0.23);
+}
+
+.trainer-intro-video-play svg {
+  width: 34px;
+  height: 34px;
+}
+
+.trainer-intro-video-copy {
+  padding: 13px 2px 0;
+}
+
+.trainer-intro-video-copy h3 {
+  font-size: clamp(1.16rem, 1.7vw, 1.48rem);
+  line-height: 1.16;
+  margin: 5px 0 0;
+}
+
+.trainer-intro-video-list {
+  width: 100%;
+  gap: 14px;
+  align-self: start;
+}
+
+.trainer-intro-video-item {
+  min-height: 96px;
+  grid-template-columns: 54px minmax(0, 1fr) 40px;
+  gap: 18px;
+  padding: 18px 22px;
+  border-radius: 17px;
+  box-shadow: 0 10px 25px rgba(72, 27, 84, 0.08);
+}
+
+.trainer-intro-video-item-title {
+  font-size: clamp(1.04rem, 1.15vw, 1.24rem);
+  line-height: 1.32;
+  letter-spacing: -0.012em;
+}
+
+.trainer-intro-video-number {
+  width: 48px;
+  height: 48px;
+  font-size: 0.94rem;
+}
+
+.trainer-intro-video-item-play {
+  width: 40px;
+  height: 40px;
+}
+
+.trainer-intro-video-item-play svg {
+  width: 21px;
+  height: 21px;
+}
+
+@media (max-width: 960px) {
+  .trainer-intro-video {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .trainer-intro-video-preview-column {
+    max-width: 290px;
+    justify-self: center;
+  }
+
+  .trainer-intro-video-copy {
+    text-align: center;
+  }
+
+  .trainer-intro-video-list {
+    width: min(100%, 680px);
+    justify-self: center;
+  }
+
+  .trainer-intro-video-item {
+    min-height: 82px;
+    grid-template-columns: 48px minmax(0, 1fr) 36px;
+    gap: 14px;
+    padding: 15px 18px;
+  }
+
+  .trainer-intro-video-item-title {
+    font-size: 1.04rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .trainer-intro-video {
+    gap: 20px;
+  }
+
+  .trainer-intro-video-preview-column {
+    max-width: min(255px, 72vw);
+  }
+
+  .trainer-intro-video-preview {
+    border-radius: 19px;
+  }
+
+  .trainer-intro-video-play {
+    width: 64px;
+    height: 64px;
+  }
+
+  .trainer-intro-video-play svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .trainer-intro-video-copy h3 {
+    font-size: 1.18rem;
+  }
+
+  .trainer-intro-video-list {
+    gap: 10px;
+  }
+
+  .trainer-intro-video-item {
+    min-height: 76px;
+    grid-template-columns: 42px minmax(0, 1fr) 32px;
+    gap: 10px;
+    padding: 13px 14px;
+    border-radius: 15px;
+  }
+
+  .trainer-intro-video-item-title {
+    font-size: 0.98rem;
+  }
+
+  .trainer-intro-video-number {
+    width: 40px;
+    height: 40px;
+    font-size: 0.82rem;
+  }
+
+  .trainer-intro-video-item-play {
+    width: 32px;
+    height: 32px;
+  }
+}
+/* FIXOKU_022O_VIDEO_LAYOUT_END */

@@ -1,0 +1,6 @@
+/* FIXOKU_020P teacher training covers use the 8 user-provided course images. */
+.trainer-package-head{grid-template-columns:104px minmax(0,1fr) auto;}
+.trainer-package-icon.has-course-cover-020p{width:100px;height:100px;overflow:hidden;border-radius:11px;background:#fff;display:block;border:1px solid #eee3dc;}
+.trainer-package-icon.has-course-cover-020p img{width:100%;height:100%;object-fit:cover;display:block;}
+@media(max-width:900px){.trainer-package-head{grid-template-columns:86px minmax(0,1fr)}.trainer-package-icon.has-course-cover-020p{width:82px;height:82px;}}
+@media(max-width:520px){.trainer-package-head{grid-template-columns:68px minmax(0,1fr)}.trainer-package-icon.has-course-cover-020p{width:64px;height:64px;}}

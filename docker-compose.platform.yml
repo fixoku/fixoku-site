@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:18.4-alpine
+    container_name: fixoku-platform-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in local env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in local env}
+      POSTGRES_DB: fixoku_platform_dev
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - fixoku-platform-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d fixoku_platform_dev"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  fixoku-platform-postgres-data:

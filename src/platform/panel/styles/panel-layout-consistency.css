@@ -1,0 +1,557 @@
+/*
+  FIXOKU shared panel geometry authority.
+  Scope is strictly .platform-panel so the public website is untouched.
+*/
+
+.platform-panel{
+  --fixoku-panel-content-max: 1380px;
+  --fixoku-panel-content-gutter: clamp(20px, 2.15vw, 36px);
+
+  width:100%;
+  max-width:100vw;
+  min-width:0;
+  overflow-x:clip;
+
+  grid-template-columns:
+    minmax(0, var(--panel-sidebar-width, 240px))
+    minmax(0, 1fr);
+}
+
+.platform-panel,
+.platform-panel *,
+.platform-panel *::before,
+.platform-panel *::after{
+  box-sizing:border-box;
+}
+
+/* -----------------------------------------------------------------
+   SIDEBAR
+   Prevent logo / navigation / quote from widening the viewport.
+   ----------------------------------------------------------------- */
+
+.platform-panel .panel-sidebar{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+.platform-panel .panel-brand{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+}
+
+.platform-panel .panel-brand img{
+  display:block;
+  width:auto;
+  max-width:100%!important;
+  height:auto!important;
+  object-fit:contain;
+  object-position:center;
+  transform:none!important;
+}
+
+.platform-panel .panel-nav,
+.platform-panel .panel-nav-item,
+.platform-panel .panel-sidebar-divider,
+.platform-panel .panel-sidebar-quote,
+.platform-panel .panel-logout{
+  min-width:0;
+  max-width:100%;
+}
+
+.platform-panel .panel-nav-item{
+  overflow:hidden;
+}
+
+.platform-panel .panel-nav-item > span,
+.platform-panel .panel-sidebar-quote{
+  overflow-wrap:anywhere;
+}
+
+/* -----------------------------------------------------------------
+   MAIN SHELL
+   The second grid track must be allowed to shrink. This is the
+   important part that prevents the browser-level horizontal scrollbar.
+   ----------------------------------------------------------------- */
+
+.platform-panel .panel-main{
+  min-width:0!important;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+.platform-panel .panel-topbar{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+
+.platform-panel .panel-topbar-title,
+.platform-panel .panel-topbar-tools,
+.platform-panel .panel-profile{
+  min-width:0;
+}
+
+/* -----------------------------------------------------------------
+   ONE CONTENT FRAME FOR ALL PANEL ROLES
+   Every page root now has the same maximum width and the same side
+   gutters instead of each page inventing its own 1180/1280/1320 etc.
+   ----------------------------------------------------------------- */
+
+.platform-panel .panel-main > main,
+.platform-panel .panel-main > .trainer-panel > main,
+.platform-panel.trainer-panel .panel-main > main{
+  width:100%!important;
+  max-width:var(--fixoku-panel-content-max)!important;
+  min-width:0!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  padding-left:var(--fixoku-panel-content-gutter)!important;
+  padding-right:var(--fixoku-panel-content-gutter)!important;
+}
+
+/* Pages that previously carried narrower local max-width rules. */
+.platform-panel :is(
+  .student-dashboard-v2,
+  .student-profile-v2,
+  .student-profile-trainer-parity,
+  .student-commerce-page,
+  .trainer-commerce-page,
+  .trainer-profile-page,
+  .admin-panel-page,
+  .owner-panel-page
+){
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+}
+
+/* Major internal frames must use the page width rather than arbitrary
+   local caps. Their internal column ratios are preserved. */
+.platform-panel :is(
+  .student-dashboard-v2__top-grid,
+  .student-dashboard-v2__enrollments,
+  .trainer-profile-layout,
+  .student-package-hero,
+  .student-package-grid,
+  .trainer-cart-layout,
+  .trainer-checkout-layout,
+  .trainer-commerce-heading,
+  .trainer-profile-heading
+){
+  width:100%;
+  max-width:none!important;
+  min-width:0;
+}
+
+/* Dashboard's two prominent cards should share the available middle
+   area equally on wide screens. This removes the short/wide visual
+   inconsistency seen in the current student dashboard. */
+.platform-panel .student-dashboard-v2__top-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+
+/* Common card/grid children are allowed to shrink instead of forcing
+   their parent wider than the viewport. */
+.platform-panel :is(
+  .student-dashboard-v2__student-card,
+  .student-trainer-card,
+  .student-dashboard-v2__enrollments,
+  .trainer-profile-card,
+  .trainer-profile-rail,
+  .student-profile-single-card,
+  .student-package-card,
+  .trainer-cart-list,
+  .trainer-cart-item,
+  .trainer-order-summary,
+  .trainer-checkout-main,
+  .trainer-checkout-step
+){
+  min-width:0;
+  max-width:100%;
+}
+
+/* Defensive containment for user-generated / long account text. */
+.platform-panel :is(
+  h1,h2,h3,h4,p,strong,span,a,td,th,label
+){
+  overflow-wrap:anywhere;
+}
+
+/* Tables retain their own scroll area where a horizontal scroll is
+   genuinely needed, rather than widening the complete application. */
+.platform-panel :is(
+  .student-table-wrap,
+  .earnings-table-wrap,
+  .table-wrap
+){
+  max-width:100%;
+  overflow-x:auto;
+  overscroll-behavior-inline:contain;
+}
+
+/* -----------------------------------------------------------------
+   RESPONSIVE
+   ----------------------------------------------------------------- */
+
+@media (max-width: 1280px){
+  .platform-panel{
+    --fixoku-panel-content-gutter:24px;
+  }
+}
+
+@media (max-width: 1100px){
+  .platform-panel .student-dashboard-v2__top-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .platform-panel :is(
+    .trainer-profile-layout,
+    .student-profile-trainer-parity .trainer-profile-layout
+  ){
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media (max-width: 900px){
+  .platform-panel{
+    display:block;
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+  }
+
+  .platform-panel .panel-sidebar,
+  .platform-panel .panel-main{
+    width:100%;
+    max-width:100%;
+  }
+
+  .platform-panel .panel-brand{
+    max-width:160px;
+  }
+
+  .platform-panel .panel-brand img{
+    max-width:100%!important;
+  }
+
+  .platform-panel .panel-main > main,
+  .platform-panel .panel-main > .trainer-panel > main,
+  .platform-panel.trainer-panel .panel-main > main{
+    width:100%!important;
+    max-width:100%!important;
+  }
+}
+
+@media (max-width: 640px){
+  .platform-panel{
+    --fixoku-panel-content-gutter:16px;
+  }
+
+  .platform-panel .panel-topbar{
+    max-width:100%;
+    overflow:hidden;
+  }
+
+  .platform-panel .panel-topbar-tools{
+    max-width:100%;
+  }
+
+  .platform-panel :is(
+    .student-package-grid,
+    .trainer-cart-layout,
+    .trainer-checkout-layout,
+    .trainer-profile-layout
+  ){
+    grid-template-columns:1fr!important;
+  }
+}
+
+/* FIXOKU OWNER IA 2026-09-25 — grouped management navigation */
+.platform-panel .panel-nav-group{
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+
+.platform-panel .panel-nav-group + .panel-nav-group{
+  margin-top:4px;
+}
+
+.platform-panel .panel-nav-group-toggle{
+  width:100%;
+  min-width:0;
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr) 18px;
+  align-items:center;
+  gap:10px;
+  padding:11px 12px;
+  border:0;
+  border-radius:11px;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  font-weight:760;
+  text-align:left;
+  cursor:pointer;
+}
+
+.platform-panel .panel-nav-group-toggle:hover,
+.platform-panel .panel-nav-group.is-active > .panel-nav-group-toggle{
+  background:rgba(255,255,255,.07);
+}
+
+.platform-panel .panel-nav-group-toggle > .panel-icon:last-child{
+  justify-self:end;
+  transition:transform .18s ease;
+}
+
+.platform-panel .panel-nav-group-toggle[aria-expanded="true"] > .panel-icon:last-child{
+  transform:rotate(180deg);
+}
+
+.platform-panel .panel-nav-group-items{
+  display:none;
+  gap:3px;
+  padding:2px 0 4px 12px;
+}
+
+.platform-panel .panel-nav-group-items.is-open{
+  display:grid;
+}
+
+.platform-panel .panel-nav-child{
+  min-height:42px;
+  padding-left:11px!important;
+  font-size:13px;
+}
+
+.platform-panel .panel-nav-child .panel-icon{
+  opacity:.82;
+}
+
+.platform-panel .panel-nav-child.is-active{
+  font-weight:800;
+}
+
+@media (max-width:900px){
+  .platform-panel .panel-nav-group-toggle{
+    min-height:46px;
+  }
+
+  .platform-panel .panel-nav-child{
+    min-height:44px;
+  }
+}
+
+
+/* =================================================================
+   FIXOKU DESIGN SYSTEM V1 — shared management shell
+   Visual-only authority. No workflow or business logic changes.
+   ================================================================= */
+.platform-panel{
+  --fixoku-panel-content-max:1320px;
+  --fixoku-panel-content-gutter:clamp(24px,2.7vw,44px);
+  --fx-bg:#f6f8fb;
+  --fx-surface:#ffffff;
+  --fx-border:#e7ebf0;
+  --fx-text:#171b24;
+  --fx-muted:#77808e;
+  --fx-orange:#ef6c16;
+  --fx-orange-dark:#cf5510;
+  --fx-orange-soft:#fff3e9;
+  --fx-shadow:0 12px 36px rgba(22,30,45,.055);
+  background:var(--fx-bg);
+}
+.platform-panel .panel-main{background:var(--fx-bg)!important}
+.platform-panel .panel-topbar{
+  min-height:72px;
+  padding:0 clamp(24px,2.7vw,44px);
+  border-bottom:1px solid var(--fx-border);
+  background:rgba(255,255,255,.96);
+  box-shadow:none;
+}
+.platform-panel .panel-topbar-title strong{color:#141821;font-size:18px;letter-spacing:-.2px}
+.platform-panel .panel-topbar-title span{color:#8b94a1;font-size:12px}
+.platform-panel .panel-profile{gap:10px}
+.platform-panel .panel-profile strong{color:#1b2029}
+.platform-panel .panel-profile small{color:#8b94a1}
+.platform-panel .panel-sidebar{
+  background:linear-gradient(180deg,#11161c 0%,#171b20 65%,#20170f 100%);
+  border-right:1px solid rgba(255,255,255,.035);
+  box-shadow:10px 0 30px rgba(8,12,18,.06);
+}
+.platform-panel .panel-brand{
+  padding:20px 18px 18px;
+}
+.platform-panel .panel-brand img{
+  max-width:132px!important;
+  margin:auto;
+}
+.platform-panel .panel-nav-heading{
+  margin:14px 18px 8px;
+  color:#7f8a97;
+  font-size:9px;
+  letter-spacing:.18em;
+}
+.platform-panel .panel-nav-group{margin:2px 10px}
+.platform-panel .panel-nav-group-toggle,
+.platform-panel .panel-nav-item{
+  min-height:44px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:760;
+}
+.platform-panel .panel-nav-group-toggle{
+  width:100%;
+  padding:0 12px;
+  color:#f0f3f6;
+  background:transparent;
+  border:0;
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr) 18px;
+  align-items:center;
+  gap:8px;
+  text-align:left;
+}
+.platform-panel .panel-nav-group-toggle:hover{background:rgba(255,255,255,.055)}
+.platform-panel .panel-nav-group.is-active>.panel-nav-group-toggle{background:rgba(255,255,255,.075)}
+.platform-panel .panel-nav-group-items{padding:2px 0 5px 10px}
+.platform-panel .panel-nav-child{
+  margin:2px 0;
+  padding-left:14px;
+  color:#c9d0d7;
+}
+.platform-panel .panel-nav-item.is-active{
+  color:#fff;
+  background:linear-gradient(135deg,#f47a1f,#df5a0e);
+  box-shadow:0 8px 18px rgba(222,88,12,.22);
+}
+.platform-panel .panel-nav-child.is-active{color:#fff}
+.platform-panel .panel-sidebar-divider{border-color:rgba(255,255,255,.09)}
+.platform-panel .panel-logout{color:#d2d8de}
+.platform-panel .panel-sidebar-quote{color:#d6cec6}
+@media(max-width:900px){
+  .platform-panel{--fixoku-panel-content-gutter:18px}
+  .platform-panel .panel-topbar{min-height:64px;padding:0 18px}
+}
+
+/* FIXOKU BLANK PANEL ENDCAP STANDARD — 2026-09-27 */
+.platform-panel .panel-endcap.panel-endcap-empty{
+  min-height:128px;
+  margin:24px 26px 0;
+  padding:0;
+  border:1px solid #e5eaf0;
+  border-radius:18px 18px 0 0;
+  background:rgba(255,255,255,.38);
+  box-shadow:0 12px 28px rgba(34,46,73,.035);
+}
+
+
+/* FIXOKU OWNER DASHBOARD V3.1 — page width + brand scale */
+.platform-panel .panel-brand{
+  padding-top:24px!important;
+  padding-bottom:22px!important;
+}
+.platform-panel .panel-brand img{
+  width:168px!important;
+  max-width:168px!important;
+}
+.platform-panel .panel-main > main.owner-dashboard-v3{
+  --fixoku-panel-content-gutter: clamp(18px,1.55vw,26px);
+  max-width:1540px!important;
+}
+@media(max-width:900px){
+  .platform-panel .panel-brand img{
+    width:148px!important;
+    max-width:148px!important;
+  }
+}
+
+
+/* FIXOKU OWNER DASHBOARD V3.2 — larger visual brand + wider dashboard */
+.platform-panel .panel-brand{
+  overflow:visible!important;
+  padding-top:26px!important;
+  padding-bottom:24px!important;
+}
+.platform-panel .panel-brand img{
+  width:198px!important;
+  max-width:198px!important;
+  transform:scale(1.08);
+  transform-origin:center center;
+}
+.platform-panel .panel-main > main.owner-dashboard-v3{
+  --fixoku-panel-content-gutter: clamp(18px,1.25vw,24px);
+  max-width:1660px!important;
+}
+@media(max-width:900px){
+  .platform-panel .panel-brand img{
+    width:164px!important;
+    max-width:164px!important;
+    transform:none;
+  }
+}
+
+/* FIXOKU_TRAINER_ALL_PAGES_WIDE_R12_START */
+/* Visual-only. Applies to TRAINER workspace; no Owner/Student/business logic changes. */
+@media (min-width: 901px) {
+  .platform-panel.trainer-panel .panel-main > main:not(.trainer-profile-page):not(.trainer-dashboard-preview),
+  .platform-panel .trainer-panel .panel-main > main:not(.trainer-profile-page):not(.trainer-dashboard-preview),
+  .platform-panel .panel-main > .trainer-panel > main:not(.trainer-profile-page):not(.trainer-dashboard-preview) {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin-inline: auto !important;
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+  }
+
+  /* Ana Sayfa: genis hero sabit, alt kartlarda simetrik 30px bosluk. */
+  .platform-panel.trainer-panel .panel-main > main.trainer-dashboard-preview,
+  .platform-panel .trainer-panel .panel-main > main.trainer-dashboard-preview {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin-inline: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .platform-panel.trainer-panel .trainer-dashboard-body,
+  .platform-panel .trainer-panel .trainer-dashboard-body {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+  }
+}
+
+/* Mobil: esit 16px bosluk, gereksiz yatay tasma olmasin. */
+@media (max-width: 900px) {
+  .platform-panel.trainer-panel .panel-main > main:not(.trainer-profile-page):not(.trainer-dashboard-preview),
+  .platform-panel .trainer-panel .panel-main > main:not(.trainer-profile-page):not(.trainer-dashboard-preview),
+  .platform-panel .panel-main > .trainer-panel > main:not(.trainer-profile-page):not(.trainer-dashboard-preview) {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .platform-panel.trainer-panel .trainer-dashboard-body,
+  .platform-panel .trainer-panel .trainer-dashboard-body {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+/* FIXOKU_TRAINER_ALL_PAGES_WIDE_R12_END */

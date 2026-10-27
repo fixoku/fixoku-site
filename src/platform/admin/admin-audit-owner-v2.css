@@ -1,0 +1,989 @@
+/* FIXOKU AUDIT OWNER V3: larger Turkish-first UX polish */
+.platform-panel:has(.fixoku-audit-v2) {
+  --fixoku-panel-content-max: 1820px;
+  --fixoku-panel-content-gutter: clamp(18px, 1.7vw, 34px);
+}
+
+.platform-foundation-panel.admin-panel.fixoku-audit-v2 {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: clamp(24px, 2.1vw, 36px) !important;
+  min-height: 100%;
+  background: #f5f8fc !important;
+  color: #172c44;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+.fixoku-audit-v2 * {
+  box-sizing: border-box;
+}
+
+.fixoku-audit-v2 button,
+.fixoku-audit-v2 input,
+.fixoku-audit-v2 select {
+  font: inherit;
+}
+
+.fixoku-audit-v2 button {
+  cursor: pointer;
+}
+
+.fixoku-audit-v2 button:focus-visible,
+.fixoku-audit-v2 input:focus-visible,
+.fixoku-audit-v2 select:focus-visible {
+  outline: 3px solid #86bbee;
+  outline-offset: 2px;
+}
+
+.fixoku-audit-v2 .fa2-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 0 18px;
+  flex-wrap: wrap;
+}
+
+.fixoku-audit-v2 .fa2-eyebrow,
+.fixoku-audit-v2 .fa2-card-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  font-weight: 850;
+  color: #dd5f1e;
+  text-transform: uppercase;
+}
+
+.fixoku-audit-v2 .fa2-hero h1 {
+  font-size: clamp(27px, 2.35vw, 35px);
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  margin: 5px 0 8px;
+  color: #152941;
+}
+
+.fixoku-audit-v2 .fa2-hero p {
+  font-size: 14px;
+  color: #73869b;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.fixoku-audit-v2 .fa2-hero-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fixoku-audit-v2 .fa2-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #dbe5ef;
+  background: #fff;
+  color: #3b5b7b;
+  border-radius: 12px;
+  padding: 11px 15px;
+  min-height: 41px;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.fixoku-audit-v2 .fa2-button:hover:not(:disabled) {
+  border-color: #c6d8ec;
+  background: #f6faff;
+}
+
+.fixoku-audit-v2 .fa2-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.fixoku-audit-v2 .fa2-button-accent {
+  color: #b95622;
+  background: #fff3eb;
+  border-color: #fbd5bc;
+}
+
+.fixoku-audit-v2 .fa2-button-accent:hover:not(:disabled) {
+  background: #ffe8d8;
+}
+
+.fixoku-audit-v2 .fa2-primary {
+  background: #e76d2e;
+  color: #fff;
+  border-color: #e76d2e;
+}
+
+.fixoku-audit-v2 .fa2-primary:hover:not(:disabled) {
+  background: #ce5d23;
+  color: #fff;
+}
+
+.fixoku-audit-v2 .fa2-info {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  border: 1px solid #f5d7b9;
+  border-radius: 14px;
+  background: #fff7ee;
+  color: #93602e;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.65;
+  margin-bottom: 15px;
+}
+
+.fixoku-audit-v2 .fa2-info svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.fixoku-audit-v2 .fa2-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 16px;
+}
+
+.fixoku-audit-v2 .fa2-metric {
+  border: 1px solid #e4ebf3;
+  border-radius: 16px;
+  box-shadow: 0 7px 20px rgba(27, 54, 90, 0.03);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  min-height: 112px;
+}
+
+.fixoku-audit-v2 .fa2-metric-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+}
+
+.fixoku-audit-v2 .fa2-metric-icon.blue {
+  background: #eaf3fd;
+  color: #4c85c1;
+}
+
+.fixoku-audit-v2 .fa2-metric-icon.green {
+  background: #e7f7f2;
+  color: #2a9677;
+}
+
+.fixoku-audit-v2 .fa2-metric-icon.rose {
+  background: #fff0f1;
+  color: #c15c69;
+}
+
+.fixoku-audit-v2 .fa2-metric-icon.purple {
+  background: #f2eefd;
+  color: #8469c3;
+}
+
+.fixoku-audit-v2 .fa2-metric small {
+  font-size: 12px;
+  display: block;
+  color: #687f98;
+  font-weight: 650;
+}
+
+.fixoku-audit-v2 .fa2-metric strong {
+  display: block;
+  font-size: 29px;
+  color: #1b324e;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.fixoku-audit-v2 .fa2-metric strong.fa2-timezone {
+  font-size: 22px;
+}
+
+.fixoku-audit-v2 .fa2-metric span {
+  display: block;
+  font-size: 11px;
+  color: #91a0b1;
+}
+
+.fixoku-audit-v2 .fa2-panel {
+  border: 1px solid #e0e9f2;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 9px 28px rgba(21, 41, 59, 0.04);
+  margin: 0;
+}
+
+.fixoku-audit-v2 .fa2-panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 24px 14px;
+  flex-wrap: wrap;
+}
+
+.fixoku-audit-v2 .fa2-panel-title h2 {
+  font-size: 22px;
+  margin: 0 0 4px;
+  color: #1d344d;
+}
+
+.fixoku-audit-v2 .fa2-panel-title p {
+  font-size: 13px;
+  color: #8292a5;
+  margin: 0;
+}
+
+.fixoku-audit-v2 .fa2-tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0 22px 16px;
+  scrollbar-width: thin;
+}
+
+.fixoku-audit-v2 .fa2-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 15px;
+  border: 1px solid #e6edf5;
+  background: #f8fbff;
+  border-radius: 13px;
+  color: #607790;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.fixoku-audit-v2 .fa2-tab:hover {
+  background: #f3f8ff;
+}
+
+.fixoku-audit-v2 .fa2-tab.active {
+  color: #bd5b26;
+  border-color: #ffd7bf;
+  background: #fff2e9;
+}
+
+.fixoku-audit-v2 .fa2-tab-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: #edf4fb;
+  color: #557fa8;
+}
+
+.fixoku-audit-v2 .fa2-tab.active .fa2-tab-icon {
+  background: #ffe2d1;
+  color: #bd5b26;
+}
+
+.fixoku-audit-v2 .fa2-tab-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.fixoku-audit-v2 .fa2-tab-count {
+  background: #ecf2f7;
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 4px 8px;
+  color: #66829a;
+}
+
+.fixoku-audit-v2 .fa2-tab.active .fa2-tab-count {
+  background: #fce0d0;
+  color: #b95622;
+}
+
+.fixoku-audit-v2 .fa2-filters {
+  background: #f8fafc;
+  border-top: 1px solid #e8edf3;
+  border-bottom: 1px solid #e8edf3;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) minmax(145px, 1fr) minmax(145px, 1fr) minmax(150px, 1fr) minmax(155px, 1.25fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.fixoku-audit-v2 .fa2-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  color: #647c96;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.fixoku-audit-v2 .fa2-filters input,
+.fixoku-audit-v2 .fa2-filters select,
+.fixoku-audit-v2 .fa2-table-options select {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  border: 1px solid #dce6f0;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 11px;
+  font-size: 13px;
+  color: #334d67;
+}
+
+.fixoku-audit-v2 .fa2-search-input {
+  position: relative;
+}
+
+.fixoku-audit-v2 .fa2-search-input svg {
+  position: absolute;
+  top: 12px;
+  left: 11px;
+  color: #9cb0c3;
+}
+
+.fixoku-audit-v2 .fa2-search-input input {
+  padding-left: 36px;
+}
+
+.fixoku-audit-v2 .fa2-filter-actions {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.fixoku-audit-v2 .fa2-filter-actions .fa2-button {
+  height: 42px;
+}
+
+.fixoku-audit-v2 .fa2-table-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 19px;
+  color: #8294a6;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.fixoku-audit-v2 .fa2-table-options > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.fixoku-audit-v2 .fa2-table-options label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 650;
+}
+
+.fixoku-audit-v2 .fa2-table-options select {
+  height: 34px;
+  width: auto;
+  max-width: 180px;
+}
+
+.fixoku-audit-v2 .fa2-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.fixoku-audit-v2 .fa2-table {
+  width: 100%;
+  min-width: 1060px;
+  border-collapse: collapse;
+  table-layout: auto;
+  text-align: left;
+}
+
+.fixoku-audit-v2 .fa2-table th {
+  background: #f3f7fb;
+  padding: 13px 14px;
+  color: #667f99;
+  font-size: 11px;
+  letter-spacing: 0.055em;
+  white-space: nowrap;
+}
+
+.fixoku-audit-v2 .fa2-table td {
+  padding: 14px 14px;
+  border-bottom: 1px solid #eef2f6;
+  font-size: 13px;
+  color: #2d4560;
+  vertical-align: middle;
+}
+
+.fixoku-audit-v2 .fa2-table tr:hover td {
+  background: #fff9f4;
+}
+
+.fixoku-audit-v2 .fa2-table strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 760;
+  color: #253e57;
+}
+
+.fixoku-audit-v2 .fa2-table small {
+  display: block;
+  font-size: 11px;
+  color: #869bb0;
+  line-height: 1.5;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+.fixoku-audit-v2 .fa2-date {
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.fixoku-audit-v2 .fa2-actor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 165px;
+}
+
+.fixoku-audit-v2 .fa2-avatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #eef5fd;
+  color: #4c83be;
+  font-weight: 800;
+}
+
+.fixoku-audit-v2 .fa2-code {
+  max-width: 240px;
+}
+
+.fixoku-audit-v2 .fa2-role {
+  border-radius: 8px;
+  background: #f2eefd;
+  color: #8064b2;
+  font-weight: 760;
+  padding: 6px 9px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.fixoku-audit-v2 .fa2-muted {
+  color: #a2b0bf;
+  font-size: 12px;
+}
+
+.fixoku-audit-v2 .fa2-subject {
+  font-size: 12px;
+  font-weight: 680;
+  color: #446280;
+}
+
+.fixoku-audit-v2 .fa2-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+
+.fixoku-audit-v2 .fa2-result.success {
+  background: #eaf8f2;
+  color: #25876a;
+}
+
+.fixoku-audit-v2 .fa2-result.danger {
+  background: #fff0f1;
+  color: #b44558;
+}
+
+.fixoku-audit-v2 .fa2-result.neutral {
+  background: #f2f4fb;
+  color: #657795;
+}
+
+.fixoku-audit-v2 .fa2-dot {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.fixoku-audit-v2 .fa2-detail-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #dee8f2;
+  background: #fff;
+  color: #416886;
+  font-weight: 760;
+  font-size: 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.fixoku-audit-v2 .fa2-detail-button:hover {
+  border-color: #f3b38f;
+  color: #bd5b26;
+}
+
+.fixoku-audit-v2 .fa2-pagination {
+  padding: 16px 19px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  color: #7c90a4;
+  font-size: 13px;
+}
+
+.fixoku-audit-v2 .fa2-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.fixoku-audit-v2 .fa2-pagination strong {
+  color: #44627d;
+}
+
+.fixoku-audit-v2 .fa2-empty {
+  padding: 58px 15px;
+  text-align: center;
+  color: #8193a7;
+}
+
+.fixoku-audit-v2 .fa2-empty svg {
+  color: #91a9c0;
+}
+
+.fixoku-audit-v2 .fa2-empty h3 {
+  font-size: 18px;
+  color: #324d68;
+  margin: 12px 0 5px;
+}
+
+.fixoku-audit-v2 .fa2-empty p {
+  font-size: 13px;
+  margin: 0 0 14px;
+}
+
+.fixoku-audit-v2 .fa2-bottom-notes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+  margin-top: 15px;
+}
+
+.fixoku-audit-v2 .fa2-bottom-notes > div {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid #e4ebf3;
+  border-radius: 15px;
+  padding: 18px;
+}
+
+.fixoku-audit-v2 .fa2-bottom-notes svg {
+  flex: 0 0 auto;
+  color: #5d8bb5;
+}
+
+.fixoku-audit-v2 .fa2-bottom-notes h3 {
+  font-size: 13px;
+  margin: 0 0 4px;
+  color: #264059;
+}
+
+.fixoku-audit-v2 .fa2-bottom-notes p {
+  font-size: 12px;
+  margin: 0;
+  color: #7d91a5;
+  line-height: 1.65;
+}
+
+.fixoku-audit-v2 .fa2-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(14, 33, 59, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  backdrop-filter: blur(2px);
+}
+
+.fixoku-audit-v2 .fa2-modal {
+  width: min(860px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 25px 75px rgba(17, 30, 44, 0.32);
+}
+
+.fixoku-audit-v2 .fa2-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 26px 18px;
+  border-bottom: 1px solid #e8edf3;
+}
+
+.fixoku-audit-v2 .fa2-modal-head-main {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.fixoku-audit-v2 .fa2-modal-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #fff1e8;
+  color: #d16324;
+}
+
+.fixoku-audit-v2 .fa2-modal-head h2 {
+  margin: 6px 0 6px;
+  font-size: 28px;
+  line-height: 1.1;
+  color: #1e334d;
+}
+
+.fixoku-audit-v2 .fa2-modal-head p {
+  margin: 0;
+  font-size: 13px;
+  color: #7c8fa4;
+  line-height: 1.6;
+}
+
+.fixoku-audit-v2 .fa2-close-button {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 1px solid #dbe5ef;
+  background: #fff;
+  border-radius: 12px;
+  color: #607790;
+  display: grid;
+  place-items: center;
+}
+
+.fixoku-audit-v2 .fa2-close-button:hover {
+  background: #f7fafc;
+  border-color: #cbd9e6;
+}
+
+.fixoku-audit-v2 .fa2-modal-body {
+  padding: 22px 26px;
+  display: grid;
+  gap: 18px;
+}
+
+.fixoku-audit-v2 .fa2-modal-summary-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid #e8edf4;
+  background: linear-gradient(180deg, #fbfdff 0%, #f6f9fc 100%);
+}
+
+.fixoku-audit-v2 .fa2-modal-summary-card h3 {
+  margin: 6px 0 6px;
+  font-size: 21px;
+  color: #203752;
+}
+
+.fixoku-audit-v2 .fa2-modal-summary-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #7b90a6;
+  line-height: 1.6;
+}
+
+.fixoku-audit-v2 .fa2-modal-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fixoku-audit-v2 .fa2-mini-card {
+  border: 1px solid #e6edf5;
+  border-radius: 16px;
+  background: #fff;
+  padding: 16px;
+}
+
+.fixoku-audit-v2 .fa2-mini-card small {
+  display: block;
+  font-size: 11px;
+  color: #7f93a8;
+  font-weight: 700;
+}
+
+.fixoku-audit-v2 .fa2-mini-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 15px;
+  color: #233b56;
+  line-height: 1.45;
+}
+
+.fixoku-audit-v2 .fa2-mini-card span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #8fa1b2;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.fixoku-audit-v2 .fa2-modal-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fixoku-audit-v2 .fa2-meta-row {
+  border: 1px solid #e6edf5;
+  border-radius: 16px;
+  background: #fff;
+  padding: 15px 16px;
+}
+
+.fixoku-audit-v2 .fa2-meta-row dt {
+  font-size: 11px;
+  color: #7f93a8;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fixoku-audit-v2 .fa2-meta-row dd {
+  margin: 7px 0 0;
+  font-size: 14px;
+  color: #233b56;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.fixoku-audit-v2 .fa2-modal-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid #f5d7b9;
+  border-radius: 14px;
+  background: #fff7ee;
+  color: #93602e;
+  padding: 14px 15px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.fixoku-audit-v2 .fa2-modal-footer {
+  padding: 18px 26px 24px;
+  border-top: 1px solid #e8edf3;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1480px) {
+  .fixoku-audit-v2 .fa2-filters {
+    grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(140px, 1fr));
+  }
+
+  .fixoku-audit-v2 .fa2-filters label:nth-child(5) {
+    grid-column: span 2;
+  }
+
+  .fixoku-audit-v2 .fa2-filter-actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 1180px) {
+  .fixoku-audit-v2 .fa2-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fixoku-audit-v2 .fa2-modal-overview,
+  .fixoku-audit-v2 .fa2-modal-meta,
+  .fixoku-audit-v2 .fa2-bottom-notes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1080px) {
+  .fixoku-audit-v2 .fa2-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fixoku-audit-v2 .fa2-filters label:nth-child(5) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .fixoku-audit-v2 .fa2-modal-head,
+  .fixoku-audit-v2 .fa2-modal-summary-card {
+    flex-direction: column;
+  }
+
+  .fixoku-audit-v2 .fa2-modal-head {
+    padding-bottom: 16px;
+  }
+
+  .fixoku-audit-v2 .fa2-close-button {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 610px) {
+  .platform-foundation-panel.admin-panel.fixoku-audit-v2 {
+    padding: 16px !important;
+  }
+
+  .fixoku-audit-v2 .fa2-metrics {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .fixoku-audit-v2 .fa2-metric {
+    padding: 13px;
+    gap: 9px;
+    min-height: 96px;
+  }
+
+  .fixoku-audit-v2 .fa2-metric-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+
+  .fixoku-audit-v2 .fa2-metric strong {
+    font-size: 23px;
+  }
+
+  .fixoku-audit-v2 .fa2-metric small {
+    font-size: 10px;
+  }
+
+  .fixoku-audit-v2 .fa2-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .fixoku-audit-v2 .fa2-filter-actions {
+    justify-content: flex-start;
+  }
+
+  .fixoku-audit-v2 .fa2-panel-title,
+  .fixoku-audit-v2 .fa2-tabs,
+  .fixoku-audit-v2 .fa2-table-options,
+  .fixoku-audit-v2 .fa2-pagination,
+  .fixoku-audit-v2 .fa2-modal-body,
+  .fixoku-audit-v2 .fa2-modal-footer,
+  .fixoku-audit-v2 .fa2-modal-head {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .fixoku-audit-v2 .fa2-tabs {
+    padding-bottom: 14px;
+  }
+
+  .fixoku-audit-v2 .fa2-tab {
+    font-size: 13px;
+    padding: 11px 13px;
+  }
+
+  .fixoku-audit-v2 .fa2-tab-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+}
+
+/* FIXOKU AUDIT OWNER V4: operation narration + authorized profile thumbnails */
+.fixoku-audit-v2 { --fa4-ink: #213348; --fa4-muted: #65758a; }
+.fixoku-audit-v2 .fa2-metrics { gap: 14px; }
+.fixoku-audit-v2 .fa2-metric, .fixoku-audit-v2 .fa2-panel, .fixoku-audit-v2 .fa2-bottom-notes > div { box-shadow: 0 5px 18px rgba(27, 47, 64, .035); border-color: #e4ebef; }
+.fixoku-audit-v2 .fa2-tab { background: #fff; color: #314558; border-color: #e3e9ef; font-weight: 800; }
+.fixoku-audit-v2 .fa2-tab.active { color: #9e4c21; background: #fff4eb; border-color: #f3cba9; }
+.fixoku-audit-v2 .fa2-tab-icon { background: #f2f5f7; color: #4c647d; }
+.fixoku-audit-v2 .fa2-table td { color: #24394e; }
+.fixoku-audit-v2 .fa2-table strong { font-size: 14px; color: #213348; }
+.fixoku-audit-v2 .fa2-table .fa2-explanation { font-size: 12px; max-width: 390px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #6d8193; }
+.fixoku-audit-v2 .fa2-avatar.fa4-avatar { overflow: hidden; border-radius: 50%; width: 40px; height: 40px; flex: 0 0 40px; font-size: 13px; border: 1px solid #dfe8ec; }
+.fixoku-audit-v2 .fa2-avatar.fa4-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fixoku-audit-v2 .fa4-avatar-student { background: #efe9fc; color: #644ca0; }
+.fixoku-audit-v2 .fa4-avatar-trainer { background: #e5f5f4; color: #2a7570; }
+.fixoku-audit-v2 .fa4-avatar-admin { background: #fff0df; color: #9a663c; }
+.fixoku-audit-v2 .fa4-avatar-system { background: #e9f0f7; color: #59728b; }
+.fixoku-audit-v2 .fa2-modal { width: min(920px, 100%); border-radius: 20px; }
+.fixoku-audit-v2 .fa4-modal-body { padding: 24px 26px; gap: 15px; }
+.fixoku-audit-v2 .fa4-modal-hero { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; border: 1px solid #e4eaee; background: #fafcfd; border-radius: 17px; padding: 20px; }
+.fixoku-audit-v2 .fa4-person-line { display: flex; gap: 16px; align-items: center; min-width: 0; }
+.fixoku-audit-v2 .fa4-avatar-large { width: 64px !important; height: 64px !important; flex-basis: 64px !important; font-size: 21px !important; }
+.fixoku-audit-v2 .fa4-person-line > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fixoku-audit-v2 .fa4-person-line strong { font-size: 21px; color: #1e334d; }
+.fixoku-audit-v2 .fa4-person-line small { font-size: 13px; color: #77889b; overflow-wrap: anywhere; }
+.fixoku-audit-v2 .fa4-current-role { font-size: 12px; color: #526a7e; font-weight: 700; }
+.fixoku-audit-v2 .fa4-modal-status { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; text-align: right; font-size: 12px; color: #657d92; white-space: nowrap; }
+.fixoku-audit-v2 .fa4-section-eyebrow { display: block; color: #6f8597; letter-spacing: .09em; font-size: 11px; font-weight: 850; }
+.fixoku-audit-v2 .fa4-story-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 13px; }
+.fixoku-audit-v2 .fa4-story-card { padding: 19px 20px; border: 1px solid #e6edf1; border-radius: 16px; background: #fff; min-width: 0; }
+.fixoku-audit-v2 .fa4-story-card h3 { margin: 9px 0 8px; font-size: 19px; color: #1d354c; line-height: 1.35; }
+.fixoku-audit-v2 .fa4-story-card p { margin: 0; font-size: 14px; color: #4f657b; line-height: 1.65; }
+.fixoku-audit-v2 .fa4-story-card small { display: block; margin-top: 8px; font-size: 12px; color: #788b9f; }
+.fixoku-audit-v2 .fa4-story-card code { overflow-wrap: anywhere; background: transparent; font-size: 13px; color: #3e566f; }
+.fixoku-audit-v2 .fa4-what { background: #f6f9fc; }
+.fixoku-audit-v2 .fa4-target { background: #f9f7fd; }
+.fixoku-audit-v2 .fa4-outcome { background: #f3faf7; }
+.fixoku-audit-v2 .fa4-when { background: #fffaf4; }
+.fixoku-audit-v2 .fa4-technical { border: 1px solid #e4eaee; border-radius: 15px; overflow: hidden; }
+.fixoku-audit-v2 .fa4-technical summary { padding: 16px 19px; background: #f7fafc; cursor: pointer; font-size: 14px; font-weight: 800; color: #304b63; }
+.fixoku-audit-v2 .fa4-technical summary span { font-size: 12px; font-weight: 450; color: #71869b; margin-left: 8px; }
+.fixoku-audit-v2 .fa4-technical dl { margin: 0; padding: 4px 19px 12px; }
+.fixoku-audit-v2 .fa4-tech-row { display: grid; grid-template-columns: 185px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eef1f5; }
+.fixoku-audit-v2 .fa4-tech-row dt { color: #71869b; font-weight: 750; font-size: 12px; }
+.fixoku-audit-v2 .fa4-tech-row dd { margin: 0; color: #364f68; font-size: 13px; overflow-wrap: anywhere; }
+.fixoku-audit-v2 .fa2-modal-note { border: 1px solid #e5e9ee; background: #f7f9fb; color: #5e7183; }
+@media(max-width:900px) { .fixoku-audit-v2 .fa4-story-grid { grid-template-columns: 1fr; } .fixoku-audit-v2 .fa4-modal-hero { flex-direction: column; } .fixoku-audit-v2 .fa4-modal-status { align-items: flex-start; text-align: left; } }
+@media(max-width:610px) { .fixoku-audit-v2 .fa4-modal-body { padding: 15px; } .fixoku-audit-v2 .fa4-tech-row { grid-template-columns: 1fr; gap: 2px; } .fixoku-audit-v2 .fa4-avatar-large { width: 50px !important; height: 50px !important; flex-basis: 50px !important; } }

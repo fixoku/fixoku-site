@@ -1,0 +1,186 @@
+/* FIXOKU_BADGES_R10: photo and name above a single horizontal badge row. */
+.student-trainer-card .student-trainer-card__identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.student-trainer-card .student-trainer-card__portrait-stack {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+.student-trainer-card .student-trainer-card__portrait-stack .student-trainer-card__photo {
+  width: 78px;
+  height: 78px;
+  flex: 0 0 78px;
+  object-fit: cover;
+  border-radius: 999px;
+}
+.student-trainer-card .student-trainer-card__identity-copy { min-width: 0; }
+.student-trainer-card .student-trainer-card__badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 14px 0 14px !important;
+  padding: 2px 0 7px;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+.student-trainer-card .student-trainer-card__badges > .fixoku-trainer-badge-r5 {
+  display: inline-flex !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  flex: 0 0 42px !important;
+}
+.student-trainer-card .student-trainer-card__badges > .fixoku-trainer-badge-r5 img {
+  width: 42px !important;
+  height: 42px !important;
+  object-fit: contain;
+}
+@media (max-width: 600px) {
+  .student-trainer-card .student-trainer-card__identity { gap: 12px; }
+  .student-trainer-card .student-trainer-card__portrait-stack .student-trainer-card__photo {
+    width: 70px; height: 70px; flex-basis: 70px;
+  }
+  .student-trainer-card .student-trainer-card__badges { gap: 6px; }
+}
+
+/* FIXOKU_WIDE_BADGES_R11_START: student dashboard assigned teacher. */
+.student-portal-shell .student-dashboard-v2 {
+  box-sizing: border-box !important;
+  display: grid !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
+  padding-inline: 0 !important;
+}
+.student-portal-shell .student-dashboard-v2__top-grid {
+  width: 100% !important;
+  max-width: none !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr) !important;
+  gap: 22px !important;
+}
+.student-portal-shell .student-trainer-card__badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  margin: 16px 0 !important;
+  padding: 5px 0 12px !important;
+}
+.student-portal-shell .student-trainer-card__badges > .fixoku-trainer-badge-r5,
+.student-portal-shell .student-trainer-card__badges > .fixoku-trainer-badge-r5 > img {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  flex: 0 0 56px !important;
+  object-fit: contain !important;
+}
+@media (max-width: 1120px) {
+  .student-portal-shell .student-dashboard-v2__top-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 680px) {
+  .student-portal-shell .student-trainer-card__badges { gap: 8px !important; }
+}
+/* FIXOKU_WIDE_BADGES_R11_END */
+
+/* FIXOKU_PROFILE_BADGES_R13B_STUDENT */
+.student-portal-shell .student-trainer-card__badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 8px 0 12px !important;
+}
+.student-portal-shell .student-trainer-card__badges > .fixoku-trainer-badge-r5,
+.student-portal-shell .student-trainer-card__badges > .fixoku-trainer-badge-r5 > img {
+  box-sizing: border-box !important;
+  width: 72px !important;
+  min-width: 72px !important;
+  max-width: 72px !important;
+  height: 72px !important;
+  min-height: 72px !important;
+  max-height: 72px !important;
+  flex: 0 0 72px !important;
+  object-fit: contain !important;
+}
+
+/* FIXOKU_STUDENT_BADGES_R14B_96PX */
+/* PNG badge sizes only; no change to active qualification logic. */
+.student-portal-shell .student-trainer-card .student-trainer-card__badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  gap: 10px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 10px 2px 14px !important;
+  scrollbar-width: thin;
+}
+.student-portal-shell .student-trainer-card .student-trainer-card__badges > .fixoku-trainer-badge-r5,
+.student-portal-shell .student-trainer-card .student-trainer-card__badges > .fixoku-trainer-badge-r5 > img {
+  box-sizing: border-box !important;
+  display: block;
+  width: 96px !important;
+  min-width: 96px !important;
+  max-width: 96px !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  max-height: 96px !important;
+  flex: 0 0 96px !important;
+  object-fit: contain !important;
+}
+/* End FIXOKU_STUDENT_BADGES_R14B_96PX */
+
+/* FIXOKU_STUDENT_BADGES_R15B_VISIBLE_76PX */
+/* Actual on-screen badges. Student card only; zoom preview is independent. */
+.student-dashboard-v2 .student-trainer-card .student-trainer-card__badges {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 9px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 7px 2px 11px !important;
+}
+.student-dashboard-v2 .student-trainer-card .student-trainer-card__badges > .fixoku-trainer-badge-r5,
+.student-dashboard-v2 .student-trainer-card .student-trainer-card__badges > .fixoku-trainer-badge-r5 > img {
+  box-sizing: border-box !important;
+  display: block !important;
+  width: 76px !important;
+  min-width: 76px !important;
+  max-width: 76px !important;
+  height: 76px !important;
+  min-height: 76px !important;
+  max-height: 76px !important;
+  flex: 0 0 76px !important;
+  object-fit: contain !important;
+}
+/* FIXOKU_STUDENT_BADGES_R15B_END */

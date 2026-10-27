@@ -1,0 +1,82 @@
+/* FIXOKU EMAIL V4: admin-only layout and aesthetic, not customer email rendering. */
+.email-template-review .fixoku-mail-v4-kpis > article {
+  display: flex !important; align-items: center; gap: 14px;
+  min-height: 98px; padding: 18px 20px !important;
+  border-radius: 17px !important; border: 1px solid #e8eaf2 !important;
+  background: #ffffff !important; box-shadow: 0 10px 28px rgba(43,58,92,.045) !important;
+}
+.email-template-review .fixoku-mail-v4-kpis > article > div {display: grid; align-content: center; min-width: 0;}
+.email-template-review .fixoku-mail-v4-kpis > article > div > span {font-weight: 750; font-size: 12px; color: #5d647e;}
+.email-template-review .fixoku-mail-v4-kpis > article > div > strong {font-size: 24px; color: #172d4e;}
+.email-template-review .fixoku-mail-v4-kpis > article > div > small {color: #818ba0; font-size: 11px;}
+.email-template-review .fixoku-mail-v4-kpi-icon,
+.email-template-review .fixoku-mail-v4-section-icon,
+.email-template-review .fixoku-mail-v4-heading-icon {
+  display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  width: 42px; height: 42px; flex: none; border-radius: 13px;
+}
+.email-template-review .fixoku-mail-v4-heading-icon {width: 30px; height: 30px; border-radius: 9px;}
+.email-template-review .fixoku-mail-v4-kpi-icon svg,
+.email-template-review .fixoku-mail-v4-section-icon svg {width: 21px; height: 21px;}
+.email-template-review .fixoku-mail-v4-heading-icon svg {width: 17px; height: 17px;}
+.email-template-review .is-lilac {color: #8059bd; background: #f1eafb;}
+.email-template-review .is-blue {color: #3676b7; background: #e9f3ff;}
+.email-template-review .is-peach {color: #d77746; background: #fff0e7;}
+.email-template-review .is-mint {color: #258b71; background: #e7f8f1;}
+.email-template-review .fixoku-mail-v4-section-title {display: flex !important; align-items: center; gap: 11px; min-width: 0;}
+.email-template-review .fixoku-mail-v4-section-title > div {min-width: 0;}
+.email-template-review .fixoku-mail-v4-section-title h2 {margin: 3px 0 0; color: #152d4b;}
+.email-template-review .fixoku-mail-v4-section-title small {display: block; margin-top: 4px; font-size: 11px; color: #7d8aa0;}
+.email-template-review .email-template-toolbar-pro {background: linear-gradient(110deg,#ffffff,#fffaf7) !important; border: 1px solid #f0e5e1 !important; border-radius: 16px; padding: 17px 18px;}
+.email-template-review .email-template-meta > article {border-radius: 16px !important; border: 1px solid #e7edf4 !important; box-shadow: 0 8px 24px rgba(37,55,88,.035);}
+.email-template-review .email-template-meta > .fixoku-mail-v4-sending {background: linear-gradient(140deg,#ffffff,#f5f9ff) !important;}
+.email-template-review .email-template-meta > .fixoku-mail-v4-notes {background: linear-gradient(140deg,#ffffff,#f3fcf9) !important;}
+.email-template-review .email-template-meta h3 {display: flex; align-items: center; gap: 9px; margin-top: 0; color: #19334f;}
+.email-template-review .email-template-library {background: linear-gradient(180deg,#fff,#fdfbff) !important;}
+.email-template-review .email-template-list button {background: #ffffff; border-color: #e9e9f2; transition: background .14s ease,border-color .14s ease,box-shadow .14s ease;}
+.email-template-review .email-template-list button:hover {border-color: #d9c9ef; background: #f8f4ff;}
+.email-template-review .email-template-list button.is-active {border-color: #e7b9a9; background: #fff4ed; box-shadow: inset 3px 0 #ee854e;}
+.email-template-review .email-template-segmented {background: #f6f7fb; border-radius: 11px; padding: 3px;}
+.email-template-review .email-template-segmented button.is-selected {background: #fff1e9 !important; border-color: #f1bc9d !important; color: #a34e25 !important;}
+.email-template-review .fixoku-email-v2-addresses > .fixoku-mail-v4-address-hint {
+  display: flex; align-items: flex-start; gap: 11px;
+  margin: 18px 22px 0 !important; padding: 13px 16px !important;
+  background: #f5f8ff; border: 1px solid #e4eafb; border-radius: 11px;
+  color: #516886; line-height: 1.55; font-size: 13px; box-sizing: border-box;
+}
+.email-template-review .fixoku-mail-v4-address-hint > svg {color: #5b83cb; width: 18px; height: 18px; flex: none; margin-top: 2px;}
+.email-template-review .fixoku-mail-v4-address-hint > p {padding: 0 !important; margin: 0 !important; min-width: 0;}
+.email-template-review .fixoku-email-v2-addresses .email-identity-table {margin-top: 12px !important;}
+.email-template-review .fixoku-email-v2-addresses > summary {background: linear-gradient(110deg,#fff,#fdfaff) !important;}
+/* Equal bottom edges. The right-column height is measured in the React page; only the left list scrolls. */
+@media (min-width: 900px) {
+  .email-template-review .email-template-workspace {align-items: start !important;}
+  .email-template-review .email-template-workspace > .email-template-library {
+    position: relative !important; top: auto !important; min-height: 0 !important;
+    max-height: none !important; overflow: hidden !important; display: flex !important;
+    flex-direction: column !important; box-sizing: border-box !important;
+  }
+  .email-template-review .email-template-library > .admin-section-heading {flex: none !important; margin-bottom: 5px !important;}
+  .email-template-review .email-template-library > .email-template-list {
+    display: grid !important; align-content: start !important; flex: 1 1 0 !important;
+    min-height: 0 !important; height: 0 !important; max-height: none !important;
+    overflow-y: auto !important; overflow-x: hidden !important;
+    scrollbar-width: thin; scrollbar-color: #bdcbe2 transparent;
+    overscroll-behavior: contain; padding-right: 7px !important;
+  }
+  .email-template-review .email-template-library > .email-template-list::-webkit-scrollbar {width: 8px;}
+  .email-template-review .email-template-library > .email-template-list::-webkit-scrollbar-thumb {background: #cdd8e9; border-radius: 20px;}
+}
+@media (max-width: 899px) {
+  .email-template-review .email-template-library {height: auto !important; max-height: 490px !important; overflow: auto !important; position: static !important;}
+  .email-template-review .email-template-library .email-template-list {overflow: visible !important; height: auto !important; max-height: none !important;}
+  .email-template-review .fixoku-mail-v4-kpis > article {min-height: 82px;}
+  .email-template-review .fixoku-email-v2-addresses > .fixoku-mail-v4-address-hint {margin: 12px 12px 0 !important;}
+}
+@media (max-width: 590px) {
+  .email-template-review .fixoku-mail-v4-kpis {grid-template-columns: repeat(2,minmax(0,1fr)) !important;}
+  .email-template-review .fixoku-mail-v4-kpis > article {padding: 12px !important; gap: 8px;}
+  .email-template-review .fixoku-mail-v4-kpi-icon {width: 35px; height: 35px;}
+  .email-template-review .fixoku-mail-v4-section-title {gap: 8px;}
+  .email-template-review .email-template-toolbar-pro {flex-wrap: wrap;}
+}

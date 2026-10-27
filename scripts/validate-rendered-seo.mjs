@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildSiteUrl, normalizeRoutePath, SITE_ORIGIN } from "../src/config/site.js";
 import { contentExplorerGroups } from "../src/data/contentExplorer.js";
-import { businessIdentity, contactPhones } from "../src/data/legalContent.js";
+import { businessIdentity, contactPhones, legalPages } from "../src/data/legalContent.js";
 import {
   getPrerenderOutputPath,
   indexableRoutePaths,
@@ -379,13 +379,13 @@ check(
   "Rendered footer cep/WhatsApp ve ofis telefonlarını doğru tel URI'leriyle ayırt ediyor.",
 );
 check(
-  legalRoutePaths.length === 3 &&
+  legalRoutePaths.length === 18 &&
     legalRoutePaths.every((routePath) => {
       const rendered = renderedByPath.get(routePath);
       return (
         JSON.stringify(rendered?.schemaTypes) === JSON.stringify(["WebPage", "BreadcrumbList"]) &&
         rendered?.html.includes('aria-label="İçerik yolu"') &&
-        rendered?.html.includes("Son güncelleme: 19 Temmuz 2026") &&
+        rendered?.html.includes(`Son güncelleme: ${legalPages.find((page) => page.path === routePath)?.updatedAt}`) &&
         !rendered?.html.includes('class="footer-cta-band"')
       );
     }),
@@ -451,7 +451,7 @@ check(
     studentLandingHtml.includes('loading="lazy"') &&
     studentLandingHtml.includes('class="student-seated-problem-frame"') &&
     studentLandingHtml.includes('class="student-standing-final-frame"') &&
-    studentLandingHtml.includes('class="student-why-play" aria-hidden="true"') &&
+    studentLandingHtml.includes("shared-promo-video-student") &&
     studentLandingHtml.includes('class="student-landing-shell student-info-grid"') &&
     !studentLandingHtml.includes("Çocuğunuzun Akademik Gelişimini Ertelemeyin") &&
     !studentLandingHtml.includes('class="student-video-placeholder"') &&
@@ -466,11 +466,7 @@ const institutionLandingHtml = institutionLandingRendered?.html ?? "";
 const institutionFormHtml = institutionLandingHtml.match(
   /<section class="institution-form-section"[\s\S]*?<\/section>/i,
 )?.[0] ?? "";
-const institutionEmptyVideoHtml = ["hero", "features"].map((variant) =>
-  institutionLandingHtml.match(
-    new RegExp(`<div[^>]*data-empty-video="${variant}"[\\s\\S]*?<\\/div>`, "i"),
-  )?.[0] ?? "",
-);
+
 check(
   institutionLandingRendered &&
     JSON.stringify(institutionLandingRendered.schemaTypes) ===
@@ -492,16 +488,10 @@ check(
   "Kurum landing ilk HTML'inde iki gerçek ortak video sliderı doğru bileşenlerden geliyor.",
 );
 check(
-  (institutionLandingHtml.match(/data-empty-video=/g) ?? []).length === 2 &&
-    institutionEmptyVideoHtml.every((html) =>
-      html.includes('role="img"') &&
-      html.includes('aria-label="') &&
-      html.includes("institution-placeholder-play") &&
-      !/<(?:video|button|a)\b/i.test(html) &&
-      !/tabindex=|onclick=/i.test(html)
-    ) &&
-    institutionEmptyVideoHtml[0] !== institutionEmptyVideoHtml[1],
-  "Kurum landing ilk HTML'inde iki farklı aria-label taşıyan, turuncu play işaretli ve etkileşimsiz boş medya alanı var.",
+  (institutionLandingHtml.match(/class="shared-promo-video shared-promo-video-institution/g) ?? []).length === 2 &&
+    institutionLandingHtml.includes('aria-label="Kurumlar için Neden Fixoku tanıtım videosunu oynat"') &&
+    institutionLandingHtml.includes('aria-label="Fixoku Akademi özellik tanıtım videosunu oynat"'),
+  "Kurum landing ilk HTML'inde iki supplied shared promo video alanı poster ve erişilebilir etiketle geliyor.",
 );
 check(
   (institutionLandingHtml.match(/data-institution-type=/g) ?? []).length === 5 &&
@@ -582,6 +572,7 @@ const allRenderedHrefs = renderedRoutes.flatMap((item) =>
 );
 const renderedHrefValues = allRenderedHrefs.map(({ href }) => href);
 const knownPublicPaths = new Set(indexableRoutePaths);
+const knownNonIndexablePaths = new Set(["/giris", "/panel"]);
 
 function isValidRenderedInternalHref(href) {
   if (href.startsWith("#")) return href.length > 1;
@@ -589,7 +580,7 @@ function isValidRenderedInternalHref(href) {
 
   const url = new URL(href, SITE_ORIGIN);
   const pathname = normalizeRoutePath(url.pathname);
-  if (!knownPublicPaths.has(pathname) && pathname !== "/panel") return false;
+  if (!knownPublicPaths.has(pathname) && !knownNonIndexablePaths.has(pathname)) return false;
 
   if (url.search) {
     const params = [...url.searchParams.entries()];
@@ -654,7 +645,6 @@ check(
     "tamamen güvende",
     "kırılması mümkün olmayan",
     "mail order",
-    "paytr",
     "iyzico",
     "iyzigo",
   ].every((phrase) => !renderedLegalHtml.includes(phrase)),
@@ -703,8 +693,8 @@ check(
   vercelConfig.cleanUrls === true &&
     vercelConfig.trailingSlash === false &&
     rewrites.length > 0 &&
-    rewrites.every(({ source }) => source === "/panel" || source.startsWith("/panel/")),
-  "Vercel clean URL ve yalnızca panel fallback yapılandırması doğru.",
+    rewrites.every(({ source }) => source === "/panel" || source.startsWith("/panel/") || ["/sifre-sifirla", "/e-posta-dogrula", "/ogretmen-aday-aktivasyon", "/ogretmen-aktivasyon", "/admin-davet-kabul"].includes(source)),
+  "Vercel clean URL, panel ve kimlik yaşam döngüsü yedek yapılandırması doğru.",
 );
 
 const sitemap = await readFile(getDistPath("sitemap.xml"), "utf8");

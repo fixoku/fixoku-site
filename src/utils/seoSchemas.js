@@ -150,6 +150,13 @@ export function buildContentSchemas(route) {
         description: route.description,
         url: pageUrl,
         inLanguage: "tr-TR",
+        ...(route.schemaType === "AboutPage"
+          ? {
+              isPartOf: { "@id": `${buildSiteUrl("/")}#website` },
+              about: { "@id": `${buildSiteUrl("/")}#organization` },
+              publisher: { "@id": `${buildSiteUrl("/")}#organization` },
+            }
+          : {}),
       };
 
   const breadcrumbSchema = {

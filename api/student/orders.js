@@ -1,0 +1,8 @@
+import pg from "pg";
+import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
+import { createStudentCommerceOrder } from "../../src/server/domain/student-commerce.js";
+import { devSettlementAllowed } from "../../src/server/domain/commerce.js";
+const json=(res,status,body)=>{res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(body));};
+const headers=req=>new Headers(Object.entries(req.headers||{}).map(([key,value])=>[key,String(value)]));
+async function read(req){if(req.body&&typeof req.body==="object")return req.body;let raw="";for await(const chunk of req)raw+=chunk;return raw?JSON.parse(raw):{};}
+export default async function handler(req,res){if(req.method!=="POST")return json(res,405,{error:"METHOD_NOT_ALLOWED"});const principal=await resolvePrincipal(headers(req));if(!principal)return json(res,401,{error:"UNAUTHENTICATED"});const denied=requirePermission(principal,"order.create");if(denied)return json(res,denied.status,denied.body);const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});const client=await pool.connect();try{const input=await read(req);const result=await createStudentCommerceOrder(client,principal,{...input,idempotencyKey:req.headers["idempotency-key"]||input.idempotencyKey});return json(res,result.replay?200:201,{...result,devSettlementAvailable:devSettlementAllowed(req),checkoutState:result.providerConfigured?"PROVIDER_HANDOFF_REQUIRED":"PAYMENT_PROVIDER_NOT_CONFIGURED"});}catch(error){return json(res,error.status||409,{error:error.code||error.message||"STUDENT_ORDER_FAILED"});}finally{client.release();await pool.end();}}

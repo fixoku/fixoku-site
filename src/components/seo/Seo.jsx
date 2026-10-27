@@ -93,8 +93,11 @@ export function Seo({ route, pageType }) {
 export default function SeoRouteManager() {
   const location = useLocation();
   const normalizedPath = normalizeRoutePath(location.pathname);
-  const route = getPublicRoute(normalizedPath);
-  const pageType = location.pathname.startsWith("/panel") ? "panel" : route ? "public" : "not-found";
+  // A public page query must not leak indexable metadata when previewing draft Owner packages.
+  const isOwnerPreviewUrl = normalizedPath === "/egitim-paketleri" && new URLSearchParams(location.search).get("onizleme") === "1";
+  const route = isOwnerPreviewUrl ? null : getPublicRoute(normalizedPath);
+  const accountRoute = /^\/(ogrenci-girisi|ogretmen-girisi|admin-girisi|owner-girisi|ogrenci-kayit|ogretmen-basvuru|sifremi-unuttum|sifre-sifirla|e-posta-dogrula|hesap)(?:\/|$)/u.test(location.pathname);
+  const pageType = isOwnerPreviewUrl || location.pathname.startsWith("/panel") || location.pathname.startsWith("/giris") || accountRoute ? "panel" : route ? "public" : "not-found";
 
   return <Seo route={route} pageType={pageType} />;
 }

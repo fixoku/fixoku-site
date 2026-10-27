@@ -1,15 +1,33 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import HomeStudentPackagesShowcase from "./components/home/HomeStudentPackagesShowcase.jsx";
 import StudentStoriesSection from "./components/StudentStoriesSection.jsx";
 import TrainerStoriesSection from "./components/TrainerStoriesSection.jsx";
+import SharedPromoVideo from "./components/SharedPromoVideo.jsx";
 import LiveEducationEngine from "./components/LiveEducationEngine.jsx";
 import {
   AssessmentTestCards,
   AssessmentTestExperience,
 } from "./components/assessment/AssessmentTests.jsx";
 import { INSTITUTION_READING_LANDING_PATH } from "./data/institutionReadingLanding.js";
+
+const subscribeToViewport = (callback) => {
+  if (typeof window === "undefined") return () => {};
+  const query = window.matchMedia("(max-width: 768px)");
+  const handler = () => callback();
+  if (query.addEventListener) query.addEventListener("change", handler);
+  else query.addListener(handler);
+  return () => {
+    if (query.removeEventListener) query.removeEventListener("change", handler);
+    else query.removeListener(handler);
+  };
+};
+
+const getViewportSnapshot = () => (
+  typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches
+);
 
 function HeroSlideHeading({ active, className, children }) {
   const HeadingTag = active ? "h1" : "div";
@@ -90,10 +108,10 @@ function HelpAudienceIcon({ type }) {
 
 function App() {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [isMobileViewport, setIsMobileViewport] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 768px)").matches
+  const isMobileViewport = useSyncExternalStore(
+    subscribeToViewport,
+    getViewportSnapshot,
+    () => false,
   );
 
   const sliderCount = isMobileViewport ? 4 : 3;
@@ -102,7 +120,6 @@ function App() {
     const viewportQuery = window.matchMedia("(max-width: 768px)");
 
     const handleViewportChange = (event) => {
-      setIsMobileViewport(event.matches);
       setActiveSlide((current) =>
         Math.min(current, event.matches ? 3 : 2)
       );
@@ -131,109 +148,6 @@ function App() {
     return () => window.clearInterval(interval);
   }, [sliderCount]);
 
-  const educationStoreItems = useMemo(
-    () => [
-      {
-        category: "Hızlı Okuma",
-        title: "Fixoku Hızlı Okuma Eğitim Kitabı",
-        author: "Fixoku Akademi",
-        price: "Eğitim İçeriği",
-        lessons: "21 Gün",
-        students: "126 Egzersiz",
-        tone: "orange",
-        coverKicker: "Okuma • Anlama",
-        coverTitle: "Hızlı Okuma",
-        coverSub: "Kitap + Yazılım",
-      },
-      {
-        category: "Dikkat",
-        title: "Dikkat ve Odaklanma Egzersiz Kitabı",
-        author: "Fixoku Akademi",
-        price: "Eğitim İçeriği",
-        lessons: "5 Test",
-        students: "9 Analiz",
-        tone: "purple",
-        coverKicker: "Odak • Dikkat",
-        coverTitle: "Dikkat Eğitimi",
-        coverSub: "Oyun Tabanlı",
-      },
-      {
-        category: "LGS",
-        title: "LGS Paragraf ve Zaman Yönetimi",
-        author: "Fixoku Sınav Ekibi",
-        price: "Sınav Paketi",
-        lessons: "8 Modül",
-        students: "LGS Uyumlu",
-        tone: "blue",
-        coverKicker: "LGS Hazırlık",
-        coverTitle: "Paragraf Hızı",
-        coverSub: "Süre Kazandırır",
-      },
-      {
-        category: "YKS",
-        title: "YKS Hızlı Okuma ve Paragraf Eğitimi",
-        author: "Fixoku Sınav Ekibi",
-        price: "Sınav Paketi",
-        lessons: "8 Modül",
-        students: "YKS Uyumlu",
-        tone: "pink",
-        coverKicker: "YKS Hazırlık",
-        coverTitle: "Paragraf Stratejisi",
-        coverSub: "Anlama Odaklı",
-      },
-      {
-        category: "İlkokul",
-        title: "İlkokul Okuma Alışkanlığı Programı",
-        author: "Fixoku Çocuk Ekibi",
-        price: "Seviye Paketi",
-        lessons: "Kolay Seviye",
-        students: "Oyunlu Eğitim",
-        tone: "green",
-        coverKicker: "İlkokul",
-        coverTitle: "Okuma Sevgisi",
-        coverSub: "Temel Beceriler",
-      },
-      {
-        category: "Ortaokul",
-        title: "Ortaokul Hızlı Okuma Gelişim Seti",
-        author: "Fixoku Akademi",
-        price: "Seviye Paketi",
-        lessons: "Orta Seviye",
-        students: "Takip Sistemi",
-        tone: "cyan",
-        coverKicker: "Ortaokul",
-        coverTitle: "Dikkat + Hız",
-        coverSub: "Akademik Destek",
-      },
-      {
-        category: "Lise",
-        title: "Lise Okuma Hızı ve Anlama Seti",
-        author: "Fixoku Akademi",
-        price: "Seviye Paketi",
-        lessons: "İleri Seviye",
-        students: "Sınav Odaklı",
-        tone: "red",
-        coverKicker: "Lise",
-        coverTitle: "Anlama Gücü",
-        coverSub: "Yoğun Program",
-      },
-      {
-        category: "Eğitmen",
-        title: "Fixoku Eğitmen Eğitim Materyalleri",
-        author: "Fixoku Eğitmen Akademisi",
-        price: "Eğitmen Paketi",
-        lessons: "Sertifika",
-        students: "Panel Desteği",
-        tone: "gold",
-        coverKicker: "Eğitmen",
-        coverTitle: "Eğitmen Seti",
-        coverSub: "Kurulum Rehberi",
-      },
-    ],
-    []
-  );
-
-
   const sliderData = [
     {
       id: 1,
@@ -254,7 +168,7 @@ function App() {
       ),
       desc: (
         <>
-          LGS ve YKS öğrencileri için geliştirilen <strong>Fixoku</strong> sistemi ile
+          İlkokul, LGS ve YKS öğrencileri için geliştirilen <strong>Fixoku</strong> sistemi ile
           okuma hızını artırın, paragraf sorularını daha hızlı çözün,
           sınavlarda zaman kazanın.
         </>
@@ -512,7 +426,7 @@ function App() {
                       <span className="mobile-btn-text">Seviyeni Ölç</span>
                     </button>
 
-                    <button type="button" className="slide-btn slide-btn-purple">
+                    <Link to="/ogrenciler-icin-hizli-okuma-egitimi" className="slide-btn slide-btn-purple">
                       <span className="slide-btn-icon">
                         <svg viewBox="0 0 24 24" fill="none">
                           <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
@@ -527,10 +441,10 @@ function App() {
                       <span className="desktop-btn-text">
                         Eğitim Hakkında
                         <br />
-                        Bilgi al
+                        Bilgi Al
                       </span>
                       <span className="mobile-btn-text">Eğitim hakkında</span>
-                    </button>
+                    </Link>
                   </div>
                 </>
               )}
@@ -553,10 +467,10 @@ function App() {
                   </div>
 
                   <div className="slide-actions-trainer">
-                    <button type="button" className="apply-btn">
+                    <Link to="/hizli-okuma-egitmeni-ol" className="apply-btn">
                       HEMEN BAŞVUR
                       <span className="apply-btn-arrow">→</span>
-                    </button>
+                    </Link>
 
                     <div className="trainer-note-wrap">
                       <span className="trainer-note-arrow">↖</span>
@@ -664,15 +578,15 @@ function App() {
                             </div>
                           </div>
 
-                          <button
-                            type="button"
+                          <Link
+                            to="/fixoku-egitimi/neden-fixoku"
                             className="engine-cta-btn compact-btn engine-grid-cta"
                           >
                             <span>Sistemi İncele</span>
                             <span className="engine-cta-arrow" aria-hidden="true">
                               →
                             </span>
-                          </button>
+                          </Link>
                         </div>
                       </div>
 
@@ -774,41 +688,43 @@ function App() {
           <div className="why-fixoku-overview">
             <div className="why-fixoku-content">
               <p>
-                Fixoku; akıcı okuma, hızlı okuma, anlama, dikkat, odaklanma ve
-                paragraf çözme becerilerini geliştirmeye yönelik{" "}
-                <strong>kapsamlı bir eğitim sistemidir.</strong> Program,
-                öğrencilerin okuma hızını artırmayı, metni daha doğru anlamalarını
-                ve <strong>dikkat becerilerini</strong> güçlendirerek sınavlarda
-                başarıya ulaşmalarını sağlar.
+                <strong>Fixoku Akademi</strong>; yapay zekâ destekli yazılımı,
+                akıcı okuma, hızlı okuma, paragraf teknikleri, dikkat ve
+                odaklanma eğitimleriyle öğrencilerin bireysel gelişimini
+                destekleyen; okuduğunu daha iyi anlamasına ve sınavlarda zamanı
+                daha verimli kullanmasına yardımcı olan yeni nesil akademik
+                gelişim sistemidir.
               </p>
 
               <p>
-                Fixoku sistemi; <strong>yapay zekâ destekli yazılım</strong>, akıcı
-                okuma, hızlı okuma, paragraf kitapları ve özel olarak hazırlanmış
-                egzersizler ile öğrencilerin gelişimini ölçebilen yenilikçi bir
-                eğitim modelidir. Yapay zekâ destekli yazılım içerisinde yer alan{" "}
-                <strong>126 farklı egzersiz</strong>,{" "}
-                <strong>21 günlük eğitim</strong> periyodu ile öğrencilerin
-                performansını analiz ederek gelişim sürecini takip eder. Program
-                sonunda öğrenciler <strong>9 farklı beceri</strong> alanında
-                değerlendirilir ve gelişim raporu oluşturulur.
+                <strong>Fixoku Akademi</strong>, uzman eğitmenler eşliğinde
+                yürütülen eğitimleri; özel olarak hazırlanan kitaplar, yapay zekâ
+                destekli yazılım ve kişiye özel egzersizlerle destekleyerek
+                öğrencilerin gelişimini <strong>planlı, ölçülebilir ve
+                sürdürülebilir</strong> bir yapıya dönüştürür. Böylece öğrenciler,
+                yalnızca eğitim almakla kalmaz; gelişim süreçlerini adım adım
+                takip ederek eksik oldukları alanlarda hedefe yönelik ilerleme
+                fırsatı yakalar.
+              </p>
+
+              <p>
+                Yapay zekâ destekli yazılım içerisinde yer alan{" "}
+                <strong>126 farklı egzersiz</strong>, <strong>21 günlük eğitim
+                programı</strong> boyunca öğrencinin performansını analiz eder,
+                gelişimini anlık olarak takip eder ve ihtiyaç duyduğu beceri
+                alanlarına yönelik kişiselleştirilmiş çalışma süreci oluşturur.
+                Program sonunda öğrenciler <strong>9 farklı akademik beceri
+                alanında</strong> değerlendirilerek ayrıntılı gelişim raporuna
+                sahip olur.
               </p>
             </div>
 
-            <div
+            <SharedPromoVideo
+              context="home"
               className="why-video-box"
-              role="img"
-              aria-label="Fixoku eğitim sistemi tanıtım sunumu için görsel alan"
-            >
-              <span className="why-video-glow" aria-hidden="true" />
-              <span className="why-video-mark" aria-hidden="true">
-                <svg viewBox="0 0 96 96" fill="none">
-                  <circle cx="48" cy="48" r="43" stroke="currentColor" strokeWidth="3" />
-                  <path d="M40 31 67 48 40 65V31Z" fill="currentColor" />
-                </svg>
-              </span>
-              <span className="why-video-caption">Fixoku Eğitim Sistemi</span>
-            </div>
+              title="Neden Fixoku?"
+              label="Neden Fixoku tanıtım videosunu oynat"
+            />
           </div>
 
           <div className="help-audience-section">
@@ -844,14 +760,21 @@ function App() {
       <h2 className="how-it-works-title">Fixoku Sistemi Nasıl Çalışır?</h2>
 
       <p className="how-it-works-subtitle">
-        <strong>Fixoku;</strong> kitap, yazılım ve uzman eğitmen desteğini bir
-        araya getiren kapsamlı bir hızlı okuma, anlama, dikkat ve odaklanma
-        eğitim sistemidir.
+        <strong>Fixoku Akademi</strong>; eğitim sürecini üç temel bileşen üzerine
+        kurar: Eğitim kitapları, yapay zekâ destekli yazılım ve uzman eğitmen
+        desteği. Bu üç yapı birbiriyle entegre çalışarak öğrencilerin gelişimini
+        planlı ve ölçülebilir şekilde destekleyerek akademik başarılarına katkı
+        sağlar.
       </p>
     </div>
 
     <div className="how-it-works-panel">
-      <div className="how-it-works-grid">
+      <div
+        className="how-it-works-grid how-it-works-carousel"
+        role="region"
+        aria-label="Fixoku sisteminin üç temel bileşeni"
+        tabIndex={0}
+      >
         <article className="how-card">
           <div className="how-card-head how-card-head-orange">
             Fixoku Eğitim Kitapları
@@ -863,7 +786,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-contain"
-                src="/images/home/fixoku-system/fixoku-egitim-kitabi.png"
+                src="/images/home/fixoku-system/fixoku-kitaplari-icerikleri.png"
                 alt="Fixoku Eğitim Kitapları görseli"
                 width="250"
                 height="250"
@@ -904,7 +827,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-contain"
-                src="/images/home/fixoku-system/yapay-zeka-destekli-yazilim.png"
+                src="/images/home/fixoku-system/fixoku-yazilim-uygulama-gorseli.png"
                 alt="Fixoku yapay zekâ destekli yazılım ekranı"
                 width="250"
                 height="250"
@@ -945,7 +868,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-cover"
-                src="/images/home/fixoku-system/uzman-egitmen-destegi.png"
+                src="/images/home/fixoku-system/fixoku-yazilim-uygulama.png"
                 alt="Fixoku uzman eğitmen desteğiyle sınıf eğitimi"
                 width="250"
                 height="250"
@@ -1028,7 +951,7 @@ function App() {
                 </svg>
               </div>
 
-              <div className="progress-value">%86</div>
+              <div className="progress-value">86</div>
               <div className="progress-sub">126 egzersizi analiz eder</div>
             </div>
           </article>
@@ -1049,7 +972,7 @@ function App() {
                 </svg>
               </div>
 
-              <div className="progress-value">%78</div>
+              <div className="progress-value">78</div>
               <div className="progress-sub">Öğrencinin gelişimini ölçer</div>
             </div>
           </article>
@@ -1081,7 +1004,7 @@ function App() {
       <h2 className="education-model-title">Fixoku Eğitim Modeli</h2>
 
       <div className="education-model-panel">
-        <div className="education-model-grid">
+        <div className="homepage-education-model-grid">
           <article className="model-card model-card-orange">
             <div className="model-card-icon" aria-hidden="true">
               <svg viewBox="0 0 120 80" fill="none">
@@ -1097,7 +1020,6 @@ function App() {
 
             <div className="model-card-text">
               <div className="model-label">Kitap</div>
-              <div className="model-rate">%30</div>
             </div>
           </article>
 
@@ -1117,7 +1039,6 @@ function App() {
 
             <div className="model-card-text">
               <div className="model-label">Yazılım</div>
-              <div className="model-rate">%30</div>
             </div>
           </article>
 
@@ -1139,7 +1060,6 @@ function App() {
 
             <div className="model-card-text">
               <div className="model-label">Eğitmen</div>
-              <div className="model-rate">%40</div>
             </div>
           </article>
         </div>
@@ -1311,80 +1231,7 @@ function App() {
     </div>
 
 
-    <div className="education-store-block">
-      <div className="education-store-heading">
-        <span className="education-store-eyebrow">Fixoku Eğitim Mağazası</span>
-        <h2 className="education-store-title">Premium Eğitim Kitapları ve Programları</h2>
-        <p className="education-store-subtitle">
-          Hızlı okuma, dikkat, odaklanma ve sınav başarısı için hazırlanan Fixoku eğitim içeriklerini keşfedin.
-        </p>
-      </div>
-
-      <div className="education-store-grid">
-        {educationStoreItems.map((item) => (
-          <article className={`education-product-card education-product-${item.tone}`} key={item.title}>
-            <div className="education-product-cover">
-              <button type="button" className="education-product-fav" aria-label={`${item.title} favorilere ekle`}>
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 20s-7-4.4-9.2-8.4C1 8.3 2.8 5 6.2 5c2 0 3.4 1 4.2 2.1C11.2 6 12.6 5 14.6 5 18 5 20 8.3 18.2 11.6 16 15.6 12 20 12 20Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              <div className="education-product-kicker">{item.coverKicker}</div>
-              <div className="education-product-book-icon" aria-hidden="true">
-                <svg viewBox="0 0 96 96" fill="none">
-                  <path d="M22 20h28c8 0 14 6 14 14v42H35c-7 0-13-6-13-13V20Z" fill="rgba(255,255,255,.82)" />
-                  <path d="M64 34c0-8 6-14 14-14h6v56h-6c-8 0-14-6-14-14V34Z" fill="rgba(255,255,255,.55)" />
-                  <path d="M34 36h18M34 48h18M34 60h14" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                  <path d="M64 28v48" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                </svg>
-              </div>
-              <h3>{item.coverTitle}</h3>
-              <p>{item.coverSub}</p>
-            </div>
-
-            <div className="education-product-body">
-              <div className="education-product-stars" aria-label="5 yıldız">
-                ★★★★★
-              </div>
-              <h3 className="education-product-title">{item.title}</h3>
-              <p className="education-product-author">by {item.author}</p>
-              <div className="education-product-price">{item.price}</div>
-
-              <div className="education-product-meta">
-                <span>
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M5 5h10a4 4 0 0 1 4 4v10H9a4 4 0 0 0-4-4V5Z" stroke="currentColor" strokeWidth="2" />
-                    <path d="M5 5v14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  {item.lessons}
-                </span>
-                <span>
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M12 4l8 4-8 4-8-4 8-4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                    <path d="M6 10v5c0 2 3 4 6 4s6-2 6-4v-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  {item.students}
-                </span>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <div className="education-store-action">
-        <a href="/egitimler" className="education-store-btn">
-          <span>Tüm Eğitimleri Keşfet</span>
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
-      </div>
-    </div>
+    <HomeStudentPackagesShowcase />
 
     <div className="faq-block">
       <h2 className="faq-title">Fixoku Hakkında Sık Sorulan Sorular</h2>
@@ -1413,8 +1260,10 @@ function App() {
             <span className="faq-toggle" />
           </summary>
           <div className="faq-answer">
-            İlkokul, ortaokul ve lise düzeyindeki öğrenciler için uygun program
-            yapısı oluşturulabilir.
+            Fixoku; ilkokul, ortaokul ve lise düzeyindeki öğrencilerin yanı sıra
+            üniversite öğrencileri, lisansüstü öğrencileri, mezunlar, çalışanlar ve okuma, anlama,
+            dikkat ve odaklanma becerilerini geliştirmek isteyen yetişkinler için
+            de uygun program yapıları sunar.
           </div>
         </details>
 

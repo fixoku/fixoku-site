@@ -1,0 +1,6 @@
+/* RELEASE-020A: common panel brand, all four roles; preserve sidebar geometry. */
+.platform-panel .panel-brand{display:flex!important;align-items:center!important;justify-content:center!important;min-height:86px!important;margin-bottom:14px!important;padding:0 4px!important}
+.platform-panel .panel-brand-home{display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:74px;border-radius:12px;outline-offset:3px}
+.platform-panel .panel-brand-home:focus-visible{outline:2px solid #f97316}
+.platform-panel .panel-brand-home img{display:block!important;width:min(100%,230px)!important;max-width:100%!important;max-height:78px!important;height:auto!important;object-fit:contain!important}
+@media(max-width:760px){.platform-panel .panel-brand{min-height:56px!important;margin-bottom:0!important}.platform-panel .panel-brand-home{min-height:48px;justify-content:flex-start}.platform-panel .panel-brand-home img{width:min(100%,152px)!important;max-height:49px!important}}

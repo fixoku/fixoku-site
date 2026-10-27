@@ -1,0 +1,851 @@
+﻿.trainer-profile-page{min-height:calc(100vh - var(--panel-topbar-height));padding:28px 26px 42px;background:linear-gradient(125deg,#fff 0%,#fff 54%,#fff8ef 100%)}
+.trainer-profile-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin:0 6px 24px}.trainer-profile-heading h2{margin:0 0 8px;font-size:42px;letter-spacing:-1.5px}.trainer-profile-heading p{margin:0;color:#68707d;font-size:18px}.trainer-profile-breadcrumb{padding-top:10px;color:#69717b}.trainer-profile-breadcrumb span{padding:0 12px;color:#9ba0a7}.trainer-profile-breadcrumb strong{color:var(--panel-orange-text)}
+.trainer-profile-layout{display:grid;grid-template-columns:minmax(0,1fr) 332px;gap:16px;max-width:1140px}.trainer-profile-card,.trainer-profile-identity, .trainer-profile-rail blockquote,.trainer-profile-brand{border:1px solid var(--panel-border);border-radius:14px;background:#fff;box-shadow:var(--panel-shadow-card)}.trainer-profile-card{overflow:hidden}.trainer-profile-tabs{display:flex;border-bottom:1px solid #eee;padding:0 20px}.trainer-profile-tabs button{display:flex;align-items:center;gap:12px;min-height:70px;padding:0 22px;border:0;border-bottom:3px solid transparent;background:none;color:#66707c;font-size:17px;cursor:pointer}.trainer-profile-tabs button.is-active{color:var(--panel-orange-text);border-color:var(--panel-orange)}.trainer-profile-form{padding:24px}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 22px}.profile-field{display:flex;flex-direction:column;gap:8px;color:#222;font-weight:700;font-size:15px}.profile-field input,.profile-field textarea{width:100%;box-sizing:border-box;border:1px solid #dfe3e8;border-radius:8px;background:#fbfcfd;color:#3c4654;font:inherit;font-weight:400;padding:13px 15px;min-height:48px;outline:none}.profile-field textarea{min-height:130px;resize:vertical;line-height:1.5}.profile-field input:focus,.profile-field textarea:focus{border-color:#e8793d;box-shadow:0 0 0 3px #fff0e7}.profile-field input[readonly]{background:#f4f5f6;color:#4f5965}.profile-field small{color:#b42318;font-weight:400}.profile-field.full{grid-column:1/-1}.profile-actions{display:flex;align-items:center;gap:16px;margin-top:25px}.profile-button{min-height:48px;padding:0 24px;border:0;border-radius:8px;background:linear-gradient(100deg,#f36b21,#dd5d17);color:#fff;font-size:16px;font-weight:700;cursor:pointer}.profile-button:disabled{cursor:not-allowed;opacity:.55}.profile-feedback{color:#3f6657;font-size:14px}.profile-form-error{color:#b42318}.trainer-profile-rail{display:grid;gap:16px}.trainer-profile-identity{padding:20px;text-align:center}.trainer-profile-avatar{width:172px;height:172px;margin:0 auto 15px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(145deg,#d88a63,#527c86);color:#fff;font-size:52px;font-weight:700}.trainer-profile-identity h3{margin:0 0 10px;font-size:26px}.trainer-profile-identity>span{display:inline-block;padding:10px 20px;border-radius:999px;background:#fff0e7;color:var(--panel-orange-text);font-weight:700}.trainer-profile-identity p{margin:15px 0 0;color:#5c6670;font-size:12px}.trainer-profile-rail blockquote{margin:0;padding:30px 28px;color:#202b3a;font-family:Georgia,serif;font-size:23px;font-style:italic;line-height:1.25}.trainer-profile-rail blockquote:first-letter{color:#f19a57;font-size:44px}.trainer-profile-brand{padding:30px;text-align:center;color:#18263b;font-size:42px;font-weight:800;letter-spacing:2px}.trainer-profile-brand small{display:block;margin-top:8px;font-family:Georgia,serif;font-size:13px;font-style:italic;font-weight:400;letter-spacing:0}.trainer-profile-loading{display:grid;gap:18px;padding:32px}.trainer-profile-loading span{display:block;height:50px;border-radius:8px;background:linear-gradient(90deg,#f1f2f3,#fafafa,#f1f2f3);background-size:200% 100%;animation:profile-shimmer 1.2s infinite}.trainer-profile-state{padding:60px 30px;text-align:center}.trainer-profile-state h3{font-size:23px}.trainer-profile-state p{color:#69717b}@keyframes profile-shimmer{to{background-position:-200% 0}}
+@media(max-width:900px){.trainer-profile-layout{grid-template-columns:1fr}.trainer-profile-rail{grid-template-columns:1fr 1fr}.trainer-profile-brand{display:none}}
+@media(max-width:640px){.trainer-profile-page{padding:20px 15px 30px}.trainer-profile-heading{display:block;margin-bottom:18px}.trainer-profile-heading h2{font-size:32px}.trainer-profile-heading p{font-size:15px}.trainer-profile-breadcrumb{display:none}.trainer-profile-tabs{overflow-x:auto;padding:0 8px}.trainer-profile-tabs button{white-space:nowrap;padding:0 13px;font-size:14px}.trainer-profile-form{padding:18px 15px}.profile-grid{grid-template-columns:1fr;gap:17px}.profile-field.full{grid-column:auto}.profile-actions{display:block}.profile-button{width:100%}.profile-feedback{display:block;margin-top:11px}.trainer-profile-rail{grid-template-columns:1fr}.trainer-profile-identity{padding:18px}.trainer-profile-avatar{width:130px;height:130px;font-size:38px}.trainer-profile-rail blockquote{font-size:20px}.trainer-profile-brand{display:block;padding:20px;font-size:34px}}
+.trainer-profile-avatar-image{object-fit:cover;overflow:hidden}
+.profile-button-secondary{margin-top:8px;background:#f4f5f6;color:#374151;border:1px solid #d8dde3}
+.trainer-profile-avatar-image{object-fit:cover;overflow:hidden}.profile-button-secondary{margin-top:8px;background:#f4f5f6;color:#374151;border:1px solid #d8dde3}
+
+/* FIXOKU_TRAINER_PROFILE_REVAMP_V1_BEGIN */
+
+.trainer-panel .trainer-profile-tabs{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+
+.trainer-panel .profile-input-wrap select{
+  width:100%;
+  min-width:0;
+  min-height:46px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  appearance:auto;
+}
+
+.trainer-panel .profile-input-wrap select:disabled{
+  opacity:.58;
+  cursor:not-allowed;
+}
+
+.trainer-panel .trainer-phone-control{
+  display:grid;
+  grid-template-columns:auto auto minmax(0,1fr);
+  align-items:center;
+  gap:8px;
+}
+
+.trainer-panel .trainer-phone-control b{
+  font-size:14px;
+  color:#405269;
+  font-weight:800;
+}
+
+.trainer-panel .trainer-specialty-note{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:14px 16px;
+  border:1px solid #f0dfd2;
+  border-radius:12px;
+  background:#fff9f5;
+  color:#b64c16;
+}
+
+.trainer-panel .trainer-specialty-note>div{
+  display:grid;
+  gap:3px;
+}
+
+.trainer-panel .trainer-specialty-note strong{
+  color:#713014;
+  font-size:14px;
+}
+
+.trainer-panel .trainer-specialty-note span{
+  color:#7b665d;
+  font-size:12px;
+  line-height:1.45;
+}
+
+.trainer-panel .profile-bio-action-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  align-items:end;
+}
+
+.trainer-panel .profile-bio-field{
+  min-width:0;
+}
+
+.trainer-panel .profile-bio-field textarea{
+  min-height:118px;
+}
+
+.trainer-panel .profile-bio-action{
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-end;
+  padding-bottom:1px;
+}
+
+.trainer-panel .profile-bio-action .profile-button{
+  min-width:224px;
+  min-height:48px;
+  white-space:nowrap;
+}
+
+.trainer-panel .trainer-profile-feedback-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-top:16px;
+}
+
+.trainer-panel .trainer-profile-personal-save{
+  flex:0 0 auto;
+}
+
+.trainer-panel .trainer-profile-identity{
+  padding-bottom:22px;
+}
+
+.trainer-panel .trainer-role-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:32px;
+  padding:6px 14px;
+  border-radius:999px;
+  background:#fff1e7;
+  color:#c65317;
+  font-size:13px;
+  font-weight:800;
+}
+
+.trainer-panel .trainer-specialty-badges{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  margin-top:16px;
+}
+
+.trainer-panel .trainer-specialty-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:34px;
+  max-width:100%;
+  padding:5px 9px 5px 7px;
+  border:1px solid #f0d7c6;
+  border-radius:999px;
+  background:#fffaf6;
+  color:#b64c16;
+  box-shadow:0 3px 10px rgba(182,76,22,.06);
+}
+
+.trainer-panel .trainer-specialty-badge svg{
+  flex:0 0 22px;
+  width:22px;
+  height:22px;
+}
+
+.trainer-panel .trainer-specialty-badge span{
+  min-width:0;
+  color:#6c3d26;
+  font-size:10.5px;
+  line-height:1.1;
+  font-weight:800;
+  white-space:normal;
+  text-align:left;
+}
+
+.trainer-panel .trainer-specialty-empty{
+  color:#8794a3;
+  font-size:12px;
+  text-align:center;
+}
+
+.trainer-panel .trainer-photo-error{
+  margin:8px 0 0;
+  color:#b42318;
+  font-size:12px;
+  text-align:center;
+}
+
+.trainer-panel .trainer-photo-remove{
+  margin-top:14px;
+  min-height:36px;
+  padding:7px 12px;
+  font-size:12px;
+}
+
+@media(max-width:1100px){
+  .trainer-panel .profile-bio-action-row{
+    grid-template-columns:1fr;
+  }
+
+  .trainer-panel .profile-bio-action{
+    justify-content:flex-start;
+  }
+}
+
+@media(max-width:700px){
+  .trainer-panel .trainer-profile-tabs{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+
+  .trainer-panel .trainer-profile-feedback-row{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .trainer-panel .trainer-profile-personal-save,
+  .trainer-panel .profile-bio-action .profile-button{
+    width:100%;
+  }
+
+  .trainer-panel .profile-bio-action{
+    width:100%;
+  }
+
+  .trainer-panel .trainer-specialty-badge{
+    flex:0 1 auto;
+  }
+}
+
+/* FIXOKU_TRAINER_PROFILE_REVAMP_V1_END */
+
+/* FIXOKU_TRAINER_BADGE_ICON_ONLY_PATCH */
+
+/* Mesleki bilgilerdeki eski rozet açıklama kutusu varsa gizle */
+.trainer-profile-badge-editor,
+.trainer-profile-badge-help,
+.trainer-profile-expertise-help,
+.trainer-profile-specialty-help {
+  display: none !important;
+}
+
+/* Fotoğraf kartı altındaki rozet alanı */
+.trainer-profile-card .trainer-profile-badges,
+.trainer-profile-sidebar .trainer-profile-badges,
+.trainer-profile-aside .trainer-profile-badges,
+.trainer-profile-summary .trainer-profile-badges,
+.trainer-profile-card .trainer-specialty-badges,
+.trainer-profile-sidebar .trainer-specialty-badges,
+.trainer-profile-aside .trainer-specialty-badges,
+.trainer-profile-summary .trainer-specialty-badges {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+}
+
+/* Rozetin kendisi */
+.trainer-profile-card .trainer-profile-badge,
+.trainer-profile-sidebar .trainer-profile-badge,
+.trainer-profile-aside .trainer-profile-badge,
+.trainer-profile-summary .trainer-profile-badge,
+.trainer-profile-card .trainer-specialty-badge,
+.trainer-profile-sidebar .trainer-specialty-badge,
+.trainer-profile-aside .trainer-specialty-badge,
+.trainer-profile-summary .trainer-specialty-badge {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(222, 108, 33, 0.35) !important;
+  background: #fff7f1 !important;
+  color: #d86f2c !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  cursor: default !important;
+  box-sizing: border-box !important;
+}
+
+/* İçteki ikon */
+.trainer-profile-card .trainer-profile-badge svg,
+.trainer-profile-sidebar .trainer-profile-badge svg,
+.trainer-profile-aside .trainer-profile-badge svg,
+.trainer-profile-summary .trainer-profile-badge svg,
+.trainer-profile-card .trainer-specialty-badge svg,
+.trainer-profile-sidebar .trainer-specialty-badge svg,
+.trainer-profile-aside .trainer-specialty-badge svg,
+.trainer-profile-summary .trainer-specialty-badge svg {
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto !important;
+}
+
+/* Rozet içindeki görünür yazıları kapat */
+.trainer-profile-card .trainer-profile-badge span:not(:first-child),
+.trainer-profile-sidebar .trainer-profile-badge span:not(:first-child),
+.trainer-profile-aside .trainer-profile-badge span:not(:first-child),
+.trainer-profile-summary .trainer-profile-badge span:not(:first-child),
+.trainer-profile-card .trainer-specialty-badge span:not(:first-child),
+.trainer-profile-sidebar .trainer-specialty-badge span:not(:first-child),
+.trainer-profile-aside .trainer-specialty-badge span:not(:first-child),
+.trainer-profile-summary .trainer-specialty-badge span:not(:first-child),
+.trainer-profile-card .trainer-profile-badge small,
+.trainer-profile-sidebar .trainer-profile-badge small,
+.trainer-profile-aside .trainer-profile-badge small,
+.trainer-profile-summary .trainer-profile-badge small,
+.trainer-profile-card .trainer-specialty-badge small,
+.trainer-profile-sidebar .trainer-specialty-badge small,
+.trainer-profile-aside .trainer-specialty-badge small,
+.trainer-profile-summary .trainer-specialty-badge small,
+.trainer-profile-card .trainer-profile-badge strong,
+.trainer-profile-sidebar .trainer-profile-badge strong,
+.trainer-profile-aside .trainer-profile-badge strong,
+.trainer-profile-summary .trainer-profile-badge strong,
+.trainer-profile-card .trainer-specialty-badge strong,
+.trainer-profile-sidebar .trainer-specialty-badge strong,
+.trainer-profile-aside .trainer-specialty-badge strong,
+.trainer-profile-summary .trainer-specialty-badge strong {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Hover tooltip */
+.trainer-profile-card .trainer-profile-badge:hover::after,
+.trainer-profile-sidebar .trainer-profile-badge:hover::after,
+.trainer-profile-aside .trainer-profile-badge:hover::after,
+.trainer-profile-summary .trainer-profile-badge:hover::after,
+.trainer-profile-card .trainer-specialty-badge:hover::after,
+.trainer-profile-sidebar .trainer-specialty-badge:hover::after,
+.trainer-profile-aside .trainer-specialty-badge:hover::after,
+.trainer-profile-summary .trainer-specialty-badge:hover::after {
+  content: attr(aria-label);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 6px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  z-index: 40;
+}
+
+/* Save button hizası */
+.trainer-profile-form .trainer-profile-form-actions,
+.trainer-profile-form-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+}
+
+/* Mesleki bilgiler alanında buton kısa özgeçmiş hizasında kalsın */
+.trainer-profile-professional-grid,
+.trainer-profile-section-grid {
+  align-items: start !important;
+}
+
+/* FIXOKU_BADGE_ICON_FINAL_BEGIN */
+
+/* Deneyim altında eski rozet açıklama kutusu kesinlikle görünmesin */
+.trainer-panel .trainer-specialty-note{
+  display:none!important;
+}
+
+/* Profil kartındaki 7 ikon tek sıra ve ortalı */
+.trainer-panel .trainer-specialty-badges{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  justify-content:center!important;
+  align-items:center!important;
+  gap:8px!important;
+  width:100%!important;
+  margin:16px auto 0!important;
+  overflow:visible!important;
+}
+
+/* Rozet = sadece yuvarlak ikon */
+.trainer-panel .trainer-specialty-badge{
+  position:relative!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+
+  flex:0 0 38px!important;
+  width:38px!important;
+  height:38px!important;
+  min-width:38px!important;
+  min-height:38px!important;
+  max-width:38px!important;
+
+  padding:0!important;
+  margin:0!important;
+
+  border:1px solid #efc8b0!important;
+  border-radius:50%!important;
+
+  background:#fff8f3!important;
+  color:#c65317!important;
+
+  box-shadow:0 3px 10px rgba(198,83,23,.08)!important;
+  cursor:default!important;
+  overflow:visible!important;
+}
+
+/* Sadece SVG ikon */
+.trainer-panel .trainer-specialty-badge svg{
+  display:block!important;
+  flex:0 0 18px!important;
+  width:18px!important;
+  height:18px!important;
+  margin:0!important;
+}
+
+/* Rozet isimleri ekranda ASLA görünmesin */
+.trainer-panel .trainer-specialty-badge > span{
+  display:none!important;
+}
+
+/* Hover olduğunda isim tooltip olarak çıksın */
+.trainer-panel .trainer-specialty-badge:hover::after{
+  content:attr(aria-label);
+
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + 9px);
+  transform:translateX(-50%);
+
+  z-index:9999;
+
+  padding:7px 10px;
+  border-radius:7px;
+
+  background:#202936;
+  color:#fff;
+
+  font-size:11px;
+  font-weight:700;
+  line-height:1.2;
+  white-space:nowrap;
+
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+
+  pointer-events:none;
+}
+
+/* Tooltip oku */
+.trainer-panel .trainer-specialty-badge:hover::before{
+  content:"";
+
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + 4px);
+  transform:translateX(-50%);
+
+  z-index:9999;
+
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-top:5px solid #202936;
+
+  pointer-events:none;
+}
+
+.trainer-panel .trainer-profile-identity,
+.trainer-panel .trainer-profile-rail{
+  overflow:visible!important;
+}
+
+/* Küçük ekranlarda taşarsa ikinci satıra geçebilir */
+@media(max-width:700px){
+  .trainer-panel .trainer-specialty-badges{
+    flex-wrap:wrap!important;
+  }
+}
+
+/* FIXOKU_BADGE_ICON_FINAL_END */
+
+/* FIXOKU_TRAINER_PROFILE_LAYOUT_FIX_BEGIN */
+
+/* ======================================================
+   TELEFON
+   +90 ve numara artık birbirine girmeyecek
+   ====================================================== */
+
+.trainer-panel .trainer-phone-control{
+  display:flex!important;
+  align-items:stretch!important;
+  width:100%!important;
+  min-height:48px!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+
+.trainer-panel .trainer-phone-control > b{
+  position:static!important;
+  transform:none!important;
+
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+
+  flex:0 0 58px!important;
+  width:58px!important;
+
+  margin:0!important;
+  padding:0 10px!important;
+
+  border-right:1px solid #dbe1e8!important;
+  background:#f7f9fb!important;
+
+  color:#34465b!important;
+  font-size:14px!important;
+  font-weight:800!important;
+}
+
+.trainer-panel .trainer-phone-control > input{
+  position:static!important;
+
+  flex:1 1 auto!important;
+  min-width:0!important;
+  width:auto!important;
+
+  margin:0!important;
+  padding:0 14px!important;
+
+  border:0!important;
+  outline:0!important;
+  background:#fff!important;
+}
+
+
+/* ======================================================
+   IL / ILCE
+   Pin ikonu ve metin ayrı hizalanacak
+   ====================================================== */
+
+.trainer-panel .trainer-location-control{
+  display:flex!important;
+  align-items:center!important;
+
+  width:100%!important;
+  min-height:48px!important;
+
+  padding:0 12px!important;
+  gap:10px!important;
+
+  overflow:hidden!important;
+}
+
+.trainer-panel .trainer-location-control > svg{
+  position:static!important;
+  left:auto!important;
+  top:auto!important;
+  transform:none!important;
+
+  flex:0 0 20px!important;
+  width:20px!important;
+  height:20px!important;
+
+  margin:0!important;
+  color:#f36b21!important;
+  pointer-events:none!important;
+}
+
+.trainer-panel .trainer-location-control > select{
+  position:static!important;
+
+  flex:1 1 auto!important;
+  min-width:0!important;
+  width:100%!important;
+  height:46px!important;
+
+  margin:0!important;
+  padding:0 32px 0 0!important;
+
+  border:0!important;
+  outline:0!important;
+  background-color:transparent!important;
+
+  color:#26394e!important;
+  font:inherit!important;
+}
+
+
+/* ======================================================
+   KISA OZGEÇMIS
+   Satır tüm iki kolon genişliğini kullanacak
+   ====================================================== */
+
+.trainer-panel .profile-bio-action-row.full{
+  grid-column:1 / -1!important;
+
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:end!important;
+
+  width:100%!important;
+  max-width:none!important;
+
+  gap:18px!important;
+  margin-top:0!important;
+}
+
+.trainer-panel .profile-bio-field{
+  display:flex!important;
+  flex-direction:column!important;
+
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+
+  margin:0!important;
+}
+
+.trainer-panel .profile-bio-field textarea{
+  display:block!important;
+
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+
+  min-height:122px!important;
+  height:122px!important;
+
+  padding:12px 14px!important;
+  box-sizing:border-box!important;
+
+  resize:vertical!important;
+  line-height:1.5!important;
+}
+
+.trainer-panel .profile-bio-action{
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:flex-end!important;
+
+  width:auto!important;
+  padding:0!important;
+  margin:0!important;
+}
+
+.trainer-panel .profile-bio-action .profile-button{
+  min-width:220px!important;
+  min-height:48px!important;
+  margin:0!important;
+}
+
+
+/* Mobil / dar ekran */
+@media(max-width:800px){
+
+  .trainer-panel .profile-bio-action-row.full{
+    grid-template-columns:1fr!important;
+  }
+
+  .trainer-panel .profile-bio-action{
+    width:100%!important;
+  }
+
+  .trainer-panel .profile-bio-action .profile-button{
+    width:100%!important;
+  }
+}
+
+/* FIXOKU_TRAINER_PROFILE_LAYOUT_FIX_END */
+
+/* FIXOKU_TRAINER_FIELD_BORDER_FIX_BEGIN */
+
+/* =====================================================
+   TELEFON
+   Diğer inputlarla aynı tek dış çerçeve
+   ===================================================== */
+
+.trainer-panel .trainer-phone-control{
+  display:flex!important;
+  align-items:stretch!important;
+
+  width:100%!important;
+  min-height:48px!important;
+
+  padding:0!important;
+
+  border:1px solid #d9e0e8!important;
+  border-radius:8px!important;
+
+  background:#ffffff!important;
+
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+
+.trainer-panel .trainer-phone-control:focus-within{
+  border-color:#ef7c45!important;
+  box-shadow:0 0 0 2px rgba(239,124,69,.10)!important;
+}
+
+.trainer-panel .trainer-phone-control > b{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+
+  flex:0 0 58px!important;
+
+  min-height:46px!important;
+
+  padding:0 10px!important;
+  margin:0!important;
+
+  border:0!important;
+  border-right:1px solid #e0e5eb!important;
+
+  background:#f7f9fb!important;
+
+  color:#34465b!important;
+  font-size:14px!important;
+  font-weight:800!important;
+}
+
+.trainer-panel .trainer-phone-control > input{
+  flex:1 1 auto!important;
+
+  width:100%!important;
+  min-width:0!important;
+  min-height:46px!important;
+
+  padding:0 14px!important;
+  margin:0!important;
+
+  border:0!important;
+  border-radius:0!important;
+  outline:0!important;
+
+  background:#ffffff!important;
+  box-shadow:none!important;
+
+  color:#26394e!important;
+}
+
+
+/* =====================================================
+   IL / ILCE
+   Ikon + select aynı düzgün çerçeve içinde
+   ===================================================== */
+
+.trainer-panel .trainer-location-control{
+  display:flex!important;
+  align-items:center!important;
+
+  width:100%!important;
+  min-height:48px!important;
+
+  padding:0 12px!important;
+  gap:10px!important;
+
+  border:1px solid #d9e0e8!important;
+  border-radius:8px!important;
+
+  background:#ffffff!important;
+
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+
+.trainer-panel .trainer-location-control:focus-within{
+  border-color:#ef7c45!important;
+  box-shadow:0 0 0 2px rgba(239,124,69,.10)!important;
+}
+
+.trainer-panel .trainer-location-control > svg{
+  position:static!important;
+
+  flex:0 0 20px!important;
+
+  width:20px!important;
+  height:20px!important;
+
+  margin:0!important;
+
+  color:#f36b21!important;
+
+  pointer-events:none!important;
+}
+
+.trainer-panel .trainer-location-control > select{
+  position:static!important;
+
+  flex:1 1 auto!important;
+
+  width:100%!important;
+  min-width:0!important;
+  min-height:46px!important;
+
+  margin:0!important;
+  padding:0 30px 0 0!important;
+
+  border:0!important;
+  border-radius:0!important;
+  outline:0!important;
+
+  background-color:#ffffff!important;
+  box-shadow:none!important;
+
+  color:#26394e!important;
+  font:inherit!important;
+
+  cursor:pointer!important;
+}
+
+
+/* İlçe disable görünümü */
+.trainer-panel .trainer-location-control:has(select:disabled){
+  background:#f7f9fb!important;
+}
+
+.trainer-panel .trainer-location-control > select:disabled{
+  background:#f7f9fb!important;
+  color:#8c98a5!important;
+  cursor:not-allowed!important;
+}
+
+/* FIXOKU_TRAINER_FIELD_BORDER_FIX_END */
+/* Trainer panel closure: keep the brand mark and slogan in one desktop composition. */
+.trainer-panel .trainer-profile-brand{display:flex;align-items:center;justify-content:center;gap:18px;padding:20px 18px;text-align:left}.trainer-panel .trainer-profile-brand img{display:block;flex:0 1 150px;max-width:150px;height:auto}.trainer-panel .trainer-profile-brand small{display:block;flex:0 1 auto;margin:0;font-size:13px;line-height:1.45;white-space:nowrap}
+@media(max-width:640px){.trainer-panel .trainer-profile-brand{gap:12px;padding:18px 14px}.trainer-panel .trainer-profile-brand img{flex-basis:120px;max-width:120px}.trainer-panel .trainer-profile-brand small{font-size:12px;white-space:normal}}
+
+/* FIXOKU_OWNER_HIDE_EMPTY_AND_PASTEL_ICONS_V37B */
+.trainer-specialty-badge svg {width:44px!important;height:44px!important;display:block!important;}
+.trainer-specialty-badge{background:transparent!important;color:inherit!important;}
+
+/* FIXOKU 019G: PROFILE DELIVERY ADDRESS */
+.trainer-profile-address-note { margin:0 0 22px; color:#516073; font-size:15px; }
+.trainer-profile-address-panel .profile-field select { width:100%;height:48px;border:1px solid #dfe3e8;border-radius:8px;padding:0 13px;background:#fbfcfd;color:#273549;font:inherit; }
+.trainer-profile-address-actions { display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:24px;color:#476a52; }
+@media(max-width:640px){.trainer-profile-address-actions{flex-direction:column;align-items:stretch;}}
+/* FIXOKU 020D - make all three profile tabs visible in one desktop row. */
+@media(min-width:701px){
+  .trainer-panel .trainer-profile-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0;align-items:stretch}
+  .trainer-panel .trainer-profile-tabs button{justify-content:center;min-width:0;min-height:64px;white-space:nowrap;padding:0 8px;font-size:15px}
+}

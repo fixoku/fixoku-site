@@ -11,7 +11,19 @@ export default function TrainerVerificationResend({ email = "", allowEmailInput 
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState(false);
+  const [availability, setAvailability] = useState("pending");
   const address = String(allowEmailInput ? typedEmail : email).trim().toLowerCase();
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/auth/verification-resend-capability", { credentials: "same-origin", cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        if (active) setAvailability(payload?.available === true ? "available" : "disabled");
+      })
+      .catch(() => { if (active) setAvailability("disabled"); });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (secondsLeft <= 0) return undefined;
@@ -21,7 +33,7 @@ export default function TrainerVerificationResend({ email = "", allowEmailInput 
 
   async function requestVerification(event) {
     event.preventDefault();
-    if (busy || secondsLeft > 0) return;
+    if (availability !== "available" || busy || secondsLeft > 0) return;
     if (!isEmail(address)) {
       setError(true);
       setNotice("Önce geçerli bir e-posta adresi yazın.");
@@ -52,6 +64,8 @@ export default function TrainerVerificationResend({ email = "", allowEmailInput 
       setBusy(false);
     }
   }
+
+  if (availability !== "available") return null;
 
   return <section className="auth-trainer-verification-resend" aria-label="Eğitmen e-posta doğrulama bağlantısı" style={{ margin: "18px 0", padding: "16px", border: highlighted ? "1px solid #f6a15f" : "1px solid #e4e8ef", borderRadius: 12, background: "#fafbfe" }}>
     <strong style={{ display: "block", fontSize: 14, marginBottom: 7, color: "#173050" }}>Doğrulama e-postası gelmedi mi?</strong>

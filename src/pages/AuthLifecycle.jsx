@@ -107,7 +107,7 @@ export function RoleLoginPage({ role = "STUDENT" }) {
       <button type="submit" disabled={busy}>{busy ? "Giriş yapılıyor…" : "Giriş Yap →"}</button>
       <Message error>{error}</Message>
     </form>
-    {role === "TRAINER" && <TrainerVerificationResend email={email} highlighted={verificationRequired} />}
+    {role === "TRAINER" && verificationRequired && <TrainerVerificationResend email={email} highlighted />}
     <nav className="auth-links" aria-label="Hesap bağlantıları"><span>{role === "STUDENT" ? "Henüz hesabınız yok mu?" : "Eğitmen hesabınız yok mu?"}</span>{copy.register && <Link to={withReturnTo(copy.register)}>{role === "STUDENT" ? "Hesap oluştur" : "Eğitmen başvurusu yap"}</Link>}{role !== "STUDENT" && role !== "TRAINER" && <Link to={withReturnTo("/giris")}>Diğer giriş seçenekleri</Link>}</nav>
   </Shell>;
 }

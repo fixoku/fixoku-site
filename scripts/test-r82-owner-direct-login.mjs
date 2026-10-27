@@ -29,6 +29,9 @@ try {
   for (const forbidden of ["twoFactorRedirect", "owner-2fa", "Authenticator", "TOTP", "QR", "6 haneli", "Şifremi unuttum", "sifremi-unuttum"]) assert.doesNotMatch(login, new RegExp(forbidden, "iu"), `R82_OWNER_UI_FORBIDDEN:${forbidden}`);
   const route = fs.readFileSync(new URL("../api/owner-sign-in.js", import.meta.url), "utf8");
   assert.match(route, /ownerAuth/u);
+  assert.match(route, /requireApplicationOrigin/u);
+  assert.match(route, /OWNER_AUTH_ORIGIN_UNAVAILABLE/u);
+  assert.doesNotMatch(route, /https:\/\/fixoku\.com/u);
   assert.match(route, /OWNER_MEMBERSHIP_REQUIRED/u);
   assert.match(route, /scope_type='GLOBAL'/u);
   assert.match(route, /role='OWNER'/u);

@@ -1,12 +1,9 @@
 import pg from "pg";
 import { ownerAuth } from "../src/server/auth/auth.js";
+import { requireApplicationOrigin } from "../src/server/auth/origin.js";
 
 const OWNER_EMAIL = "ersin@fixoku.com";
-const authOrigin = () => {
-  const configured = process.env.APP_ORIGIN || process.env.BETTER_AUTH_URL;
-  const productionLike = process.env.NODE_ENV === "production" || process.env.VERCEL === "1" || String(process.env.VERCEL_ENV || "").toLowerCase() === "production";
-  return String(configured || (!productionLike && process.env.FIXOKU_LOCAL_ORIGIN) || "https://fixoku.com").replace(/\/$/u, "");
-};
+const authOrigin = () => requireApplicationOrigin(process.env);
 
 function json(response, status, body) {
   response.statusCode = status;
@@ -99,8 +96,9 @@ export default async function handler(request, response) {
     response.setHeader("Allow", "POST");
     return json(response, 405, { error: "METHOD_NOT_ALLOWED" });
   }
-  const origin = authOrigin();
+  let origin;
   try {
+    origin = authOrigin();
     const body = await readBody(request);
     const email = String(body.email || "").trim().toLowerCase();
     const password = String(body.password || "");
@@ -120,6 +118,7 @@ export default async function handler(request, response) {
     }
     return forwardAuthResponse(response, authResponse, { authenticated: true, user: payload.user }, cookies);
   } catch (error) {
+    if (error?.message === "PUBLIC_ORIGIN_NOT_CONFIGURED") return json(response, 503, { error: "OWNER_AUTH_ORIGIN_UNAVAILABLE" });
     if (error instanceof SyntaxError) return json(response, 400, { error: "INVALID_JSON" });
     return json(response, 503, { error: "OWNER_AUTHORITY_UNAVAILABLE" });
   }

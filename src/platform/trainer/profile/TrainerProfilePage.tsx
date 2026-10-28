@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { TrainerIcon as PanelIcon } from "../components/TrainerIcon";
 import { PanelShell } from "../../panel/layout/PanelShell";
 import { TURKEY_LOCATIONS, getTurkeyDistricts } from "../../../data/turkeyLocations.js";
@@ -230,6 +230,7 @@ export function TrainerProfilePage({
           institution: profile.institution,
           educationBackground: profile.educationBackground,
           experience: profile.experience,
+          specialties: profile.specialties,
           bio: profile.bio,
           ...(photoDataUrl ? { photoDataUrl } : {}),
           ...(removePhoto ? { removePhoto: true } : {}),
@@ -301,6 +302,11 @@ export function TrainerProfilePage({
       setFeedback("Sunucuya ulaşılamadı. Değişiklikleriniz korunuyor.");
       setStatus("error");
     }
+  }
+
+  function submitProfileForm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void save();
   }
 
   function choosePhoto(file: File | undefined) {
@@ -470,7 +476,7 @@ export function TrainerProfilePage({
   );
 
   const professionalPanel = (
-    <div className="profile-grid">
+    <form className="profile-grid" onSubmit={submitProfileForm}>
       <Field
         label="Meslek / Branş"
         name="profession"
@@ -505,6 +511,15 @@ export function TrainerProfilePage({
         onChange={update}
       />
 
+      <Field
+        className="full"
+        label="Uzmanlık alanları"
+        name="specialties"
+        value={profile.specialties}
+        error={errors.specialties}
+        onChange={update}
+      />
+
       <div className="profile-bio-action-row full">
         <label className="profile-field profile-bio-field">
           <span>Kısa Özgeçmiş</span>
@@ -520,17 +535,16 @@ export function TrainerProfilePage({
 
         <div className="profile-bio-action">
           <button
-            type="button"
+            type="submit"
             className="profile-button"
             disabled={status === "saving" || !dirty}
-            onClick={() => void save()}
           >
             <PanelIcon name="save" size={22} />
             {status === "saving" ? "Kaydediliyor…" : "Bilgilerimi Güncelle"}
           </button>
         </div>
       </div>
-    </div>
+    </form>
   );
 
   return (

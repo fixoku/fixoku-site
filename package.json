@@ -103,6 +103,7 @@
     "prepare:r97g-test-users": "node scripts/prepare-r97g-test-users.mjs",
     "test:r97g-local-review": "node scripts/test-r97g-local-review.mjs",
     "test:r97g-login-ux": "node scripts/test-r97g-login-ux.mjs",
+    "test:r98-trainer-profile-client": "node scripts/test-r98-trainer-profile-client.mjs",
     "test:r82-owner-direct-login": "node scripts/test-r82-owner-direct-login.mjs",
     "test:r83-owner-login-diagnostics": "node scripts/test-r83-owner-login-diagnostics.mjs",
     "test:r84-commerce-contracts": "node scripts/test-r84-commerce-contracts.mjs",

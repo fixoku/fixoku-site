@@ -1,4 +1,4 @@
-import { getSmtpConfig } from "../../src/server/domain/email-outbox.js";
+import { getEmailTransportStatus } from "../../src/server/domain/email-outbox.js";
 
 const json = (res, status, body) => {
   res.statusCode = status;
@@ -12,5 +12,6 @@ export default function handler(req, res) {
   if (req.method !== "GET") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   // This exposes only whether the redacted resend action can work. It never
   // returns provider names, credentials, account existence, or mail status.
-  return json(res, 200, { available: Boolean(getSmtpConfig()) });
+  const status = getEmailTransportStatus(process.env);
+  return json(res, status.available ? 200 : 503, { available: status.available, error: status.available ? undefined : "EMAIL_VERIFICATION_TRANSPORT_UNAVAILABLE" });
 }

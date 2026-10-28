@@ -90,7 +90,8 @@ assert.match(downloads, /pe\.status='ACTIVE'/u);
 assert.match(outbox, /messageId: `<fixoku-outbox-/u);
 assert.match(trainerVideo, /e\.status='ACTIVE'/u);
 assert.match(trainerCurriculum, /e\.status = 'ACTIVE'/u);
-assert.match(shared, /e\.status='ACTIVE'/u);
+assert.match(shared, /membership\.status === "ACTIVE"/u);
+assert.match(shared, /membership\.scopeType === "TRAINER"/u);
 
 console.log(JSON.stringify({
   RESEND_SMTP_COMPATIBILITY: "PASS",

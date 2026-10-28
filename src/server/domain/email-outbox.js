@@ -2,8 +2,10 @@
 import nodemailer from "nodemailer";
 import { renderEmailForEvent, renderLifecycleEmail } from "./email-renderer.js";
 import { requireApplicationOrigin } from "../auth/origin.js";
+import { isTestEmailCaptureEnabled } from "./test-email-capture.js";
 
 const RETRYABLE_CODES = new Set(["ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "EAI_AGAIN", "SMTP_CONNECTION"]);
+const defaultTransportFactory = (config) => nodemailer.createTransport(config);
 
 export function getSmtpConfig(env = process.env) {
   const provider = String(env.EMAIL_PROVIDER || "").trim().toUpperCase();
@@ -20,9 +22,19 @@ export function getSmtpConfig(env = process.env) {
   return { provider: "SMTP", from, transport: { host, port, secure: secure === "true", auth: { user, pass } } };
 }
 
-export async function sendTransactionalEmail({ kind, to, url, recipientName, applicationField, env = process.env, transportFactory = (config) => nodemailer.createTransport(config), logger = console } = {}) {
+export function getEmailTransportStatus(env = process.env) {
+  const config = getSmtpConfig(env);
+  if (!config) return { available: false, mode: "UNAVAILABLE", reason: "SMTP_NOT_CONFIGURED" };
+  if (config.provider === "TEST" && !isTestEmailCaptureEnabled(env)) {
+    return { available: false, mode: "TEST_UNCAPTURED", reason: "TEST_MAIL_SINK_NOT_CONFIGURED" };
+  }
+  return { available: true, mode: config.provider === "TEST" ? "TEST_CAPTURE" : "SMTP", reason: null };
+}
+
+export async function sendTransactionalEmail({ kind, to, url, recipientName, applicationField, env = process.env, transportFactory = defaultTransportFactory, logger = console } = {}) {
   const smtp = getSmtpConfig(env);
   if (!smtp) throw new Error("SMTP_NOT_CONFIGURED");
+  if (smtp.provider === "TEST" && !isTestEmailCaptureEnabled(env) && transportFactory === defaultTransportFactory) throw new Error("TEST_MAIL_SINK_NOT_CONFIGURED");
   const renderOptions = { baseUrl: requireApplicationOrigin(env), logoUrl: env.EMAIL_LOGO_URL || undefined };
   const rendered = kind === "reset" || kind === "verification"
     ? renderLifecycleEmail(kind, { url, recipientName }, renderOptions)
@@ -44,9 +56,10 @@ export function classifyEmailError(error) {
   return { code, retryable };
 }
 
-export async function processOutboxBatch({ client, env = process.env, transportFactory = (config) => nodemailer.createTransport(config), now = () => new Date(), maxAttempts = Number(env.EMAIL_OUTBOX_MAX_ATTEMPTS || 5), limit = 10, logger = console } = {}) {
+export async function processOutboxBatch({ client, env = process.env, transportFactory = defaultTransportFactory, now = () => new Date(), maxAttempts = Number(env.EMAIL_OUTBOX_MAX_ATTEMPTS || 5), limit = 10, logger = console } = {}) {
   const smtp = getSmtpConfig(env);
   if (!smtp) return { status: "DISABLED_CONFIG_REQUIRED", processed: 0 };
+  if (smtp.provider === "TEST" && !isTestEmailCaptureEnabled(env) && transportFactory === defaultTransportFactory) return { status: "TEST_MAIL_SINK_NOT_CONFIGURED", processed: 0 };
   const transport = transportFactory(smtp.transport);
   let processed = 0;
   for (let index = 0; index < limit; index += 1) {

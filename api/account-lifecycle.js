@@ -1,5 +1,5 @@
 import pg from "pg";
-import { getSmtpConfig, sendTransactionalEmail } from "../src/server/domain/email-outbox.js";
+import { getEmailTransportStatus, sendTransactionalEmail } from "../src/server/domain/email-outbox.js";
 import { auth } from "../src/server/auth/auth.js";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";
 import { validateEducationSegment } from "../src/server/domain/student-segment.js";
@@ -65,6 +65,9 @@ export default async function handler(req,res){const rawPath=new URL(req.url||'h
       if(code==='DATE_OF_BIRTH_INVALID')return json(res,400,{message:'Geçerli ve bugünden önce veya bugüne eşit bir doğum tarihi girin.',error:code});
       return json(res,error.status||400,{message:'Paket grubu ve sınıf eşleşmesi geçersiz.',error:code});
     }
+
+    const verificationTransport = getEmailTransportStatus(process.env);
+    if (!verificationTransport.available) return json(res, 503, { message: 'E-posta doğrulama hizmeti henüz hazır değil.', error: 'EMAIL_VERIFICATION_TRANSPORT_UNAVAILABLE' });
 
       const out=await authCall('/sign-up/email','POST',{
       name:`${String(b.firstName||'').trim()} ${String(b.lastName||'').trim()}`.trim(),
@@ -180,8 +183,8 @@ export default async function handler(req,res){const rawPath=new URL(req.url||'h
     // hash. A production request is refused before account creation when the
     // real SMTP boundary is unavailable; local test mail capture remains valid
     // for isolated acceptance.
-    const smtpReady = Boolean(getSmtpConfig()) || process.env.BETTER_AUTH_TEST_MAIL_SINK === '1';
-    if (!smtpReady || (process.env.NODE_ENV === 'production' && getSmtpConfig()?.provider !== 'SMTP')) return json(res, 503, { message: 'E-posta doğrulama hizmeti henüz hazır değil.' });
+    const verificationTransport = getEmailTransportStatus(process.env);
+    if (!verificationTransport.available || (process.env.NODE_ENV === 'production' && verificationTransport.mode !== 'SMTP')) return json(res, 503, { message: 'E-posta doğrulama hizmeti henüz hazır değil.', error: 'EMAIL_VERIFICATION_TRANSPORT_UNAVAILABLE' });
     const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});
     try {
       const existing=(await pool.query(`select p.id,p.auth_user_id,

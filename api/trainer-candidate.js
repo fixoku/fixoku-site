@@ -92,8 +92,15 @@ export default async function handler(req,res){
    const out={};for(const key of profileKeys){const value=input[key];if(value!==undefined){if(typeof value!=='string'||value.length>500)return json(res,400,{error:'INVALID_PROFILE_FIELD'});out[key]=value.trim();}}
    if(out.phone&& !/^\+?\d{10,13}$/u.test(out.phone.replace(/\s/gu,'')))return json(res,400,{error:'INVALID_PHONE'});
    const columns={city:'city',district:'district',educationBackground:'education_background',experience:'experience',specialties:'specialties',bio:'bio',profession:'profession',institution:'institution',phone:'phone'};
-   const updates=Object.entries(out).map(([key],i)=>`${columns[key]}=$${i+2}`);const values=[principal.user.id,...Object.values(out)];
-   if(updates.length)await pool.query(`update trainer_profiles set ${updates.join(',')},updated_at=now() where user_id=$1`,values);
+   const updates=Object.entries(out).map(([key],i)=>`${columns[key]}=$${i+2}`);
+   if(updates.length) {
+    const profileValues = [principal.user.id, ...Object.values(out)];
+    const profileColumns = Object.keys(out).map((key) => columns[key]);
+    const insertColumns = ['user_id', ...profileColumns];
+    const insertValues = insertColumns.map((_, index) => `$${index + 1}`);
+    const assignments = profileColumns.map((column) => `${column}=excluded.${column}`);
+    await pool.query(`insert into trainer_profiles(${insertColumns.join(',')}) values(${insertValues.join(',')}) on conflict(user_id) do update set ${assignments.join(',')},updated_at=now()`, profileValues);
+   }
    const fresh=(await pool.query('select city,district,profession,education_background,experience,specialties,bio from trainer_profiles where user_id=$1',[principal.user.id])).rows[0]||{};
    const complete=ready(fresh);
    await pool.query(`update trainer_applications set status=$1,updated_at=now()

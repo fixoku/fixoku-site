@@ -9,6 +9,7 @@ import {
   EXPECTED_POOLED_HOST,
   FINGERPRINT_SQL,
   hasOperatorNeonMetadataAttestation,
+  hasCleanBootstrapMetadata,
   isExactPreviewEnvironment,
 } from "../api/internal/r97g-runtime-fingerprint.js";
 
@@ -98,6 +99,44 @@ function fakePoolFactory(calls, transactionReadOnly = "on") {
 
 assert.equal(isExactPreviewEnvironment(BASE_ENV), true);
 assert.equal(hasOperatorNeonMetadataAttestation(BASE_ENV), true);
+assert.equal(hasCleanBootstrapMetadata(BASE_ENV), false);
+
+const CLEAN_COMMIT = "60f6d96fc72afc5579b6fe537a21096f5befe23d";
+const CLEAN_TOKEN = "clean-bootstrap-probe-token-012345678901234567890";
+const CLEAN_ENV = {
+  VERCEL: "1",
+  VERCEL_ENV: "preview",
+  VERCEL_GIT_COMMIT_REF: "codex/fixoku-clean-integration-20261029",
+  VERCEL_GIT_COMMIT_SHA: CLEAN_COMMIT,
+  VERCEL_URL: "fixoku-site-git-codex-fixoku-clean-integration-20261029-fixoku.vercel.app",
+  FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA: CLEAN_COMMIT,
+  FIXOKU_CLEAN_RUNTIME_PROBE_ENABLED: "1",
+  FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: CLEAN_TOKEN,
+  FIXOKU_CLEAN_STAGING_PROJECT_ID: "damp-night-76577929",
+  FIXOKU_CLEAN_STAGING_BRANCH_ID: "br-solitary-scene-ba3d7ejb",
+  FIXOKU_CLEAN_STAGING_DATABASE: "neondb",
+  FIXOKU_CLEAN_STAGING_POOLED_HOST: EXPECTED_POOLED_HOST,
+  FIXOKU_CLEAN_STAGING_DIRECT_HOST: EXPECTED_DIRECT_HOST,
+  DATABASE_URL: BASE_ENV.DATABASE_URL,
+  DATABASE_URL_UNPOOLED: BASE_ENV.DATABASE_URL_UNPOOLED,
+};
+
+assert.equal(isExactPreviewEnvironment(CLEAN_ENV), true);
+assert.equal(hasOperatorNeonMetadataAttestation(CLEAN_ENV), false);
+assert.equal(hasCleanBootstrapMetadata(CLEAN_ENV), true);
+
+await withEnv(CLEAN_ENV, async () => {
+  const calls = [];
+  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls) });
+  const response = responseRecorder();
+  await handler({ method: "POST", headers: { "x-fixoku-clean-runtime-token": CLEAN_TOKEN } }, response);
+  assert.equal(response.state.statusCode, 200);
+  const body = JSON.parse(response.state.body);
+  assert.equal(body.metadataAttested, false);
+  assert.equal(body.bootstrapReadOnly, true);
+  assert.equal(body.branch, CLEAN_ENV.VERCEL_GIT_COMMIT_REF);
+  assert.equal(calls.length, 2);
+});
 
 await withEnv(BASE_ENV, async () => {
   const calls = [];

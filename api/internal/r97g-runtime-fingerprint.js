@@ -1,8 +1,9 @@
 /* Preview-only runtime fingerprint guard.
  * Neon project/branch metadata remains an operator attestation. The endpoint
  * additionally requires the exact expected pooled/direct hostnames below and
- * a source-controlled branch contract. This route is intentionally fail-closed
- * and should be removed after acceptance.
+ * a source-controlled branch contract. Clean Preview has a read-only bootstrap
+ * path that deliberately does not attest business access; the route should be
+ * removed after acceptance.
  */
 import { timingSafeEqual } from "node:crypto";
 import pg from "pg";
@@ -101,6 +102,27 @@ export function hasOperatorNeonMetadataAttestation(env = process.env, contract =
     && directHost === EXPECTED_DIRECT_HOST;
 }
 
+/**
+ * Clean Preview bootstrap proof deliberately excludes the attestation flag.
+ * It still requires the source-controlled branch contract and exact staging
+ * project/branch/database/host metadata. The caller must keep business access
+ * blocked until the resulting pooled/direct fingerprints are reviewed and the
+ * attestation is applied separately.
+ */
+export function hasCleanBootstrapMetadata(env = process.env, contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF)) {
+  if (contract !== PREVIEW_CONTRACTS.cleanIntegration) return false;
+  const metadata = contract.metadata;
+  const pooledHost = normalizeHost(env[metadata.pooledHost]);
+  const directHost = normalizeHost(env[metadata.directHost]);
+  const attested = String(env[metadata.attested] || "").trim();
+  return !attested
+    && env[metadata.project] === EXPECTED_PROJECT
+    && env[metadata.branch] === EXPECTED_BRANCH_ID
+    && env[metadata.database] === EXPECTED_DATABASE
+    && pooledHost === EXPECTED_POOLED_HOST
+    && directHost === EXPECTED_DIRECT_HOST;
+}
+
 function parseStagingConnection(rawUrl, kind, env) {
   if (!rawUrl) throw new Error("RUNTIME_DATABASE_CONFIG_MISSING");
   let parsed;
@@ -185,7 +207,9 @@ export function createRuntimeFingerprintHandler({ poolFactory = defaultPoolFacto
       return json(res, 404, { error: "RUNTIME_FINGERPRINT_NOT_FOUND" });
     }
 
-    if (!hasOperatorNeonMetadataAttestation(env, contract)) {
+    const metadataAttested = hasOperatorNeonMetadataAttestation(env, contract);
+    const bootstrapReadOnly = hasCleanBootstrapMetadata(env, contract);
+    if (!metadataAttested && !bootstrapReadOnly) {
       return json(res, 503, { error: "RUNTIME_METADATA_UNAVAILABLE" });
     }
 
@@ -205,7 +229,8 @@ export function createRuntimeFingerprintHandler({ poolFactory = defaultPoolFacto
       ]);
       return json(res, 200, {
         ok: true,
-        metadataAttested: true,
+        metadataAttested,
+        bootstrapReadOnly,
         environment: "preview",
         branch: contract.branch,
         commit: String(env.VERCEL_GIT_COMMIT_SHA).trim().toLowerCase(),

@@ -105,7 +105,7 @@ Beş Bootstrap key’i (`FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA`, `FIXOKU_CLEA
 
 - Clean branch/SHA/origin/probe token kontrolleri geçmeden fingerprint verilmez.
 - Attestation yoksa `503 RUNTIME_METADATA_UNAVAILABLE` döner.
-- Attestation sonrası pooled/direct host ve database adı kontrol edilir; iki bağlantıda read-only fingerprint çalışır.
+- Legacy R98’te attestation yoksa `503 RUNTIME_METADATA_UNAVAILABLE` döner. Clean Preview’da attestation yokken yalnız exact clean SHA/origin, probe token, kaynakta sabit staging metadata ve pooled/direct URI kontrolleri geçerse `bootstrapReadOnly=true` ile salt-read fingerprint çalışır; bu sonuç iş erişimi attestation’ı değildir.
 - Kaynakta normal iş API’lerinin tamamını attestation PASS olana kadar kapatan global middleware yoktur. Bu nedenle genel API izolasyonu henüz kanıtlanmış değildir; gerekirse ayrı dar kapsamlı kaynak değişikliği ve test gerekir. Fingerprint guard gevşetilmemelidir.
 
 ## Yerel test kanıtı
@@ -203,3 +203,17 @@ build=PASS
 - **Gerçek deployment öncesi kalan engeller:** Vercel-side pooled/direct fingerprint yok; deployment origin yok; `APP_ORIGIN`/`BETTER_AUTH_URL` için gözlenmiş exact origin yok; attestation yok; migration için staging backup/direct-only uygulama onayı yok.
 
 Bu düzeltme yerel izole çalışma ağacında hazırlanmıştır. GitHub push, Vercel env/deployment, Neon migration/seed ve provider işlemleri yapılmamıştır.
+
+## Push sonrası bootstrap notu — 2026-10-29
+
+Clean branch remote’u artık `60f6d96fc72afc5579b6fe537a21096f5befe23d` değerindedir. Mevcut 28 değişkenlik manifest ve apply script’i önceki remote SHA olan `15d9964d7e06dcc424cec62255b430a0544d6bc5` değerini taşımaya devam eder; Vercel’deki mevcut değişken bu turda değiştirilmemiştir. Yeni env/apply aşamasından önce expected SHA’nın yeni remote değerine güncellenmesi zorunludur.
+
+Attestation’sız clean bootstrap fingerprint yolu yerel takip adayı olarak eklendi ve şu koşullarla test edildi:
+
+- Clean branch ve expected SHA `60f6d96fc72afc5579b6fe537a21096f5befe23d`.
+- Güvenilir clean Vercel deployment hostu ve clean probe token.
+- Exact staging project/branch/database/pooled/direct host metadata.
+- Pooled ve direct URI üzerinde yalnız `begin read only` + fingerprint SELECT + `rollback`.
+- Yanıt `metadataAttested=false`, `bootstrapReadOnly=true`; business access gate yine kapalı.
+
+Bu takip adayı henüz remote branch’e push edilmedi. Gerçek yeni Preview’ın bootstrap fingerprint’e ulaşması için takip adayının ayrıca gözden geçirilip non-force push edilmesi gerekir. Orijinal müfredat, video, ortak beş PDF ve yedi PNG rozet için salt-okunur medya envanteri/dry-run sonraki paralel aşamadır; bu görevde R2 upload yapılmadı.

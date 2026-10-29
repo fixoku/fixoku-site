@@ -91,6 +91,7 @@ const adminGroups: NavGroup[] = [
     icon: "boxes",
     items: [
       ["package", "Öğrenci Paketleri", "/panel/admin/ogrenci-ticaret"],
+      ["user-check", "Ücretsiz Öğrenci Erişimleri", "/panel/admin/ogrenci-erisimleri"],
     ],
   },
   {
@@ -151,6 +152,7 @@ const ownerGroups: NavGroup[] = [
     icon: "boxes",
     items: [
       ["package", "Öğrenci Paketleri", "/panel/admin/ogrenci-ticaret"],
+      ["user-check", "Ücretsiz Öğrenci Erişimleri", "/panel/admin/ogrenci-erisimleri"],
       ["graduation", "Eğitmen Paketleri", "/panel/owner/egitmen-egitim-paketleri"],
     ],
   },

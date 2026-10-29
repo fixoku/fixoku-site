@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { StudentPanelShell } from "./StudentPanelShell";
+import { studentDisplayName } from "./studentDisplayName";
 import { TrainerQualificationBadgeR5 } from "../../shared/FixokuTrainerBadgeR5";
 import { resolveProfileImage } from "../panel/profileAvatar";
 import "./student-portal.css";
@@ -152,10 +153,7 @@ export function StudentPortalPage({
 
   const enrollments = useMemo(() => extractEnrollments(portal), [portal]);
 
-  const studentName =
-    `${profile.firstName || ""} ${profile.lastName || ""}`.trim() ||
-    user.name ||
-    "Öğrenci";
+  const studentName = studentDisplayName(profile.firstName, profile.lastName, user.name);
 
   const studentMeta = [
     profile.grade ? `${profile.grade}. Sınıf` : "",

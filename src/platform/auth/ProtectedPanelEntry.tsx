@@ -43,6 +43,34 @@ type PanelUiRole = "OWNER" | "ADMIN" | "TRAINER" | "STUDENT";
 type PanelContext = { user: { id: string; name: string; email: string }; roles: string[]; uiRole: PanelUiRole; destination: string | null; destinations?: string[]; selectionRequired?: boolean };
 function OwnerShell({ user, children }: { user: PanelContext["user"]; children: ReactNode }) { return <PanelShell user={user} role="OWNER">{children}</PanelShell>; }
 
+// Keep one in-flight/result context lookup per panel route. Several protected
+// views can mount during navigation; deduping the request avoids repeatedly
+// showing the full-screen auth state for the same session.
+const panelContextCache = new Map<string, { context?: PanelContext; promise?: Promise<PanelContext> }>();
+export function clearPanelContextCache() { panelContextCache.clear(); }
+async function readPanelContext(panelPath: string, required: boolean) {
+  const key = `${required ? "protected" : "generic"}:${panelPath}`;
+  const cached = panelContextCache.get(key);
+  if (cached?.context) return cached.context;
+  if (cached?.promise) return cached.promise;
+  const promise = fetch(`/api/panel-context${required ? `?panel=${encodeURIComponent(panelPath)}` : ""}`, { credentials: "include", cache: "no-store" })
+    .then(async (response) => {
+      if (!response.ok) {
+        panelContextCache.delete(key);
+        throw new Error(`PANEL_CONTEXT_${response.status}`);
+      }
+      const context = await response.json() as PanelContext;
+      panelContextCache.set(key, { context });
+      return context;
+    })
+    .catch((error) => {
+      panelContextCache.delete(key);
+      throw error;
+    });
+  panelContextCache.set(key, { promise });
+  return promise;
+}
+
 function LocalReviewToolbar({ context }: { context: PanelContext }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -86,10 +114,7 @@ export function ProtectedPanelEntry({ requiredRole, children }: { requiredRole?:
     let active = true;
     // New view aliases reuse the existing trainer permission checks and data APIs.
     const panelPath = location.pathname === "/panel/egitmen/hakedislerim" ? "/panel/egitmen/bakiyem" : location.pathname === "/panel/egitmen/paketler" ? "/panel/egitmen/egitimlerim" : location.pathname;
-    const query = requiredRole ? `?panel=${encodeURIComponent(panelPath)}` : "";
-    fetch(`/api/panel-context${query}`, { credentials: "include", cache: "no-store" }).then(async (response) => {
-      if (!response.ok) { if (active) setState({ status: "denied" }); return; }
-      const context = await response.json() as PanelContext;
+    readPanelContext(panelPath, Boolean(requiredRole)).then((context) => {
       if (active) setState({ status: "ready", context });
     }).catch(() => active && setState({ status: "denied" }));
     return () => { active = false; };

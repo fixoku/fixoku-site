@@ -37,8 +37,11 @@ async function queueOfferEmail(client, offer, token) {
   const link = offerLink(token);
   const subject = "Size özel Fixoku teklifiniz hazır";
   const body = `Merhaba,\n\n${offer.title}\n\nSize özel teklifinizi güvenli Fixoku panelinden inceleyebilirsiniz:\n${link}\n\nBu bağlantı yalnızca teklifin müşteri hesabı ve e-posta eşleşmesiyle açılır.`;
-  await queueEmailOutbox(client, { recipientUserId: offer.customer_user_id, eventType: "R6_CUSTOM_OFFER_SENT", recipientEmail: offer.customer_email, subject, body, metadata: { path: "/panel/ogrenci/paketler", reference: offer.id, packageName: offer.title }, dedupeKey: `r6-custom-offer-sent:${offer.id}:${offer.token_hash}` });
-  return { status: "QUEUED" };
+  // queueEmailOutbox persists the rendered record in notification_email_outbox;
+  // keeping that storage contract explicit prevents a send retry from being
+  // mistaken for an external SMTP delivery.
+  const queued = await queueEmailOutbox(client, { recipientUserId: offer.customer_user_id, eventType: "R6_CUSTOM_OFFER_SENT", recipientEmail: offer.customer_email, subject, body, metadata: { path: "/panel/ogrenci/paketler", reference: offer.id, packageName: offer.title }, dedupeKey: `r6-custom-offer-sent:${offer.id}:${offer.token_hash}` });
+  return { status: queued ? "QUEUED" : "TEMPLATE_UNAVAILABLE" };
 }
 
 async function readBody(req) {
@@ -206,6 +209,7 @@ async function insertOffer(client, principal, body) {
     for (const target of line.beneficiaries) await client.query("insert into r6_custom_offer_line_beneficiaries(offer_line_id,child_profile_id,student_profile_id,quantity) values($1,$2,$3,$4)", [inserted.id, target.childProfileId, target.studentProfileId, target.quantity]);
   }
   const email = requestedStatus === "SENT" ? await queueOfferEmail(client, row, token) : { status: "NOT_SENT" };
+  if (requestedStatus === "SENT" && email.status !== "QUEUED") throw Object.assign(new Error("OFFER_EMAIL_NOT_READY"), { status: 503 });
   await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'r6.custom_offer.created','r6_custom_offer',$2,'SUCCESS',$3,$4)", [principal.user.id, row.id, crypto.randomUUID(), JSON.stringify({ status: row.status, customerEmail: customer.customerEmail, lineCount: normalized.lines.length, listGrossMinor: row.list_gross_minor, specialGrossMinor: row.special_gross_minor, emailStatus: email.status })]);
   return { row, token, normalized, email };
 }
@@ -269,6 +273,7 @@ export default async function handler(req, res) {
         updated = (await client.query("update r6_custom_offers set status=$1,updated_at=now() where id=$2 returning *", [next, id])).rows[0];
       }
       const email = next === "SENT" ? await queueOfferEmail(client, updated, token) : { status: "NOT_SENT" };
+      if (next === "SENT" && email.status !== "QUEUED") throw Object.assign(new Error("OFFER_EMAIL_NOT_READY"), { status: 503 });
       await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,$2,'r6_custom_offer',$3,'SUCCESS',$4,$5)", [principal.user.id, `r6.custom_offer.${action}`, id, crypto.randomUUID(), JSON.stringify({ from: current.status, to: next, emailStatus: email.status })]);
       await client.query("commit");
       return json(res, 200, { offer: safeOffer(updated), ...(token ? { token, offerUrl: offerLink(token) } : {}), emailStatus: email.status });

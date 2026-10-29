@@ -78,13 +78,13 @@ async function assertParticipantEntitlements(client, input) {
     const owned = (await client.query(`
       select 1
       from package_entitlements pe
-      join orders o on o.id=pe.source_order_id and o.status in ('PAID','PARTIALLY_REFUNDED')
       join package_components pc on pc.package_version_id=pe.package_version_id and pc.is_active=true
       join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id)
         and ($3::uuid is null or pp.id=$3) and pp.r6_product_type='TRAINING_SERVICE' and pp.service_mode='GROUP' and pp.service_type=$6
       where pe.package_version_id=$4
         and pe.beneficiary_student_user_id=$1
         and pe.status='ACTIVE' and pe.revoked_at is null
+        and (pe.source_type='OWNER_MANUAL' or exists (select 1 from orders o where o.id=pe.source_order_id and o.status in ('PAID','PARTIALLY_REFUNDED')))
         and (
           ($2::uuid is not null and pe.beneficiary_child_profile_id=$2)
           or ($2::uuid is null and pe.beneficiary_child_profile_id is null
@@ -149,6 +149,7 @@ async function readGroupAssignmentCandidatesV22(client) {
       limit 1
     ) qd on true
     where pe.status='ACTIVE'
+      and (pe.source_type='OWNER_MANUAL' or exists (select 1 from orders o where o.id=pe.source_order_id and o.status in ('PAID','PARTIALLY_REFUNDED')))
       and pp.r6_product_type='TRAINING_SERVICE'
       and pp.service_mode='GROUP'
       and not exists (

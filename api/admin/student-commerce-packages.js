@@ -131,7 +131,32 @@ export async function replaceStructuredComponents(client, versionId, components,
   if (new Set(productIds).size !== productIds.length) throw bad("PACKAGE_PRODUCT_DUPLICATE", 409);
   const products = productIds.length ? (await client.query("select pp.id,pp.sku,pp.title,pp.product_type as \"productType\",pp.r6_product_type as \"r6ProductType\",pp.is_active as \"isActive\",coalesce(array_agg(scope.education_stage::text) filter(where scope.education_stage is not null),'{}') as \"stageScopes\" from physical_products pp left join r6_product_stage_scopes scope on scope.physical_product_id=pp.id where pp.id=any($1::uuid[]) group by pp.id", [productIds])).rows : [];
   if (products.length !== productIds.length || products.some((item) => !item.isActive || (educationStage && item.stageScopes.length && !item.stageScopes.includes(educationStage)))) throw bad("PACKAGE_PRODUCT_UNAVAILABLE", 409);
-  await client.query("delete from package_components where package_version_id=$1", [versionId]);
+  // Package components are immutable dependencies of pricing/order/family
+  // snapshots.  Deleting the whole set caused PostgreSQL 23001
+  // (restrict_violation) as soon as a previously published component had been
+  // referenced.  Reuse only unreferenced rows; referenced rows stay intact and
+  // are superseded by fresh draft rows.
+  const existing = (await client.query(`
+    select pc.*,
+      exists(select 1 from r6_package_component_pricing pcp where pcp.package_component_id=pc.id) as "hasPricingReference",
+      exists(select 1 from r6_order_component_snapshots ocs where ocs.package_component_id=pc.id) as "hasOrderReference",
+      exists(select 1 from family_offer_child_selections fcs where fcs.package_component_id=pc.id) as "hasFamilyReference"
+    from package_components pc
+    where pc.package_version_id=$1
+    order by pc.display_order,pc.id
+    for update
+  `, [versionId])).rows;
+  const reusable = existing.filter((row) => !row.hasPricingReference && !row.hasOrderReference && !row.hasFamilyReference);
+  const used = new Set();
+  const takeReusable = (componentType, productId, textIndex) => {
+    const match = reusable.find((row) => {
+      if (used.has(row.id) || row.component_type !== componentType) return false;
+      if (componentType === "TEXT_ITEM") return Number(row.display_order) === textIndex;
+      return String(row.physical_product_id || row.reference_id || "") === String(productId);
+    });
+    if (match) used.add(match.id);
+    return match || null;
+  };
   for (const [index, item] of components.entries()) {
     const componentType = String(item.componentType || "");
     // The array order is authoritative.  Persist a dense, deterministic order
@@ -141,7 +166,9 @@ export async function replaceStructuredComponents(client, versionId, components,
     if (componentType === "TEXT_ITEM") {
       const title = String(item.text ?? item.title ?? "").trim();
       if (!title || title.length > 4000) throw bad("TEXT_ITEM_INVALID");
-      await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) values($1,'TEXT_ITEM',null,null,$2,null,$3,1,$4,'{}')", [versionId, title, isActive, displayOrder]);
+      const prior = takeReusable("TEXT_ITEM", null, index);
+      if (prior) await client.query("update package_components set title_snapshot=$1,display_label=null,is_active=$2,quantity=1,display_order=$3,metadata_json='{}' where id=$4", [title, isActive, displayOrder, prior.id]);
+      else await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) values($1,'TEXT_ITEM',null,null,$2,null,$3,1,$4,'{}')", [versionId, title, isActive, displayOrder]);
       continue;
     }
     if (!["PHYSICAL_PRODUCT", "DIGITAL_ACCESS", "TRAINER_SERVICE"].includes(componentType)) throw bad("PACKAGE_COMPONENT_TYPE_INVALID");
@@ -153,8 +180,12 @@ export async function replaceStructuredComponents(client, versionId, components,
     if (!product || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 99) throw bad("PACKAGE_PRODUCT_INVALID");
     const expectedType = product.productType === "PHYSICAL" ? "PHYSICAL_PRODUCT" : product.productType === "SOFTWARE" || product.productType === "DIGITAL" ? "DIGITAL_ACCESS" : "TRAINER_SERVICE";
     if (componentType !== expectedType) throw bad("PACKAGE_COMPONENT_PRODUCT_TYPE_INVALID");
-    await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)", [versionId, componentType, productId, componentType === "PHYSICAL_PRODUCT" ? productId : null, product.title, displayLabel, isActive, quantity, displayOrder, JSON.stringify({ sku: product.sku, fulfillmentType: product.productType, r6ProductType: product.r6ProductType })]);
+    const prior = takeReusable(componentType, productId, index);
+    const metadata = JSON.stringify({ sku: product.sku, fulfillmentType: product.productType, r6ProductType: product.r6ProductType });
+    if (prior) await client.query("update package_components set reference_id=$1,physical_product_id=$2,title_snapshot=$3,display_label=$4,is_active=$5,quantity=$6,display_order=$7,metadata_json=$8 where id=$9", [productId, componentType === "PHYSICAL_PRODUCT" ? productId : null, product.title, displayLabel, isActive, quantity, displayOrder, metadata, prior.id]);
+    else await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)", [versionId, componentType, productId, componentType === "PHYSICAL_PRODUCT" ? productId : null, product.title, displayLabel, isActive, quantity, displayOrder, metadata]);
   }
+  if (existing.length) await client.query("update package_components set is_active=false where package_version_id=$1 and not (id=any($2::uuid[]))", [versionId, [...used]]);
 }
 
 // Published versions are immutable. Resolve an editable draft while holding

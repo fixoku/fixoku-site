@@ -62,6 +62,7 @@ export function PanelTopbar({
     "/panel/admin/egitmenler": "Eğitmenler",
     "/panel/admin/egitmen-ticaret": "Eğitmenler",
     "/panel/admin/ogrenci-ticaret": "Öğrenci Paketleri",
+    "/panel/admin/ogrenci-erisimleri": "Ücretsiz Öğrenci Erişimleri",
     "/panel/admin/siparisler": "Siparişler",
     "/panel/owner/iadeler": "İade çalışma alanı",
     "/panel/admin/kargo": "Kargo",

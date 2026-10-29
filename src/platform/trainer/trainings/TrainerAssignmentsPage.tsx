@@ -157,7 +157,6 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
           {done(current.status)?<span className="ta4-pill done">Tamamlandı</span>:<button className="ta4-btn finish" type="button" disabled={!canComplete(current)||!!busy} onClick={()=>void finish(current)}>{canComplete(current)?'✓ Eğitim Tamamlandı':'♙ Eğitim Tamamlandı'}</button>}
         </footer>
       </section>}
-      <p className="ta4-local-note">Yerel test: Planlama kayıtları bu sunucuda tutulur. Canlı kullanım öncesinde veritabanına taşınmalıdır.</p>
       <div className="fixoku-assignments-refresh-bottom-020t"><button type="button" className="ta4-refresh" onClick={()=>void load()} disabled={loading||!!busy}>↻ Yenile</button></div>
     </main>
   </PanelShell>;

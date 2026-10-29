@@ -50,6 +50,7 @@ import { AdminTrainerCommercePage } from "./platform/admin/AdminTrainerCommerceP
 // FIXOKU_020J_OWNER_TRAINER_PACKAGES
 import { OwnerTrainerPackagesPage } from "./platform/admin/OwnerTrainerPackagesPage";
 import { AdminStudentCommercePage } from "./platform/admin/AdminStudentCommercePage";
+import { AdminStudentEntitlementsPage } from "./platform/admin/AdminStudentEntitlementsPage";
 import { AdminOrdersPage } from "./platform/admin/AdminOrdersPage";
 import { AdminPaymentsPage } from "./platform/admin/AdminPaymentsPage";
 import { AdminStudentsPage } from "./platform/admin/AdminStudentsPage";
@@ -66,6 +67,7 @@ function ProtectedAdminAssignments(){return <ProtectedPanelEntry requiredRole={[
 function ProtectedAdminTrainerCommerce(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminTrainerCommercePage /></ManagementShell>}</ProtectedPanelEntry>}
 function ProtectedOwnerTrainerPackages(){return <ProtectedPanelEntry requiredRole="OWNER">{({user})=><OwnerShell user={user}><OwnerTrainerPackagesPage /></OwnerShell>}</ProtectedPanelEntry>}
 function ProtectedAdminStudentCommerce(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminStudentCommercePage /></ManagementShell>}</ProtectedPanelEntry>}
+function ProtectedAdminStudentEntitlements(){return <ProtectedPanelEntry requiredRole="OWNER">{({user})=><OwnerShell user={user}><AdminStudentEntitlementsPage /></OwnerShell>}</ProtectedPanelEntry>}
 function ProtectedAdminOrders(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminOrdersPage /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
 function ProtectedAdminPayments(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminPaymentsPage /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
 function ProtectedAdminStudents(){return <ProtectedPanelEntry requiredRole={["OWNER","SUPER_ADMIN"]}>{({user,uiRole})=><ManagementShell user={user} uiRole={uiRole}><AdminQueryProvider><AdminStudentsPage /></AdminQueryProvider></ManagementShell>}</ProtectedPanelEntry>}
@@ -221,6 +223,7 @@ export default function AppRoutes() {
         <Route path="/panel/admin/egitmen-ticaret" element={<ProtectedAdminTrainerCommerce />} />
 <Route path="/panel/owner/egitmen-egitim-paketleri" element={<ProtectedOwnerTrainerPackages />} />
         <Route path="/panel/admin/ogrenci-ticaret" element={<ProtectedAdminStudentCommerce />} />
+        <Route path="/panel/admin/ogrenci-erisimleri" element={<ProtectedAdminStudentEntitlements />} />
         <Route path="/panel/admin/siparisler" element={<ProtectedAdminOrders />} />
         <Route path="/panel/admin/odemeler" element={<ProtectedAdminPayments />} />
         <Route path="/panel/admin/ogrenciler" element={<ProtectedAdminStudents />} />

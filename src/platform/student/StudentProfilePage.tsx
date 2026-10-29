@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { StudentPanelShell } from "./StudentPanelShell";
+import { studentDisplayName } from "./studentDisplayName";
 import { TrainerIcon as PanelIcon } from "../trainer/components/TrainerIcon";
 import { TURKEY_LOCATIONS, getTurkeyDistricts } from "../../data/turkeyLocations.js";
 import "../trainer/profile/trainer-profile.css";
@@ -654,11 +655,7 @@ export function StudentProfilePage({
                     </p>
                   )}
 
-                  <h3>
-                    {profile.firstName || user.name.split(" ")[0]}{" "}
-                    {profile.lastName ||
-                      user.name.split(" ").slice(1).join(" ")}
-                  </h3>
+                  <h3>{studentDisplayName(profile.firstName, profile.lastName, user.name)}</h3>
 
                   <p className="student-profile-role-text">Öğrenci</p>
 

@@ -1,5 +1,6 @@
 import pg from "pg";
 import { auth, candidateAuth } from "../src/server/auth/auth.js";
+import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 
 async function readPayload(request) {
   if (request.body && typeof request.body === "object") return { value: request.body, raw: JSON.stringify(request.body) };
@@ -52,6 +53,7 @@ async function pendingTrainerCandidate(email) {
 
 // Same Better Auth login, explicit Vercel endpoint for trainer/student access.
 export default async function handler(request, response) {
+  if (!cleanPreviewGateResponse(response)) return;
   response.setHeader("Cache-Control", "no-store");
   if (request.method !== "POST") {
     response.statusCode = 405;

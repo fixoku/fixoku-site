@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { createDb } from "../db/client.js";
 import { memberships, users } from "../db/schema.js";
 import { localReviewRuntimeAllowed } from "./local-review-runtime.js";
+import { isCleanPreviewBusinessAccessBlocked } from "./preview-contract.js";
 
 export const ROLE_PANEL = Object.freeze({ OWNER: "/panel/owner", SUPER_ADMIN: "/panel/admin", TRAINER: "/panel/egitmen", STUDENT: "/panel/ogrenci", GUARDIAN: "/panel/ogrenci" });
 export const PACKAGE_PERMISSIONS = Object.freeze({ READ: "PACKAGE_READ", CREATE: "PACKAGE_CREATE", EDIT: "PACKAGE_EDIT", PRICE_EDIT: "PACKAGE_PRICE_EDIT", PUBLISH: "PACKAGE_PUBLISH" });
@@ -44,6 +45,10 @@ export function validScopeType(membership, ownerId = undefined) {
 
 /** No session returns null; authenticated principals with no valid membership are retained for 403. */
 export async function resolvePrincipal(headers) {
+  // A missing clean Preview attestation is treated as no authenticated
+  // principal. This keeps every caller that performs a principal check
+  // fail-closed without changing legacy R98 or Production behavior.
+  if (isCleanPreviewBusinessAccessBlocked()) return null;
   const { auth } = await import("./auth.js");
   const session = await auth.api.getSession({ headers, query: { disableCookieCache: true } });
   if (!session) return null;
@@ -61,11 +66,13 @@ export async function resolvePrincipal(headers) {
 }
 
 export async function requireSession(headers) {
+  if (isCleanPreviewBusinessAccessBlocked()) return { status: 503, body: { error: "CLEAN_PREVIEW_RUNTIME_UNVERIFIED" } };
   const principal = await resolvePrincipal(headers);
   return principal ? { principal } : { status: 401, body: { error: "UNAUTHENTICATED" } };
 }
 
 export function requireMembership(principal, role, options = {}) {
+  if (isCleanPreviewBusinessAccessBlocked()) return { status: 503, body: { error: "CLEAN_PREVIEW_RUNTIME_UNVERIFIED" } };
   if (["OWNER", "SUPER_ADMIN"].includes(role) && privilegedTwoFactorRequired(principal)) return { status: 403, body: { error: "TWO_FACTOR_REQUIRED" } };
   if (!principal) return { status: 401, body: { error: "UNAUTHENTICATED" } };
   const matches = principal.memberships.filter((m) => m.role === role && validScopeType(m));
@@ -75,6 +82,7 @@ export function requireMembership(principal, role, options = {}) {
 export function requireRole(principal, role) { return requireMembership(principal, role); }
 
 export function requirePermission(principal, permission, resource = undefined) {
+  if (isCleanPreviewBusinessAccessBlocked()) return { status: 503, body: { error: "CLEAN_PREVIEW_RUNTIME_UNVERIFIED" } };
   if (privilegedTwoFactorRequired(principal)) return { status: 403, body: { error: "TWO_FACTOR_REQUIRED" } };
   if (!principal) return { status: 401, body: { error: "UNAUTHENTICATED" } };
   if (!KNOWN_PERMISSIONS.has(permission) || !principal.memberships.some((m) => validScopeType(m) && ROLE_PERMISSIONS[m.role].includes(permission))) return { status: 403, body: { error: "FORBIDDEN" } };
@@ -83,6 +91,7 @@ export function requirePermission(principal, permission, resource = undefined) {
 }
 
 export async function requirePackagePermission(client, principal, permission) {
+  if (isCleanPreviewBusinessAccessBlocked()) return { status: 503, body: { error: "CLEAN_PREVIEW_RUNTIME_UNVERIFIED" } };
   if (!Object.values(PACKAGE_PERMISSIONS).includes(permission)) return { status: 403, body: { error: "FORBIDDEN" } };
   if (!principal) return { status: 401, body: { error: "UNAUTHENTICATED" } };
   if (privilegedTwoFactorRequired(principal)) return { status: 403, body: { error: "TWO_FACTOR_REQUIRED" } };

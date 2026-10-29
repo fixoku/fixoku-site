@@ -1,10 +1,12 @@
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "../../src/server/auth/auth.js";
 import { getEmailTransportStatus } from "../../src/server/domain/email-outbox.js";
+import { cleanPreviewGateResponse } from "../../src/server/auth/preview-contract.js";
 
 const authHandler = toNodeHandler(auth);
 
 export default function handler(request, response) {
+  if (!cleanPreviewGateResponse(response)) return;
   let pathname;
   try { pathname = decodeURIComponent(new URL(request.url, "http://local").pathname).replace(/\/+$/u, ""); }
   catch { response.statusCode = 400; response.end(); return; }

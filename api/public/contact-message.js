@@ -1,6 +1,7 @@
 /* Fixoku public contact email endpoint. Disabled until server SMTP and Turnstile are configured. */
 import nodemailer from "nodemailer";
 import { getSmtpConfig } from "../../src/server/domain/email-outbox.js";
+import { cleanPreviewGateResponse } from "../../src/server/auth/preview-contract.js";
 
 const RECIPIENT = "destek@fixoku.com";
 const SUBJECTS = new Set([
@@ -18,6 +19,7 @@ const safeText = (s) => Array.from(String(s)).filter((char) => {
 const validEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(s) && s.length <= 254;
 
 export default async function handler(req, res) {
+  if (!cleanPreviewGateResponse(res)) return;
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });

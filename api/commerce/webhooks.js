@@ -1,11 +1,13 @@
 import pg from "pg";
 import { fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
+import { cleanPreviewGateResponse } from "../../src/server/auth/preview-contract.js";
 
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };
 async function body(req) { let raw = ""; for await (const chunk of req) raw += chunk; try { return raw ? JSON.parse(raw) : {}; } catch { throw Object.assign(new Error("INVALID_JSON"), { status: 400 }); } }
 
 /** Provider-neutral webhook boundary. A configured shared secret is required before production wiring. */
 export default async function handler(req, res) {
+  if (!cleanPreviewGateResponse(res)) return;
   if (req.method !== "POST") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   if (!process.env.COMMERCE_WEBHOOK_SECRET) return json(res, 503, { error: "PAYMENT_PROVIDER_NOT_CONFIGURED" });
   const supplied = String(req.headers["x-commerce-webhook-secret"] || "");

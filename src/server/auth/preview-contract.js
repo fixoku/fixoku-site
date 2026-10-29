@@ -29,6 +29,7 @@ export const PREVIEW_CONTRACTS = Object.freeze({
     deploymentHostPattern: /^fixoku-site-(?:git-codex-r97g-staging-preview-20261027|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
     forbiddenCommits: Object.freeze([
       "1483683e96883b01549739eddef9cbc23eb76dfb",
+      "15d9964d7e06dcc424cec62255b430a0544d6bc5",
     ]),
   }),
   cleanIntegration: Object.freeze({
@@ -59,6 +60,19 @@ export const PREVIEW_CONTRACTS = Object.freeze({
 const CONTRACTS_BY_BRANCH = new Map(
   Object.values(PREVIEW_CONTRACTS).map((contract) => [contract.branch, contract]),
 );
+
+export const CLEAN_STAGING_METADATA = Object.freeze({
+  project: "damp-night-76577929",
+  branch: "br-solitary-scene-ba3d7ejb",
+  database: "neondb",
+  endpoint: "ep-dark-math-baw61g90",
+  regionSuffix: "c-8.eu-central-1.aws.neon.tech",
+});
+
+export const CLEAN_STAGING_HOSTS = Object.freeze({
+  pooled: `${CLEAN_STAGING_METADATA.endpoint}-pooler.${CLEAN_STAGING_METADATA.regionSuffix}`,
+  direct: `${CLEAN_STAGING_METADATA.endpoint}.${CLEAN_STAGING_METADATA.regionSuffix}`,
+});
 
 export function previewContractForBranch(branch) {
   return CONTRACTS_BY_BRANCH.get(String(branch || "").trim()) || null;
@@ -91,5 +105,67 @@ export function previewContractEnvironment(contract, env = process.env) {
     && String(env.VERCEL_GIT_COMMIT_REF || "").trim() === contract.branch
     && exactPreviewCommit(contract, env)
     && env[contract.probeEnabledEnv] === "1";
+}
+
+export function trustedPreviewDeploymentHost(contract, env = process.env) {
+  const raw = String(env?.VERCEL_URL || "").trim();
+  if (!raw) return false;
+  try {
+    const url = new URL(/^https?:\/\//u.test(raw) ? raw : `https://${raw}`);
+    return url.protocol === "https:"
+      && !url.username
+      && !url.password
+      && url.pathname === "/"
+      && !url.search
+      && !url.hash
+      && !url.port
+      && isContractDeploymentHost(contract, url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+export function exactPreviewContractEnvironment(contract, env = process.env) {
+  return previewContractEnvironment(contract, env) && trustedPreviewDeploymentHost(contract, env);
+}
+
+/**
+ * This is an operator attestation, not a database query. It is deliberately
+ * exact and branch-scoped; callers must still perform the independent pooled
+ * and direct read-only fingerprints before setting the attestation value.
+ */
+export function previewContractMetadataAttested(contract, env = process.env) {
+  if (!contract) return false;
+  const metadata = contract.metadata;
+  const normalizeHost = (value) => String(value || "").trim().toLowerCase();
+  return env[metadata.attested] === "1"
+    && env[metadata.project] === CLEAN_STAGING_METADATA.project
+    && env[metadata.branch] === CLEAN_STAGING_METADATA.branch
+    && env[metadata.database] === CLEAN_STAGING_METADATA.database
+    && normalizeHost(env[metadata.pooledHost]) === CLEAN_STAGING_HOSTS.pooled
+    && normalizeHost(env[metadata.directHost]) === CLEAN_STAGING_HOSTS.direct;
+}
+
+/**
+ * Business access is fail-closed only for the new clean Preview contract.
+ * Legacy R98 and Production do not consult this gate.
+ */
+export function isCleanPreviewBusinessAccessBlocked(env = process.env) {
+  const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+  const isCleanPreview = contract === PREVIEW_CONTRACTS.cleanIntegration
+    && env.VERCEL === "1"
+    && String(env.VERCEL_ENV || "").trim().toLowerCase() === "preview";
+  return isCleanPreview
+    && (!exactPreviewContractEnvironment(contract, env) || !previewContractMetadataAttested(contract, env));
+}
+
+export function cleanPreviewGateResponse(res, env = process.env) {
+  if (!isCleanPreviewBusinessAccessBlocked(env)) return true;
+  res.statusCode = 503;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.end(JSON.stringify({ error: "CLEAN_PREVIEW_RUNTIME_UNVERIFIED" }));
+  return false;
 }
 

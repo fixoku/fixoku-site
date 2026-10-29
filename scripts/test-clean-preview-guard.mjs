@@ -16,7 +16,7 @@ import { privilegedTwoFactorRequired } from "../src/server/auth/authorization.js
 const OLD_BRANCH = "codex/r97g-staging-preview-20261027";
 const OLD_SHA = "f1167d8b0afe8bc30da85369d277316d9ffaa3c3";
 const NEW_BRANCH = "codex/fixoku-clean-integration-20261029";
-const NEW_SHA = "1483683e96883b01549739eddef9cbc23eb76dfb";
+const NEW_SHA = "15d9964d7e06dcc424cec62255b430a0544d6bc5";
 const OLD_ORIGIN = "https://fixoku-site-git-codex-r97g-staging-preview-20261027-fixoku.vercel.app";
 const NEW_ORIGIN = "https://fixoku-site-git-codex-fixoku-clean-integration-20261029-fixoku.vercel.app";
 

@@ -2,10 +2,12 @@ import pg from "pg";
 import { paytrRuntime, verifyPaytrCallback } from "../../src/server/payments/paytr.js";
 import { fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
 import { fulfillTrainerOrder } from "../../src/server/domain/trainer-commerce.js";
+import { cleanPreviewGateResponse } from "../../src/server/auth/preview-contract.js";
 
 const text = (res, status, value) => { res.statusCode = status; res.setHeader("Content-Type", "text/plain; charset=utf-8"); res.end(value); };
 async function fields(req) { let raw = ""; for await (const chunk of req) raw += chunk; return Object.fromEntries(new URLSearchParams(raw)); }
 export default async function handler(req, res) {
+  if (!cleanPreviewGateResponse(res)) return;
   if (req.method !== "POST") return text(res, 405, "METHOD_NOT_ALLOWED");
   if (!paytrRuntime().configured) return text(res, 503, "PAYTR_CONFIG_REQUIRED");
   let payload; try { payload = await fields(req); } catch { return text(res, 400, "BAD_REQUEST"); }

@@ -1,13 +1,22 @@
-/* R97G16 temporary Preview-only runtime fingerprint.
+/* Preview-only runtime fingerprint guard.
  * Neon project/branch metadata remains an operator attestation. The endpoint
- * additionally requires the exact expected pooled/direct hostnames below.
- * This route is intentionally fail-closed and should be removed after acceptance.
+ * additionally requires the exact expected pooled/direct hostnames below and
+ * a source-controlled branch contract. This route is intentionally fail-closed
+ * and should be removed after acceptance.
  */
 import { timingSafeEqual } from "node:crypto";
 import pg from "pg";
+import {
+  PREVIEW_CONTRACTS,
+  isContractDeploymentHost,
+  previewContractForBranch,
+  previewContractEnvironment,
+} from "../../src/server/auth/preview-contract.js";
 
-const EXPECTED_BRANCH = "codex/r97g-staging-preview-20261027";
-export const EXPECTED_COMMIT_ENV = "R97G_RUNTIME_EXPECTED_COMMIT_SHA";
+export const EXPECTED_BRANCH = PREVIEW_CONTRACTS.legacyR98.branch;
+export const EXPECTED_CLEAN_BRANCH = PREVIEW_CONTRACTS.cleanIntegration.branch;
+export const EXPECTED_COMMIT_ENV = PREVIEW_CONTRACTS.legacyR98.expectedCommitEnv;
+export const CLEAN_EXPECTED_COMMIT_ENV = PREVIEW_CONTRACTS.cleanIntegration.expectedCommitEnv;
 const EXPECTED_PROJECT = "damp-night-76577929";
 const EXPECTED_BRANCH_ID = "br-solitary-scene-ba3d7ejb";
 const EXPECTED_DATABASE = "neondb";
@@ -15,7 +24,6 @@ const EXPECTED_ENDPOINT_ID = "ep-dark-math-baw61g90";
 const EXPECTED_REGION_SUFFIX = "c-8.eu-central-1.aws.neon.tech";
 export const EXPECTED_POOLED_HOST = EXPECTED_ENDPOINT_ID + "-pooler." + EXPECTED_REGION_SUFFIX;
 export const EXPECTED_DIRECT_HOST = EXPECTED_ENDPOINT_ID + "." + EXPECTED_REGION_SUFFIX;
-const TOKEN_HEADER = "x-fixoku-r97g-runtime-token";
 const BEGIN_READ_ONLY_SQL = "begin read only";
 export const FINGERPRINT_SQL = [
   "select current_database() as database,",
@@ -57,29 +65,38 @@ function normalizeHost(value) {
   return host;
 }
 
-function expectedPreviewCommit(env) {
-  const commit = String(env?.[EXPECTED_COMMIT_ENV] || "").trim().toLowerCase();
-  return /^[0-9a-f]{40}$/u.test(commit) ? commit : "";
+function hasTrustedDeploymentUrl(env, contract) {
+  const raw = String(env?.VERCEL_URL || "").trim();
+  if (!raw) return false;
+  try {
+    const url = new URL(/^https?:\/\//u.test(raw) ? raw : `https://${raw}`);
+    return url.protocol === "https:"
+      && !url.username
+      && !url.password
+      && url.pathname === "/"
+      && !url.search
+      && !url.hash
+      && !url.port
+      && isContractDeploymentHost(contract, url.hostname);
+  } catch {
+    return false;
+  }
 }
 
 export function isExactPreviewEnvironment(env = process.env) {
-  const expectedCommit = expectedPreviewCommit(env);
-  const actualCommit = String(env.VERCEL_GIT_COMMIT_SHA || "").trim().toLowerCase();
-  return env.VERCEL === "1"
-    && env.VERCEL_ENV === "preview"
-    && env.VERCEL_GIT_COMMIT_REF === EXPECTED_BRANCH
-    && Boolean(expectedCommit)
-    && actualCommit === expectedCommit
-    && env.R97G_RUNTIME_PROBE_ENABLED === "1";
+  const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+  return previewContractEnvironment(contract, env) && hasTrustedDeploymentUrl(env, contract);
 }
 
-export function hasOperatorNeonMetadataAttestation(env = process.env) {
-  const pooledHost = normalizeHost(env.R97G_STAGING_POOLED_HOST);
-  const directHost = normalizeHost(env.R97G_STAGING_DIRECT_HOST);
-  return env.R97G_STAGING_ENDPOINT_METADATA_ATTESTED === "1"
-    && env.R97G_STAGING_PROJECT_ID === EXPECTED_PROJECT
-    && env.R97G_STAGING_BRANCH_ID === EXPECTED_BRANCH_ID
-    && env.R97G_STAGING_DATABASE === EXPECTED_DATABASE
+export function hasOperatorNeonMetadataAttestation(env = process.env, contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF)) {
+  if (!contract) return false;
+  const metadata = contract.metadata;
+  const pooledHost = normalizeHost(env[metadata.pooledHost]);
+  const directHost = normalizeHost(env[metadata.directHost]);
+  return env[metadata.attested] === "1"
+    && env[metadata.project] === EXPECTED_PROJECT
+    && env[metadata.branch] === EXPECTED_BRANCH_ID
+    && env[metadata.database] === EXPECTED_DATABASE
     && pooledHost === EXPECTED_POOLED_HOST
     && directHost === EXPECTED_DIRECT_HOST;
 }
@@ -95,7 +112,9 @@ function parseStagingConnection(rawUrl, kind, env) {
   if (!["postgres:", "postgresql:"].includes(parsed.protocol)) throw new Error("RUNTIME_DATABASE_PROTOCOL_INVALID");
   const host = normalizeHost(parsed.hostname);
   const expectedHost = kind === "pooled" ? EXPECTED_POOLED_HOST : EXPECTED_DIRECT_HOST;
-  const attestedHost = normalizeHost(kind === "pooled" ? env.R97G_STAGING_POOLED_HOST : env.R97G_STAGING_DIRECT_HOST);
+  const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+  const metadata = contract?.metadata;
+  const attestedHost = normalizeHost(metadata && env[kind === "pooled" ? metadata.pooledHost : metadata.directHost]);
   if (host !== expectedHost || attestedHost !== expectedHost) {
     throw new Error("RUNTIME_DATABASE_ENDPOINT_METADATA_MISMATCH");
   }
@@ -159,13 +178,14 @@ export function createRuntimeFingerprintHandler({ poolFactory = defaultPoolFacto
     const env = process.env;
     if (!isExactPreviewEnvironment(env)) return json(res, 404, { error: "RUNTIME_FINGERPRINT_NOT_FOUND" });
 
-    const expectedToken = String(env.R97G_RUNTIME_PROBE_TOKEN || "");
-    const providedToken = getHeader(req, TOKEN_HEADER);
+    const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+    const expectedToken = String(env[contract.probeTokenEnv] || "");
+    const providedToken = getHeader(req, contract.probeTokenHeader);
     if (!constantTimeTokenMatch(providedToken, expectedToken)) {
       return json(res, 404, { error: "RUNTIME_FINGERPRINT_NOT_FOUND" });
     }
 
-    if (!hasOperatorNeonMetadataAttestation(env)) {
+    if (!hasOperatorNeonMetadataAttestation(env, contract)) {
       return json(res, 503, { error: "RUNTIME_METADATA_UNAVAILABLE" });
     }
 
@@ -187,7 +207,7 @@ export function createRuntimeFingerprintHandler({ poolFactory = defaultPoolFacto
         ok: true,
         metadataAttested: true,
         environment: "preview",
-        branch: EXPECTED_BRANCH,
+        branch: contract.branch,
         commit: String(env.VERCEL_GIT_COMMIT_SHA).trim().toLowerCase(),
         connections: { pooled, direct },
       });

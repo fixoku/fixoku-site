@@ -14,13 +14,15 @@ import {
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const endpointSource = fs.readFileSync(path.join(root, "api/internal/r97g-runtime-fingerprint.js"), "utf8");
-const COMMIT = "afa5371f7b40182185242c647c6890f195dbb2ef";
+const contractSource = fs.readFileSync(path.join(root, "src/server/auth/preview-contract.js"), "utf8");
+const COMMIT = "f1167d8b0afe8bc30da85369d277316d9ffaa3c3";
 const TOKEN = "r97g-runtime-token-012345678901234567890123456789";
 const BASE_ENV = {
   VERCEL: "1",
   VERCEL_ENV: "preview",
   VERCEL_GIT_COMMIT_REF: "codex/r97g-staging-preview-20261027",
   VERCEL_GIT_COMMIT_SHA: COMMIT,
+  VERCEL_URL: "fixoku-site-git-codex-r97g-staging-preview-20261027-fixoku.vercel.app",
   [EXPECTED_COMMIT_ENV]: COMMIT,
   R97G_RUNTIME_PROBE_ENABLED: "1",
   R97G_RUNTIME_PROBE_TOKEN: TOKEN,
@@ -187,9 +189,11 @@ for (const changes of [
 assert.doesNotMatch(endpointSource, /insert\s+into|update\s+\w+\s+set|delete\s+from|create\s+table|alter\s+table|drop\s+table|drizzle-kit|migrat(?:e|ion)|seed/iu);
 assert.match(endpointSource, /begin read only/u);
 assert.match(endpointSource, /transaction_read_only/u);
-assert.match(endpointSource, /R97G_STAGING_PROJECT_ID/u);
-assert.match(endpointSource, /R97G_STAGING_BRANCH_ID/u);
-assert.match(endpointSource, /R97G_RUNTIME_EXPECTED_COMMIT_SHA/u);
+assert.match(contractSource, /R97G_STAGING_PROJECT_ID/u);
+assert.match(contractSource, /R97G_STAGING_BRANCH_ID/u);
+assert.match(contractSource, /R97G_RUNTIME_EXPECTED_COMMIT_SHA/u);
+assert.match(contractSource, /FIXOKU_CLEAN_STAGING_PROJECT_ID/u);
+assert.match(contractSource, /FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA/u);
 assert.match(endpointSource, /EXPECTED_POOLED_HOST/u);
 assert.match(endpointSource, /metadataAttested/u);
 console.log("R97G16_RUNTIME_FINGERPRINT_TEST=PASS");

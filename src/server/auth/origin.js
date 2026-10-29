@@ -1,11 +1,14 @@
 /* global process */
 
+import {
+  PREVIEW_CONTRACTS,
+  exactPreviewCommit,
+  isContractDeploymentHost,
+  previewContractForBranch,
+} from "./preview-contract.js";
+
 const PRODUCTION_HOSTS = new Set(["fixoku.com", "www.fixoku.com"]);
-const PREVIEW_ALIASES = new Set(["staging.fixoku.com"]);
-const VERCEL_PROJECT_HOST = /^fixoku-site-[a-z0-9-]+\.vercel\.app$/u;
-const PREVIEW_BRANCH = "codex/r97g-staging-preview-20261027";
-const PREVIEW_BRANCH_ORIGIN = "https://fixoku-site-git-codex-r97g-staging-preview-20261027-fixoku.vercel.app";
-const PREVIEW_COMMIT_ENV = "R97G_RUNTIME_EXPECTED_COMMIT_SHA";
+const VERCEL_PROJECT_HOST = /^fixoku-site(?:-[a-z0-9-]+)?-fixoku\.vercel\.app$/u;
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 
 /**
@@ -23,18 +26,16 @@ export function resolveApplicationOrigin(env = process.env) {
   const configured = configuredOrigin(env);
 
   if (vercelEnvironment === "preview") {
-    if (String(env.VERCEL_URL || "").trim() && (!deployment || !isVercelPreviewOrigin(deployment))) return null;
+    const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+    // Preview identity comes from Vercel system metadata. Unknown branches,
+    // missing deployment URLs, and stale expected-commit values fail closed.
+    if (!contract || !deployment || !isVercelPreviewOrigin(deployment, contract) || !exactPreviewCommit(contract, env)) return null;
     if (hasConfigured && !configured) return null;
     if (configured) {
-      if (!isApprovedPreviewOrigin(configured)) return null;
-      if (configured.origin === PREVIEW_BRANCH_ORIGIN) {
-        if (!isVerifiedTargetPreview(env)) return null;
-        return configured.origin;
-      }
-      if (deployment && isVercelPreviewOrigin(configured) && configured.host !== deployment.host) return null;
+      if (!isApprovedPreviewOrigin(configured, contract, deployment)) return null;
       return configured.origin;
     }
-    return deployment?.origin || null;
+    return deployment.origin;
   }
 
   if (hasConfigured && !configured) return null;
@@ -93,22 +94,21 @@ function isProductionOrigin(value) {
   return value.protocol === "https:" && PRODUCTION_HOSTS.has(value.host);
 }
 
-function isVercelPreviewOrigin(value) {
-  return value.protocol === "https:" && VERCEL_PROJECT_HOST.test(value.host);
+function isVercelPreviewOrigin(value, contract) {
+  return value.protocol === "https:"
+    && VERCEL_PROJECT_HOST.test(value.host)
+    && isContractDeploymentHost(contract, value.host);
 }
 
-function isVerifiedTargetPreview(env) {
-  if (String(env?.VERCEL_ENV || "").trim().toLowerCase() !== "preview") return false;
-  if (String(env?.VERCEL_GIT_COMMIT_REF || "").trim() !== PREVIEW_BRANCH) return false;
-  const actualCommit = String(env?.VERCEL_GIT_COMMIT_SHA || "").trim().toLowerCase();
-  const expectedCommit = String(env?.[PREVIEW_COMMIT_ENV] || "").trim().toLowerCase();
-  return /^[0-9a-f]{40}$/u.test(actualCommit)
-    && /^[0-9a-f]{40}$/u.test(expectedCommit)
-    && actualCommit === expectedCommit;
-}
-
-function isApprovedPreviewOrigin(value) {
-  return value.protocol === "https:" && (PREVIEW_ALIASES.has(value.host) || isVercelPreviewOrigin(value));
+function isApprovedPreviewOrigin(value, contract, deployment) {
+  if (!contract || value.protocol !== "https:") return false;
+  // The clean branch is deployment-origin only. It may not reuse the legacy
+  // alias or branch URL, even when both APP_ORIGIN and BETTER_AUTH_URL match.
+  if (contract === PREVIEW_CONTRACTS.cleanIntegration) return value.origin === deployment.origin;
+  // The legacy branch retains its fixed alias/branch origin contract. A
+  // generated deployment origin is accepted only when it is Vercel's current
+  // deployment metadata, never an arbitrary vercel.app host.
+  return contract.fixedOrigins.includes(value.origin) || value.origin === deployment.origin;
 }
 
 function isLocalOrigin(value) {

@@ -10,7 +10,6 @@ import {
   FINGERPRINT_SQL,
   hasOperatorNeonMetadataAttestation,
   hasCleanBootstrapMetadata,
-  hasVercelOidcAuthorization,
   isExactPreviewEnvironment,
 } from "../api/internal/r97g-runtime-fingerprint.js";
 
@@ -126,22 +125,10 @@ const CLEAN_ENV = {
 assert.equal(isExactPreviewEnvironment(CLEAN_ENV), true);
 assert.equal(hasOperatorNeonMetadataAttestation(CLEAN_ENV), false);
 assert.equal(hasCleanBootstrapMetadata(CLEAN_ENV), true);
-assert.equal(hasVercelOidcAuthorization({
-  headers: {
-    host: "fixoku-site-git-codex-fixoku-clean-integration-20261029-fixoku.vercel.app",
-    "x-fixoku-vercel-oidc-token": CLEAN_ENV.VERCEL_OIDC_TOKEN,
-  },
-}, CLEAN_ENV), true);
-assert.equal(hasVercelOidcAuthorization({
-  headers: {
-    host: "staging.fixoku.com",
-    "x-fixoku-vercel-oidc-token": CLEAN_ENV.VERCEL_OIDC_TOKEN,
-  },
-}, CLEAN_ENV), false);
 
 await withEnv(CLEAN_ENV, async () => {
   const calls = [];
-  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls) });
+  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls), oidcVerifier: async () => true });
   const response = responseRecorder();
   await handler({ method: "POST", headers: { "x-fixoku-clean-runtime-token": CLEAN_TOKEN } }, response);
   assert.equal(response.state.statusCode, 200);
@@ -154,7 +141,7 @@ await withEnv(CLEAN_ENV, async () => {
 
 await withEnv({ ...CLEAN_ENV, FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: undefined }, async () => {
   const calls = [];
-  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls) });
+  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls), oidcVerifier: async () => true });
   const response = responseRecorder();
   await handler({
     method: "POST",
@@ -192,7 +179,7 @@ await withEnv({ ...CLEAN_ENV, FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: undefined }, asy
 
 await withEnv(BASE_ENV, async () => {
   const calls = [];
-  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls) });
+  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls), oidcVerifier: async () => false });
   const response = responseRecorder();
   await handler({ method: "POST", headers: { "x-fixoku-r97g-runtime-token": TOKEN } }, response);
   assert.equal(response.state.statusCode, 200);

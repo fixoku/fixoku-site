@@ -10,6 +10,7 @@ import {
   FINGERPRINT_SQL,
   hasOperatorNeonMetadataAttestation,
   hasCleanBootstrapMetadata,
+  hasVercelOidcAuthorization,
   isExactPreviewEnvironment,
 } from "../api/internal/r97g-runtime-fingerprint.js";
 
@@ -117,6 +118,7 @@ const CLEAN_ENV = {
   FIXOKU_CLEAN_STAGING_DATABASE: "neondb",
   FIXOKU_CLEAN_STAGING_POOLED_HOST: EXPECTED_POOLED_HOST,
   FIXOKU_CLEAN_STAGING_DIRECT_HOST: EXPECTED_DIRECT_HOST,
+  VERCEL_OIDC_TOKEN: "vercel-oidc-token-012345678901234567890123456789",
   DATABASE_URL: BASE_ENV.DATABASE_URL,
   DATABASE_URL_UNPOOLED: BASE_ENV.DATABASE_URL_UNPOOLED,
 };
@@ -124,6 +126,18 @@ const CLEAN_ENV = {
 assert.equal(isExactPreviewEnvironment(CLEAN_ENV), true);
 assert.equal(hasOperatorNeonMetadataAttestation(CLEAN_ENV), false);
 assert.equal(hasCleanBootstrapMetadata(CLEAN_ENV), true);
+assert.equal(hasVercelOidcAuthorization({
+  headers: {
+    host: "fixoku-site-git-codex-fixoku-clean-integration-20261029-fixoku.vercel.app",
+    "x-fixoku-vercel-oidc-token": CLEAN_ENV.VERCEL_OIDC_TOKEN,
+  },
+}, CLEAN_ENV), true);
+assert.equal(hasVercelOidcAuthorization({
+  headers: {
+    host: "staging.fixoku.com",
+    "x-fixoku-vercel-oidc-token": CLEAN_ENV.VERCEL_OIDC_TOKEN,
+  },
+}, CLEAN_ENV), false);
 
 await withEnv(CLEAN_ENV, async () => {
   const calls = [];
@@ -136,6 +150,44 @@ await withEnv(CLEAN_ENV, async () => {
   assert.equal(body.bootstrapReadOnly, true);
   assert.equal(body.branch, CLEAN_ENV.VERCEL_GIT_COMMIT_REF);
   assert.equal(calls.length, 2);
+});
+
+await withEnv({ ...CLEAN_ENV, FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: undefined }, async () => {
+  const calls = [];
+  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls) });
+  const response = responseRecorder();
+  await handler({
+    method: "POST",
+    headers: {
+      host: "fixoku-site-git-codex-fixoku-clean-integration-20261029-fixoku.vercel.app",
+      "x-fixoku-vercel-oidc-token": CLEAN_ENV.VERCEL_OIDC_TOKEN,
+    },
+  }, response);
+  assert.equal(response.state.statusCode, 200);
+  const body = JSON.parse(response.state.body);
+  assert.equal(body.metadataAttested, false);
+  assert.equal(body.bootstrapReadOnly, true);
+  assert.equal(calls.length, 2);
+});
+
+await withEnv({ ...CLEAN_ENV, FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: undefined }, async () => {
+  let opened = false;
+  const handler = createRuntimeFingerprintHandler({
+    poolFactory: () => {
+      opened = true;
+      throw new Error("MUST_NOT_CONNECT");
+    },
+  });
+  const response = responseRecorder();
+  await handler({
+    method: "POST",
+    headers: {
+      host: "staging.fixoku.com",
+      "x-fixoku-vercel-oidc-token": CLEAN_ENV.VERCEL_OIDC_TOKEN,
+    },
+  }, response);
+  assert.equal(response.state.statusCode, 404);
+  assert.equal(opened, false);
 });
 
 await withEnv(BASE_ENV, async () => {
@@ -235,4 +287,5 @@ assert.match(contractSource, /FIXOKU_CLEAN_STAGING_PROJECT_ID/u);
 assert.match(contractSource, /FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA/u);
 assert.match(endpointSource, /EXPECTED_POOLED_HOST/u);
 assert.match(endpointSource, /metadataAttested/u);
+assert.match(endpointSource, /x-fixoku-vercel-oidc-token/u);
 console.log("R97G16_RUNTIME_FINGERPRINT_TEST=PASS");

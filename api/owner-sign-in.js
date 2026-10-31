@@ -1,6 +1,7 @@
 import pg from "pg";
 import { ownerAuth } from "../src/server/auth/auth.js";
 import { requireApplicationOrigin } from "../src/server/auth/origin.js";
+import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 
 const OWNER_EMAIL = "ersin@fixoku.com";
 const authOrigin = () => requireApplicationOrigin(process.env);
@@ -91,6 +92,7 @@ async function isActiveOwner(authUserId, email) {
  * check below is mandatory before any session cookie is returned.
  */
 export default async function handler(request, response) {
+  if (!cleanPreviewGateResponse(response)) return;
   response.setHeader("Cache-Control", "no-store");
   if (request.method !== "POST") {
     response.setHeader("Allow", "POST");

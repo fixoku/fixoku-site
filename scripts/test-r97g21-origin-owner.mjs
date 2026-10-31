@@ -3,7 +3,7 @@ import fs from "node:fs";
 import { resolveApplicationOrigin, resolveTrustedOrigins, requireApplicationOrigin } from "../src/server/auth/origin.js";
 
 const branch = "codex/r97g-staging-preview-20261027";
-const commit = "23faf11741a77a0190f232c6789dbd28856e0764";
+const commit = "f1167d8b0afe8bc30da85369d277316d9ffaa3c3";
 const branchOrigin = "https://fixoku-site-git-codex-r97g-staging-preview-20261027-fixoku.vercel.app";
 const deploymentOrigin = "https://fixoku-site-m9vgwqmtg-fixoku.vercel.app";
 const base = {

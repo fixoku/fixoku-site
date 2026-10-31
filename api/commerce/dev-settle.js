@@ -1,6 +1,7 @@
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import pg from "pg";
 import { devSettlementAllowed, fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
+import { cleanPreviewGateResponse } from "../../src/server/auth/preview-contract.js";
 
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };
 const headersOf = (req) => new Headers(Object.entries(req.headers || {}).map(([k, v]) => [k, String(v)]));
@@ -8,6 +9,7 @@ async function body(req) { let raw = ""; for await (const chunk of req) raw += c
 
 /** Clearly local-only settlement. It never represents a real payment provider. */
 export default async function handler(req, res) {
+  if (!cleanPreviewGateResponse(res)) return;
   if (req.method !== "POST") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   const principal = await resolvePrincipal(headersOf(req));
   if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });

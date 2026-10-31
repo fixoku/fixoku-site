@@ -1,7 +1,9 @@
 import authHandler from "./auth/[...all].js";
+import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 
 // Used for initial enrollment verification and subsequent sign-in challenges.
 export default function handler(request, response) {
+  if (!cleanPreviewGateResponse(response)) return;
   response.setHeader("Cache-Control", "no-store");
   if (request.method !== "POST") {
     response.statusCode = 405;

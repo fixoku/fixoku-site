@@ -1,5 +1,6 @@
 import pg from "pg";
 import { createAuthAccount, hashInvitationToken } from "../src/server/auth/invitations.js";
+import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 
 const json = (r, s, b) => { r.statusCode = s; r.setHeader("Content-Type", "application/json; charset=utf-8"); r.setHeader("Cache-Control", "no-store"); r.setHeader("X-Content-Type-Options", "nosniff"); r.end(JSON.stringify(b)); };
 async function read(req) { if (req.body && typeof req.body === "object") return req.body; let raw = ""; for await (const c of req) raw += c; return raw ? JSON.parse(raw) : {}; }
@@ -39,6 +40,7 @@ async function previewInvitation(pool, kind, hash) {
 }
 
 export default async function handler(req, res) {
+  if (!cleanPreviewGateResponse(res)) return;
   if (!["GET", "POST"].includes(req.method || "")) return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
 
   const url = new URL(req.url || "http://local", "http://local");

@@ -2,6 +2,7 @@ import pg from "pg";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";
 import { createAuthAccount, hashInvitationToken } from "../src/server/auth/invitations.js";
 import { readTrainerCatalog } from "../src/server/domain/trainer-commerce.js";
+import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 
 const json=(res,status,data)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.end(JSON.stringify(data));};
 const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,Array.isArray(v)?v.join(', '):String(v)]));
@@ -10,6 +11,7 @@ const profileKeys=['city','district','educationBackground','experience','special
 const compact=x=>String(x||'').trim();
 function ready(p){return ['city','district','profession','education_background','experience','specialties','bio'].every(k=>compact(p[k]).length>=2);}
 export default async function handler(req,res){
+ if(!cleanPreviewGateResponse(res))return;
  const url=new URL(req.url||'http://local','http://local');const action=url.searchParams.get('action')||'profile';
  // Candidate access is part of the direct teacher application flow. Keep an
  // explicit emergency kill switch, but do not make the normal Production path

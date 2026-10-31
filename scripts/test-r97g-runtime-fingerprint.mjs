@@ -9,18 +9,21 @@ import {
   EXPECTED_POOLED_HOST,
   FINGERPRINT_SQL,
   hasOperatorNeonMetadataAttestation,
+  hasCleanBootstrapMetadata,
   isExactPreviewEnvironment,
 } from "../api/internal/r97g-runtime-fingerprint.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const endpointSource = fs.readFileSync(path.join(root, "api/internal/r97g-runtime-fingerprint.js"), "utf8");
-const COMMIT = "afa5371f7b40182185242c647c6890f195dbb2ef";
+const contractSource = fs.readFileSync(path.join(root, "src/server/auth/preview-contract.js"), "utf8");
+const COMMIT = "f1167d8b0afe8bc30da85369d277316d9ffaa3c3";
 const TOKEN = "r97g-runtime-token-012345678901234567890123456789";
 const BASE_ENV = {
   VERCEL: "1",
   VERCEL_ENV: "preview",
   VERCEL_GIT_COMMIT_REF: "codex/r97g-staging-preview-20261027",
   VERCEL_GIT_COMMIT_SHA: COMMIT,
+  VERCEL_URL: "fixoku-site-git-codex-r97g-staging-preview-20261027-fixoku.vercel.app",
   [EXPECTED_COMMIT_ENV]: COMMIT,
   R97G_RUNTIME_PROBE_ENABLED: "1",
   R97G_RUNTIME_PROBE_TOKEN: TOKEN,
@@ -96,10 +99,87 @@ function fakePoolFactory(calls, transactionReadOnly = "on") {
 
 assert.equal(isExactPreviewEnvironment(BASE_ENV), true);
 assert.equal(hasOperatorNeonMetadataAttestation(BASE_ENV), true);
+assert.equal(hasCleanBootstrapMetadata(BASE_ENV), false);
+
+const CLEAN_COMMIT = "60f6d96fc72afc5579b6fe537a21096f5befe23d";
+const CLEAN_TOKEN = "clean-bootstrap-probe-token-012345678901234567890";
+const CLEAN_ENV = {
+  VERCEL: "1",
+  VERCEL_ENV: "preview",
+  VERCEL_GIT_COMMIT_REF: "codex/fixoku-clean-integration-20261029",
+  VERCEL_GIT_COMMIT_SHA: CLEAN_COMMIT,
+  VERCEL_URL: "fixoku-site-git-codex-fixoku-clean-integration-20261029-fixoku.vercel.app",
+  FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA: CLEAN_COMMIT,
+  FIXOKU_CLEAN_RUNTIME_PROBE_ENABLED: "1",
+  FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: CLEAN_TOKEN,
+  FIXOKU_CLEAN_STAGING_PROJECT_ID: "damp-night-76577929",
+  FIXOKU_CLEAN_STAGING_BRANCH_ID: "br-solitary-scene-ba3d7ejb",
+  FIXOKU_CLEAN_STAGING_DATABASE: "neondb",
+  FIXOKU_CLEAN_STAGING_POOLED_HOST: EXPECTED_POOLED_HOST,
+  FIXOKU_CLEAN_STAGING_DIRECT_HOST: EXPECTED_DIRECT_HOST,
+  VERCEL_OIDC_TOKEN: "vercel-oidc-token-012345678901234567890123456789",
+  DATABASE_URL: BASE_ENV.DATABASE_URL,
+  DATABASE_URL_UNPOOLED: BASE_ENV.DATABASE_URL_UNPOOLED,
+};
+
+assert.equal(isExactPreviewEnvironment(CLEAN_ENV), true);
+assert.equal(hasOperatorNeonMetadataAttestation(CLEAN_ENV), false);
+assert.equal(hasCleanBootstrapMetadata(CLEAN_ENV), true);
+
+await withEnv(CLEAN_ENV, async () => {
+  const calls = [];
+  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls), oidcVerifier: async () => true });
+  const response = responseRecorder();
+  await handler({ method: "POST", headers: { "x-fixoku-clean-runtime-token": CLEAN_TOKEN } }, response);
+  assert.equal(response.state.statusCode, 200);
+  const body = JSON.parse(response.state.body);
+  assert.equal(body.metadataAttested, false);
+  assert.equal(body.bootstrapReadOnly, true);
+  assert.equal(body.branch, CLEAN_ENV.VERCEL_GIT_COMMIT_REF);
+  assert.equal(calls.length, 2);
+});
+
+await withEnv({ ...CLEAN_ENV, FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: undefined }, async () => {
+  const calls = [];
+  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls), oidcVerifier: async () => true });
+  const response = responseRecorder();
+  await handler({
+    method: "POST",
+    headers: {
+      host: "fixoku-site-git-codex-fixoku-clean-integration-20261029-fixoku.vercel.app",
+      "x-fixoku-vercel-oidc-token": CLEAN_ENV.VERCEL_OIDC_TOKEN,
+    },
+  }, response);
+  assert.equal(response.state.statusCode, 200);
+  const body = JSON.parse(response.state.body);
+  assert.equal(body.metadataAttested, false);
+  assert.equal(body.bootstrapReadOnly, true);
+  assert.equal(calls.length, 2);
+});
+
+await withEnv({ ...CLEAN_ENV, FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: undefined }, async () => {
+  let opened = false;
+  const handler = createRuntimeFingerprintHandler({
+    poolFactory: () => {
+      opened = true;
+      throw new Error("MUST_NOT_CONNECT");
+    },
+  });
+  const response = responseRecorder();
+  await handler({
+    method: "POST",
+    headers: {
+      host: "staging.fixoku.com",
+      "x-fixoku-vercel-oidc-token": CLEAN_ENV.VERCEL_OIDC_TOKEN,
+    },
+  }, response);
+  assert.equal(response.state.statusCode, 404);
+  assert.equal(opened, false);
+});
 
 await withEnv(BASE_ENV, async () => {
   const calls = [];
-  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls) });
+  const handler = createRuntimeFingerprintHandler({ poolFactory: fakePoolFactory(calls), oidcVerifier: async () => false });
   const response = responseRecorder();
   await handler({ method: "POST", headers: { "x-fixoku-r97g-runtime-token": TOKEN } }, response);
   assert.equal(response.state.statusCode, 200);
@@ -187,9 +267,12 @@ for (const changes of [
 assert.doesNotMatch(endpointSource, /insert\s+into|update\s+\w+\s+set|delete\s+from|create\s+table|alter\s+table|drop\s+table|drizzle-kit|migrat(?:e|ion)|seed/iu);
 assert.match(endpointSource, /begin read only/u);
 assert.match(endpointSource, /transaction_read_only/u);
-assert.match(endpointSource, /R97G_STAGING_PROJECT_ID/u);
-assert.match(endpointSource, /R97G_STAGING_BRANCH_ID/u);
-assert.match(endpointSource, /R97G_RUNTIME_EXPECTED_COMMIT_SHA/u);
+assert.match(contractSource, /R97G_STAGING_PROJECT_ID/u);
+assert.match(contractSource, /R97G_STAGING_BRANCH_ID/u);
+assert.match(contractSource, /R97G_RUNTIME_EXPECTED_COMMIT_SHA/u);
+assert.match(contractSource, /FIXOKU_CLEAN_STAGING_PROJECT_ID/u);
+assert.match(contractSource, /FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA/u);
 assert.match(endpointSource, /EXPECTED_POOLED_HOST/u);
 assert.match(endpointSource, /metadataAttested/u);
+assert.match(endpointSource, /x-fixoku-vercel-oidc-token/u);
 console.log("R97G16_RUNTIME_FINGERPRINT_TEST=PASS");

@@ -4,6 +4,7 @@ import {
   INSTITUTION_READING_LANDING_PATH,
   institutionTypeOptions,
 } from "../src/data/institutionReadingLanding.js";
+import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 
 export const INSTITUTION_APPLICATION_RECIPIENT = "info@fixoku.com";
 export const FORM_RATE_LIMIT_STATUS = "BEST_EFFORT_INSTANCE_LOCAL";
@@ -261,6 +262,7 @@ export function createInstitutionApplicationHandler({
   transportFactory = (configuration) => nodemailer.createTransport(configuration),
 } = {}) {
   return async function institutionApplicationHandler(request, response) {
+    if (!cleanPreviewGateResponse(response, env)) return;
     try {
       if (request.method !== "POST") {
         response.setHeader("Allow", "POST");

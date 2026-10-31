@@ -6,6 +6,7 @@ import { validateEducationSegment } from "../src/server/domain/student-segment.j
 import { resolveTurkeyLocation } from "../src/data/turkeyLocations.js";
 import { requireApplicationOrigin } from "../src/server/auth/origin.js";
 import { queueRolePanelNotifications } from "../src/server/domain/panel-notifications.js";
+import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 const json=(r,s,b)=>{r.statusCode=s;r.setHeader("Content-Type","application/json; charset=utf-8");r.setHeader("Cache-Control","no-store");r.setHeader("X-Content-Type-Options","nosniff");r.end(JSON.stringify(b));};
 const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,Array.isArray(v)?v.join(", "):String(v)]));
 async function read(req){if(req.body&&typeof req.body==='object')return req.body;let raw='';for await(const c of req)raw+=c;return raw?JSON.parse(raw):{};}
@@ -34,7 +35,7 @@ function normalizeDateOfBirth(value){
   return raw;
 }
 async function authCall(path,method,body,req){const h=headers(req);h.set('content-type','application/json');h.set('origin',requireApplicationOrigin(process.env));const out=await auth.handler(new Request("http://local/api/auth"+path,{method,headers:h,body:body?JSON.stringify(body):undefined}));return out;}
-export default async function handler(req,res){const rawPath=new URL(req.url||'http://local', 'http://local').pathname; const path=rawPath === '/api/trainer-applications' ? '/trainer-application' : (rawPath.replace('/api/account-lifecycle','') || '/');
+export default async function handler(req,res){if(!cleanPreviewGateResponse(res))return;const rawPath=new URL(req.url||'http://local', 'http://local').pathname; const path=rawPath === '/api/trainer-applications' ? '/trainer-application' : (rawPath.replace('/api/account-lifecycle','') || '/');
  try {
   if(path==='/register'&&req.method==='POST'){
     const b=await read(req);

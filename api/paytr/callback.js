@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { paytrRuntime, verifyPaytrCallback } from "../../src/server/payments/paytr.js";
 import { fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
 import { fulfillTrainerOrder } from "../../src/server/domain/trainer-commerce.js";

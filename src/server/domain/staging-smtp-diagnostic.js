@@ -1,6 +1,6 @@
 /* global process */
 import { createHash } from "node:crypto";
-import { Client } from "pg";
+import { Client } from "../db/guarded-pg.js";
 import nodemailer from "nodemailer";
 import { getSmtpConfig } from "./email-outbox.js";
 import { requirePermission } from "../auth/authorization.js";

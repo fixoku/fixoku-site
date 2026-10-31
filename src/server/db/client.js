@@ -1,6 +1,6 @@
 /* global process */
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { Pool } from "./guarded-pg.js";
 import * as appSchema from "./schema.js";
 import * as authSchema from "../auth/auth-schema.js";
 

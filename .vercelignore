@@ -21,3 +21,15 @@ docs/release-candidate/
 docs/architecture/drafts/
 r92-recovery-*/
 FIXOKU_R92_*.md
+_local_backups/
+.vercelignore.r134-backup
+# R137/R138/R141 local Preview checks and legacy R97G fingerprint are not deploy sources.
+scripts/r137-preview-env-check.mjs
+scripts/r138-host-diagnostic.mjs
+scripts/r141-preview-identity.mjs
+scripts/test-r97g-runtime-fingerprint.mjs
+scripts/test-r146-runtime-security.mjs
+api/internal/r97g-runtime-fingerprint.js
+src/server/db/install-guard.js
+FIXOKU_R97F0_SOURCE_MANIFEST_SHA256.json
+FIXOKU_R97G07_SOURCE_MANIFEST_SHA256.json

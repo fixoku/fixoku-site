@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import crypto from "node:crypto";
 
 const send = (res, status, body, requestId = null) => {

@@ -98,6 +98,39 @@ export const CLEAN_STAGING_HOSTS = Object.freeze({
   direct: `${CLEAN_STAGING_METADATA.endpoint}.${CLEAN_STAGING_METADATA.regionSuffix}`,
 });
 
+// R16's Neon project/branch identity was verified in the Neon console. The
+// console evidence supplied for this change does not include pooled/direct DNS
+// hostnames, so they remain unset here. Authorized deployment metadata must
+// provide both hosts and pass the exact endpoint/role/domain checks below.
+export const R16_STAGING_METADATA = Object.freeze({
+  project: "tiny-fire-86403197",
+  branch: "br-delicate-moon-b1qfnzdd",
+  database: "neondb",
+  endpoint: "ep-old-tree-b1gdwjcz",
+  branchName: "fixoku-r16-staging-20261106",
+  schemaOnly: true,
+  autoDelete: "never",
+  pooledHost: "",
+  directHost: "",
+});
+
+export const R16_STAGING_HOSTS = Object.freeze({
+  pooled: R16_STAGING_METADATA.pooledHost,
+  direct: R16_STAGING_METADATA.directHost,
+});
+
+function normalizedHost(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+export function isR16StagingHost(value, kind) {
+  const host = normalizedHost(value);
+  if (!host || host.length > 253 || host.includes("..") || host.includes("/") || host.includes(":")) return false;
+  const role = kind === "pooled" ? "-pooler" : "";
+  const pattern = new RegExp(`^${R16_STAGING_METADATA.endpoint}${role}\\.[a-z0-9-]+(?:\\.[a-z0-9-]+)+\\.neon\\.tech$`, "u");
+  return pattern.test(host);
+}
+
 export function previewContractForBranch(branch) {
   return CONTRACTS_BY_BRANCH.get(String(branch || "").trim()) || null;
 }
@@ -161,13 +194,18 @@ export function exactPreviewContractEnvironment(contract, env = process.env) {
 export function previewContractMetadataAttested(contract, env = process.env) {
   if (!contract) return false;
   const metadata = contract.metadata;
-  const normalizeHost = (value) => String(value || "").trim().toLowerCase();
+  const isR16 = contract === PREVIEW_CONTRACTS.r16Staging;
+  const target = isR16 ? R16_STAGING_METADATA : CLEAN_STAGING_METADATA;
+  const pooledHost = normalizedHost(env[metadata.pooledHost]);
+  const directHost = normalizedHost(env[metadata.directHost]);
+  const hostsMatch = isR16
+    ? isR16StagingHost(pooledHost, "pooled") && isR16StagingHost(directHost, "direct")
+    : pooledHost === CLEAN_STAGING_HOSTS.pooled && directHost === CLEAN_STAGING_HOSTS.direct;
   return env[metadata.attested] === "1"
-    && env[metadata.project] === CLEAN_STAGING_METADATA.project
-    && env[metadata.branch] === CLEAN_STAGING_METADATA.branch
-    && env[metadata.database] === CLEAN_STAGING_METADATA.database
-    && normalizeHost(env[metadata.pooledHost]) === CLEAN_STAGING_HOSTS.pooled
-    && normalizeHost(env[metadata.directHost]) === CLEAN_STAGING_HOSTS.direct;
+    && env[metadata.project] === target.project
+    && env[metadata.branch] === target.branch
+    && env[metadata.database] === target.database
+    && hostsMatch;
 }
 
 /**

@@ -12,8 +12,13 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import pg from "pg";
 import {
+  CLEAN_STAGING_HOSTS,
+  CLEAN_STAGING_METADATA,
   PREVIEW_CONTRACTS,
+  R16_STAGING_METADATA,
   exactPreviewContractEnvironment,
+  isR16StagingHost,
+  previewContractMetadataAttested,
   previewContractForBranch,
 } from "../../src/server/auth/preview-contract.js";
 import { hasVercelOidcAuthorization } from "./r97g-runtime-fingerprint.js";
@@ -123,7 +128,23 @@ function connectionTarget(raw, kind) {
   if (kind === "pooled" ? match.groups.pooler !== "-pooler" : match.groups.pooler) return null;
   const database = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
   if (!database || parsed.searchParams.get("sslmode")?.toLowerCase() === "disable") return null;
-  return { endpoint: match.groups.endpoint, database };
+  return { endpoint: match.groups.endpoint, database, host, pooled: match.groups.pooler === "-pooler" };
+}
+
+function targetMatchesExpected(target, kind, contract, env) {
+  if (!target) return false;
+  const isR16 = contract === PREVIEW_CONTRACTS.r16Staging;
+  const expectedMetadata = isR16 ? R16_STAGING_METADATA : CLEAN_STAGING_METADATA;
+  const metadataHostName = kind === "pooled" ? contract.metadata.pooledHost : contract.metadata.directHost;
+  const expectedHost = String(env?.[metadataHostName] || "").trim().toLowerCase();
+  const roleMatches = kind === "pooled" ? target.pooled : !target.pooled;
+  const hostMatches = isR16
+    ? isR16StagingHost(target.host, kind) && target.host === expectedHost
+    : target.host === (kind === "pooled" ? CLEAN_STAGING_HOSTS.pooled : CLEAN_STAGING_HOSTS.direct);
+  return roleMatches
+    && hostMatches
+    && target.endpoint === expectedMetadata.endpoint
+    && target.database === expectedMetadata.database;
 }
 
 function endpointFingerprint(endpoint) {
@@ -205,6 +226,9 @@ export function createStagingRuntimeDiagnosticHandler({
     if (!exactPreviewRuntime(env)) return json(res, 404, { error: "STAGING_DIAGNOSTIC_NOT_FOUND" });
 
     const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+    if (!previewContractMetadataAttested(contract, env)) {
+      return json(res, 503, { error: "RUNTIME_STAGING_METADATA_UNATTESTED" });
+    }
     const tokenHeader = contract?.probeTokenHeader || STAGING_DIAGNOSTIC_TOKEN_HEADER;
     const tokenEnv = contract?.probeTokenEnv || STAGING_DIAGNOSTIC_TOKEN_ENV;
 
@@ -230,13 +254,20 @@ export function createStagingRuntimeDiagnosticHandler({
     if (configuredProjectId === STAGING_DIAGNOSTIC_PRODUCTION_PROJECT) {
       return json(res, 503, { error: "RUNTIME_PRODUCTION_TARGET_BLOCKED" });
     }
-    if (configuredProjectId && configuredProjectId !== STAGING_DIAGNOSTIC_EXPECTED_PROJECT) {
+    if (configuredProjectId !== STAGING_DIAGNOSTIC_EXPECTED_PROJECT) {
       return json(res, 503, { error: "RUNTIME_NEON_PROJECT_MISMATCH", target: { expectedProjectId: STAGING_DIAGNOSTIC_EXPECTED_PROJECT, configuredProjectId, matched: false } });
+    }
+    if (contract === PREVIEW_CONTRACTS.r16Staging && configuredBranchId !== R16_STAGING_METADATA.branch) {
+      return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH", target: { expectedBranchId: R16_STAGING_METADATA.branch, configuredBranchId, matched: false } });
     }
 
     const pooledTarget = connectionTarget(env.DATABASE_URL, "pooled");
     const directTarget = connectionTarget(env.DATABASE_URL_UNPOOLED, "direct");
-    if (!pooledTarget || !directTarget) return json(res, 503, { error: "RUNTIME_DATABASE_TARGET_UNVERIFIED" });
+    if (!pooledTarget || !directTarget
+      || !targetMatchesExpected(pooledTarget, "pooled", contract, env)
+      || !targetMatchesExpected(directTarget, "direct", contract, env)) {
+      return json(res, 503, { error: "RUNTIME_DATABASE_TARGET_UNVERIFIED" });
+    }
     if (pooledTarget.endpoint !== directTarget.endpoint || pooledTarget.database !== directTarget.database) {
       return json(res, 503, { error: "RUNTIME_DATABASE_ENDPOINT_MISMATCH" });
     }

@@ -34,6 +34,7 @@ export const PREVIEW_CONTRACTS = Object.freeze({
   }),
   cleanIntegration: Object.freeze({
     id: "clean-integration",
+    businessGate: true,
     branch: "codex/fixoku-clean-integration-20261029",
     expectedCommitEnv: "FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA",
     probeEnabledEnv: "FIXOKU_CLEAN_RUNTIME_PROBE_ENABLED",
@@ -53,6 +54,29 @@ export const PREVIEW_CONTRACTS = Object.freeze({
     deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-clean-integration-20261029|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
     forbiddenCommits: Object.freeze([
       "f1167d8b0afe8bc30da85369d277316d9ffaa3c3",
+    ]),
+  }),
+  r16Staging: Object.freeze({
+    id: "r16-staging",
+    businessGate: true,
+    branch: "codex/fixoku-staging-r15-20261106",
+    expectedCommitEnv: "FIXOKU_R16_RUNTIME_EXPECTED_COMMIT_SHA",
+    probeEnabledEnv: "FIXOKU_R16_RUNTIME_PROBE_ENABLED",
+    probeTokenEnv: "FIXOKU_R16_RUNTIME_PROBE_TOKEN",
+    probeTokenHeader: "x-fixoku-r16-runtime-token",
+    metadata: Object.freeze({
+      attested: "FIXOKU_R16_STAGING_ENDPOINT_METADATA_ATTESTED",
+      project: "FIXOKU_R16_STAGING_PROJECT_ID",
+      branch: "FIXOKU_R16_STAGING_BRANCH_ID",
+      database: "FIXOKU_R16_STAGING_DATABASE",
+      pooledHost: "FIXOKU_R16_STAGING_POOLED_HOST",
+      directHost: "FIXOKU_R16_STAGING_DIRECT_HOST",
+    }),
+    fixedOrigins: Object.freeze([]),
+    deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-staging-r15-20261106|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
+    // The R15 source candidate must not be accepted as the R16B release.
+    forbiddenCommits: Object.freeze([
+      "e1380f2cd80a28c6e92940ed0a7b739328f07082",
     ]),
   }),
 });
@@ -152,7 +176,7 @@ export function previewContractMetadataAttested(contract, env = process.env) {
  */
 export function isCleanPreviewBusinessAccessBlocked(env = process.env) {
   const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
-  const isCleanPreview = contract === PREVIEW_CONTRACTS.cleanIntegration
+  const isCleanPreview = contract?.businessGate === true
     && env.VERCEL === "1"
     && String(env.VERCEL_ENV || "").trim().toLowerCase() === "preview";
   return isCleanPreview

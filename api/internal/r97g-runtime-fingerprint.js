@@ -8,6 +8,8 @@
 import { timingSafeEqual } from "node:crypto";
 import pg from "pg";
 import {
+  CLEAN_STAGING_HOSTS,
+  CLEAN_STAGING_METADATA,
   PREVIEW_CONTRACTS,
   isContractDeploymentHost,
   previewContractForBranch,
@@ -25,6 +27,8 @@ const EXPECTED_ENDPOINT_ID = "ep-dark-math-baw61g90";
 const EXPECTED_REGION_SUFFIX = "c-8.eu-central-1.aws.neon.tech";
 export const EXPECTED_POOLED_HOST = EXPECTED_ENDPOINT_ID + "-pooler." + EXPECTED_REGION_SUFFIX;
 export const EXPECTED_DIRECT_HOST = EXPECTED_ENDPOINT_ID + "." + EXPECTED_REGION_SUFFIX;
+export const CLEAN_EXPECTED_POOLED_HOST = CLEAN_STAGING_HOSTS.pooled;
+export const CLEAN_EXPECTED_DIRECT_HOST = CLEAN_STAGING_HOSTS.direct;
 const BEGIN_READ_ONLY_SQL = "begin read only";
 export const FINGERPRINT_SQL = [
   "select current_database() as database,",
@@ -182,14 +186,17 @@ export function isExactPreviewEnvironment(env = process.env) {
 export function hasOperatorNeonMetadataAttestation(env = process.env, contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF)) {
   if (!contract) return false;
   const metadata = contract.metadata;
+  const target = contract === PREVIEW_CONTRACTS.cleanIntegration
+    ? { project: CLEAN_STAGING_METADATA.project, branch: CLEAN_STAGING_METADATA.branch, database: CLEAN_STAGING_METADATA.database, pooledHost: CLEAN_STAGING_HOSTS.pooled, directHost: CLEAN_STAGING_HOSTS.direct }
+    : { project: EXPECTED_PROJECT, branch: EXPECTED_BRANCH_ID, database: EXPECTED_DATABASE, pooledHost: EXPECTED_POOLED_HOST, directHost: EXPECTED_DIRECT_HOST };
   const pooledHost = normalizeHost(env[metadata.pooledHost]);
   const directHost = normalizeHost(env[metadata.directHost]);
   return env[metadata.attested] === "1"
-    && env[metadata.project] === EXPECTED_PROJECT
-    && env[metadata.branch] === EXPECTED_BRANCH_ID
-    && env[metadata.database] === EXPECTED_DATABASE
-    && pooledHost === EXPECTED_POOLED_HOST
-    && directHost === EXPECTED_DIRECT_HOST;
+    && env[metadata.project] === target.project
+    && env[metadata.branch] === target.branch
+    && env[metadata.database] === target.database
+    && pooledHost === target.pooledHost
+    && directHost === target.directHost;
 }
 
 /**
@@ -202,15 +209,16 @@ export function hasOperatorNeonMetadataAttestation(env = process.env, contract =
 export function hasCleanBootstrapMetadata(env = process.env, contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF)) {
   if (contract !== PREVIEW_CONTRACTS.cleanIntegration) return false;
   const metadata = contract.metadata;
+  const target = { project: CLEAN_STAGING_METADATA.project, branch: CLEAN_STAGING_METADATA.branch, database: CLEAN_STAGING_METADATA.database, pooledHost: CLEAN_STAGING_HOSTS.pooled, directHost: CLEAN_STAGING_HOSTS.direct };
   const pooledHost = normalizeHost(env[metadata.pooledHost]);
   const directHost = normalizeHost(env[metadata.directHost]);
   const attested = String(env[metadata.attested] || "").trim();
   return !attested
-    && env[metadata.project] === EXPECTED_PROJECT
-    && env[metadata.branch] === EXPECTED_BRANCH_ID
-    && env[metadata.database] === EXPECTED_DATABASE
-    && pooledHost === EXPECTED_POOLED_HOST
-    && directHost === EXPECTED_DIRECT_HOST;
+    && env[metadata.project] === target.project
+    && env[metadata.branch] === target.branch
+    && env[metadata.database] === target.database
+    && pooledHost === target.pooledHost
+    && directHost === target.directHost;
 }
 
 function parseStagingConnection(rawUrl, kind, env) {
@@ -223,16 +231,19 @@ function parseStagingConnection(rawUrl, kind, env) {
   }
   if (!["postgres:", "postgresql:"].includes(parsed.protocol)) throw new Error("RUNTIME_DATABASE_PROTOCOL_INVALID");
   const host = normalizeHost(parsed.hostname);
-  const expectedHost = kind === "pooled" ? EXPECTED_POOLED_HOST : EXPECTED_DIRECT_HOST;
   const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
   const metadata = contract?.metadata;
+  const target = contract === PREVIEW_CONTRACTS.cleanIntegration
+    ? { database: CLEAN_STAGING_METADATA.database, pooledHost: CLEAN_STAGING_HOSTS.pooled, directHost: CLEAN_STAGING_HOSTS.direct }
+    : { database: EXPECTED_DATABASE, pooledHost: EXPECTED_POOLED_HOST, directHost: EXPECTED_DIRECT_HOST };
+  const expectedHost = kind === "pooled" ? target.pooledHost : target.directHost;
   const attestedHost = normalizeHost(metadata && env[kind === "pooled" ? metadata.pooledHost : metadata.directHost]);
   if (host !== expectedHost || attestedHost !== expectedHost) {
     throw new Error("RUNTIME_DATABASE_ENDPOINT_METADATA_MISMATCH");
   }
   if (parsed.port && parsed.port !== "5432") throw new Error("RUNTIME_DATABASE_PORT_INVALID");
   const database = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
-  if (database !== EXPECTED_DATABASE) throw new Error("RUNTIME_DATABASE_NAME_MISMATCH");
+  if (database !== target.database) throw new Error("RUNTIME_DATABASE_NAME_MISMATCH");
   return rawUrl;
 }
 

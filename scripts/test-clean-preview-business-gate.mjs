@@ -12,6 +12,8 @@ const CLEAN_SHA = "15d9964d7e06dcc424cec62255b430a0544d6bc5";
 const CLEAN_HOST = "fixoku-site-git-codex-fixoku-clean-integration-20261029-fixoku.vercel.app";
 const OLD_BRANCH = "codex/r97g-staging-preview-20261027";
 const OLD_SHA = "f1167d8b0afe8bc30da85369d277316d9ffaa3c3";
+const R16_BRANCH = "codex/fixoku-staging-r15-20261106";
+const R16_SHA = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
 const baseClean = {
   VERCEL: "1",
@@ -21,8 +23,8 @@ const baseClean = {
   VERCEL_GIT_COMMIT_SHA: CLEAN_SHA,
   FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA: CLEAN_SHA,
   FIXOKU_CLEAN_RUNTIME_PROBE_ENABLED: "1",
-  FIXOKU_CLEAN_STAGING_PROJECT_ID: "damp-night-76577929",
-  FIXOKU_CLEAN_STAGING_BRANCH_ID: "br-solitary-scene-ba3d7ejb",
+  FIXOKU_CLEAN_STAGING_PROJECT_ID: "tiny-fire-86403197",
+  FIXOKU_CLEAN_STAGING_BRANCH_ID: "br-sweet-resonance-b17h2ttf",
   FIXOKU_CLEAN_STAGING_DATABASE: "neondb",
   FIXOKU_CLEAN_STAGING_POOLED_HOST: CLEAN_STAGING_HOSTS.pooled,
   FIXOKU_CLEAN_STAGING_DIRECT_HOST: CLEAN_STAGING_HOSTS.direct,
@@ -34,6 +36,10 @@ const previous = Object.fromEntries([
   "FIXOKU_CLEAN_STAGING_ENDPOINT_METADATA_ATTESTED", "FIXOKU_CLEAN_STAGING_PROJECT_ID",
   "FIXOKU_CLEAN_STAGING_BRANCH_ID", "FIXOKU_CLEAN_STAGING_DATABASE",
   "FIXOKU_CLEAN_STAGING_POOLED_HOST", "FIXOKU_CLEAN_STAGING_DIRECT_HOST",
+  "FIXOKU_R16_RUNTIME_EXPECTED_COMMIT_SHA", "FIXOKU_R16_RUNTIME_PROBE_ENABLED",
+  "FIXOKU_R16_STAGING_ENDPOINT_METADATA_ATTESTED", "FIXOKU_R16_STAGING_PROJECT_ID",
+  "FIXOKU_R16_STAGING_BRANCH_ID", "FIXOKU_R16_STAGING_DATABASE",
+  "FIXOKU_R16_STAGING_POOLED_HOST", "FIXOKU_R16_STAGING_DIRECT_HOST",
 ].map((key) => [key, process.env[key]]));
 
 function setEnv(env) {
@@ -95,6 +101,27 @@ try {
   setEnv({ VERCEL: "1", VERCEL_ENV: "production", VERCEL_GIT_COMMIT_REF: CLEAN_BRANCH, VERCEL_GIT_COMMIT_SHA: CLEAN_SHA });
   assert.equal(isCleanPreviewBusinessAccessBlocked(), false, "Production is outside clean gate");
 
+  const r16Base = {
+    VERCEL: "1",
+    VERCEL_ENV: "preview",
+    VERCEL_URL: "fixoku-site-git-codex-fixoku-staging-r15-20261106-fixoku.vercel.app",
+    VERCEL_GIT_COMMIT_REF: R16_BRANCH,
+    VERCEL_GIT_COMMIT_SHA: R16_SHA,
+    FIXOKU_R16_RUNTIME_EXPECTED_COMMIT_SHA: R16_SHA,
+    FIXOKU_R16_RUNTIME_PROBE_ENABLED: "1",
+    FIXOKU_R16_STAGING_PROJECT_ID: "tiny-fire-86403197",
+    FIXOKU_R16_STAGING_BRANCH_ID: "br-sweet-resonance-b17h2ttf",
+    FIXOKU_R16_STAGING_DATABASE: "neondb",
+    FIXOKU_R16_STAGING_POOLED_HOST: CLEAN_STAGING_HOSTS.pooled,
+    FIXOKU_R16_STAGING_DIRECT_HOST: CLEAN_STAGING_HOSTS.direct,
+  };
+  setEnv(r16Base);
+  assert.equal(isCleanPreviewBusinessAccessBlocked(), true, "R16 missing attestation blocks business access");
+  setEnv({ ...r16Base, FIXOKU_R16_STAGING_ENDPOINT_METADATA_ATTESTED: "1" });
+  assert.equal(isCleanPreviewBusinessAccessBlocked(), false, "R16 verified metadata permits guarded dispatch");
+  setEnv({ ...r16Base, VERCEL_GIT_COMMIT_SHA: "e1380f2cd80a28c6e92940ed0a7b739328f07082", FIXOKU_R16_RUNTIME_EXPECTED_COMMIT_SHA: "e1380f2cd80a28c6e92940ed0a7b739328f07082", FIXOKU_R16_STAGING_ENDPOINT_METADATA_ATTESTED: "1" });
+  assert.equal(isCleanPreviewBusinessAccessBlocked(), true, "R15 source SHA is forbidden for R16");
+
   const fingerprintSource = fs.readFileSync(new URL("../api/internal/r97g-runtime-fingerprint.js", import.meta.url), "utf8");
   assert.doesNotMatch(fingerprintSource, /cleanPreviewGateResponse/u, "fingerprint endpoint remains reachable for bootstrap health checks");
   console.log(JSON.stringify({
@@ -104,6 +131,7 @@ try {
     LEGACY_R98_UNCHANGED: "PASS",
     PRODUCTION_UNCHANGED: "PASS",
     FINGERPRINT_PATH_UNBLOCKED: "PASS",
+    R16_STAGING_BRANCH_GUARD: "PASS",
   }));
 } finally {
   for (const [key, value] of Object.entries(previous)) {

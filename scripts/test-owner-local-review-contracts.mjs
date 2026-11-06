@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { localReviewRuntimeAllowed, ownerLocalFixtureAllowed } from "../src/server/auth/local-review-runtime.js";
 import { privilegedTwoFactorRequired } from "../src/server/auth/authorization.js";
+import { buildOwnerLegalReviewPackage } from "../src/server/domain/owner-legal-review-package.js";
 
 const base = {
   NODE_ENV: "development",
@@ -22,7 +23,8 @@ assert.equal(ownerLocalFixtureAllowed({ ...base, DATABASE_URL: "postgresql://syn
 assert.equal(ownerLocalFixtureAllowed({ ...base, DATABASE_URL: "postgresql://synthetic:secret@127.0.0.1:5432/fixoku_platform_dev" }), false);
 const previousEnv = { NODE_ENV: process.env.NODE_ENV, LOCAL_REVIEW_MODE: process.env.LOCAL_REVIEW_MODE, FIXOKU_LOCAL_ORIGIN: process.env.FIXOKU_LOCAL_ORIGIN, DATABASE_URL: process.env.DATABASE_URL };
 Object.assign(process.env, { ...base, NODE_ENV: "production" });
-assert.equal(privilegedTwoFactorRequired({ memberships: [{ role: "OWNER" }], session: { user: { twoFactorEnabled: false } } }), true);
+assert.equal(privilegedTwoFactorRequired({ memberships: [{ role: "OWNER" }], session: { user: { twoFactorEnabled: false } } }), false);
+assert.equal(privilegedTwoFactorRequired({ memberships: [{ role: "SUPER_ADMIN" }], session: { user: { twoFactorEnabled: false } } }), true);
 for (const [key, value] of Object.entries(previousEnv)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
 
 const source = fs.readFileSync(new URL("../api/local-review/switch-user.js", import.meta.url), "utf8");
@@ -35,7 +37,7 @@ assert.equal(fs.existsSync(new URL("../public/downloads/fixoku-owner-legal-revie
 const legal = JSON.parse(fs.readFileSync(new URL("../src/platform/admin/legal-owner-documents-v3.json", import.meta.url), "utf8"));
 assert.equal(legal.length, 21);
 assert.equal(legal.filter((doc) => /TASLAK|BEKLENİYOR/iu.test(doc.markdown)).length, 21);
-const packageText = fs.readFileSync(new URL("../docs/legal/owner-legal-review-package.md", import.meta.url), "utf8");
+const packageText = buildOwnerLegalReviewPackage();
 assert.match(packageText, /21 belge/u);
 for (const document of legal) assert.ok(packageText.includes(document.markdown.trim()), `LEGAL_PACKAGE_CONTENT_MISSING:${document.id}`);
 

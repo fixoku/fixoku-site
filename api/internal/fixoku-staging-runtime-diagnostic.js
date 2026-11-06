@@ -187,7 +187,7 @@ export async function readOnlyRuntimeFingerprint(kind, connectionString, poolFac
 
 function exactPreviewRuntime(env) {
   const contract = previewContractForBranch(env?.VERCEL_GIT_COMMIT_REF);
-  return contract === PREVIEW_CONTRACTS.cleanIntegration
+  return (contract === PREVIEW_CONTRACTS.cleanIntegration || contract === PREVIEW_CONTRACTS.r16Staging)
     && env?.VERCEL_PROJECT_ID === VERCEL_PROJECT_ID
     && env?.VERCEL_ORG_ID === VERCEL_ORG_ID
     && exactPreviewContractEnvironment(contract, env);
@@ -204,9 +204,13 @@ export function createStagingRuntimeDiagnosticHandler({
     const env = process.env;
     if (!exactPreviewRuntime(env)) return json(res, 404, { error: "STAGING_DIAGNOSTIC_NOT_FOUND" });
 
+    const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+    const tokenHeader = contract?.probeTokenHeader || STAGING_DIAGNOSTIC_TOKEN_HEADER;
+    const tokenEnv = contract?.probeTokenEnv || STAGING_DIAGNOSTIC_TOKEN_ENV;
+
     const tokenAuthorized = constantTimeTokenMatch(
-      header(req, STAGING_DIAGNOSTIC_TOKEN_HEADER),
-      String(env[STAGING_DIAGNOSTIC_TOKEN_ENV] || ""),
+      header(req, tokenHeader),
+      String(env[tokenEnv] || ""),
     );
     const oidcAuthorized = await oidcVerifier(req, env);
     // A generated deployment host is only routing metadata. It is not proof

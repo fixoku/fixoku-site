@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { CLEAN_STAGING_HOSTS } from "../src/server/auth/preview-contract.js";
 import {
   createRuntimeFingerprintHandler,
   EXPECTED_COMMIT_ENV,
@@ -112,14 +113,14 @@ const CLEAN_ENV = {
   FIXOKU_CLEAN_RUNTIME_EXPECTED_COMMIT_SHA: CLEAN_COMMIT,
   FIXOKU_CLEAN_RUNTIME_PROBE_ENABLED: "1",
   FIXOKU_CLEAN_RUNTIME_PROBE_TOKEN: CLEAN_TOKEN,
-  FIXOKU_CLEAN_STAGING_PROJECT_ID: "damp-night-76577929",
-  FIXOKU_CLEAN_STAGING_BRANCH_ID: "br-solitary-scene-ba3d7ejb",
+  FIXOKU_CLEAN_STAGING_PROJECT_ID: "tiny-fire-86403197",
+  FIXOKU_CLEAN_STAGING_BRANCH_ID: "br-sweet-resonance-b17h2ttf",
   FIXOKU_CLEAN_STAGING_DATABASE: "neondb",
-  FIXOKU_CLEAN_STAGING_POOLED_HOST: EXPECTED_POOLED_HOST,
-  FIXOKU_CLEAN_STAGING_DIRECT_HOST: EXPECTED_DIRECT_HOST,
+  FIXOKU_CLEAN_STAGING_POOLED_HOST: CLEAN_STAGING_HOSTS.pooled,
+  FIXOKU_CLEAN_STAGING_DIRECT_HOST: CLEAN_STAGING_HOSTS.direct,
   VERCEL_OIDC_TOKEN: "vercel-oidc-token-012345678901234567890123456789",
-  DATABASE_URL: BASE_ENV.DATABASE_URL,
-  DATABASE_URL_UNPOOLED: BASE_ENV.DATABASE_URL_UNPOOLED,
+  DATABASE_URL: `postgresql://runtime-user:runtime-password@${CLEAN_STAGING_HOSTS.pooled}/neondb?sslmode=require`,
+  DATABASE_URL_UNPOOLED: `postgresql://runtime-user:runtime-password@${CLEAN_STAGING_HOSTS.direct}/neondb?sslmode=require`,
 };
 
 assert.equal(isExactPreviewEnvironment(CLEAN_ENV), true);

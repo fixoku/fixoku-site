@@ -22,7 +22,7 @@ import {
   previewContractMetadataAttested,
   previewContractForBranch,
 } from "../../src/server/auth/preview-contract.js";
-import { hasVercelOidcAuthorization } from "./r97g-runtime-fingerprint.js";
+import { hasVercelOidcAuthorization } from "../../src/server/auth/vercel-oidc.js";
 
 export const STAGING_DIAGNOSTIC_PATH = "/api/internal/fixoku-staging-runtime-diagnostic";
 export const STAGING_DIAGNOSTIC_TOKEN_HEADER = "x-fixoku-clean-runtime-token";

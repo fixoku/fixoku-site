@@ -957,9 +957,9 @@ const institutionContractSource = await readFile(
 const packageSource = await readFile(path.join(projectRoot, "package.json"), "utf8");
 const viteConfigSource = await readFile(path.join(projectRoot, "vite.config.js"), "utf8");
 const STANDING_CHILD_IMAGE_PATH =
-  "/images/landing/ogrenciler-icin-hizli-okuma-egitimi/ayakta-cocuk.png";
+  "/images/landing/ogrenciler-icin-hizli-okuma-egitimi/ayakta-cocuk.webp";
 const SEATED_CHILD_IMAGE_PATH =
-  "/images/landing/ogrenciler-icin-hizli-okuma-egitimi/oturan-cocuk.png";
+  "/images/landing/ogrenciler-icin-hizli-okuma-egitimi/oturan-cocuk.webp";
 const contactSource = await readFile(path.join(projectRoot, "src", "pages", "iletisim.jsx"), "utf8");
 const readingTestSource = await readFile(path.join(projectRoot, "src", "ReadingSpeedTest.jsx"), "utf8");
 const attentionTestSource = await readFile(path.join(projectRoot, "src", "AttentionFocusTest.jsx"), "utf8");
@@ -1245,7 +1245,7 @@ check(
     !studentLandingSource.includes("student-video-placeholder") &&
     !studentLandingSource.includes("<iframe") &&
     !studentLandingSource.includes("<video"),
-  "Landing iki onaylı çocuk PNG'sini gerçek ölçü, alt metin ve oran koruyan responsive kurallarla kullanıyor; özel video placeholder kaldırıldı.",
+  "Landing iki onaylı çocuk WebP görselini gerçek ölçü, alt metin ve oran koruyan responsive kurallarla kullanıyor; özel video placeholder kaldırıldı.",
 );
 check(
   [

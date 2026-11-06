@@ -378,3 +378,139 @@
   .trainer-commerce-catalog .trainer-card-modules-020q strong { font-size: 8px; }
 }
 /* FIXOKU_020R_APPROVED_RESPONSIVE_END */
+
+/* H5CD: side-by-side cards expand together; product groups retain their own images. */
+.trainer-commerce-catalog .h5cd-content-notes{list-style:decimal;margin:0 0 18px;padding-left:24px;display:grid;gap:8px;color:#45556a;font-size:13px;line-height:1.5}
+.trainer-commerce-catalog .h5cd-content-notes li{display:list-item;padding-left:3px}
+.trainer-commerce-catalog .h5cd-empty-note{font-size:12px;color:#7c8897;margin:5px 0 15px}
+.trainer-commerce-catalog .h5cd-shipping-note{display:block;margin:8px 0 16px;color:#367457;font-size:12px}
+.trainer-commerce-catalog .h5cd-product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 17px}
+.trainer-commerce-catalog .h5cd-product-item{display:flex;align-items:center;gap:10px;min-width:0;border:1px solid #e5e9ee;border-radius:10px;padding:9px;background:#fff}
+.trainer-commerce-catalog .h5cd-product-image{display:grid;place-items:center;width:68px;height:68px;flex:0 0 68px;background:#f8f9fc;border-radius:8px;overflow:hidden}
+.trainer-commerce-catalog .h5cd-product-image img{display:block;width:100%;height:100%;object-fit:contain}
+.trainer-commerce-catalog .h5cd-product-item>div:last-child{min-width:0;overflow-wrap:anywhere}
+.trainer-commerce-catalog .h5cd-product-item strong{display:block;font-size:12px;line-height:1.35;color:#223149}
+.trainer-commerce-catalog .h5cd-product-item small{display:block;margin-top:5px;color:#728096;font-size:11px}
+@media(max-width:1150px){.trainer-commerce-catalog .h5cd-product-grid{grid-template-columns:1fr}}
+
+/* H5CE: same-row package details begin on the same horizontal line.
+   Product images show all of the original 800x1000 book / 1000x1000 digital artwork. */
+@media (min-width:1051px){
+ .trainer-commerce-catalog .trainer-package-card{display:grid;grid-template-rows:350px minmax(0,auto);align-content:start;}
+ .trainer-commerce-catalog .trainer-package-main-020q{min-height:0;max-height:350px;box-sizing:border-box;overflow:hidden;flex:none;}
+ .trainer-commerce-catalog .trainer-card-layout-020q{min-height:0;height:100%;}
+ .trainer-commerce-catalog .trainer-package-details{align-self:start;margin-top:0;padding-top:0;}
+}
+.trainer-commerce-catalog .h5cd-product-image{width:82px;height:88px;flex:0 0 82px;padding:5px;box-sizing:border-box;overflow:hidden;background:#fff;}
+.trainer-commerce-catalog .h5cd-product-image img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;}
+.trainer-commerce-catalog .trainer-package-book-cover{width:72px;min-width:72px;height:94px;min-height:94px;flex:0 0 72px;overflow:hidden;background:#fff;}
+.trainer-commerce-catalog .trainer-package-book-cover img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;}
+@media(max-width:1050px){.trainer-commerce-catalog .trainer-package-card{display:flex;}.trainer-commerce-catalog .trainer-package-main-020q{max-height:none;overflow:visible;}.trainer-commerce-catalog .trainer-package-details{padding-top:12px;}}
+
+/* FIXOKU H5CF: approved six pastel counters, price hierarchy and shipping position */
+.trainer-commerce-catalog .h5cf-module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:12px 0 12px}
+.trainer-commerce-catalog .h5cf-module{display:flex;min-width:0;min-height:69px;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 3px;border-radius:10px;text-align:center}
+.trainer-commerce-catalog .h5cf-module strong{font-size:11px;font-weight:750;line-height:1.15;overflow-wrap:anywhere}
+.trainer-commerce-catalog .h5cf-module b{font-size:16px;font-weight:850;line-height:1.1}
+.trainer-commerce-catalog .h5cf-video{background:#fff3eb;color:#bc5e20}
+.trainer-commerce-catalog .h5cf-curriculum{background:#edf5ff;color:#306aa9}
+.trainer-commerce-catalog .h5cf-presentations{background:#f5efff;color:#7454ac}
+.trainer-commerce-catalog .h5cf-books{background:#fff1ec;color:#bd6736}
+.trainer-commerce-catalog .h5cf-software{background:#eef6f3;color:#2f7861}
+.trainer-commerce-catalog .h5cf-training{background:#eff5ff;color:#536db1}
+.trainer-commerce-catalog .trainer-card-meta-020q .trainer-package-price.h5cf-price{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right}
+.trainer-commerce-catalog .trainer-card-meta-020q .trainer-package-price.h5cf-price strong{font-size:clamp(19px,1.65vw,27px)!important;font-weight:900!important;line-height:1.16;color:#15803d!important;white-space:nowrap}
+.trainer-commerce-catalog .h5cf-price-discount{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:5px;color:#16803e;font-size:11px;font-weight:750}
+.trainer-commerce-catalog .h5cf-price-discount del{color:#82909d;font-weight:600;font-size:12px}
+.trainer-commerce-catalog .h5cf-shipping-notice{display:flex;align-items:center;gap:9px;margin:14px 0 12px;padding:10px 12px;border:1px solid #cde9da;border-radius:9px;background:#f0faf4;color:#137441;font-size:12px;line-height:1.4}
+.trainer-commerce-catalog .h5cf-shipping-notice svg{flex:0 0 20px}
+.trainer-commerce-catalog .h5cf-footer-price{font-size:23px!important;color:#15803d!important;font-weight:900!important}
+.trainer-commerce-catalog .trainer-package-details footer{align-items:flex-end}
+@media(max-width:560px){.trainer-commerce-catalog .h5cf-module-grid{gap:5px}.trainer-commerce-catalog .h5cf-module{min-height:62px}.trainer-commerce-catalog .h5cf-module strong{font-size:10px}}
+
+/* H5CG Owner price-analysis presentation, shared by the two discounted combo sets */
+.trainer-commerce-catalog .h5cg-price-analysis{display:grid;gap:9px;border-radius:14px;border:1px solid #cde9d7;background:linear-gradient(135deg,#f2fbf5,#ffffff);padding:15px 16px;margin:5px 0 17px;color:#254337}
+.trainer-commerce-catalog .h5cg-price-analysis>div:not(.h5cg-analysis-heading){display:flex;align-items:center;justify-content:space-between;gap:15px;font-size:13px}
+.trainer-commerce-catalog .h5cg-price-analysis del{color:#88939d;font-size:16px;font-weight:750;text-decoration-thickness:2px}
+.trainer-commerce-catalog .h5cg-price-analysis .h5cg-analysis-heading{display:flex;gap:8px;align-items:center;color:#16803e;font-size:14px}
+.trainer-commerce-catalog .h5cg-discount-amount{color:#15803d;font-size:16px;font-weight:800}
+.trainer-commerce-catalog .h5cg-price-analysis .h5cg-analysis-total{border-top:1px solid #d5eadd;padding-top:9px}
+.trainer-commerce-catalog .h5cg-price-analysis .h5cg-analysis-total strong:last-child{color:#15803d;font-size:clamp(21px,2vw,28px);font-weight:900}
+
+
+/* FIXOKU H5CJ: approved symmetric expanded cards, checkmark features, footer alignment, and row breathing room. */
+.trainer-commerce-catalog .trainer-package-grid{column-gap:18px;row-gap:32px;align-items:stretch}
+.trainer-commerce-catalog .h5cd-content-notes.h5cj-check-list{list-style:none!important;display:grid;gap:10px;margin:0 0 18px;padding:0!important}
+.trainer-commerce-catalog .h5cj-check-list>li{display:grid!important;grid-template-columns:24px minmax(0,1fr);align-items:start;gap:10px;padding:0!important;min-width:0;line-height:1.55;color:#304256}
+.trainer-commerce-catalog .h5cj-check-icon{width:23px;height:23px;display:flex;justify-content:center;align-items:center;border-radius:50%;background:#e9f8ed;color:#168349;border:1px solid #bce7cc;flex:none}
+.trainer-commerce-catalog .h5cj-check-icon svg{width:14px;height:14px;display:block}
+/* Each grid row grows to the taller card; content remains above, action footers share the bottom edge. */
+@media(min-width:1051px){
+ .trainer-commerce-catalog .trainer-package-card{height:100%;min-height:0;grid-template-rows:350px minmax(0,1fr)!important;align-self:stretch}
+ .trainer-commerce-catalog .trainer-package-details{display:flex;min-height:0;height:100%;align-self:stretch!important;padding-top:0!important;padding-bottom:14px}
+ .trainer-commerce-catalog .trainer-package-details>div{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:100%;box-sizing:border-box}
+ .trainer-commerce-catalog .trainer-package-details footer{margin-top:auto!important;padding-top:16px;grid-template-columns:minmax(135px,1fr) auto auto!important;align-items:end!important}
+ .trainer-commerce-catalog .trainer-package-details footer>div:first-child{min-width:0}
+}
+@media(max-width:1050px){.trainer-commerce-catalog .trainer-package-grid{row-gap:22px}}
+@media(max-width:560px){.trainer-commerce-catalog .trainer-package-grid{row-gap:18px}.trainer-commerce-catalog .trainer-package-details footer{grid-template-columns:1fr 1fr!important}.trainer-commerce-catalog .trainer-package-details footer>div:first-child{grid-column:1/-1}}
+
+
+/* FIXOKU H5CK: approved card typography, status position and synchronized shipping line. */
+@media (min-width:1051px) {
+  /* The long three-set heading must not push the module counters downward. */
+  .trainer-commerce-catalog .trainer-card-top-020q {
+    position:relative;
+    min-height:57px;
+    box-sizing:border-box;
+  }
+  .trainer-commerce-catalog .trainer-card-top-020q > .trainer-package-status {
+    position:absolute;
+    top:0;
+    right:0;
+    z-index:1;
+    margin:0;
+    white-space:nowrap;
+  }
+  .trainer-commerce-catalog .trainer-card-top-020q > h3 {
+    margin:0!important;
+    padding:0 59px 0 0;
+    line-height:1.23;
+  }
+  /* Both open cards share a footer baseline; move remaining whitespace ABOVE shipping. */
+  .trainer-commerce-catalog .trainer-package-details > div > .h5cf-shipping-notice {
+    margin-top:auto!important;
+    margin-bottom:12px!important;
+  }
+  .trainer-commerce-catalog .trainer-package-details > div > footer {
+    margin-top:0!important;
+    flex-shrink:0;
+  }
+}
+/* Restrict typography to package detail sections, retaining the approved green icons. */
+.trainer-commerce-catalog .trainer-package-details .h5cj-check-list > li > span:last-child {
+  color:#344054!important;
+  font-weight:500;
+}
+.trainer-commerce-catalog .trainer-package-details h4 {
+  font-size:clamp(16px,1.25vw,19px)!important;
+  font-weight:800!important;
+  line-height:1.35!important;
+  color:#152a43;
+  letter-spacing:-.2px;
+}
+@media (max-width:1050px) {
+  /* Single column: no paired-column alignment is required. */
+  .trainer-commerce-catalog .trainer-card-top-020q > .trainer-package-status {float:right;}
+}
+/* FIXOKU H5CK END */
+
+/* FIXOKU H5CL START */
+/* Only discounted combo-set cards: price label below the package advantage and aligned on one line. */
+.trainer-commerce-catalog .trainer-card-meta-020q .trainer-package-price.h5cf-price .h5cl-combo-price-line {
+  display:flex; align-items:baseline; justify-content:flex-end; flex-wrap:wrap;
+  column-gap:7px; row-gap:2px; margin-top:8px; text-align:right;
+}
+.trainer-commerce-catalog .h5cl-combo-price-line > span {font-size:12px; font-weight:750; color:#637184; white-space:nowrap;}
+.trainer-commerce-catalog .trainer-card-meta-020q .h5cl-combo-price-line > strong {font-weight:900!important; color:#15803d!important; white-space:nowrap;}
+/* FIXOKU H5CL END */

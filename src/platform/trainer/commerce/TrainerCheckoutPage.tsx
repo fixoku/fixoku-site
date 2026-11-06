@@ -59,11 +59,9 @@ const money = (
   value: number,
   currency = "TRY",
 ) =>
-  new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value / 100);
+  (currency === "TRY"
+    ? new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(value / 100) + " ₺"
+    : new Intl.NumberFormat("tr-TR", { style: "currency", currency, maximumFractionDigits: 0 }).format(value / 100));
 
 const minor = (
   value: string,
@@ -179,6 +177,7 @@ export function TrainerCheckoutPage({
   const navigate = useNavigate();
   const [params] =
     useSearchParams();
+  const customOfferId = params.get("customOfferId") || "";
 
   const [cart, setCart] =
     useState<Cart | null>(null);
@@ -619,6 +618,7 @@ export function TrainerCheckoutPage({
                 postalCode: "",
               },
               billing,
+              ...(customOfferId ? { customOfferId } : {}),
               legalAcceptance: { preInformation: preInfoAcknowledged, distanceSales: distanceAcknowledged, documentHashes: { PRE_INFO: legalBodies.PRE_INFO.sourceSha256, DISTANCE: legalBodies.DISTANCE.sourceSha256 } },
             }),
         },

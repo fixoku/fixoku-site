@@ -786,7 +786,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-contain"
-                src="/images/home/fixoku-system/fixoku-kitaplari-icerikleri.png"
+                src="/images/home/fixoku-system/fixoku-kitaplari-icerikleri.webp"
                 alt="Fixoku Eğitim Kitapları görseli"
                 width="250"
                 height="250"
@@ -827,7 +827,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-contain"
-                src="/images/home/fixoku-system/fixoku-yazilim-uygulama-gorseli.png"
+                src="/images/home/fixoku-system/fixoku-yazilim-uygulama-gorseli.webp"
                 alt="Fixoku yapay zekâ destekli yazılım ekranı"
                 width="250"
                 height="250"
@@ -868,7 +868,7 @@ function App() {
             <div className="how-card-illustration">
               <img
                 className="how-card-image how-card-image-cover"
-                src="/images/home/fixoku-system/fixoku-yazilim-uygulama.png"
+                src="/images/home/fixoku-system/fixoku-yazilim-uygulama.webp"
                 alt="Fixoku uzman eğitmen desteğiyle sınıf eğitimi"
                 width="250"
                 height="250"
@@ -1097,7 +1097,7 @@ function App() {
       <div className="fixoku-label label-left-bottom">Konsantrasyon Egzersizleri</div>
       <div className="fixoku-label label-right-bottom">Gelişim Grafikleri</div>
 
-      <img src="/laptop.png" alt="Fixoku eğitim paneli" className="fixoku-laptop-img" />
+      <img src="/laptop.webp" alt="Fixoku eğitim paneli" className="fixoku-laptop-img" />
     </div>
 
     <div className="fixoku-experience-cards">

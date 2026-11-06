@@ -1,0 +1,410 @@
+{
+  "version": "R60C-20H5T",
+  "scope": "OFFLINE_CANONICAL_EIGHT_PACKAGE_BLUEPRINT",
+  "currency": "TRY",
+  "vatTrainingBps": 2000,
+  "vatBooksBps": 0,
+  "rules": {
+    "discount": "Only when 2+ distinct training codes",
+    "software": "Catalog 4500 TL, package component 3500 TL",
+    "shipping": "Mixed service or software with books is free",
+    "noDatabaseWrites": true,
+    "noLegacyDeletes": true,
+    "noGrantChanges": true,
+    "invoiceVatAllocation": "NOT IMPLEMENTED; must be verified before invoices"
+  },
+  "packages": [
+    {
+      "packageSlug": "ilkokul-akici-hizli-okuma-egitimi",
+      "displayName": "İlkokul akıcı ve hızlı okuma eğitmen eğitimi",
+      "ownerSaleGrossMinor": 1199000,
+      "trainings": [
+        "PRIMARY_FAST"
+      ],
+      "books": 2,
+      "hasSoftware": true,
+      "itemsGrossMinor": 1199000,
+      "discountGrossMinor": 0,
+      "shippingMinor": 0,
+      "items": [
+        {
+          "kind": "BOOK",
+          "name": "İlkokul akıcı ve hızlı okuma kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "BOOK",
+          "name": "İlkokul zihin egzersizleri kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "SOFTWARE",
+          "name": "FIXOKU yapay zekâ destekli yazılım",
+          "catalogGrossMinor": 450000,
+          "packageGrossMinor": 350000,
+          "vatRateBps": 2000,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "PRIMARY_FAST",
+          "sku": "FX-TRN-PRIMARY-FAST",
+          "grossMinor": 739000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        }
+      ],
+      "status": "PREVIEW_ONLY_NO_DB"
+    },
+    {
+      "packageSlug": "ortaokul-hizli-okuma-egitimi",
+      "displayName": "Ortaokul hızlı okuma eğitmen eğitimi",
+      "ownerSaleGrossMinor": 1199000,
+      "trainings": [
+        "MIDDLE_FAST"
+      ],
+      "books": 2,
+      "hasSoftware": true,
+      "itemsGrossMinor": 1199000,
+      "discountGrossMinor": 0,
+      "shippingMinor": 0,
+      "items": [
+        {
+          "kind": "BOOK",
+          "name": "Ortaokul hızlı okuma kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "BOOK",
+          "name": "Ortaokul zihin egzersizleri kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "SOFTWARE",
+          "name": "FIXOKU yapay zekâ destekli yazılım",
+          "catalogGrossMinor": 450000,
+          "packageGrossMinor": 350000,
+          "vatRateBps": 2000,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "MIDDLE_FAST",
+          "sku": "FX-TRN-MIDDLE-FAST",
+          "grossMinor": 739000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        }
+      ],
+      "status": "PREVIEW_ONLY_NO_DB"
+    },
+    {
+      "packageSlug": "lise-hizli-okuma-egitimi",
+      "displayName": "Lise hızlı okuma eğitmen eğitimi",
+      "ownerSaleGrossMinor": 1199000,
+      "trainings": [
+        "HIGH_FAST"
+      ],
+      "books": 1,
+      "hasSoftware": true,
+      "itemsGrossMinor": 1199000,
+      "discountGrossMinor": 0,
+      "shippingMinor": 0,
+      "items": [
+        {
+          "kind": "BOOK",
+          "name": "Lise hızlı okuma kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "SOFTWARE",
+          "name": "FIXOKU yapay zekâ destekli yazılım",
+          "catalogGrossMinor": 450000,
+          "packageGrossMinor": 350000,
+          "vatRateBps": 2000,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "HIGH_FAST",
+          "sku": "FX-TRN-HIGH-FAST",
+          "grossMinor": 794000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        }
+      ],
+      "status": "PREVIEW_ONLY_NO_DB"
+    },
+    {
+      "packageSlug": "yetiskin-hizli-okuma-egitimi",
+      "displayName": "Yetişkin hızlı okuma eğitmen eğitimi",
+      "ownerSaleGrossMinor": 1199000,
+      "trainings": [
+        "ADULT_FAST"
+      ],
+      "books": 1,
+      "hasSoftware": true,
+      "itemsGrossMinor": 1199000,
+      "discountGrossMinor": 0,
+      "shippingMinor": 0,
+      "items": [
+        {
+          "kind": "BOOK",
+          "name": "Yetişkin hızlı okuma kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "SOFTWARE",
+          "name": "FIXOKU yapay zekâ destekli yazılım",
+          "catalogGrossMinor": 450000,
+          "packageGrossMinor": 350000,
+          "vatRateBps": 2000,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "ADULT_FAST",
+          "sku": "FX-TRN-ADULT-FAST",
+          "grossMinor": 794000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        }
+      ],
+      "status": "PREVIEW_ONLY_NO_DB"
+    },
+    {
+      "packageSlug": "ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs",
+      "displayName": "Ortaokul paragraf teknikleri eğitmen eğitimi (LGS)",
+      "ownerSaleGrossMinor": 899000,
+      "trainings": [
+        "MIDDLE_PARAGRAPH"
+      ],
+      "books": 1,
+      "hasSoftware": false,
+      "itemsGrossMinor": 899000,
+      "discountGrossMinor": 0,
+      "shippingMinor": 0,
+      "items": [
+        {
+          "kind": "BOOK",
+          "name": "Ortaokul paragraf kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "MIDDLE_PARAGRAPH",
+          "sku": "FX-TRN-MIDDLE-PARAGRAPH",
+          "grossMinor": 844000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        }
+      ],
+      "status": "PREVIEW_ONLY_NO_DB"
+    },
+    {
+      "packageSlug": "lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt",
+      "displayName": "Lise paragraf teknikleri eğitmen eğitimi (TYT–AYT)",
+      "ownerSaleGrossMinor": 999000,
+      "trainings": [
+        "HIGH_PARAGRAPH"
+      ],
+      "books": 1,
+      "hasSoftware": false,
+      "itemsGrossMinor": 999000,
+      "discountGrossMinor": 0,
+      "shippingMinor": 0,
+      "items": [
+        {
+          "kind": "BOOK",
+          "name": "Lise paragraf kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "HIGH_PARAGRAPH",
+          "sku": "FX-TRN-HIGH-PARAGRAPH",
+          "grossMinor": 944000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        }
+      ],
+      "status": "PREVIEW_ONLY_NO_DB"
+    },
+    {
+      "packageSlug": "ortaokul-lise-yetiskin-hizli-okuma-egitimi",
+      "displayName": "Ortaokul, lise ve yetişkin hızlı okuma eğitmen eğitimi üçlü seti",
+      "ownerSaleGrossMinor": 1750000,
+      "trainings": [
+        "MIDDLE_FAST",
+        "HIGH_FAST",
+        "ADULT_FAST"
+      ],
+      "books": 6,
+      "hasSoftware": true,
+      "itemsGrossMinor": 3007000,
+      "discountGrossMinor": 1257000,
+      "shippingMinor": 0,
+      "items": [
+        {
+          "kind": "BOOK",
+          "name": "İlkokul akıcı ve hızlı okuma kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "BOOK",
+          "name": "İlkokul zihin egzersizleri kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "BOOK",
+          "name": "Ortaokul hızlı okuma kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "BOOK",
+          "name": "Ortaokul zihin egzersizleri kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "BOOK",
+          "name": "Lise hızlı okuma kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "BOOK",
+          "name": "Yetişkin hızlı okuma kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "SOFTWARE",
+          "name": "FIXOKU yapay zekâ destekli yazılım",
+          "catalogGrossMinor": 450000,
+          "packageGrossMinor": 350000,
+          "vatRateBps": 2000,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "MIDDLE_FAST",
+          "sku": "FX-TRN-MIDDLE-FAST",
+          "grossMinor": 739000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "HIGH_FAST",
+          "sku": "FX-TRN-HIGH-FAST",
+          "grossMinor": 794000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "ADULT_FAST",
+          "sku": "FX-TRN-ADULT-FAST",
+          "grossMinor": 794000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        }
+      ],
+      "status": "PREVIEW_ONLY_NO_DB"
+    },
+    {
+      "packageSlug": "ortaokul-lise-paragraf-egitmen-egitimi-ikili-set",
+      "displayName": "Ortaokul ve lise paragraf eğitmen eğitimi ikili seti",
+      "ownerSaleGrossMinor": 1250000,
+      "trainings": [
+        "MIDDLE_PARAGRAPH",
+        "HIGH_PARAGRAPH"
+      ],
+      "books": 2,
+      "hasSoftware": false,
+      "itemsGrossMinor": 1898000,
+      "discountGrossMinor": 648000,
+      "shippingMinor": 0,
+      "items": [
+        {
+          "kind": "BOOK",
+          "name": "Ortaokul paragraf kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "BOOK",
+          "name": "Lise paragraf kitabı",
+          "grossMinor": 55000,
+          "vatRateBps": 0,
+          "quantity": 1,
+          "catalogSku": "LOOKUP_REQUIRED"
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "MIDDLE_PARAGRAPH",
+          "sku": "FX-TRN-MIDDLE-PARAGRAPH",
+          "grossMinor": 844000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        },
+        {
+          "kind": "TRAINER_EDUCATION",
+          "trainingCode": "HIGH_PARAGRAPH",
+          "sku": "FX-TRN-HIGH-PARAGRAPH",
+          "grossMinor": 944000,
+          "vatRateBps": 2000,
+          "quantity": 1
+        }
+      ],
+      "status": "PREVIEW_ONLY_NO_DB"
+    }
+  ]
+}

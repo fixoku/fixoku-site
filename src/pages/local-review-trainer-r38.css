@@ -1,0 +1,50 @@
+/* FIXOKU H5EG-R38: LOCAL trainer preview only. No production panel styles changed. */
+[aria-label^="Salt-okunur eğitmen "] { min-width: 0; }
+[aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-page,.ta4-page,.trainer-trainings-page,.trainer-resources-page,.trainer-students-page,.trainer-earnings-page,.payout-page){
+  min-width:0; max-width:100%; box-sizing:border-box;
+}
+[aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-card,.ta4-block,.trainer-package-main,.resource-card,.student-list-card,.earnings-card,.payout-account-form,.payout-rail-card){
+  box-sizing:border-box; min-width:0; border-radius:14px;
+}
+[aria-label^="Salt-okunur eğitmen "] :is(.ta4-person,.roster20-person,.trainer-card-info-020q,.resource-copy){min-width:0;overflow-wrap:anywhere;}
+[aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-page,.ta4-page,.trainer-trainings-page,.trainer-resources-page,.trainer-students-page,.trainer-earnings-page){
+  padding-top:clamp(10px,1.4vw,22px);
+}
+[aria-label^="Salt-okunur eğitmen "] :is(input,textarea,select,button){font-size: max(14px, 0.875rem);}
+[aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-form,.payout-account-form,.ta4-block,.student-list-card,.earnings-card){
+  box-shadow:0 8px 24px rgba(24,45,72,.04);
+}
+[aria-label^="Salt-okunur eğitmen "] :is(.earnings-table-wrap,.ta4-students,.trainer-card-layout-020q){max-width:100%;}
+/* Keep visually active native controls honest: inert parent disables interaction. */
+[aria-label^="Salt-okunur eğitmen "] :is(button,[role="button"],input,select,textarea){cursor:default!important;}
+[aria-label^="Salt-okunur eğitmen "] :is(button,[role="button"]) {filter:saturate(.82);}
+
+@media (max-width: 900px){
+  [aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-layout,.payout-page,.students-layout){
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-rail,.payout-rail,.students-content){min-width:0;width:100%;max-width:100%;}
+  [aria-label^="Salt-okunur eğitmen "] :is(.ta4-assignment-grid,.trainer-package-grid,.resources-owned-grid){
+    grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+  }
+}
+@media (max-width: 640px){
+  [aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-page,.ta4-page,.trainer-trainings-page,.trainer-resources-page,.trainer-students-page,.trainer-earnings-page,.payout-page){
+    padding:12px!important;margin-inline:0!important;width:100%!important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-layout,.profile-grid,.payout-form-grid,.ta4-assignment-grid,.trainer-package-grid,.resources-owned-grid,.student-stats,.earnings-summary,.trainer-card-layout-020q){
+    grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-card,.ta4-block,.trainer-package-main,.resource-card,.student-list-card,.earnings-card,.payout-account-form,.payout-rail-card){
+    width:100%;padding:14px!important;border-radius:13px;
+  }
+  [aria-label^="Salt-okunur eğitmen "] :is(.ta4-tools,.ta4-tabs,.student-list-head,.trainer-profile-tabs,.entitlements-tabs){
+    max-width:100%;flex-wrap:wrap;gap:8px;
+  }
+  [aria-label^="Salt-okunur eğitmen "] :is(.ta4-search,.student-search){width:100%;min-width:0;}
+  [aria-label^="Salt-okunur eğitmen "] :is(.earnings-table-wrap){overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  [aria-label^="Salt-okunur eğitmen "] :is(.earnings-table-wrap table){min-width:520px;}
+  [aria-label^="Salt-okunur eğitmen "] :is(.trainer-card-cover-020q img,.resources-bottom-banner img,.students-bottom-banner img){max-width:100%;height:auto;object-fit:contain;}
+  [aria-label^="Salt-okunur eğitmen "] :is(.ta4-assignment-top,.ta4-detail-head,.roster20-person-head){flex-wrap:wrap;gap:8px;}
+  [aria-label^="Salt-okunur eğitmen "] :is(.trainer-profile-page,.ta4-page,.trainer-trainings-page,.trainer-resources-page,.trainer-students-page,.trainer-earnings-page,.payout-page) :is(h1,h2){overflow-wrap:anywhere;}
+}

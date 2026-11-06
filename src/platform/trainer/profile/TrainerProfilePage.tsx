@@ -27,7 +27,7 @@ type Profile = {
 type Address = { id?: string; title: string; firstName: string; lastName: string; phone: string; city: string; district: string; addressLine: string; neighborhood?: string | null; postalCode?: string | null };
 const emptyAddress: Address = { title: "Teslimat Adresi", firstName: "", lastName: "", phone: "", city: "", district: "", addressLine: "" };
 type Status = "loading" | "ready" | "saving" | "success" | "error";
-type TabId = "personal" | "professional" | "address";
+type TabId = "personal" | "professional";
 
 type QualificationBadgeR9 = { id: string; label: string };
 
@@ -51,7 +51,6 @@ const empty: Profile = {
 const tabs: readonly [TabId, string, "user-solid" | "briefcase" | "pin"][] = [
   ["personal", "Kişisel Bilgiler", "user-solid"],
   ["professional", "Mesleki Bilgiler", "briefcase"],
-  ["address", "Adres", "pin"],
 ];
 
 function placeKey(value: string) {
@@ -95,36 +94,78 @@ export function TrainerProfilePage({
   const [feedback, setFeedback] = useState("");
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
+  // FIXOKU_R23_PHOTO_SAVE
+  const [photoSaving, setPhotoSaving] = useState(false);
+  const [photoNotice, setPhotoNotice] = useState("");
+  const savePhoto = async () => {
+    if (!photoDataUrl || photoSaving) return;
+    setPhotoSaving(true); setPhotoNotice("");
+    try {
+      const response = await fetch("/api/trainer/profile", { method: "PATCH", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ photoDataUrl }) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.profile?.photoStorageKey) throw new Error("PHOTO_SAVE_FAILED");
+      setProfile((current) => ({ ...current, photoStorageKey: result.profile.photoStorageKey, photoUrl: result.profile.photoUrl }));
+      setPhotoDataUrl(null); setRemovePhoto(false);
+      setPhotoNotice("Profil fotoğrafınız kaydedildi.");
+      window.dispatchEvent(new Event("fixoku:profile-photo-updated"));
+    } catch { setPhotoNotice("Fotoğraf kaydedilemedi. Tekrar deneyin."); }
+    finally { setPhotoSaving(false); }
+  };
   const [avatarError, setAvatarError] = useState(false);
   const [qualificationBadges, setQualificationBadges] = useState<QualificationBadgeR9[]>([]);
   const [deliveryAddress, setDeliveryAddress] = useState<Address>({ ...emptyAddress });
   const [addressState, setAddressState] = useState<"loading" | "ready" | "saving">("loading");
-  const [addressFeedback, setAddressFeedback] = useState("");
+  const [, setAddressFeedback] = useState("");
+  const [initialAddress, setInitialAddress] = useState<Address>({ ...emptyAddress });
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => { setToast(null); if (toast.type === "success") setStatus(current => current === "success" ? "ready" : current); }, toast.type === "success" ? 4000 : 6500);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
   useEffect(() => {
     fetch("/api/trainer/addresses", { credentials: "same-origin", cache: "no-store" })
       .then(async response => { if (!response.ok) throw new Error(); return response.json(); })
-      .then(data => { const saved = data.addresses?.[0]; setDeliveryAddress(saved ? saved : { ...emptyAddress }); setAddressState("ready"); })
+      .then(data => { const saved = data.addresses?.[0]; setDeliveryAddress(saved ? saved : { ...emptyAddress }); setInitialAddress(saved ? saved : { ...emptyAddress }); setAddressState("ready"); })
       .catch(() => { setAddressState("ready"); setAddressFeedback("Kayıtlı adresler yüklenemedi. Tekrar deneyin."); });
   }, []);
-  async function saveDeliveryAddress() {
-    const a = deliveryAddress;
-    if (![a.title, a.firstName, a.lastName, a.phone, a.city, a.district, a.addressLine].every(value => String(value || "").trim())) {
-      setAddressFeedback("Adres başlığı, ad, soyad, telefon, il, ilçe ve açık adres zorunludur."); return;
+  async function persistDeliveryAddress(): Promise<boolean> {
+    // One profile action may save the existing delivery address. No new empty address is created.
+    const a: Address = {
+      ...deliveryAddress,
+      title: deliveryAddress.title || "Teslimat Adresi",
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      phone: localMobile(profile.phone),
+      city: profile.city,
+      district: profile.district,
+    };
+    const needsSave = Boolean(a.addressLine.trim()) && (
+      !a.id || a.addressLine !== initialAddress.addressLine ||
+      a.firstName !== initialAddress.firstName || a.lastName !== initialAddress.lastName ||
+      a.phone.replace(/\D/gu, "") !== initialAddress.phone.replace(/\D/gu, "").replace(/^90/u, "") ||
+      a.city !== initialAddress.city || a.district !== initialAddress.district
+    );
+    if (!needsSave) return true;
+    if (![a.title,a.firstName,a.lastName,a.phone,a.city,a.district,a.addressLine].every(v=>String(v||"").trim())) {
+      throw new Error("Adres için ad, soyad, telefon, il, ilçe ve açık adres gereklidir.");
     }
-    setAddressState("saving"); setAddressFeedback("");
+    setAddressState("saving");
     try {
-      const response = await fetch("/api/trainer/addresses", { method: a.id ? "PATCH" : "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(a) });
+      const response = await fetch("/api/trainer/addresses", {
+        method: a.id ? "PATCH" : "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(a),
+      });
       const data = await response.json().catch(() => ({}));
       const validationMessage = data.errors && typeof data.errors === "object"
-        ? Object.values(data.errors).find((item): item is string => typeof item === "string")
-        : null;
+        ? Object.values(data.errors).find((item): item is string => typeof item === "string") : null;
       if (!response.ok || !data.address) throw new Error(validationMessage || data.message || data.error || "Adres kaydedilemedi.");
-      setDeliveryAddress(data.address); setAddressFeedback("Adresiniz kaydedildi. Ödeme sayfasında otomatik seçilir.");
-    } catch (error) { setAddressFeedback(error instanceof Error ? error.message : "Adres kaydedilemedi."); }
-    finally { setAddressState("ready"); }
+      setDeliveryAddress(data.address);
+      setInitialAddress(data.address);
+      setAddressFeedback("");
+      return true;
+    } finally { setAddressState("ready"); }
   }
-
-
   useEffect(() => {
     fetch("/api/trainer/profile", { credentials: "same-origin" })
       .then(async (response) => {
@@ -216,6 +257,8 @@ export function TrainerProfilePage({
     setFeedback("");
 
     try {
+      // Address and profile use separate APIs. A success toast means both required writes succeeded.
+      await persistDeliveryAddress();
       const response = await fetch("/api/trainer/profile", {
         method: "PATCH",
         credentials: "same-origin",
@@ -241,6 +284,7 @@ export function TrainerProfilePage({
 
       if (!response.ok) {
         setErrors(data.errors ?? { form: "Profil kaydedilemedi." });
+        setToast({ type: "error", message: "Bilgiler kaydedilemedi." });
         setStatus("ready");
         return;
       }
@@ -276,6 +320,7 @@ export function TrainerProfilePage({
             email: emailBody.message || "E-posta değişikliği başlatılamadı.",
           });
           setFeedback("Diğer profil bilgileriniz kaydedildi.");
+          setToast({ type: "error", message: "E-posta değişikliği başlatılamadı." });
           setStatus("ready");
           return;
         }
@@ -287,6 +332,7 @@ export function TrainerProfilePage({
         setFeedback(
           "Profil bilgileriniz kaydedildi. Yeni e-posta adresinize doğrulama bağlantısı gönderildi; doğrulamadan sonra e-posta değişecektir.",
         );
+        setToast({ type: "success", message: "Bilgileriniz güncellendi." });
         setStatus("success");
         return;
       }
@@ -297,9 +343,11 @@ export function TrainerProfilePage({
       setPhotoDataUrl(null);
       setRemovePhoto(false);
       setFeedback("Bilgileriniz başarıyla kaydedildi.");
+      setToast({ type: "success", message: "Bilgileriniz güncellendi." });
       setStatus("success");
-    } catch {
-      setFeedback("Sunucuya ulaşılamadı. Değişiklikleriniz korunuyor.");
+    } catch (error) {
+      setToast({ type: "error", message: error instanceof Error ? error.message : "Bilgiler kaydedilemedi." });
+      setFeedback("Kaydetme tamamlanamadı. Değişikliklerinizi kontrol edin.");
       setStatus("error");
     }
   }
@@ -456,22 +504,22 @@ export function TrainerProfilePage({
         </span>
         {errors.district && <small>{errors.district}</small>}
       </label>
-    </div>
-  );
+      <label className="profile-field full">
+        <span>Açık Adres</span>
+        <textarea
+          value={deliveryAddress.addressLine}
+          onChange={(event) => {
+            setDeliveryAddress((current) => ({
+              ...current,
+              addressLine: event.target.value,
+            }));
+            setAddressFeedback("");
+          }}
+          placeholder="Mahalle, cadde, sokak, bina ve daire numarası"
+          rows={3}
+        />
+      </label>
 
-  const addressPanel = (
-    <div className="trainer-profile-address-panel">
-      <p className="trainer-profile-address-note">Burada kaydettiğiniz teslimat adresi, ödeme ekranında otomatik seçilir.</p>
-      <div className="profile-grid">
-        <label className="profile-field full"><span>Adres başlığı</span><input value={deliveryAddress.title} onChange={event => setDeliveryAddress(a => ({ ...a, title: event.target.value }))} placeholder="Ev / İş" /></label>
-        <label className="profile-field"><span>Ad</span><input value={deliveryAddress.firstName} onChange={event => setDeliveryAddress(a => ({ ...a, firstName: event.target.value }))} /></label>
-        <label className="profile-field"><span>Soyad</span><input value={deliveryAddress.lastName} onChange={event => setDeliveryAddress(a => ({ ...a, lastName: event.target.value }))} /></label>
-        <label className="profile-field full"><span>Telefon</span><input type="tel" value={deliveryAddress.phone} onChange={event => setDeliveryAddress(a => ({ ...a, phone: event.target.value }))} placeholder="05XX XXX XX XX" /></label>
-        <label className="profile-field"><span>İl</span><select value={deliveryAddress.city} onChange={event => setDeliveryAddress(a => ({ ...a, city: event.target.value, district: "" }))}><option value="">İl seçin</option>{TURKEY_LOCATIONS.map(p => <option key={p.plate} value={p.name}>{p.name}</option>)}</select></label>
-        <label className="profile-field"><span>İlçe</span><select value={deliveryAddress.district} onChange={event => setDeliveryAddress(a => ({ ...a, district: event.target.value }))} disabled={!deliveryAddress.city}><option value="">İlçe seçin</option>{getTurkeyDistricts(deliveryAddress.city).map(d => <option key={d} value={d}>{d}</option>)}</select></label>
-        <label className="profile-field full"><span>Açık adres</span><textarea value={deliveryAddress.addressLine} onChange={event => setDeliveryAddress(a => ({ ...a, addressLine: event.target.value }))} placeholder="Mahalle, cadde, sokak, bina ve daire numarası" /></label>
-      </div>
-      <div className="trainer-profile-address-actions"><span role="status">{addressState === "loading" ? "Adres yükleniyor..." : addressFeedback}</span><button type="button" className="profile-button" disabled={addressState !== "ready"} onClick={() => void saveDeliveryAddress()}>{addressState === "saving" ? "Kaydediliyor..." : "Adresi Kaydet"}</button></div>
     </div>
   );
 
@@ -540,7 +588,7 @@ export function TrainerProfilePage({
             disabled={status === "saving" || !dirty}
           >
             <PanelIcon name="save" size={22} />
-            {status === "saving" ? "Kaydediliyor…" : "Bilgilerimi Güncelle"}
+            {status === "saving" ? "Kaydediliyor…" : status === "success" ? "Bilgileriniz güncellendi" : "Bilgilerimi Güncelle"}
           </button>
         </div>
       </div>
@@ -635,7 +683,7 @@ export function TrainerProfilePage({
                 role="tabpanel"
                 aria-labelledby={`profile-tab-${tab}`}
               >
-                {tab === "personal" ? personalPanel : tab === "address" ? addressPanel : professionalPanel}
+                {tab === "personal" ? personalPanel : professionalPanel}
 
                 {errors.form && (
                   <p className="profile-form-error" role="alert">
@@ -643,20 +691,26 @@ export function TrainerProfilePage({
                   </p>
                 )}
 
-                <div className="trainer-profile-feedback-row">
+                <div className="trainer-profile-feedback-row" style={{ position: "relative" }}>
+      {toast && (
+        <div role="status" aria-live="polite" style={{ position: "absolute", bottom: "calc(100% + 10px)", right: 0, zIndex: 9999, display: "flex", alignItems: "center", gap: 10, padding: "12px 18px", borderRadius: 12, background: toast.type === "success" ? "#E7F6EB" : "#FFF0EF", border: `1px solid ${toast.type === "success" ? "#B8E3C6" : "#F2C6C2"}`, color: toast.type === "success" ? "#17643A" : "#9A302A", boxShadow: "0 8px 24px rgba(0,0,0,.10)", fontWeight: 600, fontSize: 15, maxWidth: "calc(100vw - 48px)", whiteSpace: "nowrap" }}>
+          <span aria-hidden="true">{toast.type === "success" ? "✓" : "!"}</span>
+          <span>{toast.message}</span>
+        </div>
+      )}
                   <span className="profile-feedback" role="status" aria-live="polite">
-                    {tab === "address" ? "" : (feedback || (dirty ? "Kaydedilmemiş değişiklikleriniz var." : ""))}
+                    {feedback || (dirty ? "Kaydedilmemiş değişiklikleriniz var." : "")}
                   </span>
 
                   {tab === "personal" && (
                     <button
                       type="button"
                       className="profile-button trainer-profile-personal-save"
-                      disabled={status === "saving" || !dirty}
+                      disabled={status === "saving" || addressState !== "ready" || (!dirty && deliveryAddress.addressLine === initialAddress.addressLine)}
                       onClick={() => void save()}
                     >
                       <PanelIcon name="save" size={22} />
-                      {status === "saving" ? "Kaydediliyor…" : "Bilgilerimi Güncelle"}
+                      {status === "saving" ? "Kaydediliyor…" : status === "success" ? "Bilgileriniz güncellendi" : "Bilgilerimi Güncelle"}
                     </button>
                   )}
                 </div>
@@ -715,7 +769,13 @@ export function TrainerProfilePage({
                 )}
               </div>
 
-              {(profile.photoStorageKey || photoDataUrl) && (
+              {photoDataUrl && (
+                <button type="button" className="profile-button" disabled={photoSaving} onClick={() => void savePhoto()}>
+                  <PanelIcon name="save" size={20} />{photoSaving ? "Fotoğraf kaydediliyor..." : "Fotoğrafı Kaydet"}
+                </button>
+              )}
+              {photoNotice && <small role="status" aria-live="polite" className="fixoku-r23-photo-notice">{photoNotice}</small>}
+              {Boolean(profile.photoStorageKey) && !photoDataUrl && (
                 <button
                   type="button"
                   className="profile-button profile-button-secondary trainer-photo-remove"

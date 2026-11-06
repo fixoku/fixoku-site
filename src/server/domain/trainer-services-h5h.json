@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "purpose": "OFFLINE PROPOSAL ONLY, NOT A DATABASE MIGRATION",
+  "services": [
+    {
+      "trainingCode": "PRIMARY_FAST",
+      "sku": "FX-TRN-PRIMARY-FAST",
+      "title": "İlkokul akıcı ve hızlı okuma eğitmen eğitimi",
+      "priceGrossMinor": 739000,
+      "currency": "TRY",
+      "type": "TRAINER_EDUCATION",
+      "shippingRequired": false,
+      "vatInclusive": true,
+      "packageSlug": "ilkokul-akici-hizli-okuma-egitimi"
+    },
+    {
+      "trainingCode": "MIDDLE_FAST",
+      "sku": "FX-TRN-MIDDLE-FAST",
+      "title": "Ortaokul hızlı okuma eğitmen eğitimi",
+      "priceGrossMinor": 739000,
+      "currency": "TRY",
+      "type": "TRAINER_EDUCATION",
+      "shippingRequired": false,
+      "vatInclusive": true,
+      "packageSlug": "ortaokul-hizli-okuma-egitimi"
+    },
+    {
+      "trainingCode": "HIGH_FAST",
+      "sku": "FX-TRN-HIGH-FAST",
+      "title": "Lise hızlı okuma eğitmen eğitimi",
+      "priceGrossMinor": 794000,
+      "currency": "TRY",
+      "type": "TRAINER_EDUCATION",
+      "shippingRequired": false,
+      "vatInclusive": true,
+      "packageSlug": "lise-hizli-okuma-egitimi"
+    },
+    {
+      "trainingCode": "ADULT_FAST",
+      "sku": "FX-TRN-ADULT-FAST",
+      "title": "Yetişkin hızlı okuma eğitmen eğitimi",
+      "priceGrossMinor": 794000,
+      "currency": "TRY",
+      "type": "TRAINER_EDUCATION",
+      "shippingRequired": false,
+      "vatInclusive": true,
+      "packageSlug": "yetiskin-hizli-okuma-egitimi"
+    },
+    {
+      "trainingCode": "MIDDLE_PARAGRAPH",
+      "sku": "FX-TRN-MIDDLE-PARAGRAPH",
+      "title": "Ortaokul paragraf teknikleri eğitmen eğitimi (LGS)",
+      "priceGrossMinor": 844000,
+      "currency": "TRY",
+      "type": "TRAINER_EDUCATION",
+      "shippingRequired": false,
+      "vatInclusive": true,
+      "packageSlug": "ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs"
+    },
+    {
+      "trainingCode": "HIGH_PARAGRAPH",
+      "sku": "FX-TRN-HIGH-PARAGRAPH",
+      "title": "Lise paragraf teknikleri eğitmen eğitimi (TYT–AYT)",
+      "priceGrossMinor": 944000,
+      "currency": "TRY",
+      "type": "TRAINER_EDUCATION",
+      "shippingRequired": false,
+      "vatInclusive": true,
+      "packageSlug": "lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt"
+    }
+  ],
+  "packageTrainingCodes": {
+    "ilkokul-akici-hizli-okuma-egitimi": [
+      "PRIMARY_FAST"
+    ],
+    "ortaokul-hizli-okuma-egitimi": [
+      "MIDDLE_FAST"
+    ],
+    "lise-hizli-okuma-egitimi": [
+      "HIGH_FAST"
+    ],
+    "yetiskin-hizli-okuma-egitimi": [
+      "ADULT_FAST"
+    ],
+    "ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs": [
+      "MIDDLE_PARAGRAPH"
+    ],
+    "lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt": [
+      "HIGH_PARAGRAPH"
+    ],
+    "ortaokul-lise-yetiskin-hizli-okuma-egitimi": [
+      "MIDDLE_FAST",
+      "HIGH_FAST",
+      "ADULT_FAST"
+    ],
+    "ortaokul-lise-paragraf-egitmen-egitimi-ikili-set": [
+      "MIDDLE_PARAGRAPH",
+      "HIGH_PARAGRAPH"
+    ]
+  },
+  "bundleSalesGrossMinor": {
+    "ortaokul-lise-yetiskin-hizli-okuma-egitimi": 1750000,
+    "ortaokul-lise-paragraf-egitmen-egitimi-ikili-set": 1250000
+  },
+  "rules": {
+    "discountTrigger": "at least two DISTINCT training codes",
+    "discountFormula": "verified sum of all invoice product gross prices minus owner package gross price",
+    "shipping": "mixed books+service or software free; books only 1=10000 2=15000 3+=0",
+    "legacy": "never mutate or delete legacy individual education products",
+    "authorizations": "package access cannot be granted by this file"
+  }
+}

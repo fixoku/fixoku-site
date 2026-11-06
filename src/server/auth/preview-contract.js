@@ -62,11 +62,11 @@ const CONTRACTS_BY_BRANCH = new Map(
 );
 
 export const CLEAN_STAGING_METADATA = Object.freeze({
-  project: "damp-night-76577929",
-  branch: "br-solitary-scene-ba3d7ejb",
+  project: "tiny-fire-86403197",
+  branch: "br-sweet-resonance-b17h2ttf",
   database: "neondb",
-  endpoint: "ep-dark-math-baw61g90",
-  regionSuffix: "c-8.eu-central-1.aws.neon.tech",
+  endpoint: "ep-calm-term-b1l1d62f",
+  regionSuffix: "c-5.eu-central-1.aws.neon.tech",
 });
 
 export const CLEAN_STAGING_HOSTS = Object.freeze({

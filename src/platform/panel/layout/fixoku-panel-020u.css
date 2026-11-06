@@ -35,3 +35,24 @@
   }
 }
 /* FIXOKU_020U_END */
+
+
+/* FIXOKU_020U: compact latest-three notification popover shared by roles. */
+.platform-panel .panel-notification-wrap { position: relative; display: inline-flex; }
+.platform-panel .panel-notification-popover { position: absolute; z-index: 40; top: calc(100% + 10px); right: 0; width: min(360px, calc(100vw - 28px)); padding: 12px; border: 1px solid #e3e8ef; border-radius: 14px; background: #fff; box-shadow: 0 18px 44px rgba(25,35,50,.16); }
+.platform-panel .panel-notification-popover-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 3px 5px 10px; border-bottom: 1px solid #edf0f4; color: #1f2937; }
+.platform-panel .panel-notification-popover-head span { color: #7b8795; font-size: 11px; }
+.platform-panel .panel-notification-popover ul { display: grid; gap: 5px; margin: 8px 0; padding: 0; list-style: none; }
+.platform-panel .panel-notification-popover li { border-radius: 10px; }
+.platform-panel .panel-notification-popover li.is-unread { background: #fff6ef; }
+.platform-panel .panel-notification-popover li > button { display: grid; gap: 4px; width: 100%; padding: 10px; border: 0; border-radius: 10px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.platform-panel .panel-notification-popover li > button:hover { background: #fff1e7; }
+.platform-panel .panel-notification-popover li > button:disabled { cursor: wait; opacity: .6; }
+.platform-panel .panel-notification-popover li strong { overflow: hidden; color: #263241; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.platform-panel .panel-notification-popover li span { overflow: hidden; color: #697586; font-size: 11px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.platform-panel .panel-notification-popover li time { color: #9aa3af; font-size: 10px; }
+.platform-panel .panel-notification-empty { margin: 14px 4px; color: #798493; font-size: 12px; text-align: center; }
+.platform-panel .panel-notification-all { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 9px 5px 2px; border: 0; border-top: 1px solid #edf0f4; background: transparent; color: #e5681a; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+.platform-panel .panel-notification-all:hover { color: #bd4e0b; }
+@media (max-width: 760px) { .platform-panel .panel-notification-popover { right: -7px; } }
+/* FIXOKU_020U_END */

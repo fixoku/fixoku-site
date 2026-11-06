@@ -1,5 +1,5 @@
 import pg from "pg";
-import { ownerAuth } from "../src/server/auth/auth.js";
+import { auth } from "../src/server/auth/auth.js";
 import { requireApplicationOrigin } from "../src/server/auth/origin.js";
 import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 
@@ -45,7 +45,7 @@ function cookiePair(cookies) {
 async function revokeNonOwnerSession(origin, cookies) {
   if (!cookies.length) return;
   try {
-    await ownerAuth.handler(new Request(`${origin}/api/auth/sign-out`, {
+    await auth.handler(new Request(`${origin}/api/auth/sign-out`, {
       method: "POST",
       headers: { origin, cookie: cookiePair(cookies), "content-type": "application/json" },
     }));
@@ -86,10 +86,10 @@ async function isActiveOwner(authUserId, email) {
 }
 
 /**
- * Owner-only password entry. The ownerAuth instance shares Better Auth's
- * database, secret, session, CSRF and rate-limit configuration with the
- * regular auth instance but has no 2FA sign-in hook. The database membership
- * check below is mandatory before any session cookie is returned.
+ * Owner-only password entry. The normal Better Auth instance supplies the
+ * shared database, secret, session, CSRF, rate-limit and optional per-account
+ * 2FA behavior. The database membership check below is mandatory before any
+ * session cookie is returned.
  */
 export default async function handler(request, response) {
   if (!cleanPreviewGateResponse(response)) return;
@@ -105,7 +105,7 @@ export default async function handler(request, response) {
     const email = String(body.email || "").trim().toLowerCase();
     const password = String(body.password || "");
     if (email !== OWNER_EMAIL || !password) return json(response, 401, { error: "INVALID_EMAIL_OR_PASSWORD" });
-    const authResponse = await ownerAuth.handler(new Request(`${origin}/api/auth/sign-in/email`, {
+    const authResponse = await auth.handler(new Request(`${origin}/api/auth/sign-in/email`, {
       method: "POST",
       headers: requestHeaders(request, origin),
       body: JSON.stringify({ email, password, callbackURL: "/panel/owner" }),
@@ -113,6 +113,7 @@ export default async function handler(request, response) {
     const payload = await authResponse.json().catch(() => ({}));
     const cookies = responseCookies(authResponse);
     if (!authResponse.ok) return forwardAuthResponse(response, authResponse, payload, cookies);
+    if (payload?.twoFactorRedirect === true) return forwardAuthResponse(response, authResponse, payload, cookies);
     const authUserId = payload?.user?.id;
     if (!authUserId || !(await isActiveOwner(authUserId, email))) {
       await revokeNonOwnerSession(origin, cookies);

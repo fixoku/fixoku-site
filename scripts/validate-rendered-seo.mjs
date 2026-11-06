@@ -442,10 +442,10 @@ check(
   studentLandingHtml.includes("Fixoku</span> Eğitimi Alan Öğrenciler ve Veliler") &&
     studentLandingHtml.includes('aria-label="Önceki öğrenci videosu"') &&
     studentLandingHtml.includes('aria-label="Sonraki öğrenci videosu"') &&
-    studentLandingHtml.includes('/images/landing/ogrenciler-icin-hizli-okuma-egitimi/ayakta-cocuk.png') &&
+    studentLandingHtml.includes('/images/landing/ogrenciler-icin-hizli-okuma-egitimi/ayakta-cocuk.webp') &&
     studentLandingHtml.includes('width="607"') &&
     studentLandingHtml.includes('height="1013"') &&
-    studentLandingHtml.includes('/images/landing/ogrenciler-icin-hizli-okuma-egitimi/oturan-cocuk.png') &&
+    studentLandingHtml.includes('/images/landing/ogrenciler-icin-hizli-okuma-egitimi/oturan-cocuk.webp') &&
     studentLandingHtml.includes('width="1405"') &&
     studentLandingHtml.includes('height="1120"') &&
     studentLandingHtml.includes('loading="lazy"') &&
@@ -693,7 +693,7 @@ check(
   vercelConfig.cleanUrls === true &&
     vercelConfig.trailingSlash === false &&
     rewrites.length > 0 &&
-    rewrites.every(({ source }) => source === "/panel" || source.startsWith("/panel/") || ["/sifre-sifirla", "/e-posta-dogrula", "/ogretmen-aday-aktivasyon", "/ogretmen-aktivasyon", "/admin-davet-kabul"].includes(source)),
+    rewrites.every(({ source }) => source === "/panel" || source.startsWith("/panel/") || ["/giris", "/sifre-sifirla", "/e-posta-dogrula", "/ogretmen-aday-aktivasyon", "/ogretmen-aktivasyon", "/admin-davet-kabul"].includes(source)),
   "Vercel clean URL, panel ve kimlik yaşam döngüsü yedek yapılandırması doğru.",
 );
 

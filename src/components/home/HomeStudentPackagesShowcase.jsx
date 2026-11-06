@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FixokuPhotoV41F, packageImageDefaultV41F } from "../../platform/admin/FixokuCatalogAssetsV41F";
 import { rememberStudentPurchaseIntent } from "../../utils/purchaseIntent.js";
+import { pushEvent } from "../../martech/events.js";
 import "./home-student-packages-showcase.css";
 
 const CATEGORIES = [
@@ -120,6 +121,18 @@ export default function HomeStudentPackagesShowcase() {
     };
   }, [category, activePackages.length, status]);
 
+  useEffect(() => {
+    if (status !== "ready" || !activePackages.length) return;
+    const items = activePackages.slice(0, 50).map((item) => ({
+      item_id: item.packageVersionId || item.id,
+      item_name: item.title,
+      item_category: category,
+      price: Number.isFinite(Number(item.priceMinor)) ? Number(item.priceMinor) / 100 : undefined,
+      currency: item.currency || undefined,
+    }));
+    pushEvent("view_item_list", { item_list_id: `home_packages_${category.toLocaleLowerCase("tr-TR")}`, items }, { onceKey: `home_packages:${category}:${items.map((item) => item.item_id).join(",")}` });
+  }, [activePackages, category, status]);
+
   const move = (direction) => {
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -171,11 +184,11 @@ export default function HomeStudentPackagesShowcase() {
                     <div className="fx-home-packages__bottom">
                       <strong className="fx-home-packages__price">{priceText(item.priceMinor, item.currency)}</strong>
                       <div className="fx-home-packages__actions">
-                        <Link className="fx-home-packages__card-link" to="/egitim-paketleri" aria-label={`${item.title} paketini incele`}>Paketi İncele <span aria-hidden="true">→</span></Link>
+                        <Link className="fx-home-packages__card-link" to="/egitim-paketleri" onClick={() => pushEvent("select_item", { item_list_id: "home_packages", items: [{ item_id: item.packageVersionId || item.id, item_name: item.title, item_category: category }] })} aria-label={`${item.title} paketini incele`}>Paketi İncele <span aria-hidden="true">→</span></Link>
                         {buyable(item) && <Link
                           className="fx-home-packages__buy-link"
                           to={`/panel/ogrenci/paketler?packageVersionId=${encodeURIComponent(item.packageVersionId)}`}
-                          onClick={() => rememberStudentPurchaseIntent(item.packageVersionId)}
+                          onClick={() => { const analytics = { item_id: item.packageVersionId || item.id, item_name: item.title, item_category: category, price: Number(item.priceMinor) / 100, currency: item.currency || undefined }; pushEvent("select_item", { item_list_id: "home_packages", items: [analytics] }); pushEvent("student_package_interest", analytics); rememberStudentPurchaseIntent(item.packageVersionId); }}
                           aria-label={`${item.title} paketi için öğrenci paneline git`}
                         >Hemen Al <span aria-hidden="true">→</span></Link>}
                       </div>

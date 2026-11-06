@@ -23,24 +23,69 @@ async function readFinance(pool, filters) {
   const earningClauses = []; const earningValues = []; const addEarning = (value, sql) => { earningValues.push(value); earningClauses.push(sql.replace("$N", `$${earningValues.length}`)); }; if (filters.trainerId) addEarning(filters.trainerId, "e.trainer_user_id = $N"); if (filters.packageId) addEarning(filters.packageId, "exists (select 1 from package_entitlement_enrollments f_pee join order_items f_oi on f_oi.id=f_pee.source_order_item_id where f_pee.enrollment_id=e.enrollment_id and f_oi.package_id=$N)"); if (filters.from) addEarning(filters.from, "e.occurred_at >= $N::date"); if (filters.to) addEarning(filters.to, "e.occurred_at < ($N::date + interval '1 day')"); if (filters.currency) addEarning(filters.currency, "e.currency = $N"); const ep = earningClauses.length ? `where ${earningClauses.join(" and ")}` : "";
   const profitabilityTrainerClause = filters.trainerId ? ` and el.trainer_user_id=$${scope.values.length + 1}` : "";
   const profitabilityValues = filters.trainerId ? [...scope.values, filters.trainerId] : scope.values;
+  // Trainer commerce is persisted in trainer_package_orders rather than
+  // student orders. Keep a separate parameterized scope, then normalize both
+  // sources into the same sales rows below.
+  const trainerOrderClauses = ["o.status in ('PAID','REFUNDED')"];
+  const trainerOrderValues = [];
+  const addTrainerOrder = (value, sql) => { trainerOrderValues.push(value); trainerOrderClauses.push(sql.replace("$N", `$${trainerOrderValues.length}`)); };
+  if (filters.from) addTrainerOrder(filters.from, "o.created_at >= $N::date");
+  if (filters.to) addTrainerOrder(filters.to, "o.created_at < ($N::date + interval '1 day')");
+  if (filters.currency) addTrainerOrder(filters.currency, "o.currency = $N");
+  if (filters.packageId) addTrainerOrder(filters.packageId, "oi.package_id = $N");
+  if (filters.trainerId) addTrainerOrder(filters.trainerId, "o.trainer_user_id = $N");
+  const trainerOrderScope = trainerOrderClauses.join(" and ");
   const payoutClauses = []; const payoutValues = []; const addPayout = (value, sql) => { payoutValues.push(value); payoutClauses.push(sql.replace("$N", `$${payoutValues.length}`)); }; if (filters.from) addPayout(filters.from, "p.payment_date >= $N::date"); if (filters.to) addPayout(filters.to, "p.payment_date <= $N::date"); if (filters.currency) addPayout(filters.currency, "p.currency = $N"); if (filters.trainerId) addPayout(filters.trainerId, "p.trainer_user_id = $N"); const pp = payoutClauses.length ? `where ${payoutClauses.join(" and ")}` : "";
-  const [ledger, payouts, sales, obligations, earningTotals, costs, packages, trainers, profitability] = await Promise.all([
+  const [ledger, payouts, sales, trainerSales, obligations, earningTotals, costs, packages, trainers, profitability] = await Promise.all([
     pool.query(`select l.id,l.entry_type as "entryType",l.source_type as "sourceType",l.source_id as "sourceId",l.amount_minor as "amountMinor",l.currency,l.metadata_json as "metadataJson",l.occurred_at as "occurredAt",l.created_by as "createdBy",actor.display_name as "actorName" from owner_finance_ledger l left join platform_users actor on actor.id=l.created_by where true${lp} order by l.occurred_at desc,l.id desc limit 250`, ledgerValues),
     pool.query(`select p.trainer_user_id as "trainerUserId",u.display_name as "trainerName",p.currency,p.amount_minor as "paidMinor",p.payment_date as "paymentDate",p.period_start as "periodStart",p.period_end as "periodEnd",p.bank_reference as "bankReference",p.id from trainer_payout_register p join platform_users u on u.id=p.trainer_user_id ${pp} order by p.payment_date desc,p.created_at desc`, payoutValues),
     pool.query(`select o.currency,count(*)::int as count,sum(o.total_minor)::bigint as "grossMinor",coalesce(sum((select sum(pt.amount_minor) from payment_intents pi join payment_transactions pt on pt.payment_intent_id=pi.id where pi.order_id=o.id and pt.transaction_type='REFUND' and pt.status='SUCCEEDED')),0)::bigint as "refundsMinor" from orders o where ${scope.sql} group by o.currency order by o.currency`, scope.values),
+    pool.query(`select o.currency,count(distinct o.id)::int as count,coalesce(sum(oi.line_total_minor),0)::bigint as "grossMinor",coalesce(sum(case when o.status='REFUNDED' then oi.line_total_minor else 0 end),0)::bigint as "refundsMinor" from trainer_package_orders o join trainer_package_order_items oi on oi.order_id=o.id where ${trainerOrderScope} group by o.currency order by o.currency`, trainerOrderValues),
     pool.query("select count(*)::int as count from trainer_assignment_requests where status='PENDING'"),
     pool.query(`select e.currency,sum(case when e.entry_type<>'ADJUSTMENT' and e.status in ('EARNED','PAYABLE','HELD','PAID') then e.amount_minor else 0 end)::bigint as "earnedBaseMinor",sum(case when e.entry_type='ADJUSTMENT' and e.status<>'REVERSED' then e.amount_minor else 0 end)::bigint as "adjustmentMinor",sum(case when e.entry_type<>'ADJUSTMENT' then coalesce(a.allocated_minor,case when e.status='PAID' then e.amount_minor else 0 end) else 0 end)::bigint as "paidMinor" from trainer_earning_ledger e left join lateral (select sum(pa.amount_minor)::bigint as allocated_minor from r6_trainer_payout_allocations pa where pa.earning_id=e.id) a on true ${ep} group by e.currency`, earningValues),
     pool.query(`select l.currency,sum(case when l.entry_type='SHIPPING_COST' then l.amount_minor else 0 end)::bigint as "shippingCostMinor",sum(case when l.entry_type='PHYSICAL_PRODUCT_COST' then l.amount_minor else 0 end)::bigint as "physicalProductCostMinor" from owner_finance_ledger l where true${lp} group by l.currency`, ledgerValues),
     pool.query("select p.id as \"packageId\",coalesce(max(pv.title),p.slug) as \"title\" from packages p left join package_versions pv on pv.package_id=p.id where p.audience='STUDENT' group by p.id,p.slug order by \"title\""),
     pool.query("select distinct u.id as \"trainerId\",u.display_name as \"name\" from platform_users u join platform_memberships m on m.user_id=u.id where m.role='TRAINER' and m.status='ACTIVE' order by u.display_name"),
-    pool.query(`select oi.package_id as "packageId",coalesce(max(pv.title),max(p.slug)) as "packageTitle",o.currency,count(distinct o.id)::int as "salesCount",sum(oi.total_minor)::bigint as "grossRevenueMinor",coalesce(sum(round(coalesce((select sum(pt.amount_minor) from payment_intents pi join payment_transactions pt on pt.payment_intent_id=pi.id where pi.order_id=o.id and pt.transaction_type='REFUND' and pt.status='SUCCEEDED'),0)::numeric * oi.total_minor::numeric / nullif(o.total_minor,0))),0)::bigint as "refundsMinor",coalesce(sum((select sum(el.amount_minor) from trainer_earning_ledger el join package_entitlement_enrollments pee on pee.enrollment_id=el.enrollment_id where pee.source_order_item_id=oi.id and el.currency=o.currency and el.status<>'REVERSED'${profitabilityTrainerClause})),0)::bigint as "trainerCostMinor",coalesce(sum(round(coalesce((select sum(pp.cost_minor*si.quantity) from shipments s join shipment_items si on si.shipment_id=s.id join physical_products pp on pp.id=si.physical_product_id where s.order_id=o.id and pp.currency=o.currency),0)::numeric * oi.total_minor::numeric / nullif(o.total_minor,0))),0)::bigint as "physicalProductCostMinor",coalesce(sum(round(coalesce((select sum(coalesce(s.actual_shipping_cost_minor,s.shipping_charge_minor,0)) from shipments s where s.order_id=o.id),0)::numeric * oi.total_minor::numeric / nullif(o.total_minor,0))),0)::bigint as "shippingCostMinor",coalesce(sum(round(coalesce((select sum(ofl.amount_minor) from owner_finance_ledger ofl where ofl.entry_type='ADJUSTMENT' and ofl.source_id=o.id::text and ofl.currency=o.currency),0)::numeric * oi.total_minor::numeric / nullif(o.total_minor,0))),0)::bigint as "adjustmentCostMinor" from order_items oi join orders o on o.id=oi.order_id join packages p on p.id=oi.package_id left join package_versions pv on pv.id=oi.package_version_id where ${scope.sql} group by oi.package_id,o.currency order by "packageTitle"`, profitabilityValues)
+    pool.query(`with item_costs as (
+      select oi.id as order_item_id, oi.package_id, o.id as order_id, o.currency, oi.total_minor as item_total_minor, o.total_minor as order_total_minor,
+        coalesce((select sum(pt.amount_minor) from payment_intents pi join payment_transactions pt on pt.payment_intent_id=pi.id where pi.order_id=o.id and pt.transaction_type='REFUND' and pt.status='SUCCEEDED'),0)::bigint as refund_minor,
+        coalesce((select sum(el.amount_minor) from trainer_earning_ledger el join package_entitlement_enrollments pee on pee.enrollment_id=el.enrollment_id where pee.source_order_item_id=oi.id and el.currency=o.currency and el.status<>'REVERSED'${profitabilityTrainerClause}),0)::bigint as trainer_cost_minor,
+        coalesce((select sum(pp.cost_minor*si.quantity) from shipments s join shipment_items si on si.shipment_id=s.id join physical_products pp on pp.id=si.physical_product_id where s.order_id=o.id and pp.currency=o.currency),0)::bigint as physical_product_cost_minor,
+        coalesce((select sum(coalesce(s.actual_shipping_cost_minor,s.shipping_charge_minor,0)) from shipments s where s.order_id=o.id),0)::bigint as shipping_cost_minor,
+        coalesce((select sum(ofl.amount_minor) from owner_finance_ledger ofl where ofl.entry_type='ADJUSTMENT' and ofl.source_id=o.id::text and ofl.currency=o.currency),0)::bigint as adjustment_cost_minor,
+        ((select count(*) from trainer_earning_ledger el join package_entitlement_enrollments pee on pee.enrollment_id=el.enrollment_id where pee.source_order_item_id=oi.id and el.currency=o.currency and el.status<>'REVERSED'${profitabilityTrainerClause}) +
+         (select count(*) from shipments s join shipment_items si on si.shipment_id=s.id join physical_products pp on pp.id=si.physical_product_id where s.order_id=o.id and pp.currency=o.currency and pp.cost_minor is not null) +
+         (select count(*) from shipments s where s.order_id=o.id and coalesce(s.actual_shipping_cost_minor,s.shipping_charge_minor) is not null) +
+         (select count(*) from owner_finance_ledger ofl where ofl.entry_type='ADJUSTMENT' and ofl.source_id=o.id::text and ofl.currency=o.currency))::int as cost_evidence_count
+      from order_items oi join orders o on o.id=oi.order_id
+      where ${scope.sql}
+    )
+    select b.package_id as "packageId",
+      coalesce((select max(pvx.title) from package_versions pvx where pvx.package_id=b.package_id),max(p.slug)) as "packageTitle",
+      b.currency, count(distinct b.order_id)::int as "salesCount", sum(b.item_total_minor)::bigint as "grossRevenueMinor",
+      coalesce(sum(round(b.refund_minor::numeric * b.item_total_minor::numeric / nullif(b.order_total_minor,0))),0)::bigint as "refundsMinor",
+      coalesce(sum(b.trainer_cost_minor),0)::bigint as "trainerCostMinor",
+      coalesce(sum(b.physical_product_cost_minor),0)::bigint as "physicalProductCostMinor",
+      coalesce(sum(b.shipping_cost_minor),0)::bigint as "shippingCostMinor",
+      coalesce(sum(b.adjustment_cost_minor),0)::bigint as "adjustmentCostMinor",
+      coalesce(sum(b.cost_evidence_count),0)::int as "costEvidenceCount"
+    from item_costs b join packages p on p.id=b.package_id
+    group by b.package_id,b.currency
+    order by "packageTitle"`, profitabilityValues)
   ]);
-  const salesRows = sales.rows.map((row) => ({ ...row, grossMinor: Number(row.grossMinor || 0), refundsMinor: Number(row.refundsMinor || 0), netMinor: Number(row.grossMinor || 0) - Number(row.refundsMinor || 0) }));
-  const profitabilityRows = profitability.rows.map((row) => {
-    const gross = Number(row.grossRevenueMinor || 0); const refunds = Number(row.refundsMinor || 0); const trainer = Number(row.trainerCostMinor || 0); const physical = Number(row.physicalProductCostMinor || 0); const shipping = Number(row.shippingCostMinor || 0); const adjustment = Number(row.adjustmentCostMinor || 0);
-    const contribution = gross - refunds - trainer - physical - shipping - adjustment;
-    return { ...row, grossRevenueMinor: gross, refundsMinor: refunds, trainerCostMinor: trainer, physicalProductCostMinor: physical, shippingCostMinor: shipping, adjustmentCostMinor: adjustment, contributionMinor: contribution, contributionPercent: gross ? Number((contribution * 100 / gross).toFixed(2)) : 0 };
-  });
+  const salesRows = [
+    ...sales.rows.map((row) => ({ ...row, kind: "STUDENT", grossMinor: Number(row.grossMinor || 0), refundsMinor: Number(row.refundsMinor || 0), netMinor: Number(row.grossMinor || 0) - Number(row.refundsMinor || 0) })),
+    ...trainerSales.rows.map((row) => ({ ...row, kind: "TRAINER", grossMinor: Number(row.grossMinor || 0), refundsMinor: Number(row.refundsMinor || 0), netMinor: Number(row.grossMinor || 0) - Number(row.refundsMinor || 0) })),
+  ];
+  const trainerProfitabilityRows = (await pool.query(`select oi.package_id as "packageId",max(oi.title_snapshot) as "packageTitle",o.currency,count(distinct o.id)::int as "salesCount",coalesce(sum(oi.line_total_minor),0)::bigint as "grossRevenueMinor",coalesce(sum(case when o.status='REFUNDED' then oi.line_total_minor else 0 end),0)::bigint as "refundsMinor" from trainer_package_orders o join trainer_package_order_items oi on oi.order_id=o.id where ${trainerOrderScope} group by oi.package_id,o.currency order by "packageTitle"`, trainerOrderValues)).rows.map((row) => ({ ...row, kind: "TRAINER", trainerCostMinor: 0, physicalProductCostMinor: 0, shippingCostMinor: 0, adjustmentCostMinor: 0, costEvidenceCount: 0, contributionMinor: null, contributionPercent: null, grossRevenueMinor: Number(row.grossRevenueMinor || 0), refundsMinor: Number(row.refundsMinor || 0) }));
+  const profitabilityRows = [...profitability.rows.map((row) => {
+    const gross = Number(row.grossRevenueMinor || 0); const refunds = Number(row.refundsMinor || 0); const trainer = Number(row.trainerCostMinor || 0); const physical = Number(row.physicalProductCostMinor || 0); const shipping = Number(row.shippingCostMinor || 0); const adjustment = Number(row.adjustmentCostMinor || 0); const costEvidenceCount = Number(row.costEvidenceCount || 0);
+    // A missing cost record is different from an observed zero cost.  Keep
+    // contribution metrics null until at least one persisted cost evidence
+    // point exists, so the dashboard cannot present sales as fictitious profit.
+    const contribution = costEvidenceCount > 0 ? gross - refunds - trainer - physical - shipping - adjustment : null;
+    return { ...row, kind: "STUDENT", grossRevenueMinor: gross, refundsMinor: refunds, trainerCostMinor: trainer, physicalProductCostMinor: physical, shippingCostMinor: shipping, adjustmentCostMinor: adjustment, costEvidenceCount, contributionMinor: contribution, contributionPercent: contribution == null || !gross ? null : Number((contribution * 100 / gross).toFixed(2)) };
+  }), ...trainerProfitabilityRows];
   const currencySet = new Set([...salesRows.map((row) => row.currency), ...earningTotals.rows.map((row) => row.currency), ...costs.rows.map((row) => row.currency)]);
   const selectedCurrency = filters.currency || (currencySet.size === 1 ? [...currencySet][0] : null);
   const earnings = selectedCurrency ? (earningTotals.rows.find((row) => row.currency === selectedCurrency) || {}) : {};

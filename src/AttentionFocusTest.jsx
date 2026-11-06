@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createAnonymousId, pushEvent } from "./martech/events.js";
 
 const LEVELS = [
   {
@@ -408,6 +409,18 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
     city: "",
   });
   const [showAttentionPhoneNumber, setShowAttentionPhoneNumber] = useState(false);
+  const attentionSessionId = useRef(null);
+
+  useEffect(() => {
+    const sessionId = attentionSessionId.current;
+    if (!sessionId) return;
+    if (screen === "completedInfo") {
+      pushEvent("attention_test_complete", { test_id: "free_attention", test_session_id: sessionId, level: levelKey }, { onceKey: `attention:${sessionId}:complete` });
+    }
+    if (screen === "result") {
+      pushEvent("attention_test_result_view", { test_id: "free_attention", test_session_id: sessionId, level: levelKey }, { onceKey: `attention:${sessionId}:result` });
+    }
+  }, [screen, levelKey]);
 
   const focusSets = DIFFERENCE_SETS[levelKey || "ilkokul"] || DIFFERENCE_SETS.ilkokul;
   const currentFocusSet = focusSets[focusSetIndex] || focusSets[0];
@@ -524,6 +537,9 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
   };
 
   const startGame = () => {
+    const sessionId = createAnonymousId();
+    attentionSessionId.current = sessionId;
+    pushEvent("attention_test_start", { test_id: "free_attention", test_session_id: sessionId, level: levelKey }, { onceKey: `attention:${sessionId}:start` });
     const level = getLevel(levelKey);
     setRoundIndex(0);
     setBoard(createBoard(level.grid, level.rounds[0]));

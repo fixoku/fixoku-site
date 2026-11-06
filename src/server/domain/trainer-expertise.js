@@ -1,6 +1,6 @@
-// Trainer education purchases grant the existing R6 qualifications at settlement.
-// Keep the catalog slugs here so a published package version is mapped before
-// granting; an unknown trainer package fails closed instead of silently granting nothing.
+// Trainer education packages map to the existing R6 qualifications, but package
+// access alone never grants teaching authority. The mapping is used by the
+// explicit Owner authority path and by a future verified completion workflow.
 export const TRAINER_PACKAGE_QUALIFICATIONS = Object.freeze({
   "ilkokul-akici-hizli-okuma-egitimi": ["PRIMARY_FAST"],
   "ortaokul-hizli-okuma-egitimi": ["MIDDLE_FAST"],
@@ -113,9 +113,9 @@ export async function grantTrainerOrderExpertise(client, { trainerUserId, orderI
 
 /**
  * A qualification is effective only when its evidence is still valid.
- * PURCHASE requires a settled order and an active entitlement to the mapped
- * education package; package-based OWNER_MANUAL requires an active Owner gift.
- * An explicit (non-package) Owner grant remains allowed when granted_by is set.
+ * Package payment or package access never proves teaching authority. Completion
+ * grants are linked to persisted trainer_video_progress rows; explicit Owner
+ * grants remain available through the qualification authority API.
  * This predicate is shared by the profile badges and the teaching permission gate.
  */
 export function effectiveTrainerQualificationPredicate(alias = "g") {
@@ -126,49 +126,46 @@ export function effectiveTrainerQualificationPredicate(alias = "g") {
     and (${alias}.valid_until is null or ${alias}.valid_until > now())
     and (
       (
-        ${alias}.source='PURCHASE'
-        and exists (
-          select 1
-          from trainer_package_order_items oi
-          join trainer_package_orders o on o.id=oi.order_id
-          join trainer_package_entitlements e on e.source_order_id=o.id
-          join r6_trainer_package_qualification_map m
-            on m.package_version_id=oi.package_version_id
-            and m.qualification_id=${alias}.qualification_id
-          where oi.id=${alias}.source_order_item_id
-            and o.id=${alias}.source_order_id
-            and o.trainer_user_id=${alias}.trainer_user_id
-            and o.status='PAID'
-            and e.trainer_user_id=${alias}.trainer_user_id
-            and e.package_id=oi.package_id
-            and e.package_version_id=oi.package_version_id
-            and e.status='ACTIVE'
-            and e.revoked_at is null
-        )
-      )
-      or (
         ${alias}.source='OWNER_MANUAL'
-        and ${alias}.source_ref like 'ENTITLEMENT:%'
+        and ${alias}.source_ref like 'COMPLETION:%'
+        and ${alias}.granted_by is null
         and exists (
           select 1
-          from trainer_package_entitlements e
-          join r6_trainer_package_qualification_map m
-            on m.package_version_id=e.package_version_id
-            and m.qualification_id=${alias}.qualification_id
-          where ${alias}.source_ref='ENTITLEMENT:' || e.id::text
-            and e.trainer_user_id=${alias}.trainer_user_id
-            and e.status='ACTIVE'
-            and e.revoked_at is null
-            and e.source='MANUAL_GIFT'
+          from trainer_video_progress vp
+          where vp.trainer_user_id=${alias}.trainer_user_id
+            and vp.package_id=${alias}.source_package_id
+            and vp.video_index between 1001 and 1000 + split_part(${alias}.source_ref, ':', 3)::integer
+            and vp.completed_at is not null
+          group by vp.trainer_user_id,vp.package_id
+          having count(distinct vp.video_index) >= split_part(${alias}.source_ref, ':', 3)::integer
         )
       )
       or (
         ${alias}.source='OWNER_MANUAL'
         and ${alias}.source_ref not like 'ENTITLEMENT:%'
+        and ${alias}.source_ref not like 'COMPLETION:%'
         and ${alias}.granted_by is not null
       )
     )
   `;
+}
+
+/** Grant completion evidence without coupling payment or entitlement to expertise. */
+export async function grantTrainerPackageCompletionExpertise(client, { trainerUserId, packageId, packageVersionId, lessonsCount }) {
+  if (!Number.isInteger(lessonsCount) || lessonsCount < 1 || lessonsCount > 100) throw fail("TRAINER_COMPLETION_LESSONS_INVALID");
+  const definitions = await mapTrainerPackageVersion(client, { packageId, packageVersionId });
+  const sourceRef = `COMPLETION:${packageId}:${lessonsCount}`;
+  let created = 0;
+  for (const definition of definitions) {
+    const result = await client.query(`
+      insert into r6_trainer_qualification_grants
+        (trainer_user_id,qualification_id,source,status,source_ref,source_package_id,granted_by)
+      values($1,$2,'OWNER_MANUAL','ACTIVE',$3,$4,null)
+      on conflict(trainer_user_id,qualification_id,source,source_ref) do nothing
+      returning id`, [trainerUserId, definition.id, sourceRef, packageId]);
+    created += result.rows.length;
+  }
+  return { created, sourceRef, definitions };
 }
 
 export async function hasActiveTrainerExpertise(client, trainerUserId, qualificationId) {

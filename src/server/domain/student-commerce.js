@@ -4,6 +4,7 @@ import { legalSnapshotRows, readPublishedLegalDocuments, studentLegalAcceptance 
 import { UUID_PATTERN, listBeneficiaries, normalizeCurrency, readEffectiveVatDecision, resolveBeneficiary, sha256 } from "./commerce.js";
 import { validateEducationSegment } from "./student-segment.js";
 import { countPhysicalBooks, shippingForBookCount } from "./book-shipping.js";
+import { allocatePackageGross } from "./package-price-allocation.js";
 import { queueRolePanelNotifications } from "./panel-notifications.js";
 
 function error(code, status = 400) { return Object.assign(new Error(code), { code, status }); }
@@ -208,21 +209,36 @@ export async function createStudentCommerceOrder(client, principal, input) {
     const existing = (await client.query("select * from orders where buyer_user_id=$1 and idempotency_key=$2 for update", [principal.user.id, idempotencyKey])).rows[0];
     if (existing) { const legacyHash = sha256({ studentProfileId: cart.beneficiary.studentProfileId, packageVersionIds: cart.items.map((item) => item.packageVersionId), shippingAddress, billing }); const hashMatches = existing.request_hash === requestHash || (!accountMode && existing.payment_method == null && existing.request_hash === legacyHash); if (!hashMatches) throw error("IDEMPOTENCY_KEY_CONFLICT", 409); await client.query("commit"); return { order: existing, replay: true, providerConfigured: Boolean(process.env.PAYMENT_PROVIDER) }; }
     const order = (await client.query(`insert into orders(buyer_user_id,beneficiary_student_user_id,beneficiary_student_profile_id,beneficiary_child_profile_id,status,payment_method,currency,subtotal_minor,shipping_minor,total_minor,catalog_scope_snapshot,shipping_address_snapshot_json,billing_snapshot_json,idempotency_key,request_hash) values($1,$2,$3,$4,'PENDING_PAYMENT',$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning *`, [principal.user.id, cart.beneficiary.studentUserId, cart.beneficiary.studentProfileId || null, cart.beneficiary.childProfileId || null, paymentMethod, cart.currency, cart.subtotalMinor, cart.shippingMinor, cart.totalMinor, "STUDENT_COMMERCE", shippingAddress ? JSON.stringify(shippingAddress) : null, JSON.stringify(billing), idempotencyKey, requestHash])).rows[0];
-    let listGrossTotal = 0; let saleGrossTotal = 0; let discountTotal = 0; let vatNetTotal = shippingNetMinor; let vatTotal = shippingVatMinor; const itemVatRates = new Set();
+    let listGrossTotal = 0; let saleGrossTotal = 0; let discountTotal = 0; let vatNetTotal = shippingNetMinor; let vatTotal = shippingVatMinor;
+    // The order-level rate is only a shorthand for homogeneous orders.  A
+    // shipping charge is its own gross component, so include its approved
+    // rate in the homogeneity check; otherwise a 0% book plus 20% shipping
+    // order would be incorrectly labelled as a 0% order.
+    const itemVatRates = new Set(cart.shippingMinor > 0 ? [shippingVatRateBps] : []);
     for (const item of cart.items) {
       const listGrossMinor = item.components.reduce((sum, component) => sum + Number(component.listGrossMinor || 0) * (component.pricingSnapshot ? 1 : Number(component.quantity || 1)), 0) || item.priceMinor;
       const saleGrossMinor = item.priceMinor;
       const discountMinor = Math.max(0, listGrossMinor - saleGrossMinor);
-      const lineBreakdown = item.components.map((component) => {
+      // Reallocate the Owner-approved package price over its components.
+      // Existing pricing shares are weights, NOT an independent checkout total.
+      // No sale is blocked merely because sum of component list prices differs.
+      const weights = item.components.map((component) => {
+        const factor = component.pricingSnapshot ? 1 : Number(component.quantity || 1);
+        return Number(component.saleGrossMinor ?? component.listGrossMinor ?? 0) * factor;
+      });
+      const allocated = allocatePackageGross(saleGrossMinor, weights);
+      const lineBreakdown = item.components.map((component, index) => {
         const amountFactor = component.pricingSnapshot ? 1 : Number(component.quantity || 1);
-        const gross = Number(component.saleGrossMinor ?? component.listGrossMinor ?? 0) * amountFactor;
+        const gross = allocated[index];
         const lineVatRate = Number(component.vatRateBps);
-        const lineVat = component.vatMinor == null ? Math.round(gross * lineVatRate / (10000 + lineVatRate)) : Number(component.vatMinor) * amountFactor;
-        const lineNet = component.netMinor == null ? gross - lineVat : Number(component.netMinor) * amountFactor;
-        return { component, gross, lineVatRate, lineVat, lineNet };
+        if (!Number.isSafeInteger(lineVatRate) || lineVatRate < 0 || lineVatRate > 10000) throw error("COMPONENT_VAT_RATE_INVALID", 409);
+        const lineVat = Math.round(gross * lineVatRate / (10000 + lineVatRate));
+        const lineNet = gross - lineVat;
+        const lineListGross = Number(component.listGrossMinor || 0) * amountFactor;
+        return { component, gross, lineVatRate, lineVat, lineNet, lineListGross };
       });
       const componentGrossTotal = lineBreakdown.reduce((sum, line) => sum + line.gross, 0);
-      if (componentGrossTotal !== saleGrossMinor) throw error("PACKAGE_COMPONENT_TOTAL_MISMATCH", 409);
+      if (componentGrossTotal !== saleGrossMinor) throw error("PACKAGE_ALLOCATION_INVARIANT_FAILED", 409);
       const vatMinor = lineBreakdown.reduce((sum, line) => sum + line.lineVat, 0);
       const netMinor = saleGrossMinor - vatMinor;
       const rates = new Set(lineBreakdown.map((line) => line.lineVatRate));
@@ -232,11 +248,10 @@ export async function createStudentCommerceOrder(client, principal, input) {
 	      const definitions = Array.isArray(item.entitlementDefinitions) ? item.entitlementDefinitions : [];
 	      const deliveryModes = [...new Set(definitions.map((definition) => String(definition.deliveryMode || "").toUpperCase()).filter(Boolean))];
 	      const deliveryMode = deliveryModes.length === 1 ? deliveryModes[0] : definitions.length ? "HYBRID" : "SELF_PACED";
-	      const itemRow = (await client.query(`insert into order_items(order_id,package_id,package_version_id,beneficiary_child_profile_id,title_snapshot,description_snapshot,version_number_snapshot,delivery_mode_snapshot,unit_price_minor,total_minor,list_gross_minor,sale_gross_minor,discount_minor,discount_percent_bps,vat_net_minor,vat_minor,vat_rate_bps,currency,quantity,entitlement_definitions_snapshot,components_snapshot_json) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11,$12,$13,$14,$15,$16,$17,1,$18,$19) returning id`, [order.id, item.packageId, item.packageVersionId, item.beneficiary.childProfileId || null, item.title, item.description, item.versionNumber, deliveryMode, saleGrossMinor, listGrossMinor, saleGrossMinor, discountMinor, listGrossMinor ? Math.round(discountMinor * 10000 / listGrossMinor) : 0, netMinor, vatMinor, vatRateBps, item.currency, JSON.stringify(definitions), JSON.stringify(item.components)])).rows[0];
+	      const itemRow = (await client.query(`insert into order_items(order_id,package_id,package_version_id,beneficiary_child_profile_id,title_snapshot,description_snapshot,version_number_snapshot,delivery_mode_snapshot,unit_price_minor,total_minor,list_gross_minor,sale_gross_minor,discount_minor,discount_percent_bps,vat_net_minor,vat_minor,vat_rate_bps,currency,quantity,entitlement_definitions_snapshot,components_snapshot_json) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11,$12,$13,$14,$15,$16,$17,1,$18,$19) returning id`, [order.id, item.packageId, item.packageVersionId, item.beneficiary.childProfileId || null, item.title, item.description, item.versionNumber, deliveryMode, saleGrossMinor, listGrossMinor, saleGrossMinor, discountMinor, listGrossMinor ? Math.round(discountMinor * 10000 / listGrossMinor) : 0, netMinor, vatMinor, vatRateBps, item.currency, JSON.stringify(definitions), JSON.stringify(lineBreakdown.map(({ component, gross, lineVat, lineNet }) => ({ ...component, saleGrossMinor: gross, vatMinor: lineVat, netMinor: lineNet, pricingSnapshot: true })))])).rows[0];
       for (const [lineOrder, line] of lineBreakdown.entries()) {
         const { component, gross, lineVatRate, lineVat, lineNet } = line;
-        const amountFactor = component.pricingSnapshot ? 1 : Number(component.quantity || 1);
-        const lineListGross = Number(component.listGrossMinor ?? gross) * amountFactor;
+        const lineListGross = line.lineListGross;
         await client.query(`insert into r6_order_component_snapshots(order_item_id,package_component_id,physical_product_id,product_type,education_stage,sku_snapshot,title_snapshot,quantity,list_gross_minor,sale_gross_minor,discount_minor,vat_rate_bps,net_minor,vat_minor,gross_minor,beneficiary_child_profile_id,line_order) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$10,$15,$16) on conflict(order_item_id,line_order) do nothing`, [itemRow.id, component.packageComponentId || null, component.productId || null, component.productType || "UNKNOWN", component.educationStage || null, component.sku || null, component.title || item.title, Number(component.quantity || 1), lineListGross, gross, Math.max(0, lineListGross - gross), lineVatRate, lineNet, lineVat, item.beneficiary.childProfileId || null, lineOrder]);
       }
     }

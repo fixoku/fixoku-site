@@ -594,7 +594,7 @@ export function AdminOrdersPage() {
                       <tr key={row.id} className={row.status === "PENDING_PAYMENT" ? "is-highlight" : ""}>
                         <td><strong>#{row.id.slice(0, 8)}</strong><small>{row.itemCount} kalem</small></td>
                         <td>{shortDate(row.createdAt)}</td>
-                        <td><strong>{row.customerName}</strong><small>{row.customerEmail}</small></td>
+                        <td><strong>{row.customerName}</strong><small>{row.customerEmail}</small>{row.kind === "STUDENT" && <small><b>Öğrenci:</b> {row.beneficiaryName || "Belirtilmemiş"}</small>}</td>
                         <td><span className={`orders-v6-scope is-${row.kind.toLowerCase()}`}>{row.kind === "TRAINER" ? "Öğretmen" : "Öğrenci"}</span></td>
                         <td>{cleanPackageTitle(row)}</td>
                         <td>{paymentMethodLabels[row.paymentMethod || ""] || row.paymentMethod || "—"}</td>
@@ -606,7 +606,10 @@ export function AdminOrdersPage() {
                         <tr key={`${row.id}-detail`} className="orders-v6-detail-row">
                           <td colSpan={9}>
                             <div className="orders-v6-inline-detail">
-                              <span><b>Yararlanıcı:</b> {row.beneficiaryName || "—"}</span>
+                              <span><b>{row.kind === "STUDENT" ? "Eğitimi alacak öğrenci" : "Yararlanıcı"}:</b> {row.beneficiaryName || "—"}</span>
+                              {row.kind === "STUDENT" && <span><b>Eğitim seviyesi:</b> {stageLabels[row.educationStage || ""] || row.educationStage || "Belirtilmemiş"}</span>}
+                              {row.kind === "STUDENT" && row.paymentMethod === "BANK_TRANSFER" && row.status === "PENDING_PAYMENT" && <span role="status"><b>Havale bekleniyor:</b> Ödeme henüz onaylanmadı. Eğitim hakkı ve eğitmen ataması bu ekrandan doğrulanamaz.</span>}
+                              {row.kind === "STUDENT" && row.status === "PAID" && <span role="note"><b>Atama kontrolü:</b> Ödeme tamamlanmış görünüyor. Eğitim hakkı ve birebir/grup eğitmen ataması için ilgili operasyon kayıtları ayrıca kontrol edilmelidir.</span>}
                               <span><b>Ödeme durumu:</b> {paymentStatusLabels[row.paymentStatus || ""] || label}</span>
                               <span><b>Net tutar:</b> {money(row.netMinor, row.currency)}</span>
                               <span><b>İade:</b> {money(row.refundMinor, row.currency)}</span>

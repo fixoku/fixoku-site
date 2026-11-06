@@ -1,0 +1,200 @@
+/* FIXOKU R60C19G: scoped student free access. No global admin overrides. */
+.fx-student-free-access-r19g {display:block; width:100%; min-width:0; padding:clamp(16px,2vw,28px); box-sizing:border-box;}
+.fx-student-free-access-r19g .commerce-hero {display:flex; align-items:center; justify-content:flex-start; gap:16px; text-align:left; margin:0 0 18px;}
+.fx-student-free-access-r19g .commerce-hero h1{margin:0 0 4px; text-align:left;}
+.fx-student-free-access-r19g .commerce-hero p{margin:0;}
+.fx-student-free-access-r19g .fx39c-tabs{display:flex; align-items:stretch; gap:8px; flex-wrap:wrap; margin:0 0 18px; border-bottom:1px solid #dce4ef; padding-bottom:0;}
+.fx-student-free-access-r19g .fx39c-tabs a{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 18px; min-height:44px; color:#142949; text-decoration:none; font-weight:700; border:1px solid #e2e8f0; border-radius:9px 9px 0 0; background:#fff; box-sizing:border-box;}
+.fx-student-free-access-r19g .fx39c-tabs a.selected{color:#f45112; border-color:#f45112; border-bottom:2px solid #f45112; background:#fff8f4;}
+.fx-student-free-access-r19g .fx-free-r19g{width:100%; max-width:1100px; margin:0 auto; box-sizing:border-box;}
+.fx-free-r19g .admin-page-heading{display:flex; text-align:left; align-items:flex-start; margin:0 0 18px; padding:0;}
+.fx-free-r19g .admin-page-heading h1{font-size:clamp(23px,2vw,31px); margin:3px 0 7px; line-height:1.2;}
+.fx-free-r19g .admin-page-heading p{margin:0; color:#61708a;}
+.fx-free-r19g .admin-package-layout{display:block; width:100%; margin:0 0 16px;}
+.fx-free-r19g .panel-card{background:#fff; border:1px solid #dce4ee; border-radius:16px; padding:clamp(17px,2vw,25px); margin-bottom:16px; box-shadow:0 6px 18px rgba(15,36,64,.035); box-sizing:border-box; width:100%; min-width:0;}
+.fx-free-r19g .panel-card h2{font-size:18px; margin:0 0 18px; color:#0d223f;}
+.fx-free-r19g fieldset{border:0; padding:0; margin:0 0 22px; min-width:0;}
+.fx-free-r19g fieldset legend{font-weight:750; font-size:15px; color:#102744; padding:0; margin-bottom:12px;}
+.fx-free-r19g .admin-package-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; width:100%;}
+.fx-free-r19g label.admin-package-card{position:relative; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; padding:16px 17px 16px 49px; border:1px solid #dce4ef; border-radius:12px; background:#fff; min-height:92px; cursor:pointer; box-sizing:border-box; min-width:0;}
+.fx-free-r19g label.admin-package-card:has(input:checked){background:#fff8f3; border-color:#fb6a30; box-shadow:inset 0 0 0 1px #fb6a30;}
+.fx-free-r19g label.admin-package-card input[type=checkbox]{position:absolute; top:19px; left:17px; width:19px; height:19px; accent-color:#f45112; margin:0;}
+.fx-free-r19g label.admin-package-card strong{font-size:14px; line-height:1.35; overflow-wrap:anywhere;}
+.fx-free-r19g label.admin-package-card span,.fx-free-r19g label.admin-package-card small{font-size:12px; color:#66758d; overflow-wrap:anywhere; line-height:1.4;}
+.fx-free-r19g .panel-card > label{display:flex; flex-wrap:wrap; gap:9px; align-items:flex-start; margin:14px 0; font-weight:650; color:#102744;}
+.fx-free-r19g textarea{display:block; width:min(100%,550px); min-height:80px; resize:vertical; padding:12px; border:1px solid #d5deea; border-radius:10px; font:inherit; box-sizing:border-box;}
+.fx-free-r19g button{min-height:42px; padding:10px 17px; background:#f45112; color:#fff; border:0; border-radius:9px; font-weight:700; cursor:pointer;}
+.fx-free-r19g button:disabled{opacity:.5; cursor:not-allowed;}
+.fx-free-r19g .admin-feedback{padding:13px 16px; border:1px solid #f5cbb3; border-radius:10px; background:#fff8f4; color:#814321; overflow-wrap:anywhere;}
+.fx-free-r19g .admin-package-list{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
+.fx-free-r19g .admin-package-list .admin-package-card{display:flex; flex-direction:column; align-items:flex-start; gap:6px; border:1px solid #e0e7ef; border-radius:11px; padding:15px;}
+.fx-free-r19g .admin-package-list .admin-package-card > span,.fx-free-r19g .admin-package-list .admin-package-card > small{overflow-wrap:anywhere;}
+@media(max-width:850px){.fx-free-r19g .admin-package-grid,.fx-free-r19g .admin-package-list{grid-template-columns:1fr;}}
+@media(max-width:600px){.fx-student-free-access-r19g{padding:14px}.fx-student-free-access-r19g .fx39c-tabs a{font-size:12px; padding:10px 11px; flex:1 1 auto}.fx-free-r19g .panel-card{padding:15px}.fx-student-free-access-r19g .commerce-hero-icon{display:none}}
+
+/* FIXOKU R60C19H: compact two-column access selection. Visual-only override.
+   All rules scoped; no entitlement state, API, DB or server changes. */
+.fx-student-free-access-r19g .fx-free-r19g {
+  width:100% !important; max-width:1160px !important;
+  margin-inline:auto !important; min-width:0 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g .admin-package-layout.fx-free-r19g-layout {
+  display:block !important; width:100% !important; max-width:none !important;
+  grid-template-columns:none !important; margin:0 0 18px !important;
+  min-width:0 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g .fx-free-r19g-layout > .panel-card {
+  display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  column-gap:20px !important; row-gap:16px !important;
+  align-items:start !important; width:100% !important; max-width:none !important;
+  margin:0 !important; padding:22px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > h2,
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > label,
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > button {
+  grid-column:1 / -1 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > h2 {margin:0 !important;}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > fieldset {
+  width:100% !important; max-width:none !important; min-width:0 !important;
+  margin:0 !important; padding:0 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout fieldset .admin-package-grid {
+  display:grid !important; grid-template-columns:1fr !important;
+  gap:10px !important; width:100% !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card {
+  min-height:0 !important; height:auto !important; padding:12px 14px 12px 43px !important;
+  gap:4px !important; justify-content:flex-start !important;
+  border-radius:11px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card input[type=checkbox] {
+  left:13px !important; top:14px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card strong {font-size:13px !important;}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card span,
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card small {font-size:11px !important;}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > label {
+  display:flex !important; flex-direction:column !important; align-items:stretch !important;
+  gap:7px !important; margin:0 !important; max-width:none !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > label textarea {
+  width:100% !important; max-width:none !important; min-height:65px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > button {
+  justify-self:end !important; width:auto !important; margin:0 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g > .panel-card {width:100% !important; max-width:none !important;}
+.fx-student-free-access-r19g .fx-free-r19g > .panel-card > label {
+  display:flex !important; flex-direction:column !important; gap:8px !important;
+  max-width:600px !important; margin:0 0 16px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g > .panel-card > label textarea {width:100% !important; max-width:none !important; min-height:66px !important;}
+@media(max-width:840px) {
+  .fx-student-free-access-r19g .fx-free-r19g .fx-free-r19g-layout > .panel-card {
+    grid-template-columns:minmax(0,1fr) !important; padding:16px !important;
+  }
+  .fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > h2,
+  .fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > label,
+  .fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > button {grid-column:1 !important;}
+  .fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > button {justify-self:stretch !important;}
+}
+
+
+/* FIXOKU R60C19I: full-width polish and denser UX layout. CSS-only. */
+
+.fx-student-free-access-r19g {
+  padding-inline: 0 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g,
+.fx-student-free-access-r19g .fx-free-r19g .admin-page-heading,
+.fx-student-free-access-r19g .fx-free-r19g .admin-package-layout,
+.fx-student-free-access-r19g .fx-free-r19g > .panel-card {
+  max-width: none !important;
+  width: 100% !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g {
+  margin: 0 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g .fx-free-r19g-layout > .panel-card {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr) !important;
+  column-gap: 28px !important;
+  row-gap: 18px !important;
+  padding: 26px !important;
+  border-radius: 18px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > fieldset {
+  align-self: stretch !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout fieldset legend {
+  margin-bottom: 10px !important;
+  font-size: 16px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout fieldset .admin-package-grid {
+  gap: 12px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card {
+  min-height: 100px !important;
+  padding: 14px 16px 14px 46px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%) !important;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card:hover {
+  border-color: #cfd9e6 !important;
+  box-shadow: 0 10px 24px rgba(15,36,64,.06) !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card:has(input:checked) {
+  background: linear-gradient(180deg, #fff8f3 0%, #fffdfb 100%) !important;
+  box-shadow: 0 10px 24px rgba(244,81,18,.09), inset 0 0 0 1px #fb6a30 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card input[type=checkbox] {
+  width: 18px !important;
+  height: 18px !important;
+  left: 14px !important;
+  top: 15px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card strong {
+  font-size: 15px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card span,
+.fx-student-free-access-r19g .fx-free-r19g-layout label.admin-package-card small {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > label {
+  grid-column: 1 / -1 !important;
+  gap: 8px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > label textarea {
+  min-height: 74px !important;
+  border-radius: 12px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g-layout > .panel-card > button {
+  grid-column: 1 / -1 !important;
+  justify-self: end !important;
+  min-width: 250px !important;
+  border-radius: 12px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g > .panel-card {
+  padding: 24px !important;
+  border-radius: 18px !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g > .panel-card > label {
+  max-width: 100% !important;
+}
+.fx-student-free-access-r19g .fx-free-r19g > .panel-card textarea {
+  width: 100% !important;
+  max-width: none !important;
+  border-radius: 12px !important;
+}
+@media (max-width: 1024px) {
+  .fx-student-free-access-r19g .fx-free-r19g .fx-free-r19g-layout > .panel-card {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media (min-width: 1200px) {
+  .fx-student-free-access-r19g .fx-free-r19g {
+    padding-right: 0 !important;
+  }
+}

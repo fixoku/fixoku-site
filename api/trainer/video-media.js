@@ -6,6 +6,7 @@ import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/
 import { createSignedReadUrl, getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
 import { getRealTrainerLessons } from "./video-config.js";
 import { previewUnlocked } from "./video-preview-progress.js";
+import { readTrainerVideoProgress } from "../../src/server/domain/trainer-completion.js";
 
 const reply = (res, status, body = "") => {
   res.statusCode = status;
@@ -35,7 +36,11 @@ export default async function handler(req, res) {
     const lessons = getRealTrainerLessons(slug);
     const lesson = lessons[videoIndex - 1];
     if (!lesson) return reply(res, 404);
-    if (!poster && !previewUnlocked(user.id, packageId, videoIndex)) return reply(res, 403);
+    if (!poster) {
+      const persisted = await readTrainerVideoProgress(pool, user.id, packageId, videoIndex);
+      const unlocked = videoIndex === 1 || Boolean(persisted?.completedAt) || previewUnlocked(user.id, packageId, videoIndex);
+      if (!unlocked) return reply(res, 403);
+    }
     const storage = getDigitalStorageConfig();
     if (storage.provider === "S3" || storage.provider === "R2") {
       const storageKey = poster

@@ -68,9 +68,9 @@ async function publishDraft(client, input, ownerId) {
   const parsed = validateEmailTemplateInput({ templateKey: key, displayName: draft.display_name, subject: draft.subject, htmlBody: draft.html_body, textBody: draft.text_body, active: input.active === undefined ? true : input.active }, { templateKey: key, allowInactive: !CRITICAL_KEYS.has(key) });
   if (template.published_revision_id) await client.query("update email_template_revisions set status='ARCHIVED' where id=$1 and status='PUBLISHED'", [template.published_revision_id]);
   const published = (await client.query(
-    `update email_template_revisions set status='PUBLISHED',display_name=$1,subject=$2,html_body=$3,text_body=$4,variable_allowlist=$5::jsonb,published_by=$6,published_at=now()
-      where id=$7 and status='DRAFT' returning id,revision_number as "revisionNumber",status`,
-    [parsed.displayName, parsed.subject, parsed.htmlBody, parsed.textBody, JSON.stringify(parsed.variables), ownerId, draft.id],
+    `update email_template_revisions set status='PUBLISHED',published_by=$1,published_at=now()
+      where id=$2 and status='DRAFT' returning id,revision_number as "revisionNumber",status`,
+    [ownerId, draft.id],
   )).rows[0];
   await client.query("update email_templates set published_revision_id=$1,active=$2,updated_at=now(),updated_by=$3 where id=$4", [published.id, parsed.active, ownerId, template.id]);
   await client.query(

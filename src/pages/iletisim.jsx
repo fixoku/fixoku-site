@@ -162,11 +162,18 @@ function Iletisim() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || data.ok !== true) {
-        throw new Error("İletiniz gönderilemedi. E-posta servisi henüz etkin olmayabilir. Lütfen WhatsApp üzerinden bize ulaşın.");
+        throw Object.assign(
+          new Error("İletiniz gönderilemedi. E-posta servisi henüz etkin olmayabilir. Lütfen WhatsApp üzerinden bize ulaşın."),
+          { responseStatus: response.status },
+        );
       }
       setEmailStatus({ kind: "success", message: "Mesajınız e-posta sunucusu tarafından kabul edildi. En kısa sürede dönüş yapacağız." });
-      pushEvent("form_submit", { form_id: "contact_form", channel: "email" });
+      pushEvent("form_submit_success", { form_id: "contact_form", channel: "email" });
     } catch (error) {
+      pushEvent("form_error", {
+        form_id: "contact_form",
+        response_status: Number.isInteger(error?.responseStatus) ? error.responseStatus : "network",
+      });
       setEmailStatus({ kind: "error", message: error?.message || "E-posta gönderilemedi." });
     } finally {
       setSending(false);

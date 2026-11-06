@@ -168,7 +168,7 @@ export async function replaceStructuredComponents(client, versionId, components,
       if (!title || title.length > 4000) throw bad("TEXT_ITEM_INVALID");
       const prior = takeReusable("TEXT_ITEM", null, index);
       if (prior) await client.query("update package_components set title_snapshot=$1,display_label=null,is_active=$2,quantity=1,display_order=$3,metadata_json='{}' where id=$4", [title, isActive, displayOrder, prior.id]);
-      else await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) values($1,'TEXT_ITEM',null,null,$2,null,$3,1,$4,'{}')", [versionId, title, isActive, displayOrder]);
+      else { const inserted = await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) values($1,'TEXT_ITEM',null,null,$2,null,$3,1,$4,'{}') returning id", [versionId, title, isActive, displayOrder]); used.add(inserted.rows[0].id); }
       continue;
     }
     if (!["PHYSICAL_PRODUCT", "DIGITAL_ACCESS", "TRAINER_SERVICE"].includes(componentType)) throw bad("PACKAGE_COMPONENT_TYPE_INVALID");
@@ -183,8 +183,12 @@ export async function replaceStructuredComponents(client, versionId, components,
     const prior = takeReusable(componentType, productId, index);
     const metadata = JSON.stringify({ sku: product.sku, fulfillmentType: product.productType, r6ProductType: product.r6ProductType });
     if (prior) await client.query("update package_components set reference_id=$1,physical_product_id=$2,title_snapshot=$3,display_label=$4,is_active=$5,quantity=$6,display_order=$7,metadata_json=$8 where id=$9", [productId, componentType === "PHYSICAL_PRODUCT" ? productId : null, product.title, displayLabel, isActive, quantity, displayOrder, metadata, prior.id]);
-    else await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)", [versionId, componentType, productId, componentType === "PHYSICAL_PRODUCT" ? productId : null, product.title, displayLabel, isActive, quantity, displayOrder, metadata]);
+    else { const inserted = await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id", [versionId, componentType, productId, componentType === "PHYSICAL_PRODUCT" ? productId : null, product.title, displayLabel, isActive, quantity, displayOrder, metadata]); used.add(inserted.rows[0].id); }
   }
+  // In editable drafts, remove obsolete unreferenced TEXT_ITEM records rather than
+  // returning them as phantom inactive entries. Referenced records remain preserved.
+  const unusedTextIds = reusable.filter((row) => row.component_type === "TEXT_ITEM" && !used.has(row.id)).map((row) => row.id);
+  if (unusedTextIds.length) await client.query("delete from package_components where package_version_id=$1 and id=any($2::uuid[])", [versionId, unusedTextIds]);
   if (existing.length) await client.query("update package_components set is_active=false where package_version_id=$1 and not (id=any($2::uuid[]))", [versionId, [...used]]);
 }
 
@@ -256,6 +260,37 @@ export default async function handler(req, res) {
       const stage = (await client.query("select p.education_stage as stage from packages p join package_versions pv on pv.package_id=p.id where pv.id=$1", [input.versionId])).rows[0]?.stage || null;
       await replaceStructuredComponents(client, input.versionId, input.components, stage);
       await client.query("commit"); return json(res, 200, { saved: true, packageVersionId: input.versionId });
+    }
+    if (req.method === "POST" && action === "createPackage") {
+      const createDenied = await requirePackagePermission(client, principal, PACKAGE_PERMISSIONS.CREATE);
+      if (createDenied) throw bad(createDenied.body?.error || "PACKAGE_PERMISSION_REQUIRED", createDenied.status || 403);
+      const slugBase = String(input.title || "").trim().toLocaleLowerCase("tr-TR").replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,72).replace(/-+$/g,"");
+      if (!slugBase) throw bad("PACKAGE_SLUG_CANNOT_BE_GENERATED");
+      const fields = packageFields({ ...input, slug: slugBase, panelVisible: false, publicWebVisible: false });
+      if (fields.priceMinor === null || fields.priceMinor <= 0) throw bad("PACKAGE_PRICE_REQUIRED");
+      if (!Array.isArray(input.components)) throw bad("PACKAGE_COMPONENTS_REQUIRED");
+      const components = input.components;
+      const ids = components.filter((c) => c.componentType !== "TEXT_ITEM").map((c) => String(c.productId || c.physicalProductId || ""));
+      if (new Set(ids).size !== ids.length) throw bad("PACKAGE_PRODUCT_DUPLICATE");
+      if (ids.some((id) => !UUID_PATTERN.test(id))) throw bad("PACKAGE_PRODUCT_INVALID");
+      const products = await validateProducts(client, ids.map((productId, index) => ({ productId, quantity: 1, displayOrder: index })), fields.educationStage);
+      const requiresShipping = products.some((p) => p.productType === "PHYSICAL");
+      const coverReference = String(input.iconReference ?? "").trim();
+      if ((coverReference && !(coverReference.startsWith("/images/") || /^https:\/\/[^\s]+$/u.test(coverReference))) || coverReference.length > 1000) throw bad("PACKAGE_COVER_URL_INVALID");
+      await client.query("begin");
+      await client.query("select pg_advisory_xact_lock(hashtext($1))", ["student-package-slug:" + slugBase]);
+      let uniqueSlug = slugBase;
+      for (let attempt = 2; attempt <= 10001; attempt++) {
+        const exists = (await client.query("select 1 from packages where slug=$1 limit 1", [uniqueSlug])).rowCount;
+        if (!exists) break;
+        if (attempt === 10001) throw bad("PACKAGE_SLUG_CAPACITY_REACHED", 409);
+        uniqueSlug = `${slugBase}-${attempt}`;
+      }
+      const pkg = (await client.query("insert into packages(slug,audience,catalog_scope,education_stage,eligible_grades_json,display_order,status,physical_product,shipping_policy,shipping_price_minor,panel_visible,public_web_visible,icon_reference) values($1,'STUDENT','STUDENT_COMMERCE',$2::education_stage,$3,$4,'DRAFT',$5,$6,$7,false,false,$8) returning id", [uniqueSlug, fields.educationStage, JSON.stringify(fields.eligibleGrades), fields.displayOrder, requiresShipping, requiresShipping && fields.shippingFeeMinor > 0 ? "FIXED_PRICE" : "FREE", requiresShipping ? fields.shippingFeeMinor : 0, coverReference || null])).rows[0];
+      const version = (await client.query("insert into package_versions(package_id,version_number,title,description,short_description,features_json,price_minor,price_gross_minor,currency,purchase_enabled,status) values($1,1,$2,$3,$4,$5,$6,$6,$7,false,'DRAFT') returning id", [pkg.id, fields.title, fields.description, fields.subtitle, JSON.stringify(fields.features), fields.priceMinor, fields.currency])).rows[0];
+      await replaceStructuredComponents(client, version.id, components, fields.educationStage);
+      await client.query("commit");
+      return json(res, 201, { packageId: pkg.id, packageVersionId: version.id, slug: uniqueSlug, status: "DRAFT", published: false });
     }
     if (req.method === "POST") throw bad("PACKAGE_CREATION_FORBIDDEN", 403);
     const fields = packageFields(input); const products = await validateProducts(client, fields.products, fields.educationStage);

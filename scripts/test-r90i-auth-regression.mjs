@@ -179,13 +179,13 @@ try {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ email: "r90i-pending@example.test", password }),
   }, "pending");
-  assert.equal(pending.response.status, 200, JSON.stringify(pending.body));
-  assert.equal(pending.hasCookie, true);
+  assert.equal(pending.response.status, 403, JSON.stringify(pending.body));
+  assert.equal(pending.body.code || pending.body.error, "EMAIL_NOT_VERIFIED");
+  assert.equal(pending.hasCookie, false);
   const pendingPanel = await request(origin, "/api/panel-context?panel=%2Fpanel%2Fegitmen", {}, "pending");
-  assert.equal(pendingPanel.response.status, 403);
+  assert.equal(pendingPanel.response.status, 401);
   const pendingProfile = await request(origin, "/api/trainer-candidate?action=profile", {}, "pending");
-  assert.equal(pendingProfile.response.status, 403);
-  assert.equal(pendingProfile.body.error, "EMAIL_VERIFICATION_REQUIRED");
+  assert.equal(pendingProfile.response.status, 401);
 
   const unauthorized = await request(origin, "/api/platform-sign-in", {
     method: "POST", headers: { "content-type": "application/json" },
@@ -206,7 +206,7 @@ try {
   const studentPrincipal = { memberships: [{ role: "STUDENT", status: "ACTIVE", scopeType: "STUDENT", scopeId: "student" }], session: { user: { twoFactorEnabled: false } } };
   assert.equal(privilegedTwoFactorRequired(ownerPrincipal), false);
   assert.equal(privilegedTwoFactorRequired(superAdminPrincipal), true);
-  assert.deepEqual(requireMembership(ownerPrincipal, "OWNER"), null);
+  assert.equal(requireMembership(ownerPrincipal, "OWNER"), null);
   assert.equal(requireMembership(studentPrincipal, "OWNER")?.body?.error, "FORBIDDEN");
 
   console.log(JSON.stringify({
@@ -214,7 +214,7 @@ try {
     TRAINER_LOGIN: "PASS_COOKIE_AND_PANEL_CONTEXT",
     TRAINER_CANDIDATE_LOGIN: "PASS_VERIFIED_SCOPED_200_PENDING_EMAIL_VERIFICATION_SCOPED_403",
     SESSION_COOKIE: "PASS_PLATFORM_PROXY_FORWARDS_SET_COOKIE",
-    ROLE_SECURITY: "PASS_OWNER_OVERRIDE_ONLY_SUPER_ADMIN_2FA_PRESERVED",
+    ROLE_SECURITY: "PASS_OWNER_OPTIONAL_SUPER_ADMIN_2FA_PRESERVED",
     REGRESSION_TESTS: "PASS_DISPOSABLE_POSTGRES",
     DATABASE_ISOLATION: disposable.databaseName,
     UNAUTHORIZED: "PASS_401_AND_PANEL_403",

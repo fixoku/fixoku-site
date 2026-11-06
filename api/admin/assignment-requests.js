@@ -14,7 +14,10 @@ export default async function handler(req,res){
       on ped.package_version_id=coalesce(oi.package_version_id,pe.package_version_id)
      and ped.training_program_id=e.training_program_id
     where pee.enrollment_id=e.id
-      and (ped.delivery_mode='TRAINER_LED' or exists (select 1 from package_components pc where pc.package_version_id=coalesce(oi.package_version_id,pe.package_version_id) and pc.is_active=true and pc.component_type='TRAINER_SERVICE'))
+      and (
+       exists (select 1 from package_components pc join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id) where pc.package_version_id=coalesce(oi.package_version_id,pe.package_version_id) and pc.is_active=true and pc.component_type='TRAINER_SERVICE' and pp.r6_product_type='TRAINING_SERVICE' and pp.service_mode='INDIVIDUAL')
+       or (ped.delivery_mode='TRAINER_LED' and not exists (select 1 from package_components pc join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id) where pc.package_version_id=coalesce(oi.package_version_id,pe.package_version_id) and pc.is_active=true and pp.r6_product_type='TRAINING_SERVICE' and pp.service_mode='GROUP'))
+      )
    ) ${includeAssigned ? "or r.status='ASSIGNED'" : ""} ) order by (r.status='PENDING') desc,r.requested_at`)).rows;
   const metrics=(await pool.query("select (select count(distinct user_id)::int from platform_memberships where role='TRAINER' and status='ACTIVE') as \"activeTrainers\",(select count(distinct sp.user_id)::int from student_profiles sp join platform_users u on u.id=sp.user_id where sp.status='ACTIVE' and u.email_verified=true and exists (select 1 from platform_memberships sm where sm.user_id=sp.user_id and sm.role='STUDENT' and sm.status='ACTIVE' and sm.scope_type='STUDENT' and sm.scope_id=sp.user_id)) as \"activeStudents\",(select count(*)::int from trainer_assignment_requests where status='PENDING') as \"pendingAssignments\"" )).rows[0];
   return json(res,200,{requests:rows,metrics});

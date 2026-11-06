@@ -4,6 +4,7 @@ import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import { FixokuPhotoV41F, packageImageDefaultV41F } from "../platform/admin/FixokuCatalogAssetsV41F";
 import { rememberStudentPurchaseIntent } from "../utils/purchaseIntent.js";
+import { pushEvent } from "../martech/events.js";
 import "./education-packages-owner-v1.css";
 
 const CATEGORIES = [
@@ -25,6 +26,16 @@ function packageCategory(item) {
 function money(amount, currency) {
   if (amount === null || !Number.isFinite(Number(amount)) || currency !== "TRY") return "Fiyat bilgisi bekleniyor";
   return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(Number(amount) / 100);
+}
+
+function analyticsItem(item) {
+  return {
+    item_id: item.packageVersionId || item.id,
+    item_name: item.title,
+    item_category: packageCategory(item) || "unknown",
+    price: Number.isFinite(Number(item.priceMinor)) ? Number(item.priceMinor) / 100 : undefined,
+    currency: item.currency || undefined,
+  };
 }
 
 function PublicPackageCard({ item, previewMode }) {
@@ -57,7 +68,7 @@ function PublicPackageCard({ item, previewMode }) {
         <div className="fx-ep-bottom">
           <div className="fx-ep-price">{money(item.priceMinor, item.currency)}</div>
           <div className="fx-ep-actions">
-            {previewMode ? <button className="fx-ep-button fx-ep-buy" type="button" disabled title="Yerel Owner önizlemesi, satın alma başlatılmaz">Hemen Al</button> : buyable && item.packageVersionId ? <Link className="fx-ep-button fx-ep-buy" onClick={() => rememberStudentPurchaseIntent(item.packageVersionId)} to={`/panel/ogrenci/paketler?packageVersionId=${encodeURIComponent(item.packageVersionId)}`} aria-label={`${item.title} paketi için öğrenci paneline git`}>Hemen Al</Link> : <span className="fx-ep-button fx-ep-disabled">Satışa kapalı</span>}
+            {previewMode ? <button className="fx-ep-button fx-ep-buy" type="button" disabled title="Yerel Owner önizlemesi, satın alma başlatılmaz">Hemen Al</button> : buyable && item.packageVersionId ? <Link className="fx-ep-button fx-ep-buy" onClick={() => { const analytics = analyticsItem(item); pushEvent("select_item", { item_list_id: "education_packages", items: [analytics] }); pushEvent("student_package_interest", analytics); rememberStudentPurchaseIntent(item.packageVersionId); }} to={`/panel/ogrenci/paketler?packageVersionId=${encodeURIComponent(item.packageVersionId)}`} aria-label={`${item.title} paketi için öğrenci paneline git`}>Hemen Al</Link> : <span className="fx-ep-button fx-ep-disabled">Satışa kapalı</span>}
             {remaining > 0 && <button type="button" className="fx-ep-button fx-ep-details" aria-expanded={expanded} onClick={() => setExpanded((current) => !current)}>{expanded ? "Daha Az Göster" : "Detaya Bak"}</button>}
           </div>
         </div>
@@ -123,6 +134,11 @@ export default function EducationPackagesPage() {
       if (category === "ALL" && orderA !== orderB) return orderA - orderB;
       return Number(a.displayOrder || 0) - Number(b.displayOrder || 0);
     }), [packages, category]);
+  useEffect(() => {
+    if (previewMode || state !== "ready" || !visible.length) return;
+    const items = visible.slice(0, 50).map(analyticsItem);
+    pushEvent("view_item_list", { item_list_id: `education_packages_${category.toLocaleLowerCase("tr-TR")}`, items }, { onceKey: `education_packages:${category}:${items.map((item) => item.item_id).join(",")}` });
+  }, [category, previewMode, state, visible]);
   return (
     <div className="fx-ep-root">
       <Header />

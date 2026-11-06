@@ -88,6 +88,10 @@ function betterAuthApi() {
         if (request.url?.startsWith('/api/admin/owner-legal-review-package')) {
           import('./api/admin/owner-legal-review-package.js').then(({ default: handler }) => handler(request, response)).catch(next)
         }
+        if (request.url?.split('?', 1)[0] === '/api/admin/owner-legal-approval') {
+          import('./api/admin/owner-legal-approval.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/admin/owner-legal-editor')) {
           import('./api/admin/owner-legal-editor.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
@@ -347,7 +351,11 @@ function betterAuthApi() {
         if (request.url?.startsWith('/api/admin/trainer-entitlements')) {
           import('./api/admin/trainer-entitlements.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
+        }        if (request.url?.startsWith('/api/admin/student-entitlements')) {
+          import('./api/admin/student-entitlements.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
         }
+
         if (request.url?.startsWith('/api/admin/trainer-bank-transfers')) {
           import('./api/admin/trainer-bank-transfers.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return

@@ -41,6 +41,8 @@ export default function OwnerPrivateLogin() {
   const [email, setEmail] = useState("ersin@fixoku.com");
   const [password, setPassword] = useState("");
   const [working, setWorking] = useState(false);
+  const [challenge, setChallenge] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
   const [message, setMessage] = useState("");
 
   async function signIn(event) {
@@ -54,11 +56,37 @@ export default function OwnerPrivateLogin() {
       });
       if (!response.ok) throw new Error(serverError(response, "E-posta adresi veya şifre hatalı.", data));
       // Better Auth owns password verification, rate limits, CSRF and the
-      // session cookie. The second request is the server-side OWNER gate.
+      // session cookie. A privileged account may now require the TOTP
+      // challenge before the server-side OWNER gate can succeed.
+      if (data?.twoFactorRedirect === true) {
+        setChallenge(true);
+        setMessage("Authenticator uygulamanızdaki 6 haneli kodu girin.");
+        return;
+      }
       await checkOwner();
       navigate("/panel/owner", { replace: true });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Giriş tamamlanamadı.");
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function verifyChallenge(event) {
+    event.preventDefault();
+    if (working || !/^\d{6}$/u.test(otpCode)) {
+      setMessage("6 haneli doğrulama kodunu girin.");
+      return;
+    }
+    setWorking(true);
+    setMessage("");
+    try {
+      const { response, data } = await postJson("/api/auth/two-factor/verify-totp", { code: otpCode, trustDevice: false });
+      if (!response.ok) throw new Error(data?.message || "İki aşamalı doğrulama kodu geçersiz.");
+      await checkOwner();
+      navigate("/panel/owner", { replace: true });
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "İki aşamalı doğrulama tamamlanamadı.");
     } finally {
       setWorking(false);
     }
@@ -70,7 +98,7 @@ export default function OwnerPrivateLogin() {
       <h1 id="owner-login-heading">Yönetici Girişi</h1>
       <p className="fixoku-owner-login-motto">Güçlü yarınlar, bugün atılan adımlarla başlar.</p>
 
-      <form onSubmit={signIn}>
+      {!challenge ? <form onSubmit={signIn}>
         <label htmlFor="owner-private-email">E-posta
           <input id="owner-private-email" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required />
         </label>
@@ -78,7 +106,13 @@ export default function OwnerPrivateLogin() {
           <input id="owner-private-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
         </label>
         <button type="submit" disabled={working}>{working ? "Doğrulanıyor..." : "Giriş Yap"}</button>
-      </form>
+      </form> : <form onSubmit={verifyChallenge}>
+        <p>Owner hesabı için iki aşamalı doğrulama gerekiyor.</p>
+        <label htmlFor="owner-private-otp">Authenticator kodu
+          <input id="owner-private-otp" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" value={otpCode} onChange={(event) => setOtpCode(event.target.value.replace(/\D/gu, "").slice(0, 6))} required />
+        </label>
+        <button type="submit" disabled={working}>{working ? "Doğrulanıyor..." : "Kodu doğrula"}</button>
+      </form>}
 
       {message && <p className="fixoku-owner-login-error" role="status">{message}</p>}
     </section>

@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { trainerCatalogForReview } from "../trainings/localReviewCatalog";
 import { TrainerBanner } from "../components/TrainerVisual";
 
+import { TrainerExpertiseJourney } from "../components/TrainerExpertiseJourney";
 import { PanelQuickActions } from "../../panel/components/PanelQuickActions";
 import { PanelShell } from "../../panel/layout/PanelShell";
 import { PanelStatCard } from "../../panel/components/PanelStatCard";
@@ -39,6 +40,7 @@ export function TrainerDashboardPreview({ user, candidatePreview=false, candidat
           <div className="trainer-dashboard-content">
             <div className="trainer-stat-grid">
               {TRAINER_DASHBOARD_PREVIEW.metrics.map((metric) => { const value = candidatePreview ? (metric.title === "Eğitmen Kaynakları" || metric.title === "Eğitmen Paketleri" ? null : "Başvuru beklemede") : metric.title === "Aktif Öğrencilerim" ? (assignmentRoster ? `${assignmentRoster.activeStudents} Öğrenci` : "—") : metric.title === "Güncel Bakiyem" && live.earned !== undefined ? `${new Intl.NumberFormat("tr-TR", { style: "currency", currency: live.currency || "TRY" }).format(live.earned / 100)}` : metric.title === "Aktif Eğitimlerim" && live.trainings !== undefined ? `${live.trainings} Eğitim` : metric.title === "Eğitmen Kaynakları" || metric.title === "Eğitmen Paketleri" ? null : metric.value ?? "—"; return <PanelStatCard key={metric.title} icon={metric.icon} title={metric.title} value={value} detail={metric.detail} action={metric.action} accent="orange" />; })}
+              {!candidatePreview && <div className="trainer-dashboard-expertise-slot"><TrainerExpertiseJourney compact /></div>}
             </div>
             <TrainerBanner variant="sharing" className="trainer-promo-banner" />
           </div>

@@ -67,17 +67,15 @@ try {
   });
   assert.equal(first.replay, false);
   assert.equal((await pool.query("select count(*)::int as count from trainer_package_entitlements where source_order_id=$1", [combined.orderId])).rows[0].count, 1);
-  assert.equal((await pool.query("select count(*)::int as count from r6_trainer_qualification_grants where source_order_id=$1", [combined.orderId])).rows[0].count, 2);
+  assert.equal((await pool.query("select count(*)::int as count from r6_trainer_qualification_grants where source_order_id=$1", [combined.orderId])).rows[0].count, 0);
   const replay = await fulfillTrainerOrder(pool, { orderId: combined.orderId, actorUserId: trainerUserId, provider: "DISPOSABLE_TEST", providerReference: "trainer-combined-replay" });
   assert.equal(replay.replay, true);
-  assert.equal((await pool.query("select count(*)::int as count from r6_trainer_qualification_grants where source_order_id=$1", [combined.orderId])).rows[0].count, 2);
+  assert.equal((await pool.query("select count(*)::int as count from r6_trainer_qualification_grants where source_order_id=$1", [combined.orderId])).rows[0].count, 0);
 
   const unknown = await seedPackage(trainerUserId, { slug: "bilinmeyen-egitmen-egitimi", title: "Bilinmeyen Eğitmen Eğitimi" });
-  await assert.rejects(
-    () => fulfillTrainerOrder(pool, { orderId: unknown.orderId, actorUserId: trainerUserId, provider: "DISPOSABLE_TEST", providerReference: "trainer-unknown-001" }),
-    (error) => error?.code === "TRAINER_EXPERTISE_MAPPING_MISSING",
-  );
-  assert.equal((await pool.query("select status from trainer_package_orders where id=$1", [unknown.orderId])).rows[0].status, "PENDING_PAYMENT");
+  const unknownResult = await fulfillTrainerOrder(pool, { orderId: unknown.orderId, actorUserId: trainerUserId, provider: "DISPOSABLE_TEST", providerReference: "trainer-unknown-001" });
+  assert.equal(unknownResult.replay, false);
+  assert.equal((await pool.query("select status from trainer_package_orders where id=$1", [unknown.orderId])).rows[0].status, "PAID");
 
   const book = await seedPackage(trainerUserId, { slug: "trainer-standalone-book", title: "Standalone Book Product" });
   const bookResult = await fulfillTrainerOrder(pool, { orderId: book.orderId, actorUserId: trainerUserId, provider: "DISPOSABLE_TEST", providerReference: "trainer-book-001" });
@@ -86,9 +84,9 @@ try {
 
   console.log(JSON.stringify({
     TRAINER_PACKAGE_PAYMENT: "PASS",
-    COMBINED_PACKAGE_EXPERTISE: "PASS",
-    EXPERTISE_IDEMPOTENCY: "PASS",
-    UNKNOWN_EDUCATION_PACKAGE_FAIL_CLOSED: "PASS",
+    COMBINED_PACKAGE_NO_EXPERTISE: "PASS",
+    EXPERTISE_NOT_PAYMENT_COUPLED: "PASS",
+    UNKNOWN_EDUCATION_PACKAGE_ACCESS: "PASS",
     BOOK_PACKAGE_NO_EXPERTISE: "PASS",
     DATABASE_ISOLATION: "DISPOSABLE_ONLY",
   }));

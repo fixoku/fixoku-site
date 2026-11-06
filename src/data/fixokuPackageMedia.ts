@@ -18,7 +18,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-primary-platinum-egitim",
     title: "PLATINUM EĞİTİM",
     aliases: ["PLATINUM EĞİTİM"],
-    image: "/images/packages/primary/fixoku-ilkokul-platinum-2400x1120.png",
+    image: "/images/packages/primary/fixoku-ilkokul-platinum-2400x1120.webp",
   },
   {
     stage: "PRIMARY",
@@ -26,7 +26,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-primary-premium-egitim",
     title: "PREMIUM EĞİTİM",
     aliases: ["PREMIUM EĞİTİM"],
-    image: "/images/packages/primary/fixoku-ilkokul-premium-2400x1120.png",
+    image: "/images/packages/primary/fixoku-ilkokul-premium-2400x1120.webp",
   },
   {
     stage: "PRIMARY",
@@ -34,7 +34,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-primary-akilli-sistem",
     title: "AKILLI SİSTEM",
     aliases: ["AKILLI SİSTEM"],
-    image: "/images/packages/primary/fixoku-ilkokul-akilli-sistem-2400x1120.png",
+    image: "/images/packages/primary/fixoku-ilkokul-akilli-sistem-2400x1120.webp",
   },
   {
     stage: "PRIMARY",
@@ -42,7 +42,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-primary-dijital-yapay-zeka-sistemi",
     title: "DİJİTAL YAPAY ZEKÂ SİSTEMİ",
     aliases: ["DİJİTAL YAPAY ZEKÂ SİSTEMİ"],
-    image: "/images/packages/primary/fixoku-dijital-yapay-zeka-2400x1120.png",
+    image: "/images/packages/primary/fixoku-dijital-yapay-zeka-2400x1120.webp",
   },
   {
     stage: "PRIMARY",
@@ -50,7 +50,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-primary-gelisim",
     title: "GELİŞİM",
     aliases: ["GELİŞİM"],
-    image: "/images/packages/primary/fixoku-ilkokul-egzersiz-2400x1120.png",
+    image: "/images/packages/primary/fixoku-ilkokul-egzersiz-2400x1120.webp",
   },
   {
     stage: "PRIMARY",
@@ -58,7 +58,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-primary-baslangic",
     title: "BAŞLANGIÇ",
     aliases: ["BAŞLANGIÇ"],
-    image: "/images/packages/primary/fixoku-ilkokul-akici-hizli-okuma-2400x1120.png",
+    image: "/images/packages/primary/fixoku-ilkokul-akici-hizli-okuma-2400x1120.webp",
   },
 
   // MIDDLE / ORTAOKUL — exactly 6 education packages
@@ -68,7 +68,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-platinum-egitim",
     title: "PLATINUM EĞİTİM",
     aliases: ["PLATINUM EĞİTİM"],
-    image: "/images/packages/middle/fixoku-ortaokul-platinum-2400x1200.png",
+    image: "/images/packages/middle/fixoku-ortaokul-platinum-2400x1200.webp",
   },
   {
     stage: "MIDDLE",
@@ -76,7 +76,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-premium-egitim",
     title: "PREMIUM EĞİTİM",
     aliases: ["PREMIUM EĞİTİM"],
-    image: "/images/packages/middle/fixoku-ortaokul-premium-2400x1200.png",
+    image: "/images/packages/middle/fixoku-ortaokul-premium-2400x1200.webp",
   },
   {
     stage: "MIDDLE",
@@ -84,7 +84,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-akilli-sistem",
     title: "AKILLI SİSTEM",
     aliases: ["AKILLI SİSTEM"],
-    image: "/images/packages/middle/fixoku-ortaokul-akilli-sistem-2400x1200.png",
+    image: "/images/packages/middle/fixoku-ortaokul-akilli-sistem-2400x1200.webp",
   },
   {
     stage: "MIDDLE",
@@ -92,7 +92,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-dijital-yapay-zeka-sistemi",
     title: "DİJİTAL YAPAY ZEKÂ SİSTEMİ",
     aliases: ["DİJİTAL YAPAY ZEKÂ SİSTEMİ"],
-    image: "/images/packages/middle/fixoku-ortaokul-dijital-yapay-zeka-2400x1200.png",
+    image: "/images/packages/middle/fixoku-ortaokul-dijital-yapay-zeka-2400x1200.webp",
   },
   {
     stage: "MIDDLE",
@@ -100,7 +100,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-gelisim",
     title: "GELİŞİM",
     aliases: ["GELİŞİM"],
-    image: "/images/packages/middle/fixoku-ortaokul-egzersiz-2400x1200.png",
+    image: "/images/packages/middle/fixoku-ortaokul-egzersiz-2400x1200.webp",
   },
   {
     stage: "MIDDLE",
@@ -108,7 +108,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-baslangic",
     title: "BAŞLANGIÇ",
     aliases: ["BAŞLANGIÇ"],
-    image: "/images/packages/middle/fixoku-ortaokul-hizli-okuma-2400x1200.png",
+    image: "/images/packages/middle/fixoku-ortaokul-hizli-okuma-2400x1200.webp",
   },
 
   // HIGH / LİSE — 5 education packages
@@ -118,7 +118,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-high-platinum-egitim",
     title: "PLATINUM EĞİTİM",
     aliases: ["PLATINUM EĞİTİM"],
-    image: "/images/packages/high/fixoku-lise-platinum-2400x1200.png",
+    image: "/images/packages/high/fixoku-lise-platinum-2400x1200.webp",
   },
   {
     stage: "HIGH",
@@ -126,7 +126,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-high-premium-egitim",
     title: "PREMIUM EĞİTİM",
     aliases: ["PREMIUM EĞİTİM"],
-    image: "/images/packages/high/fixoku-lise-premium-2400x1200.png",
+    image: "/images/packages/high/fixoku-lise-premium-2400x1200.webp",
   },
   {
     stage: "HIGH",
@@ -134,7 +134,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-high-akilli-sistem",
     title: "AKILLI SİSTEM",
     aliases: ["AKILLI SİSTEM"],
-    image: "/images/packages/high/fixoku-lise-akilli-sistem-2400x1200.png",
+    image: "/images/packages/high/fixoku-lise-akilli-sistem-2400x1200.webp",
   },
   {
     stage: "HIGH",
@@ -142,7 +142,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-high-dijital-yapay-zeka-sistemi",
     title: "DİJİTAL YAPAY ZEKÂ SİSTEMİ",
     aliases: ["DİJİTAL YAPAY ZEKÂ SİSTEMİ"],
-    image: "/images/packages/high/fixoku-lise-dijital-yapay-zeka-2400x1200.png",
+    image: "/images/packages/high/fixoku-lise-dijital-yapay-zeka-2400x1200.webp",
   },
   {
     stage: "HIGH",
@@ -150,7 +150,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-high-baslangic",
     title: "BAŞLANGIÇ",
     aliases: ["BAŞLANGIÇ"],
-    image: "/images/packages/high/fixoku-lise-hizli-okuma-2400x1200.png",
+    image: "/images/packages/high/fixoku-lise-hizli-okuma-2400x1200.webp",
   },
 
   // ADULT / YETİŞKİN — 5 education packages
@@ -160,7 +160,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-adult-platinum-egitim",
     title: "PLATINUM EĞİTİM",
     aliases: ["PLATINUM EĞİTİM"],
-    image: "/images/packages/adult/fixoku-yetiskin-platinum-2400x1200.png",
+    image: "/images/packages/adult/fixoku-yetiskin-platinum-2400x1200.webp",
   },
   {
     stage: "ADULT",
@@ -168,7 +168,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-adult-premium-egitim",
     title: "PREMIUM EĞİTİM",
     aliases: ["PREMIUM EĞİTİM"],
-    image: "/images/packages/adult/fixoku-yetiskin-premium-2400x1200.png",
+    image: "/images/packages/adult/fixoku-yetiskin-premium-2400x1200.webp",
   },
   {
     stage: "ADULT",
@@ -176,7 +176,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-adult-akilli-sistem",
     title: "AKILLI SİSTEM",
     aliases: ["AKILLI SİSTEM"],
-    image: "/images/packages/adult/fixoku-yetiskin-kitap-yazilim-2400x1200.png",
+    image: "/images/packages/adult/fixoku-yetiskin-kitap-yazilim-2400x1200.webp",
   },
   {
     stage: "ADULT",
@@ -184,7 +184,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-adult-dijital-yapay-zeka-sistemi",
     title: "DİJİTAL YAPAY ZEKÂ SİSTEMİ",
     aliases: ["DİJİTAL YAPAY ZEKÂ SİSTEMİ"],
-    image: "/images/packages/adult/fixoku-yetiskin-yazilim-2400x1200.png",
+    image: "/images/packages/adult/fixoku-yetiskin-yazilim-2400x1200.webp",
   },
   {
     stage: "ADULT",
@@ -192,7 +192,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-adult-baslangic",
     title: "BAŞLANGIÇ",
     aliases: ["BAŞLANGIÇ", "YETİŞKİN HIZLI OKUMA KİTABI"],
-    image: "/images/packages/adult/fixoku-yetiskin-kitap-2400x1200.png",
+    image: "/images/packages/adult/fixoku-yetiskin-kitap-2400x1200.webp",
   },
 
   // PARAGRAPH — kept separate from regular Middle/High education package grids.
@@ -202,7 +202,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-paragraf-egitim",
     title: "ORTAOKUL PARAGRAF BİREBİR EĞİTİMİ",
     aliases: ["ORTAOKUL PARAGRAF EĞİTİM", "ORTAOKUL PARAGRAF BİREBİR EĞİTİMİ"],
-    image: "/images/packages/paragraph/fixoku-ortaokul-paragraf-egitimi-2400x1200.png",
+    image: "/images/packages/paragraph/fixoku-ortaokul-paragraf-egitimi-2400x1200.webp",
   },
   {
     stage: "MIDDLE",
@@ -210,7 +210,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-paragraf-kucuk-grup",
     title: "ORTAOKUL PARAGRAF KÜÇÜK GRUP EĞİTİMİ",
     aliases: ["ORTAOKUL PARAGRAF KÜÇÜK GRUP EĞİTİMİ"],
-    image: "/images/packages/paragraph/fixoku-ortaokul-paragraf-kucuk-grup-2400x1200.png",
+    image: "/images/packages/paragraph/fixoku-ortaokul-paragraf-kucuk-grup-2400x1200.webp",
   },
   {
     stage: "MIDDLE",
@@ -218,7 +218,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-middle-paragraf-kitabi",
     title: "ORTAOKUL PARAGRAF KİTABI",
     aliases: ["ORTAOKUL PARAGRAF KİTABI"],
-    image: "/images/packages/paragraph/fixoku-ortaokul-paragraf-kitabi-2400x1200.png",
+    image: "/images/packages/paragraph/fixoku-ortaokul-paragraf-kitabi-2400x1200.webp",
   },
   {
     stage: "HIGH",
@@ -226,7 +226,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-high-paragraf-egitim",
     title: "LİSE PARAGRAF BİREBİR EĞİTİMİ",
     aliases: ["LİSEL PARAGRAF EĞİTİM", "LİSE PARAGRAF BİREBİR EĞİTİMİ"],
-    image: "/images/packages/paragraph/fixoku-lise-paragraf-egitimi-2400x1200.png",
+    image: "/images/packages/paragraph/fixoku-lise-paragraf-egitimi-2400x1200.webp",
   },
   {
     stage: "HIGH",
@@ -234,7 +234,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-high-paragraf-kucuk-grup",
     title: "LİSE PARAGRAF KÜÇÜK GRUP EĞİTİMİ",
     aliases: ["LİSE PARAGRAF KÜÇÜK GRUP EĞİTİMİ"],
-    image: "/images/packages/paragraph/fixoku-lise-paragraf-kucuk-grup-2400x1200.png",
+    image: "/images/packages/paragraph/fixoku-lise-paragraf-kucuk-grup-2400x1200.webp",
   },
   {
     stage: "HIGH",
@@ -242,7 +242,7 @@ export const FIXOKU_PACKAGE_MEDIA: FixokuPackageMedia[] = [
     slug: "student-high-paragraf-kitabi",
     title: "LİSE PARAGRAF KİTABI",
     aliases: ["LİSE PARAGRAF KİTABI"],
-    image: "/images/packages/paragraph/fixoku-lise-paragraf-kitabi-2400x1200.png",
+    image: "/images/packages/paragraph/fixoku-lise-paragraf-kitabi-2400x1200.webp",
   },
 ];
 

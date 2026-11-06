@@ -5,8 +5,10 @@ import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 import { getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
 import { getRealTrainerLessons } from "./video-config.js";
-import { previewProgress, previewUnlocked, previewRecord } from "./video-preview-progress.js";
-// RELEASE-017T: local preview-only, in-memory and nonpersistent progress. NEVER writes DB progress.
+import { previewProgress, previewRecord } from "./video-preview-progress.js";
+import { readTrainerVideoProgress, recordTrainerVideoProgress } from "../../src/server/domain/trainer-completion.js";
+// Local preview state remains a compatibility yedek only when a disposable
+// schema predates trainer_video_progress. Production always uses persisted rows.
 const respond = (res, status, body) => {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -69,17 +71,34 @@ export default async function handler(req, res) {
       return respond(res, 503, { error: "REAL_VIDEO_ASSETS_MISSING" });
     }
     if (req.method === "GET") {
-      const videos = lessons.map((lesson) => {
-        const locked = !previewUnlocked(user.id, pkg.id, lesson.videoIndex);
+      const videos = await Promise.all(lessons.map(async (lesson, index) => {
+        const persisted = await readTrainerVideoProgress(pool, user.id, pkg.id, index + 1);
+        const locked = index > 0 && !persisted?.completedAt;
         const route = `/api/trainer/video-media?packageId=${encodeURIComponent(pkg.id)}&video=${lesson.videoIndex}`;
-        return { videoIndex: lesson.videoIndex, title: lesson.title, locked, src: locked ? null : route, posterSrc: `${route}&poster=1`, progress: previewProgress(user.id, pkg.id, lesson.videoIndex) };
-      });
-      return respond(res, 200, { package: { id: pkg.id, slug: pkg.slug, title: pkg.title }, videos, videoStatus: lessons.length ? "LOCAL_SESSION_SEQUENTIAL_PREVIEW" : "REAL_LESSONS_NOT_ADDED", progressTrackingEnabled: false, previewSessionOnly: true, watermark: { name: user.displayName, reference: mask(user.email) } });
+        return { videoIndex: lesson.videoIndex, title: lesson.title, locked, src: locked ? null : route, posterSrc: `${route}&poster=1`, progress: persisted || previewProgress(user.id, pkg.id, lesson.videoIndex) };
+      }));
+      return respond(res, 200, { package: { id: pkg.id, slug: pkg.slug, title: pkg.title }, videos, videoStatus: lessons.length ? "PERSISTED_SEQUENTIAL_PROGRESS" : "REAL_LESSONS_NOT_ADDED", progressTrackingEnabled: true, previewSessionOnly: false, watermark: { name: user.displayName, reference: mask(user.email) } });
     }
     if (!lessons.length) return respond(res, 404, { error: "REAL_LESSONS_NOT_ADDED" });
     const data = await readJson(req);
-    const result = previewRecord(user.id, pkg.id, data, lessons.length);
-    return respond(res, 200, { ...result, progressScope: "VOLATILE_LOCAL_PREVIEW" });
+    const requestedLesson = lessons.findIndex((lesson) => Number(lesson.videoIndex) === Number(data.videoIndex));
+    if (requestedLesson < 0) return respond(res, 400, { error: "VIDEO_INDEX_INVALID" });
+    await pool.query("begin");
+    try {
+      const result = await recordTrainerVideoProgress(pool, { trainerUserId: user.id, packageId: pkg.id, ...data, videoIndex: requestedLesson + 1, lessonsCount: lessons.length });
+      await pool.query("commit");
+      return respond(res, 200, { ...result, progressScope: "PERSISTED_TRAINER_VIDEO_PROGRESS" });
+    } catch (error) {
+      await pool.query("rollback");
+      // Keep an older local review runner usable when its disposable schema
+      // predates trainer_video_progress. This response is explicitly marked as
+      // a schema yedek and cannot be returned by production.
+      if (process.env.NODE_ENV !== "production" && error?.code === "42P01") {
+        const result = previewRecord(user.id, pkg.id, data, lessons.length);
+        return respond(res, 200, { ...result, progressScope: "LOCAL_SCHEMA_FALLBACK" });
+      }
+      throw error;
+    }
   } catch (error) { return respond(res, error.status || 403, { error: error.code || error.message || "TRAINER_VIDEO_ACCESS_DENIED" }); }
   finally { await pool.end(); }
 }

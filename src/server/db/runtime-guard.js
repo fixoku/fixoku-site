@@ -9,11 +9,11 @@
  */
 
 export const CLEAN_PREVIEW_BRANCH = "codex/fixoku-clean-integration-20261029";
-export const CLEAN_STAGING_PROJECT_ID = "damp-night-76577929";
-export const CLEAN_STAGING_BRANCH_ID = "br-solitary-scene-ba3d7ejb";
+export const CLEAN_STAGING_PROJECT_ID = "tiny-fire-86403197";
+export const CLEAN_STAGING_BRANCH_ID = "br-sweet-resonance-b17h2ttf";
 export const CLEAN_STAGING_DATABASE = "neondb";
-export const CLEAN_STAGING_ENDPOINT_ID = "ep-dark-math-baw61g90";
-export const CLEAN_STAGING_REGION_SUFFIX = "c-8.eu-central-1.aws.neon.tech";
+export const CLEAN_STAGING_ENDPOINT_ID = "ep-calm-term-b1l1d62f";
+export const CLEAN_STAGING_REGION_SUFFIX = "c-5.eu-central-1.aws.neon.tech";
 export const CLEAN_STAGING_POOLED_HOST = `${CLEAN_STAGING_ENDPOINT_ID}-pooler.${CLEAN_STAGING_REGION_SUFFIX}`;
 export const CLEAN_STAGING_DIRECT_HOST = `${CLEAN_STAGING_ENDPOINT_ID}.${CLEAN_STAGING_REGION_SUFFIX}`;
 

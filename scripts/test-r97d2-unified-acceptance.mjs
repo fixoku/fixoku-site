@@ -235,7 +235,7 @@ async function main() {
     method: "PATCH", url: "/api/student/profile", cookie: studentCookie,
     body: { ...profileBody, firstName: "R96S", lastName: "Öğrenci Güncel", phone: "05321234567", educationStage: "MIDDLE", grade: "6", school: "R96S Test Okulu", city: "İstanbul", district: "Kadıköy", addressLine: "R96S Yeni Adres", postalCode: "34710", marketingConsent: false },
   });
-  assert.equal(profileWrite.statusCode, 200);
+  assert.equal(profileWrite.statusCode, 200, JSON.stringify(profileWrite));
   const guardianRead = await call(studentProfileHandler, { url: `/api/student/profile?studentProfileId=${studentProfileRow.id}`, cookie: guardianCookie });
   assert.equal(guardianRead.statusCode, 200);
   const foreignStudentId = uuid();
@@ -261,7 +261,7 @@ async function main() {
   const trainerCommerceOrder = await seedTrainerOrder(trainerId, catalog.qualificationId);
   const trainerSettlement = await fulfillTrainerOrder(pool, { orderId: trainerCommerceOrder.orderId, actorUserId: ownerId, provider: "BANK_TRANSFER", providerReference: `R97D2-TRAINER-${uuid()}` });
   assert.equal(trainerSettlement.replay, false);
-  assert.equal(await notificationCount(trainerId, "TRAINER_EXPERTISE_ACTIVATED"), 1);
+  assert.equal(await notificationCount(trainerId, "TRAINER_EXPERTISE_ACTIVATED"), 0);
   assert.equal(await notificationCount(trainerId, "TRAINER_PACKAGE_ACTIVATED"), 1);
   assert.equal(await notificationCount(ownerId, "OWNER_TRAINER_PAYMENT_APPROVED"), 1);
 

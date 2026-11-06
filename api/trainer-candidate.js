@@ -53,9 +53,34 @@ export default async function handler(req,res){
     await client.query('update platform_users set email_verified=true,updated_at=now() where id=$1',[platform.id]);
     await client.query(`update trainer_applications set candidate_user_id=$1,invitation_token_hash=null,invitation_expires_at=null,updated_at=now()
        where id=$2 and candidate_user_id is null`,[platform.id,app.id]);
+    await client.query(`insert into platform_memberships(user_id,scope_type,scope_id,role,status)
+      values($1,'TRAINER',$1,'TRAINER','ACTIVE')
+      on conflict(user_id,scope_type,scope_id,role) do update set status='ACTIVE',updated_at=now()`,[platform.id]);
     await client.query('commit');
-    return json(res,200,{success:true,candidate:true,emailVerified:true,roleGranted:false});
-   }catch{try{await client.query('rollback');}catch { /* Preserve the original activation failure if rollback is unavailable. */ }return json(res,503,{error:'CANDIDATE_ACTIVATION_INCOMPLETE_SUPPORT_REQUIRED'});}
+    return json(res,200,{success:true,candidate:true,emailVerified:true,roleGranted:true});
+   }catch{
+    try{await client.query('rollback');}catch { /* Preserve the original activation failure if rollback is unavailable. */ }
+    // The Better Auth credential already exists. Recover the candidate mapping
+    // in-place so a transient platform write failure does not leave an orphan
+    // account or force a second credential to be created.
+    try {
+      await client.query('begin');
+      const recovered=(await client.query('select id from platform_users where auth_user_id=$1 for update',[account.id])).rows[0];
+      if(!recovered)throw Error('ACCOUNT_MAPPING_MISSING');
+      await client.query("update platform_memberships set status='REVOKED',updated_at=now() where user_id=$1 and role='STUDENT'",[recovered.id]);
+      await client.query('update platform_users set email_verified=true,updated_at=now() where id=$1',[recovered.id]);
+      await client.query('update "user" set email_verified=true,updated_at=now() where id=$1',[account.id]);
+      await client.query('update trainer_applications set candidate_user_id=$1,invitation_token_hash=null,invitation_expires_at=null,updated_at=now() where id=$2 and candidate_user_id is null',[recovered.id,app.id]);
+      await client.query(`insert into platform_memberships(user_id,scope_type,scope_id,role,status)
+        values($1,'TRAINER',$1,'TRAINER','ACTIVE')
+        on conflict(user_id,scope_type,scope_id,role) do update set status='ACTIVE',updated_at=now()`,[recovered.id]);
+      await client.query('commit');
+      return json(res,202,{success:true,candidate:true,emailVerified:true,recoveredAccount:true,roleGranted:true});
+    } catch {
+      try{await client.query('rollback');}catch { /* Preserve recovery failure. */ }
+      return json(res,503,{error:'CANDIDATE_ACTIVATION_INCOMPLETE_SUPPORT_REQUIRED'});
+    }
+   }
    finally{client.release();}
   }
   const principal=await resolvePrincipal(headers(req));

@@ -11,6 +11,7 @@ import {
   normalizeOfferStatus,
   normalizeR6OfferLine,
   summarizeR6OfferLines,
+  assertR6HighDiscountConfirmed,
 } from "../../src/server/domain/r6-offers.js";
 import { normalizeCurrency } from "../../src/server/domain/commerce.js";
 import { requireApplicationOrigin } from "../../src/server/auth/origin.js";
@@ -125,7 +126,7 @@ async function resolveCanonicalLine(client, input, index) {
   if (kind === "PACKAGE") {
     const packageVersionId = String(input.packageVersionId || "");
     if (!isR6OfferUuid(packageVersionId)) throw Object.assign(new Error(`OFFER_LINE_${index}_PACKAGE_INVALID`), { status: 400 });
-    const row = (await client.query(`select pv.id as "packageVersionId",pv.title,pv.sku,pv.price_gross_minor as "priceGrossMinor",pv.price_minor as "priceMinor",pv.vat_rate_bps as "vatRateBps",p.education_stage as "educationStage",p.status as "packageStatus",pv.status as "versionStatus" from package_versions pv join packages p on p.id=pv.package_id where pv.id=$1 and p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE' and p.panel_visible=true`, [packageVersionId])).rows[0];
+    const row = (await client.query(`select pv.id as "packageVersionId",pv.title,pv.sku,pv.price_gross_minor as "priceGrossMinor",pv.price_minor as "priceMinor",pv.vat_rate_bps as "vatRateBps",p.education_stage as "educationStage",p.status as "packageStatus",pv.status as "versionStatus" from package_versions pv join packages p on p.id=pv.package_id where pv.id=$1 and ((p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE') or (p.audience='TRAINER' and p.catalog_scope in ('TRAINER_COMMERCE','LEGACY_EDUCATION'))) and p.panel_visible=true`, [packageVersionId])).rows[0];
     if (!row || row.packageStatus === "RETIRED" || row.versionStatus === "RETIRED") throw Object.assign(new Error("OFFER_PACKAGE_UNAVAILABLE"), { status: 409 });
     return { ...row, listGrossMinor: row.priceGrossMinor ?? row.priceMinor, productTypeSnapshot: "PACKAGE", packageVersionId, physicalProductId: null };
   }
@@ -143,8 +144,9 @@ async function resolveCanonicalLine(client, input, index) {
 async function validateCustomer(client, principal, body) {
   const customerUserId = body.customerUserId == null || body.customerUserId === "" ? null : uuid(body.customerUserId, "OFFER_CUSTOMER_ID_INVALID");
   if (!customerUserId) return { customerUserId: null, customerEmail: normalizeOfferEmail(body.customerEmail) };
-  const row = (await client.query("select id,email from platform_users where id=$1", [customerUserId])).rows[0];
+  const row = (await client.query("select u.id,u.email,exists(select 1 from platform_memberships m where m.user_id=u.id and m.status='ACTIVE' and m.role in ('STUDENT','GUARDIAN','TRAINER')) as eligible from platform_users u where u.id=$1", [customerUserId])).rows[0];
   if (!row) throw Object.assign(new Error("OFFER_CUSTOMER_NOT_FOUND"), { status: 404 });
+  if (row.eligible !== true) throw Object.assign(new Error("OFFER_CUSTOMER_ROLE_INVALID"), { status: 403 });
   const customerEmail = body.customerEmail == null || body.customerEmail === "" ? String(row.email).trim().toLowerCase() : normalizeOfferEmail(body.customerEmail);
   if (String(row.email).trim().toLowerCase() !== customerEmail) throw Object.assign(new Error("OFFER_CUSTOMER_EMAIL_MISMATCH"), { status: 400 });
   return { customerUserId, customerEmail };
@@ -192,6 +194,7 @@ async function insertOffer(client, principal, body) {
   if (!title) throw Object.assign(new Error("OFFER_TITLE_REQUIRED"), { status: 400 });
   const customer = await validateCustomer(client, principal, body);
   const normalized = await normalizeLines(client, body.lines);
+  assertR6HighDiscountConfirmed(normalized.summary, body.confirmHighDiscount === true);
   const expiresAt = body.expiresAt ? assertR6OfferExpiry(body.expiresAt) : null;
   const requestedStatus = normalizeOfferStatus(body.status || "DRAFT");
   if (requestedStatus === "ACCEPTED" || requestedStatus === "EXPIRED") throw Object.assign(new Error("OFFER_STATUS_INVALID"), { status: 400 });
@@ -282,6 +285,7 @@ export default async function handler(req, res) {
     if (!Array.isArray(bodyMerged.lines)) throw Object.assign(new Error("OFFER_LINES_REQUIRED"), { status: 400 });
     const customer = await validateCustomer(client, principal, bodyMerged);
     const normalized = await normalizeLines(client, bodyMerged.lines);
+    assertR6HighDiscountConfirmed(normalized.summary, body.confirmHighDiscount === true);
     await validateBeneficiaries(client, customer.customerUserId, normalized.lines);
     const expiresAt = body.expiresAt === null ? null : body.expiresAt ? assertR6OfferExpiry(body.expiresAt) : current.expires_at;
     if (!text(bodyMerged.title, 240)) throw Object.assign(new Error("OFFER_TITLE_REQUIRED"), { status: 400 });

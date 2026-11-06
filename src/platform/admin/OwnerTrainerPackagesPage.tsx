@@ -1,12 +1,18 @@
 // FIXOKU_020O_TRAINER_ORDER_AND_CONTENT_SYNC
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./admin-panel.css";
+import "./owner-trainer-h5v.css";
 import { StudentProductCatalogV39C } from "./StudentProductCatalogV39C";
 import { FixokuCatalogIconV40 } from "./FixokuCatalogIconV40";
 import { FixokuPhotoV41F, productImageDefaultV41F } from "./FixokuCatalogAssetsV41F";
 import { trainerCourseCover020P } from "../trainer/components/trainerCourseCovers020P";
 import "./owner-trainer-020p.css";
+import "./owner-trainer-access-r20e.css";
 
+// H5U: approved offline blueprint, visual-only; not proof of saved catalog records.
+const h5vInvoicePreviewPlans = [{"slug":"ilkokul-akici-hizli-okuma-egitimi","items":[{"name":"İlkokul akıcı ve hızlı okuma kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"İlkokul zihin egzersizleri kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"FIXOKU yapay zekâ destekli yazılım","kind":"SOFTWARE","grossMinor":350000,"vat":2000,"qty":1},{"name":"İlkokul akıcı ve hızlı okuma eğitmen eğitimi","kind":"TRAINER_EDUCATION","grossMinor":739000,"vat":2000,"qty":1}],"discount":0,"sale":1199000},{"slug":"ortaokul-hizli-okuma-egitimi","items":[{"name":"Ortaokul hızlı okuma kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Ortaokul zihin egzersizleri kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"FIXOKU yapay zekâ destekli yazılım","kind":"SOFTWARE","grossMinor":350000,"vat":2000,"qty":1},{"name":"Ortaokul hızlı okuma eğitmen eğitimi","kind":"TRAINER_EDUCATION","grossMinor":739000,"vat":2000,"qty":1}],"discount":0,"sale":1199000},{"slug":"lise-hizli-okuma-egitimi","items":[{"name":"Lise hızlı okuma kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"FIXOKU yapay zekâ destekli yazılım","kind":"SOFTWARE","grossMinor":350000,"vat":2000,"qty":1},{"name":"Lise hızlı okuma eğitmen eğitimi","kind":"TRAINER_EDUCATION","grossMinor":794000,"vat":2000,"qty":1}],"discount":0,"sale":1199000},{"slug":"yetiskin-hizli-okuma-egitimi","items":[{"name":"Yetişkin hızlı okuma kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"FIXOKU yapay zekâ destekli yazılım","kind":"SOFTWARE","grossMinor":350000,"vat":2000,"qty":1},{"name":"Yetişkin hızlı okuma eğitmen eğitimi","kind":"TRAINER_EDUCATION","grossMinor":794000,"vat":2000,"qty":1}],"discount":0,"sale":1199000},{"slug":"ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs","items":[{"name":"Ortaokul paragraf kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Ortaokul paragraf teknikleri eğitmen eğitimi (LGS)","kind":"TRAINER_EDUCATION","grossMinor":844000,"vat":2000,"qty":1}],"discount":0,"sale":899000},{"slug":"lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt","items":[{"name":"Lise paragraf kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Lise paragraf teknikleri eğitmen eğitimi (TYT–AYT)","kind":"TRAINER_EDUCATION","grossMinor":944000,"vat":2000,"qty":1}],"discount":0,"sale":999000},{"slug":"ortaokul-lise-yetiskin-hizli-okuma-egitimi","items":[{"name":"İlkokul akıcı ve hızlı okuma kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"İlkokul zihin egzersizleri kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Ortaokul hızlı okuma kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Ortaokul zihin egzersizleri kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Lise hızlı okuma kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Yetişkin hızlı okuma kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"FIXOKU yapay zekâ destekli yazılım","kind":"SOFTWARE","grossMinor":350000,"vat":2000,"qty":1},{"name":"Ortaokul hızlı okuma eğitmen eğitimi","kind":"TRAINER_EDUCATION","grossMinor":739000,"vat":2000,"qty":1},{"name":"Lise hızlı okuma eğitmen eğitimi","kind":"TRAINER_EDUCATION","grossMinor":794000,"vat":2000,"qty":1},{"name":"Yetişkin hızlı okuma eğitmen eğitimi","kind":"TRAINER_EDUCATION","grossMinor":794000,"vat":2000,"qty":1}],"discount":1257000,"sale":1750000},{"slug":"ortaokul-lise-paragraf-egitmen-egitimi-ikili-set","items":[{"name":"Ortaokul paragraf kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Lise paragraf kitabı","kind":"BOOK","grossMinor":55000,"vat":0,"qty":1},{"name":"Ortaokul paragraf teknikleri eğitmen eğitimi (LGS)","kind":"TRAINER_EDUCATION","grossMinor":844000,"vat":2000,"qty":1},{"name":"Lise paragraf teknikleri eğitmen eğitimi (TYT–AYT)","kind":"TRAINER_EDUCATION","grossMinor":944000,"vat":2000,"qty":1}],"discount":648000,"sale":1250000}] as const;
+
+const h5uApprovedPlans: Array<{packageSlug:string;displayName:string;ownerSaleGrossMinor:number;itemsGrossMinor:number;discountGrossMinor:number;books:number;hasSoftware:boolean;trainings:string[]}> = [{"packageSlug":"ilkokul-akici-hizli-okuma-egitimi","displayName":"İlkokul akıcı ve hızlı okuma eğitmen eğitimi","ownerSaleGrossMinor":1199000,"itemsGrossMinor":1199000,"discountGrossMinor":0,"books":2,"hasSoftware":true,"trainings":["PRIMARY_FAST"]},{"packageSlug":"ortaokul-hizli-okuma-egitimi","displayName":"Ortaokul hızlı okuma eğitmen eğitimi","ownerSaleGrossMinor":1199000,"itemsGrossMinor":1199000,"discountGrossMinor":0,"books":2,"hasSoftware":true,"trainings":["MIDDLE_FAST"]},{"packageSlug":"lise-hizli-okuma-egitimi","displayName":"Lise hızlı okuma eğitmen eğitimi","ownerSaleGrossMinor":1199000,"itemsGrossMinor":1199000,"discountGrossMinor":0,"books":1,"hasSoftware":true,"trainings":["HIGH_FAST"]},{"packageSlug":"yetiskin-hizli-okuma-egitimi","displayName":"Yetişkin hızlı okuma eğitmen eğitimi","ownerSaleGrossMinor":1199000,"itemsGrossMinor":1199000,"discountGrossMinor":0,"books":1,"hasSoftware":true,"trainings":["ADULT_FAST"]},{"packageSlug":"ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs","displayName":"Ortaokul paragraf teknikleri eğitmen eğitimi (LGS)","ownerSaleGrossMinor":899000,"itemsGrossMinor":899000,"discountGrossMinor":0,"books":1,"hasSoftware":false,"trainings":["MIDDLE_PARAGRAPH"]},{"packageSlug":"lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt","displayName":"Lise paragraf teknikleri eğitmen eğitimi (TYT–AYT)","ownerSaleGrossMinor":999000,"itemsGrossMinor":999000,"discountGrossMinor":0,"books":1,"hasSoftware":false,"trainings":["HIGH_PARAGRAPH"]},{"packageSlug":"ortaokul-lise-yetiskin-hizli-okuma-egitimi","displayName":"Ortaokul, lise ve yetişkin hızlı okuma eğitmen eğitimi üçlü seti","ownerSaleGrossMinor":1750000,"itemsGrossMinor":3007000,"discountGrossMinor":1257000,"books":6,"hasSoftware":true,"trainings":["MIDDLE_FAST","HIGH_FAST","ADULT_FAST"]},{"packageSlug":"ortaokul-lise-paragraf-egitmen-egitimi-ikili-set","displayName":"Ortaokul ve lise paragraf eğitmen eğitimi ikili seti","ownerSaleGrossMinor":1250000,"itemsGrossMinor":1898000,"discountGrossMinor":648000,"books":2,"hasSoftware":false,"trainings":["MIDDLE_PARAGRAPH","HIGH_PARAGRAPH"]}];
 type Component = {
   componentId?: string;
   componentType: string;
@@ -42,8 +48,10 @@ type PackageRecord = {
   shippingPriceMinor?: number;
   components: Component[];
 };
-type Product = { id: string; sku: string; title: string; imageReference?: string | null; isActive: boolean };
-type Catalog = { packages: PackageRecord[]; products: Product[] };
+type Product = { id: string; sku: string; title: string; productType: "PHYSICAL" | "SOFTWARE" | "DIGITAL" | "TRAINING_SERVICE"; imageReference?: string | null; isActive: boolean; unitPriceMinor?: number | null; trainingCode?: string | null; priceVerified?: boolean; trainingCodeVerified?: boolean };
+type LinkedCatalogRow = { componentId: string | null; productId: string | null; sku: string | null; productTitle: string | null; componentType: string | null; quantity: number | null; status: string; catalogUnitGrossMinor: number | null };
+type LinkedCatalogPackage = { packageId: string; packageVersionId: string | null; slug: string | null; source: string; ready: boolean; links: LinkedCatalogRow[] };
+type Catalog = { packages: PackageRecord[]; products: Product[]; catalogLinkedComponents?: LinkedCatalogPackage[] };
 type Tab = "packages" | "products" | "expertise";
 type StageFilter = "ALL" | "PRIMARY" | "MIDDLE" | "HIGH" | "ADULT" | "SET";
 const stageOf = (item: PackageRecord): StageFilter => {
@@ -54,6 +62,17 @@ const stageOf = (item: PackageRecord): StageFilter => {
   if (value.includes("lise") || value.includes("high")) return "HIGH";
   if (value.includes("yetişkin") || value.includes("adult")) return "ADULT";
   return "ALL";
+};
+// H5M: Turkish sentence-case presentation; never modifies persisted titles automatically.
+const trainerPackageSentenceTitle = (raw: string): string => {
+  const input = String(raw || "").trim();
+  if (!input) return input;
+  // Normalize only all-uppercase catalog names; preserve intentionally mixed-case titles.
+  const letters = input.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, "");
+  if (!letters || letters !== letters.toLocaleUpperCase("tr-TR")) return input;
+  const lower = input.toLocaleLowerCase("tr-TR");
+  const restored = lower.replace(/\b(fixoku|lgs|tyt|ayt|pdf)\b/gu, word => word.toLocaleUpperCase("tr-TR"));
+  return restored.replace(/(^|[\s(\-–:])([a-zçğıöşü])/u, (_match, prefix: string, letter: string) => prefix + letter.toLocaleUpperCase("tr-TR"));
 };
 const stageName = (value: StageFilter) => ({ALL:"Tümü",PRIMARY:"İlkokul",MIDDLE:"Ortaokul",HIGH:"Lise",ADULT:"Yetişkin",SET:"Setler"}[value]);
 // All view: primary, middle, high school, adult, then combination sets. Unknowns precede sets.
@@ -97,11 +116,14 @@ const componentTypeLabel = (type: string) => ({ PHYSICAL_PRODUCT: "Kitap", DIGIT
 const toEditor = (item: PackageRecord): Editor => {
   const originals = safeComponents(item.components).map(component => ({ ...component }));
   const hasTextItems = originals.some(component => component.componentType === "TEXT_ITEM");
-  const legacyText: Component[] = !hasTextItems && Array.isArray(item.features)
-    ? item.features.filter(feature => String(feature).trim()).map(feature => ({ componentType: "TEXT_ITEM", titleSnapshot: feature, title: feature, quantity: 1, isActive: true }))
+  const existingLegacyFeatures = Array.isArray(item.features) ? item.features.filter(feature => String(feature).trim()) : [];
+  const historicalFeatures = HISTORICAL_TRAINER_CONTENT_R60C18B[item.slug] || [];
+  const stageFeatures = existingLegacyFeatures.length ? existingLegacyFeatures : historicalFeatures;
+  const legacyText: Component[] = !hasTextItems
+    ? stageFeatures.map(feature => ({ componentType: "TEXT_ITEM", titleSnapshot: feature, title: feature, quantity: 1, isActive: true }))
     : [];
   return {
-    title: item.title || "", slug: item.slug || "", shortDescription: item.shortDescription || "",
+    title: trainerPackageSentenceTitle(item.title || ""), slug: item.slug || "", shortDescription: item.shortDescription || "",
     // Some of the legacy R96B rows only have the short description populated.
     // Seed the editable description from that persisted value so an Owner can
     // save a real description without the API silently replacing it with the
@@ -147,6 +169,40 @@ const ownerPackageError = (error: unknown, yedek: string) => {
   return messages[code] || yedek;
 };
 
+
+// R60C18B: explicit Owner-only, form-local historic content staging; no DB write.
+const HISTORICAL_TRAINER_CONTENT_R60C18B: Record<string, string[]> = {"ilkokul-akici-hizli-okuma-egitimi":["Canlı ve video ile Profesyonel Eğitmen Eğitimi","İlkokul Akıcı ve Hızlı Okuma Kitabı","İlkokul Zihin Egzersizleri Kitabı.","Yapay zekâ destekli öğrenci yazılımı","E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası","10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.","Gün Gün Öğrencilerle Ders İşleyiş müfredatı","Eğitmenler için Kurumlar ile görüşme sunumu","Eğitmenler için veli seminer sunumu","WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek","Eğitmenlere özel tasarlanan yazılım eğitim paneli","Eğitmenlere özel tasarlanan web sitesi paneli","Toplu alımlarda indirim imkânı","Fixoku öğrenci yönlendirme imkânı"],"ortaokul-hizli-okuma-egitimi":["Canlı ve video ile Profesyonel Eğitmen Eğitimi","Ortaokul Hızlı Okuma Kitabı","Ortaokul Zihin Egzersizleri Kitabı.","Yapay zekâ destekli öğrenci yazılımı","E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası","10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.","Gün Gün Öğrencilerle Ders İşleyiş müfredatı","Eğitmenler için Kurumlar ile görüşme sunumu","Eğitmenler için veli seminer sunumu","WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek","Eğitmenlere özel tasarlanan yazılım eğitim paneli","Eğitmenlere özel tasarlanan web sitesi paneli","Toplu alımlarda indirim imkânı","Fixoku öğrenci yönlendirme imkânı"],"lise-hizli-okuma-egitimi":["Canlı ve video ile Profesyonel Eğitmen Eğitimi","Lise Hızlı Okuma Kitabı","Yapay zekâ destekli öğrenci yazılımı","E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası","10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.","Gün Gün Öğrencilerle Ders İşleyiş müfredatı","Eğitmenler için Kurumlar ile görüşme sunumu","Eğitmenler için veli seminer sunumu","WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek","Eğitmenlere özel tasarlanan yazılım eğitim paneli","Eğitmenlere özel tasarlanan web sitesi paneli","Toplu alımlarda indirim imkânı","Fixoku öğrenci yönlendirme imkânı"],"yetiskin-hizli-okuma-egitimi":["Canlı ve video ile Profesyonel Eğitmen Eğitimi","Yetişkin Hızlı Okuma Kitabı","Yapay zekâ destekli öğrenci yazılımı","E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası","10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.","Gün Gün Öğrencilerle Ders İşleyiş müfredatı","Eğitmenler için Kurumlar ile görüşme sunumu","Eğitmenler için veli seminer sunumu","WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek","Eğitmenlere özel tasarlanan yazılım eğitim paneli","Eğitmenlere özel tasarlanan web sitesi paneli","Toplu alımlarda indirim imkânı","Fixoku öğrenci yönlendirme imkânı"],"ortaokul-lise-yetiskin-hizli-okuma-egitimi":["3 Eğitim İçin Canlı ve video ile Profesyonel Eğitmen Eğitimi","Ortaokul Hızlı Okuma Kitabı","Ortaokul Zihin Egzersizleri Kitabı.","Lise Hızlı Okuma Kitabı","Yetişkin Hızlı Okuma Kitabı","Ortaokul, Lise ve Yetişkin Hızlı Okuma Kitabı + Zihin Egzersizleri Kitabı.","Yapay zekâ destekli öğrenci yazılımı","E Devlet kayıtlı Üniversite onaylı Hızlı Okuma Eğitmen Sertifikası","10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.","3 Eğitim için Gün Gün Öğrencilerle Ders İşleyiş müfredatı","Eğitmenler için Kurumlar ile görüşme sunumu","Eğitmenler için veli seminer sunumu","WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek","Eğitmenlere özel tasarlanan yazılım eğitim paneli","Eğitmenlere özel tasarlanan web sitesi paneli","Toplu alımlarda indirim imkânı","Fixoku öğrenci yönlendirme imkânı"],"ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs":["Canlı ve video ile Profesyonel Eğitmen Eğitimi","Ortaokul paragraf kitabı","E Devlet kayıtlı Üniversite onaylı paragraf Eğitmen Sertifikası","10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.","Gün Gün Öğrencilerle Ders İşleyiş müfredatı","Eğitmenler için Kurumlar ile görüşme sunumu","Eğitmenler için veli seminer sunumu","WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek","Eğitmenlere özel tasarlanan web sitesi paneli","Toplu alımlarda indirim imkânı","Fixoku öğrenci yönlendirme imkânı"],"lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt":["Canlı ve video ile Profesyonel Eğitmen Eğitimi","Lise paragraf kitabı","E Devlet kayıtlı Üniversite onaylı paragraf Eğitmen Sertifikası","10 Adet Adınıza Düzenlenmiş sosyal medya tasarımı.","Gün Gün Öğrencilerle Ders İşleyiş müfredatı","Eğitmenler için Kurumlar ile görüşme sunumu","Eğitmenler için veli seminer sunumu","WhatsApp Türkiye Grubu Ücretsiz Üyeliği ve Kesintisiz Destek","Eğitmenlere özel tasarlanan web sitesi paneli","Toplu alımlarda indirim imkânı","Fixoku öğrenci yönlendirme imkânı"]};
+
+const trainerExpertiseReview20E: Record<string, string[]> = {
+  "ilkokul-akici-hizli-okuma-egitimi": [
+    "İlkokul Hızlı Okuma"
+  ],
+  "ortaokul-hizli-okuma-egitimi": [
+    "Ortaokul Hızlı Okuma"
+  ],
+  "lise-hizli-okuma-egitimi": [
+    "Lise Hızlı Okuma"
+  ],
+  "yetiskin-hizli-okuma-egitimi": [
+    "Yetişkin Hızlı Okuma"
+  ],
+  "ortaokul-lise-yetiskin-hizli-okuma-egitimi": [
+    "Ortaokul Hızlı Okuma",
+    "Lise Hızlı Okuma",
+    "Yetişkin Hızlı Okuma"
+  ],
+  "ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs": [
+    "Ortaokul Paragraf"
+  ],
+  "lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt": [
+    "Lise Paragraf"
+  ],
+  "ortaokul-lise-paragraf-egitmen-egitimi-ikili-set": [
+    "Ortaokul Paragraf",
+    "Lise Paragraf"
+  ]
+};
+
 export function OwnerTrainerPackagesPage() {
   const [catalog, setCatalog] = useState<Catalog>({ packages: [], products: [] });
   const [tab, setTab] = useState<Tab>("packages");
@@ -168,13 +224,53 @@ export function OwnerTrainerPackagesPage() {
   const [editingContentIndex, setEditingContentIndex] = useState<number | null>(null);
   const [editingContentValue, setEditingContentValue] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [ownerNote, setOwnerNote] = useState("");
+  const [ownerNoteInitial, setOwnerNoteInitial] = useState("");
+  const [ownerNoteState, setOwnerNoteState] = useState<"loading" | "ready" | "blocked" | "saving">("blocked");
+  const [ownerNoteFeedback, setOwnerNoteFeedback] = useState("");
+  const ownerNoteRequestRef = useRef(0);
+
+  const loadOwnerNote = async (id: string) => {
+    const requestId = ++ownerNoteRequestRef.current;
+    setOwnerNote(""); setOwnerNoteInitial(""); setOwnerNoteFeedback(""); setOwnerNoteState("loading");
+    try {
+      const result = await api(`/api/admin/trainer-package-owner-note?id=${encodeURIComponent(id)}`);
+      if (requestId !== ownerNoteRequestRef.current) return;
+      const next = typeof result.note === "string" ? result.note : "";
+      setOwnerNote(next); setOwnerNoteInitial(next); setOwnerNoteState("ready");
+    } catch (err) {
+      if (requestId !== ownerNoteRequestRef.current) return;
+      setOwnerNoteState("blocked");
+      setOwnerNoteFeedback(err instanceof Error && err.message.includes("NEW_NEON_OWNER_NOTE")
+        ? "Yönetici notu yeni Neon doğrulanana kadar kilitli. Herhangi bir not kaydedilmedi."
+        : "Yönetici notu okunamadı. Kaydetme kilitli; paket açıklamaları buraya aktarılmadı.");
+    }
+  };
+  const saveOwnerNote = async () => {
+    if (!selectedId || ownerNoteState !== "ready" || ownerNote.length > 4000) return;
+    const currentId = selectedId;
+    const requestId = ownerNoteRequestRef.current;
+    setOwnerNoteState("saving"); setOwnerNoteFeedback("");
+    try {
+      await api(`/api/admin/trainer-package-owner-note?id=${encodeURIComponent(currentId)}`, {
+        method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ note: ownerNote }),
+      });
+      if (requestId !== ownerNoteRequestRef.current) return;
+      setOwnerNoteInitial(ownerNote); setOwnerNoteState("ready");
+      setOwnerNoteFeedback("Yönetici notu ayrı ve özel alana kaydedildi.");
+    } catch (err) {
+      if (requestId !== ownerNoteRequestRef.current) return;
+      setOwnerNoteState("ready");
+      setOwnerNoteFeedback(err instanceof Error ? `Not kaydedilemedi: ${err.message}` : "Not kaydedilemedi.");
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const result = await api("/api/admin/trainer-packages");
       if (!Array.isArray(result.packages) || !Array.isArray(result.products)) throw new Error("TRAINER_CATALOG_CONTRACT_MISMATCH");
-      setCatalog({ packages: result.packages as PackageRecord[], products: result.products as Product[] });
+      setCatalog({ packages: result.packages as PackageRecord[], products: result.products as Product[], catalogLinkedComponents: Array.isArray(result.catalogLinkedComponents) ? result.catalogLinkedComponents as LinkedCatalogPackage[] : undefined });
       setError("");
     } catch (err) { setError(err instanceof Error ? err.message : "Katalog okunamadı"); }
     finally { setLoading(false); }
@@ -191,13 +287,14 @@ export function OwnerTrainerPackagesPage() {
   const safeComponentEditing = Boolean(form && !unsupportedComponents(form.components));
   const matchedBySearch = useMemo(() => sortedTrainerPackages(catalog.packages.filter(item => `${item.title || ""} ${item.slug || ""}`.toLocaleLowerCase("tr-TR").includes(search.toLocaleLowerCase("tr-TR")))), [catalog.packages, search]);
   const all = useMemo(() => matchedBySearch.filter(item => stageFilter === "ALL" || stageOf(item) === stageFilter), [matchedBySearch,stageFilter]);
-  const pageCount = Math.max(1, Math.ceil(all.length / 6));
+  const pageCount = Math.max(1, Math.ceil(all.length / 10));
   const pageSafe = Math.min(page, pageCount);
-  const rows = all.slice((pageSafe - 1) * 6, pageSafe * 6);
+  const rows = all.slice((pageSafe - 1) * 10, pageSafe * 10);
   const visibleProducts = catalog.products.filter(p => p.isActive && `${p.title} ${p.sku}`.toLocaleLowerCase("tr-TR").includes(productSearch.toLocaleLowerCase("tr-TR")));
 
   const choose = (item: PackageRecord, readOnly = false) => {
     setSelectedId(item.id);
+    void loadOwnerNote(item.id);
     setForm(toEditor(item));
     setPreviewOnly(readOnly);
     setEditingContentIndex(null);
@@ -219,7 +316,7 @@ export function OwnerTrainerPackagesPage() {
     if (!Array.isArray(result.packages)) throw new Error("PACKAGE_REFRESH_CONTRACT_MISMATCH");
     const item = (result.packages as PackageRecord[]).find(p => p.id === id);
     if (!item) throw new Error("PACKAGE_NOT_FOUND");
-    setCatalog(current => ({ ...current, packages: [item, ...current.packages.filter(p => p.id !== id)] }));
+    setCatalog(current => ({ ...current, packages: [item, ...current.packages.filter(p => p.id !== id)], catalogLinkedComponents: Array.isArray(result.catalogLinkedComponents) ? result.catalogLinkedComponents as LinkedCatalogPackage[] : current.catalogLinkedComponents?.filter(p => p.packageId !== id) }));
     choose(item);
     return item;
   };
@@ -302,7 +399,7 @@ export function OwnerTrainerPackagesPage() {
         body: JSON.stringify({ action: "componentsSave", versionId, components }),
       });
       await refreshSelected(selected.id);
-      showSaved("Paket Bilgileri Kaydedildi");
+      showSaved("Ürün ve içerik kayıtları sunucudan tekrar okunarak kaydetme işlemi tamamlandı. Alan bazlı eşleşme için ayrı veritabanı kabul testi bekleniyor.");
     } catch (err) { setSaveStatus("error"); setError(ownerPackageError(err, "Paket içerikleri kaydedilemedi.")); }
     finally { setBusy(false); }
   };
@@ -331,7 +428,7 @@ export function OwnerTrainerPackagesPage() {
     if (!form) return;
     if (form.components.some(c => String(c.productId || c.physicalProductId) === product.id)) return;
     markDirty();
-    setForm({ ...form, components: [...form.components, { componentType: "PHYSICAL_PRODUCT", physicalProductId: product.id, productId: product.id, title: product.title, quantity: 1, isActive: true }] });
+    setForm({ ...form, components: [...form.components, { componentType: product.productType === "PHYSICAL" ? "PHYSICAL_PRODUCT" : product.productType === "TRAINING_SERVICE" ? "TRAINER_SERVICE" : "DIGITAL_ACCESS", physicalProductId: product.productType === "PHYSICAL" ? product.id : undefined, productId: product.id, title: product.title, quantity: 1, isActive: true }] });
   };
   const updateComponent = (index: number, patch: Partial<Component>) => {
     if (!form) return;
@@ -364,6 +461,7 @@ export function OwnerTrainerPackagesPage() {
     setForm({ ...form, components: [...form.components, { componentType: "TEXT_ITEM", titleSnapshot: initial, title: initial, quantity: 1, isActive: true }] });
     setEditingContentIndex(index);
     setEditingContentValue(initial);
+    setMessage("Yeni madde taslakta eklendi. Düzenleyip Ürün ve İçeriği Kaydet ile veritabanına gönderin.");
   };
   const packageContentCount = (item: PackageRecord) => activeTrainerFeatures020P(item).length;
   return (
@@ -380,6 +478,7 @@ export function OwnerTrainerPackagesPage() {
       {error && <p role="alert" className={`admin-feedback ${saveStatus === "error" ? "admin-feedback-error" : ""}`}>{error}</p>}
       {message && <p role={saveStatus === "error" ? "alert" : "status"} className={`admin-feedback admin-feedback-${saveStatus}`}>{message}</p>}
       {tab === "packages" && (
+        <>
         <section className="admin-package-layout is-editing">
           <section className="panel-card admin-package-list">
             <div className="admin-package-list-heading"><div><h2>Paketler ({all.length})</h2><p>Mevcut eğitmen paketleri</p></div>
@@ -394,7 +493,7 @@ export function OwnerTrainerPackagesPage() {
                   <div className="admin-package-card-top"><span className={`admin-status ${item.versionStatus === "DRAFT" ? "admin-status-draft" : "admin-status-published"}`}>{item.versionStatus === "DRAFT" ? "Taslak" : item.versionStatus === "PUBLISHED" ? "Yayında" : "Diğer"}</span><span className="admin-package-stage">{stageOf(item)==="ALL" ? "Eğitmen" : stageName(stageOf(item))}</span></div>
                   <div className="fx40-package-identity"><div className={`fx40-package-art fx40-art-${stageOf(item).toLowerCase()}`}>
                     <FixokuPhotoV41F src={trainerCourseCover020P(item.title || "", item.slug) || item.iconReference} alt={item.title || "Eğitmen paketi"}><FixokuCatalogIconV40 kind="package" size={39}/></FixokuPhotoV41F>
-                  </div><div className="admin-package-card-title"><h3>{item.title || "Başlıksız paket"}</h3><p>{item.shortDescription || item.description || "Açıklama bulunmuyor"}</p></div></div>
+                  </div><div className="admin-package-card-title"><h3>{trainerPackageSentenceTitle(item.title || "Başlıksız paket")}</h3><p>{item.shortDescription || item.description || "Açıklama bulunmuyor"}</p></div></div>
                   <dl>
                     <div><dt><FixokuCatalogIconV40 kind="book" size={16}/> Kitap</dt><dd>{item.components.filter(c=>c.componentType==="PHYSICAL_PRODUCT").length}</dd></div>
                     <div><dt><FixokuCatalogIconV40 kind="content" size={16}/> İçerik</dt><dd>{packageContentCount(item)}</dd></div>
@@ -413,38 +512,60 @@ export function OwnerTrainerPackagesPage() {
           </section>
           {selected && form ? <section className="panel-card admin-package-form" aria-label="Paket düzenleyicisi">
             <div className="admin-editor-heading"><div><h2>{previewOnly ? "Paket Önizlemesi" : "Paketi Düzenle"}</h2></div><span className={`admin-status ${draft ? "admin-status-draft" : "admin-status-published"}`}>{draft ? "Taslak" : "Yayında"}</span></div>
-            <div className="admin-package-cover-upload"><div className="admin-book-cover"><FixokuPhotoV41F src={trainerCourseCover020P(selected.title || "",selected.slug) || selected.iconReference} alt={`${selected.title || "Paket"} kapak görseli`}><FixokuCatalogIconV40 kind="package" size={34}/></FixokuPhotoV41F></div><div><strong>Paket Kapak Görseli</strong><p className="admin-section-help">Mevcut görsel görüntülenir. Yeni görsel yükleme henüz bağlanmadı.</p></div></div>
+            <style>{`.fx-r60c18d-cover{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important;width:100%!important;max-width:none!important}
+.fx-r60c18d-cover .fx-r60c18d-cover-image{display:block;width:100%!important;max-width:none!important;aspect-ratio:16/9;object-fit:contain;background:#f8fafc;border:1px solid #e3eaf2;border-radius:12px}
+.fx-r60c18d-cover strong{display:block}
+.admin-content-rows{container-type:inline-size}
+.fx-r60c18e-row{box-sizing:border-box!important;display:grid!important;grid-template-columns:36px minmax(0,1fr) 74px 50px!important;align-items:center!important;column-gap:9px!important;row-gap:7px!important;padding:10px 11px!important;border:1px solid #e0e8f2!important;border-radius:11px!important;background:white!important;margin:0 0 8px!important;width:100%!important;min-height:64px!important}
+.fx-r60c18e-number{grid-column:1;grid-row:1;display:flex!important;align-items:center!important;justify-content:center!important;background:#eaf0f7!important;color:#173759!important;border-radius:8px!important;min-height:36px!important;font-size:14px!important;font-weight:800!important;white-space:nowrap!important}
+.fx-r60c18e-main{grid-column:2;grid-row:1;min-width:0!important;text-align:left!important;font-size:13px!important;line-height:1.45!important;overflow-wrap:anywhere!important;color:#153457!important}
+.fx-r60c18e-main .admin-content-text{display:block!important;min-width:0!important;white-space:normal!important}
+.fx-r60c18e-main input{box-sizing:border-box;width:100%!important;min-width:0!important;padding:8px!important}
+.fx-r60c18e-arrows{grid-column:3;grid-row:1;display:flex!important;flex-flow:row nowrap!important;justify-content:center!important;gap:5px!important;align-items:center!important;min-width:0!important}
+.fx-r60c18e-arrows button{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:31px!important;min-width:31px!important;height:34px!important;padding:0!important;border:1px solid #c8d6e8!important;border-radius:7px!important;background:#f5f8fc!important;color:#123a67!important;font-size:20px!important;font-weight:600!important;line-height:1!important;margin:0!important}
+.fx-r60c18e-arrows button:disabled{opacity:.4!important;cursor:not-allowed!important}
+.fx-r60c18e-toggle{grid-column:4;grid-row:1;display:flex!important;justify-content:center!important;align-items:center!important;min-width:0!important;white-space:nowrap!important;margin:0!important}
+.fx-r60c18e-toggle span{display:none!important}
+.fx-r60c18e-actions{grid-column:2 / 5;grid-row:2;display:flex!important;flex-flow:row nowrap!important;gap:6px!important;align-items:center!important;justify-content:flex-end!important;min-width:0!important;margin:0!important}
+.fx-r60c18e-actions button{box-sizing:border-box!important;display:inline-flex!important;justify-content:center!important;align-items:center!important;padding:6px 11px!important;min-height:31px!important;min-width:60px!important;margin:0!important;border-radius:7px!important;white-space:nowrap!important;font-size:12px!important}
+.fx-r60c18d-add{display:flex;justify-content:flex-end;margin-top:12px}
+.fx-r60c18d-notice{margin-top:9px;padding:9px 11px;border-radius:8px;font-size:12px;background:#ecfdf3;color:#166534}
+.fx-r60c18d-notice.is-dirty{background:#fff7ed;color:#9a3412}
+@container (min-width:680px){.fx-r60c18e-row{grid-template-columns:36px minmax(0,1fr) 74px 50px 136px!important;min-height:56px!important}.fx-r60c18e-actions{grid-column:5;grid-row:1}}`}</style>
+            <div className="admin-package-cover-upload fx-r60c18d-cover"><img className="fx-r60c18d-cover-image" src={trainerCourseCover020P(selected.title || "",selected.slug) || selected.iconReference || ""} alt={`${selected.title || "Paket"} kapak görseli`}/><div><strong>Paket Kapak Görseli</strong><p className="admin-section-help">Görsel orijinal en-boy oranı korunarak gösterilir. Yeni görsel yükleme henüz bağlanmadı.</p></div></div>
             {!draft && !previewOnly && <div className="admin-feedback"><p>Yayındaki sürüm korunur. Kaydet düğmesi ilk tıklamada mevcut sürümden tek bir taslak açıp değişikliği bu taslağa kaydeder.</p><button type="button" className="admin-outline-button" disabled={busy || !selected.packageVersionId} onClick={()=>void newDraft(selected)}>+ Yeni Sürüm Taslağı Aç</button></div>}
             {previewOnly && <p className="admin-feedback">Önizleme salt okunurdur.</p>}
             <fieldset disabled={!canEdit}><legend>Paket Bilgileri</legend><div className="admin-form-two-column">
               <label>Paket başlığı<input value={form.title} onChange={e=>updateForm({title:e.target.value})}/></label>
               <label>Alt başlık<input value={form.shortDescription} onChange={e=>updateForm({shortDescription:e.target.value})}/></label>
-              <label>Bağlantı adı<input value={form.slug} onChange={e=>updateForm({slug:e.target.value})}/></label>
-            </div><label className="admin-form-full">Paket açıklaması<textarea required aria-label="Paket açıklaması" value={form.description} onChange={e=>updateForm({description:e.target.value})}/></label></fieldset>
+              
+            </div></fieldset><fieldset disabled={previewOnly}><div className="admin-form-full"><label>Yönetici notu (yalnız Owner)<textarea value={ownerNote} maxLength={4000} readOnly={ownerNoteState !== "ready" || previewOnly} onChange={e=>{setOwnerNote(e.target.value);setOwnerNoteFeedback("");}} placeholder="Yalnız Owner tarafından görülür; paket açıklaması değildir." aria-label="Yönetici notu" /></label><div className="admin-row-actions"><span aria-live="polite">{ownerNoteFeedback || (ownerNoteState === "loading" ? "Yönetici notu okunuyor..." : ownerNoteState === "blocked" ? "Yeni Neon etkinleşene kadar not kilitli." : `${ownerNote.length}/4000 karakter`)}</span><button type="button" className="admin-outline-button" disabled={ownerNoteState !== "ready" || previewOnly || ownerNote === ownerNoteInitial || !selectedId} onClick={()=>void saveOwnerNote()}>Yönetici Notunu Kaydet</button></div></div></fieldset>
             <fieldset disabled={!canEdit}>
-              <div className="admin-section-toolbar"><legend>Paket İçeriği</legend><button type="button" className="admin-outline-button" onClick={addTextComponent} disabled={!safeComponentEditing}>+ Yeni Madde Ekle</button></div>
+              <div className="admin-section-toolbar"><legend>Paket İçeriği</legend><div className="admin-row-actions">
+              </div></div>
               <div className="admin-content-rows">
                 {textIndices.map((index, position) => {
                   const component = form.components[index];
                   const isEditing = editingContentIndex === index;
-                  return <div className={`admin-content-row ${component.isActive === false ? "is-inactive" : ""}`} key={component.componentId || `text-${index}`}>
-                    <div className="admin-reorder-controls"><button type="button" aria-label="Yukarı taşı" disabled={position===0} onClick={()=>moveTextComponent(index,-1)}>↑</button><button type="button" aria-label="Aşağı taşı" disabled={position===textIndices.length-1} onClick={()=>moveTextComponent(index,1)}>↓</button></div>
-                    <div className="admin-content-row-main">{isEditing
+                  return <div className={`fx-r60c18e-row ${component.isActive === false ? "is-inactive" : ""}`} key={component.componentId || `text-${index}`}>
+                    <span className="fx-r60c18e-number">{position + 1}.</span><div className="fx-r60c18e-arrows"><button type="button" aria-label="Yukarı taşı" disabled={position===0} onClick={()=>moveTextComponent(index,-1)}>↑</button><button type="button" aria-label="Aşağı taşı" disabled={position===textIndices.length-1} onClick={()=>moveTextComponent(index,1)}>↓</button></div>
+                    <div className="fx-r60c18e-main">{isEditing
                       ? <input autoFocus aria-label={`İçerik maddesi ${position+1}`} value={editingContentValue} onChange={e=>setEditingContentValue(e.target.value)}/>
                       : <span className="admin-content-text">{String(component.titleSnapshot || component.title || "")}</span>}
                     </div>
-                    <label className="admin-toggle-label"><input type="checkbox" checked={component.isActive !== false} aria-label={`İçerik ${position+1} aktif`} onChange={e=>updateComponent(index,{isActive:e.target.checked})}/><span>{component.isActive !== false ? "Aktif" : "Pasif"}</span></label>
-                    <div className="admin-row-actions">{isEditing ? <>
-                      <button type="button" onClick={()=>{if(!editingContentValue.trim()){setError("İçerik maddesi boş bırakılamaz.");return;}updateComponent(index,{title:editingContentValue.trim(),titleSnapshot:editingContentValue.trim()});setEditingContentIndex(null);}}>Kaydet</button>
-                      <button type="button" className="admin-quiet-button" onClick={()=>setEditingContentIndex(null)}>Vazgeç</button>
+                    <label className="admin-toggle-label fx-r60c18e-toggle"><input type="checkbox" checked={component.isActive !== false} aria-label={`İçerik ${position+1} aktif`} onChange={e=>updateComponent(index,{isActive:e.target.checked})}/><span>{component.isActive !== false ? "Aktif" : "Pasif"}</span></label>
+                    <div className="fx-r60c18e-actions">{isEditing ? <>
+                      <button type="button" onClick={()=>{if(!editingContentValue.trim()){setError("İçerik maddesi boş bırakılamaz.");return;}updateComponent(index,{title:editingContentValue.trim(),titleSnapshot:editingContentValue.trim()});setEditingContentIndex(null);setMessage("Madde taslakta güncellendi. Veritabanına kaydetmek için Ürün ve İçeriği Kaydet butonunu kullanın.");}}>Kaydet</button>
                     </> : <>
                       <button type="button" onClick={()=>{setEditingContentIndex(index);setEditingContentValue(String(component.titleSnapshot||component.title||""));}}>Düzenle</button>
-                      <button type="button" className="admin-quiet-button" onClick={()=>{removeComponent(index);setEditingContentIndex(null);}}>Kaldır</button>
+                      <button type="button" className="admin-quiet-button" onClick={()=>{removeComponent(index);setEditingContentIndex(null);}}>Sil</button>
                     </>}</div>
                   </div>;
                 })}
                 {!textIndices.length && <p className="admin-empty-inline">Henüz içerik maddesi yok.</p>}
               </div>
+              <div className="fx-r60c18d-add"><button type="button" className="admin-outline-button" onClick={addTextComponent} disabled={!safeComponentEditing || !canEdit}>+ Yeni Madde Ekle</button></div>
+              {message && /madde|içerik|taslak|kaydet|kayd/i.test(message) && <p className={`fx-r60c18d-notice ${saveStatus === "success" ? "" : "is-dirty"}`} role="status">{message}</p>}
               <p className="admin-section-help">Satırlar öğretmen panelinin kullandığı aynı sürüme aittir. Düzenle ve aç/kapa işlemleri önce taslakta hazırlanır; ardından “Ürün ve İçeriği Kaydet” ile sunucuya gönderilir.</p>
             </fieldset>
             <div className="fixoku-trainer-resource-panel-020p" aria-label="Öğretmen eğitim modülleri">
@@ -453,18 +574,93 @@ export function OwnerTrainerPackagesPage() {
               <p>Bu sekmeler Öğretmen panelindeki Video Eğitimleri, Müfredat ve Sunumlar alanlarını temsil eder. Dosya listesi veya video adedi Owner paket API'sinde henüz sunulmadığından burada uydurma içerik oluşturulmaz. Özel medya dosyaları mevcut yetkili görüntüleyicide kalır.</p>
             </div>
             <fieldset disabled={!canEdit || !safeComponentEditing}><div className="admin-section-toolbar"><legend>Pakete Eklenen Ürünler</legend><button type="button" className="admin-outline-button" onClick={()=>setPickerOpen(v=>!v)}>+ Ürün Ekle</button></div>
-              <div className="admin-book-list">{form.components.filter(c=>c.componentType!=="TEXT_ITEM").map(c=>{const index=form.components.indexOf(c);const product=catalog.products.find(p=>p.id===String(c.physicalProductId||c.productId||c.referenceId));return <div className="admin-book-row" key={c.componentId||`${c.componentType}-${index}`}>
+              {(() => {
+                const linked = catalog.catalogLinkedComponents?.find(item => item.packageId === selected.id && item.packageVersionId === selected.packageVersionId);
+                const missingApi = !Array.isArray(catalog.catalogLinkedComponents);
+                const list = linked?.links || [];
+                const problems = list.filter(item => item.status !== "LINK_OK");
+                return <div role="status" style={{padding:"12px 14px",marginBottom:12,border:"1px solid #d7deec",background:"#f7f9fc",borderRadius:10,fontSize:13}}>
+                  <strong>Gerçek katalog bağlantıları</strong>
+                  <p style={{margin:"6px 0"}}>{missingApi ? "Sunucu henüz gerçek katalog bağlantılarını göndermedi. Kayıt doğrulanamadı." : !linked ? "Bu paket sürümü için gerçek bağlantı doğrulaması bulunmuyor." : linked.ready && list.length > 0 ? "Bu sürümün ürün kimlikleri ve SKU bağlantıları okuma düzeyinde doğrulandı. Fiyat, fatura ve yayın onayı değildir." : `${problems.length} sorunlu bağlantı bulundu. Gerçek ürün geçişi henüz tamamlanmadı.`}</p>
+                  {list.length > 0 && <div style={{display:"grid",gap:6}}>{list.map((item,index) => <div key={`${item.componentId || item.productId || "missing"}-${index}`} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:12,padding:"7px 0",borderTop:"1px solid #e2e8f1"}}>
+                    <span><b>{item.productTitle || "Ürün kimliği çözümlenemedi"}</b><small style={{display:"block"}}>{item.sku || "SKU yok"} · {item.quantity ?? "?"} adet · {item.productId || "ID yok"}</small></span>
+                    <span style={{fontWeight:600,color:item.status === "LINK_OK" ? "#146b4d" : "#aa4028",whiteSpace:"nowrap"}}>{item.status === "LINK_OK" ? "Bağlantı OK" : item.status}</span>
+                  </div>)}</div>}
+                  <small style={{display:"block",marginTop:8}}>Bu bölüm yalnız gerçek API kayıtlarını gösterir. Aşağıdaki hedef eğitim taslağı ve fatura önizlemesi ayrı kaynaklardan gelir; veritabanı geçişi yapılmış sayılmaz.</small>
+                </div>;
+              })()}
+              {(() => {const plan=h5vInvoicePreviewPlans.find(v=>v.slug===selected.slug);const rows=plan?.items.filter(v=>v.kind==="TRAINER_EDUCATION")||[];return rows.length>0 && <div style={{padding:"12px 14px",marginBottom:12,border:"1px solid #d8e6ff",background:"#f4f8ff",borderRadius:10}}><strong style={{fontSize:13}}>Onaylı eğitmen eğitimleri (hedef taslak, kayıtlı ürün değil)</strong><div style={{display:"grid",gap:6,marginTop:8}}>{rows.map(v=><div key={v.name} style={{display:"flex",justifyContent:"space-between",gap:8,fontSize:12}}><span>{v.name}</span><b>{(v.grossMinor/100).toLocaleString("tr-TR",{style:"currency",currency:"TRY"})}</b></div>)}</div><small style={{display:"block",marginTop:7}}>Yeni Neon veritabanında kayıt ve paket bağlantısı yapılana kadar bu satırlar düzenlenebilir gerçek bileşen değildir.</small></div>})()}
+              {form.components.some(c=>/bireysel eğitim hizmeti/iu.test(c.title||"")) && <div role="status" style={{padding:"12px 14px",marginBottom:12,border:"1px solid #f6c8af",borderRadius:10,background:"#fff8f1",fontSize:13}}><strong>Eski öğrenci hizmetleri geçiş bekliyor</strong><p style={{margin:"5px 0 0"}}>Bireysel eğitim bağlantıları normal ürün listesinden ayrıldı; mevcut kayıtlardan silinmedi. Yeni Neon ürün kimlikleri olmadan ürün/içerik kaydetme veya yayınlama yapmayın.</p></div>}
+              <div className="admin-book-list">{form.components.filter(c=>c.componentType!=="TEXT_ITEM" && !/bireysel eğitim hizmeti/iu.test(c.title||"" )).map(c=>{const index=form.components.indexOf(c);const product=catalog.products.find(p=>p.id===String(c.physicalProductId||c.productId||c.referenceId));return <div className="admin-book-row" key={c.componentId||`${c.componentType}-${index}`}>
                 <div className="admin-book-cover"><FixokuPhotoV41F src={product?.imageReference||c.imageReference} fallbackSrc={productImageDefaultV41F(product?.sku||"")} alt={product?.title||c.title||componentTypeLabel(c.componentType)}><FixokuCatalogIconV40 kind={c.componentType === "PHYSICAL_PRODUCT" ? "book" : c.componentType === "TRAINER_SERVICE" ? "individual" : "software"} size={25}/></FixokuPhotoV41F></div>
                 <div className="admin-book-details"><strong>{product?.title||c.title||componentTypeLabel(c.componentType)}</strong><span>{componentTypeLabel(c.componentType)}{product?.sku ? ` · ${product.sku}` : ""}</span><input aria-label="Pakette görünen ürün adı" placeholder="Pakette görünen ad" value={c.displayLabel||""} onChange={e=>updateComponent(index,{displayLabel:e.target.value})}/></div>
                 <div className="admin-quantity"><span>Miktar</span><div><button type="button" onClick={()=>updateComponent(index,{quantity:Math.max(1,Number(c.quantity||1)-1)})}>−</button><strong>{Number(c.quantity||1)}</strong><button type="button" onClick={()=>updateComponent(index,{quantity:Math.min(99,Number(c.quantity||1)+1)})}>+</button></div></div>
                 <button type="button" className="admin-quiet-button" onClick={()=>removeComponent(index)}>Kaldır</button>
-              </div>;})}{!form.components.some(c=>c.componentType!=="TEXT_ITEM") && <p className="admin-empty-inline">Bu pakette ürün veya hizmet bileşeni yok.</p>}</div>
+              </div>;})}{!form.components.some(c=>c.componentType!=="TEXT_ITEM" && !/bireysel eğitim hizmeti/iu.test(c.title||"")) && <p className="admin-empty-inline">Bu pakette ürün veya hizmet bileşeni yok.</p>}</div>
               {pickerOpen && <div className="admin-book-picker fx40-picker"><div className="fx40-picker-head"><h3>Pakete Ürün Ekle</h3><button type="button" className="fx40-picker-close" onClick={()=>setPickerOpen(false)} aria-label="Kapat">×</button></div>
                 <div className="fx40-picker-fields"><label><FixokuCatalogIconV40 kind="search" size={17}/><input type="search" placeholder="Ürün ara..." value={productSearch} onChange={e=>setProductSearch(e.target.value)}/></label></div>
-                <div className="admin-book-picker-results fx40-picker-grid">{visibleProducts.map(p=><article className="fx40-picker-tile" key={p.id}><div className="fx40-picker-art"><FixokuPhotoV41F src={p.imageReference} fallbackSrc={productImageDefaultV41F(p.sku)} alt={p.title}><FixokuCatalogIconV40 kind="book" size={34}/></FixokuPhotoV41F></div><strong>{p.title}</strong><small>{p.sku}</small><button type="button" disabled={form.components.some(c=>String(c.physicalProductId||c.productId)===p.id)} onClick={()=>addProduct(p)}>Ekle</button></article>)}</div>
+                <div className="admin-book-picker-results fx40-picker-grid">{visibleProducts.map(p=><article className="fx40-picker-tile" key={p.id}><div className="fx40-picker-art"><FixokuPhotoV41F src={p.imageReference} fallbackSrc={productImageDefaultV41F(p.sku)} alt={p.title}><FixokuCatalogIconV40 kind={p.productType === "PHYSICAL" ? "book" : "software"} size={34}/></FixokuPhotoV41F></div><strong>{p.title}</strong><small>{p.productType === "PHYSICAL" ? "Kitap" : "Yazılım / dijital erişim"} · {p.sku}</small><button type="button" disabled={form.components.some(c=>String(c.physicalProductId||c.productId)===p.id)} onClick={()=>addProduct(p)}>Ekle</button></article>)}</div>
               </div>}
             </fieldset>
+             {(() => {
+               const plan = h5uApprovedPlans.find(p => p.packageSlug === selected.slug);
+               if (!plan) return null;
+               const verified = Number(plan.itemsGrossMinor) - Number(plan.discountGrossMinor) === Number(plan.ownerSaleGrossMinor);
+               const editorPriceMatches = Math.round(Number(form.price || 0)*100) === plan.ownerSaleGrossMinor;
+               return <section aria-label="Onaylı hedef paket fiyat önizlemesi" style={{border:"1px solid #ead2bd",borderRadius:12,padding:14,margin:"14px 0",background:"#fffaf5"}}>
+                 <strong>Onaylı hedef içerik ve fiyat planı</strong>
+                 <p style={{fontSize:12,margin:"6px 0 10px"}}>Bu alan H5T yerel planından gelir. Henüz veritabanına eklenmemiş ürünlerin kaydı veya canlı fatura sonucu değildir.</p>
+                 <div style={{display:"grid",gap:6,fontSize:13}}>
+                   <div>Kitap: <strong>{plan.books} adet</strong> · Yazılım: <strong>{plan.hasSoftware ? "Var (paket içi 3.500 TL)" : "Yok"}</strong> · Eğitmen eğitimi: <strong>{plan.trainings.length} ayrı uzmanlık</strong></div>
+                   <div>Onaylı ürünler toplamı: <strong>{formatMoney(plan.itemsGrossMinor)}</strong></div>
+                   <div>Paket iskontosu: <strong>{formatMoney(plan.discountGrossMinor)}</strong></div>
+                   <div>Onaylı paket fiyatı: <strong>{formatMoney(plan.ownerSaleGrossMinor)}</strong></div>
+                   <div>Kargo: <strong>Ücretsiz Kargo</strong></div>
+                 </div>
+                 {!verified && <p role="alert">Hedef fiyat sözleşmesi tutarsız. Kayıt yapılmamalı.</p>}
+                 {!editorPriceMatches && <p role="status" style={{fontSize:12}}>Düzenleme formundaki satış fiyatı hedef plandan farklı. Bu alan formu veya kayıtlı fiyatı otomatik değiştirmez.</p>}
+                 <small style={{display:"block",marginTop:9}}>Alt bölüm mevcut API kayıtlarını ayrı doğrular. Orada eski bireysel eğitim ürünleri ve eksik fiyat uyarıları yeni Neon kayıtları oluşturulana kadar devam edebilir.</small>
+               </section>;
+             })()}
+             <section className="fx-h5-price-preview" aria-label="Paket iskonto fiyat önizlemesi" style={{border:"1px solid #ddd",borderRadius:12,padding:16,margin:"18px 0"}}>
+               <strong>Ürün listesi ve paket iskontosu kontrolü</strong>
+               {(() => {
+                 const entries = form.components.filter(c => c.componentType !== "TEXT_ITEM" && c.isActive !== false);
+                 const missing = entries.filter(c => { const p = catalog.products.find(p => p.id === String(c.physicalProductId || c.productId || c.referenceId)); return !p || p.priceVerified !== true || !Number.isSafeInteger(p.unitPriceMinor) || Number(p.unitPriceMinor) < 0; });
+                 const readiness = entries.map(c => {
+                   const product = catalog.products.find(p => p.id === String(c.physicalProductId || c.productId || c.referenceId));
+                   const isTraining = c.componentType === "TRAINER_SERVICE";
+                   const priceOk = Boolean(product && product.priceVerified === true && Number.isSafeInteger(product.unitPriceMinor) && Number(product.unitPriceMinor) >= 0);
+                   const trainingOk = !isTraining || Boolean(product && product.trainingCodeVerified === true && product.trainingCode);
+                   return { id: String(c.componentId || c.physicalProductId || c.productId || c.referenceId || c.titleSnapshot), name: product?.title || c.titleSnapshot || "Tanımsız ürün", isTraining, priceOk, trainingOk };
+                 });
+                 const trainingCodes = new Set(entries.filter(c => c.componentType === "TRAINER_SERVICE").map(c => catalog.products.find(p => p.id === String(c.physicalProductId || c.productId || c.referenceId))?.trainingCode).filter((v): v is string => typeof v === "string" && v.length > 0));
+                 const trainerServices = entries.filter(c => c.componentType === "TRAINER_SERVICE");
+                 const trainingUnverified = trainerServices.some(c => !catalog.products.find(p => p.id === String(c.physicalProductId || c.productId || c.referenceId))?.trainingCodeVerified);
+                  const missingNames = missing.map(c => catalog.products.find(p => p.id === String(c.physicalProductId || c.productId || c.referenceId))?.title || c.titleSnapshot || String(c.physicalProductId || c.productId || c.referenceId || "Bilinmeyen ürün")).slice(0, 8);
+                 const details = <div style={{marginTop:12,display:"grid",gap:6}}><strong style={{fontSize:13}}>Ürün bazında API doğrulaması</strong>{readiness.length === 0 ? <small>Pakette henüz ürün bulunmuyor.</small> : readiness.map((r,i) => <div key={`${r.id}-${i}`} style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center",borderBottom:"1px solid #eee",paddingBottom:6}}><span style={{flex:"1 1 180px"}}>{r.name}</span><span style={{color:r.priceOk?"#21643b":"#a34118"}}>{r.priceOk?"Fiyat doğrulandı":"Fiyat eksik"}</span>{r.isTraining && <span style={{color:r.trainingOk?"#21643b":"#a34118"}}>{r.trainingOk?"Uzmanlık kodu doğrulandı":"Uzmanlık kodu eksik"}</span>}</div>)}</div>;
+                 if (missing.length || trainingUnverified) return <div>{details}<p role="status" style={{marginTop:8}}>Fiyat/uzmanlık verisi eksik: {missing.length} ürünün doğrulanmış birim fiyatı {missingNames.length ? `(Eksik: ${missingNames.join(", ")})` : ""} ve {trainingUnverified ? "bazı eğitimlerin uzmanlık kodu" : ""} katalog API’sinde bulunmuyor. Güvenli iskonto hesaplaması yapılmadı. Mevcut paket fiyatı ve kayıt davranışı değiştirilmedi.</p></div>;
+                 const listMinor = entries.reduce((sum,c) => {const p = catalog.products.find(p => p.id === String(c.physicalProductId || c.productId || c.referenceId));return sum + Number(p?.productType === "SOFTWARE" ? 350000 : p?.unitPriceMinor || 0)*Number(c.quantity || 1);},0);
+                 const saleMinor = Math.round(Number(form.price || 0)*100);
+                 const discountMinor = listMinor - saleMinor;
+                 const eligible = trainingCodes.size >= 2;
+                 const softwareOverrideCount = entries.filter(c => catalog.products.find(p => p.id === String(c.physicalProductId || c.productId || c.referenceId))?.productType === "SOFTWARE").length;
+                 if (!Number.isSafeInteger(listMinor) || !Number.isSafeInteger(saleMinor) || saleMinor < 0 || (eligible && discountMinor < 0)) return <p role="alert">Fiyat hesaplaması güvenli değil: geçerli satış fiyatı ve ürün toplamını kontrol edin.</p>;
+                 return <div style={{display:"grid",gap:6,marginTop:8}}>{details}<span>Paket bileşenleri toplamı: <strong>{formatMoney(listMinor)}</strong></span>{softwareOverrideCount > 0 && <small>Yazılımın katalog fiyatı korunur; eğitmen paketi için onaylı 3.500 TL bileşen fiyatı kullanılmıştır.</small>}<span>Owner paket satış fiyatı: <strong>{formatMoney(saleMinor)}</strong></span><span>{eligible ? "Otomatik paket iskontosu" : "Çoklu uzmanlık iskontosu"}: <strong>{eligible ? formatMoney(Math.max(0,discountMinor)) : "Uygulanmaz"}</strong></span><small>Bu salt okunur önizlemedir; fatura/checkout hesabına henüz bağlanmamıştır.</small></div>;
+               })()}
+             </section>
             {!safeComponentEditing && <p role="alert" className="admin-feedback">Bu pakette mevcut API'nin kaydedemediği bileşen türleri var. Bileşen kayıtları korunuyor.</p>}
+            <section className="fx20e-access-review" aria-label="Paket uzmanlık ve medya yetkileri">
+              <div className="fx20e-access-review-head"><div><span className="admin-editor-eyebrow">PAKET YETKİLERİ</span><h3>Uzmanlık ve Medya Yetkileri</h3><p>Kaydedilmiş paket sürümü üzerinden yetki durumunun özeti. Bu alan yeni hak oluşturmaz.</p></div><span className="fx20e-pill">Güvenli önizleme</span></div>
+              <div className="fx20e-access-review-grid">
+                <div className="fx20e-access-tile"><h4>Uzmanlıklar ve rozetler</h4>
+                  {trainerExpertiseReview20E[selected.slug]?.length ? <ul className="fx20e-expertise-list">{trainerExpertiseReview20E[selected.slug].map(code => <li key={code}><span aria-hidden="true">✓</span>{code}</li>)}</ul> : <p role="status">Bu paket için doğrulanmış uzmanlık eşleştirmesi yok. Hak ataması yapılmamalı.</p>}
+                  <small>İndirimli setler ayrıca rozet kazandırmaz. Kıdemli Eğitmen sadece 6/6 geçerli uzmanlık ile hesaplanır.</small>
+                </div>
+                <div className="fx20e-access-tile"><h4>Özel medya erişimleri</h4><p><strong>Müfredat ve video:</strong> Sunucudaki mevcut paket/uzmanlık ve erişim kontrolü uygulanır.</p><p><strong>Sunum ve PDF:</strong> Ortak sunumlar ayrı erişim politikasındadır.</p><p className="fx20e-warning">Paket bazında kalıcı medya seçim API'si henüz etkin değil. Bu ekrandaki bilgiler erişim tanımlaması değildir.</p></div>
+              </div>
+              <p className="fx20e-access-footnote">Gerçek erişimler, eğitmen oturumu ve sunucu yetkilendirmesiyle doğrulanmalıdır. Yayınlanmış paket yetkileri bu görünümden değiştirilmez.</p>
+            </section>
             <div className="admin-package-bottom"><fieldset disabled={!canEdit}><legend>Fiyat ve Satış</legend><label>Fiyat<span className="fx41f-money-entry"><input inputMode="decimal" value={form.price} onChange={e=>updateForm({price:e.target.value})}/><span>₺</span></span></label><p className="admin-section-help">KDV: %{Number(selected.vatRateBps||0)/100}</p></fieldset>
               <fieldset disabled={!canEdit}><legend>Görünürlük</legend><div className="admin-visibility-grid">
                 <label className="admin-switch"><input type="checkbox" checked={form.panelVisible} onChange={e=>updateForm({panelVisible:e.target.checked})}/><span className="admin-switch-track"/><span>Eğitmen panelinde göster</span></label>
@@ -472,14 +668,99 @@ export function OwnerTrainerPackagesPage() {
                 <label className="admin-switch"><input type="checkbox" checked={form.purchaseEnabled} onChange={e=>updateForm({purchaseEnabled:e.target.checked})}/><span className="admin-switch-track"/><span>Satın alınabilir</span></label>
               </div></fieldset></div>
             <div className="admin-editor-actions"><button type="button" className="admin-primary-action" disabled={!canEdit} onClick={()=>void saveFields()}>Paket Bilgilerini Kaydet</button><button type="button" className="admin-secondary-action" disabled={!canEdit||!safeComponentEditing} onClick={()=>void saveComponents()}>Ürün ve İçeriği Kaydet</button><button type="button" className="admin-secondary-action" onClick={()=>{setForm(null);setSelectedId("");}}>Düzenlemeden Çık</button><button type="button" className="admin-secondary-action" disabled={!draft||busy} onClick={()=>void publishDraft()}>Yayınla</button></div>
+
           </section> : <aside className="panel-card fx41e-empty-editor"><span className="fx41e-empty-art"><FixokuCatalogIconV40 kind="package" size={32}/></span><h2>Paketi Düzenle</h2><p>Soldaki bir paketi seçin.</p></aside>}
         </section>
+        {selected && form && (
+          <div className="fx-h5w-fullwidth-preview">
+            {(() => {
+              const approved = h5vInvoicePreviewPlans.find(p => p.slug === selected.slug);
+              if (!approved) return null;
+              const lineTotal = approved.items.reduce((sum, item) => sum + item.grossMinor * item.qty, 0);
+              // H5X: iskonto sadece egitmen egitimi satirlarina, brut bedelleri oraninda dagitilir.
+              // Kitap (%0 KDV) ve yazilim birim bedeli korunur. Son hizmet satiri kurus farkini alir.
+              const trainingIndexes = approved.items.map((item, index) => item.kind === "TRAINER_EDUCATION" ? index : -1).filter(index => index >= 0);
+              const trainingGross = trainingIndexes.reduce((sum, index) => sum + approved.items[index].grossMinor * approved.items[index].qty, 0);
+              const allocationValid = approved.discount >= 0 && (approved.discount === 0 || (trainingIndexes.length > 1 && trainingGross >= approved.discount));
+              let remainingDiscount = approved.discount;
+              const discountedLines = approved.items.map((item, index) => {
+                const gross = item.grossMinor * item.qty;
+                let discount = 0;
+                if (allocationValid && trainingIndexes.includes(index) && approved.discount > 0) {
+                  discount = index === trainingIndexes[trainingIndexes.length - 1]
+                    ? remainingDiscount
+                    : Math.round(approved.discount * gross / trainingGross);
+                  remainingDiscount -= discount;
+                }
+                return { ...item, gross, discount, net: gross - discount };
+              });
+              const allocationMatches = allocationValid && discountedLines.every(item => item.net >= 0) && discountedLines.reduce((sum, item) => sum + item.net, 0) === approved.sale;
+              const complete = lineTotal - approved.discount === approved.sale && allocationMatches;
+              const hasLegacy = form.components.some(c => c.componentType === "TRAINER_SERVICE" && !catalog.products.some(p => p.id === String(c.physicalProductId || c.productId || c.referenceId) && p.trainingCodeVerified));
+              const currentPriceMatches = Math.round(Number(form.price || 0) * 100) === approved.sale;
+              return <section aria-label="H5V paket fiyat ve örnek fatura önizlemesi" className="fx-h5v-dual-preview">
+                <div className="fx-h5v-preview-heading"><strong>Paket fiyat analizi ve öğretmen faturası önizlemesi</strong><p>Onaylı hedef plan esas alınmıştır. Bu tablolar mevcut paket kayıtlarını veya kesilmiş bir faturayı temsil etmez.</p></div>
+                <div className="fx-h5v-preview-columns">
+                  <div className="fx-h5v-preview-panel"><h3>1. Paket fiyat analizi</h3>
+                    <table><thead><tr><th>Ürün / hizmet</th><th>Tür</th><th>Adet</th><th>Birim</th><th>İskonto</th><th>İndirimli toplam</th></tr></thead><tbody>
+                    {discountedLines.map((item, ix) => <tr key={ix}><td>{item.name}</td><td>{item.kind === "BOOK" ? "Kitap" : item.kind === "SOFTWARE" ? "Yazılım" : "Eğitmen eğitimi"}</td><td>{item.qty}</td><td>{formatMoney(item.grossMinor)}</td><td>{formatMoney(-item.discount)}</td><td>{formatMoney(item.net)}</td></tr>)}
+                    </tbody></table>
+                    <div className="fx-h5v-totals"><div><span>Ürünler toplamı</span><strong>{formatMoney(lineTotal)}</strong></div><div><span>Paket iskontosu</span><strong>{formatMoney(-approved.discount)}</strong></div><div><span>Kargo</span><strong>Ücretsiz Kargo</strong></div><div className="fx-h5v-grand"><span>Owner satış fiyatı</span><strong>{formatMoney(approved.sale)}</strong></div></div>
+                  </div>
+                  <div className="fx-h5v-preview-panel"><h3>2. Öğretmen faturası önizlemesi</h3><p className="fx-h5v-muted">Bilgilendirici taslak. Resmî e-Arşiv/e-Fatura değildir.</p>
+                    <table><thead><tr><th>Fatura kalemi</th><th>Adet</th><th>KDV</th><th>Liste toplamı</th><th>İskonto</th><th>İndirimli tutar</th></tr></thead><tbody>
+                    {discountedLines.map((item, ix) => <tr key={ix}><td>{item.name}</td><td>{item.qty}</td><td>%{item.vat / 100}</td><td>{formatMoney(item.gross)}</td><td>{formatMoney(-item.discount)}</td><td>{formatMoney(item.net)}</td></tr>)}
+                    </tbody></table>
+                    <div className="fx-h5v-totals"><div><span>Ara toplam</span><strong>{formatMoney(lineTotal)}</strong></div><div><span>Paket iskontosu</span><strong>{formatMoney(-approved.discount)}</strong></div><div><span>Kargo</span><strong>Ücretsiz Kargo</strong></div><div className="fx-h5v-grand"><span>Ödenecek toplam</span><strong>{formatMoney(approved.sale)}</strong></div></div>
+                    <p className="fx-h5v-muted">Önizleme: iskonto yalnız %20 KDV'li eğitmen eğitimlerine orantılı dağıtılır; kitaplar ve yazılım indirimsiz kalır. Nihai fatura vergi matrahı ve e-Fatura entegrasyonu ayrıca doğrulanmalıdır.</p>
+                  </div>
+                </div>
+                {!allocationValid && <p role="alert" className="fx-h5v-warning">İskonto eğitim satırlarına güvenli biçimde dağıtılamıyor. Fatura işlemi engellenmelidir.</p>}
+                {!complete && <p role="alert" className="fx-h5v-warning">Hedef ürün toplamı ve satış fiyatı uyuşmuyor. Kayıt yapılmamalı.</p>}
+                {hasLegacy && <p role="status" className="fx-h5v-warning">Mevcut pakette eski bireysel eğitim bağlantıları bulunuyor. Bunlar hedef fiyat/fatura satırlarına dahil edilmedi; kayıtlı bileşenler otomatik silinmedi. Yeni Neon geçişi bekleniyor.</p>}
+                {!currentPriceMatches && <p role="status" className="fx-h5v-warning">Formdaki satış fiyatı onaylı hedef fiyattan farklı. Bu önizleme formu otomatik değiştirmez.</p>}
+              </section>;
+            })()}
+          </div>
+        )}
+        </>
       )}
-      {tab === "products" && <StudentProductCatalogV39C onCatalogChanged={load}/>}
-      {tab === "expertise" && <section className="panel-card admin-package-list" aria-label="Uzmanlıklar"><h2>Eğitmen Uzmanlıkları</h2><p className="admin-section-help">Uzmanlık eşleştirme bilgisi eğitmen eğitim paketlerinden bağımsız yetki kayıtlarıyla yönetilir. Bu API gerçek uzmanlık listesi döndürmediği için düzenleme etkin değil.</p><a className="admin-outline-button" href="/panel/admin/egitmen-ticaret">Satışlar ve erişimler</a></section>}
+      {tab === "products" && <StudentProductCatalogV39C onCatalogChanged={load} trainerMode/>}
+      {tab === "expertise" && <section className="panel-card" aria-label="Uzmanlıklar"><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap"}}><div><h2>Eğitmen Uzmanlıkları ve Rozetler</h2><p className="admin-section-help">Altı temel uzmanlık. Setler yalnız içerdiği uzmanlıkları kazandırır, ayrı set rozeti verilmez.</p></div><a className="admin-outline-button" href="/panel/admin/egitmen-ticaret">Ücretsiz hakları ve uzmanlıkları yönet</a></div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginTop:18}}><article className="panel-card" style={{display:"flex",alignItems:"center",gap:12,padding:12}}><img src="https://media.fixoku.com/fixoku-trainer-badges/ilkokul-akici-okuma-egitmen-rozeti.png" alt="İlkokul Hızlı Okuma rozeti" style={{width:70,height:70,objectFit:"contain",flexShrink:0}} loading="lazy"/><div><strong>İlkokul Hızlı Okuma</strong><p className="admin-section-help" style={{marginTop:5}}>İlkokul paketi</p><small>PRIMARY_FAST</small></div></article><article className="panel-card" style={{display:"flex",alignItems:"center",gap:12,padding:12}}><img src="https://media.fixoku.com/fixoku-trainer-badges/ortaokul-hizli-okuma-egitmen-rozeti.png" alt="Ortaokul Hızlı Okuma rozeti" style={{width:70,height:70,objectFit:"contain",flexShrink:0}} loading="lazy"/><div><strong>Ortaokul Hızlı Okuma</strong><p className="admin-section-help" style={{marginTop:5}}>Ortaokul paketi / üçlü set</p><small>MIDDLE_FAST</small></div></article><article className="panel-card" style={{display:"flex",alignItems:"center",gap:12,padding:12}}><img src="https://media.fixoku.com/fixoku-trainer-badges/lise-hizli-okuma-egitmen-rozeti.png" alt="Lise Hızlı Okuma rozeti" style={{width:70,height:70,objectFit:"contain",flexShrink:0}} loading="lazy"/><div><strong>Lise Hızlı Okuma</strong><p className="admin-section-help" style={{marginTop:5}}>Lise paketi / üçlü set</p><small>HIGH_FAST</small></div></article><article className="panel-card" style={{display:"flex",alignItems:"center",gap:12,padding:12}}><img src="https://media.fixoku.com/fixoku-trainer-badges/yetiskin-hizli-okuma-egitmen-rozet.png" alt="Yetişkin Hızlı Okuma rozeti" style={{width:70,height:70,objectFit:"contain",flexShrink:0}} loading="lazy"/><div><strong>Yetişkin Hızlı Okuma</strong><p className="admin-section-help" style={{marginTop:5}}>Yetişkin paketi / üçlü set</p><small>ADULT_FAST</small></div></article><article className="panel-card" style={{display:"flex",alignItems:"center",gap:12,padding:12}}><img src="https://media.fixoku.com/fixoku-trainer-badges/ortaokul-paragraf-egitmen-rozet.png" alt="Ortaokul Paragraf rozeti" style={{width:70,height:70,objectFit:"contain",flexShrink:0}} loading="lazy"/><div><strong>Ortaokul Paragraf</strong><p className="admin-section-help" style={{marginTop:5}}>Ortaokul paragraf / ikili set</p><small>MIDDLE_PARAGRAPH</small></div></article><article className="panel-card" style={{display:"flex",alignItems:"center",gap:12,padding:12}}><img src="https://media.fixoku.com/fixoku-trainer-badges/lise-paragraf-egitmen-rozeti.png" alt="Lise Paragraf rozeti" style={{width:70,height:70,objectFit:"contain",flexShrink:0}} loading="lazy"/><div><strong>Lise Paragraf</strong><p className="admin-section-help" style={{marginTop:5}}>Lise paragraf / ikili set</p><small>HIGH_PARAGRAPH</small></div></article></div><div className="panel-card" style={{display:"flex",alignItems:"center",gap:14,marginTop:14}}><img src="https://media.fixoku.com/fixoku-trainer-badges/kidemli-egitmen-rozeti.png" alt="Kıdemli Eğitmen rozeti" style={{width:78,height:78,objectFit:"contain"}} loading="lazy"/><div><strong>7. Kıdemli Eğitmen (Usta Eğitmen)</strong><p>Altı farklı temel uzmanlığın tamamı geçerli olduğunda otomatik hesaplanır. Satılamaz, paketle ayrıca verilemez.</p></div></div>
+        <section aria-label="Eğitim paketleri uzmanlık eşleştirmesi" style={{marginTop:22}}>
+          <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:12}}>
+            <div><h3 style={{margin:"0 0 4px"}}>Paketler hangi uzmanlıkları kazandırıyor?</h3><p className="admin-section-help" style={{margin:0}}>Sekiz eğitimin kazandırdığı altı temel yetki. Birleşik setler yeni bir rozet üretmez.</p></div>
+            <span style={{display:"inline-flex",padding:"7px 12px",border:"1px solid #f6c8af",borderRadius:999,color:"#bb4619",fontWeight:700,background:"#fff8f3",fontSize:12}}>6 temel uzmanlık + 1 otomatik kıdemli</span>
+          </div>
+          <div style={{overflowX:"auto",border:"1px solid #e4e9f1",borderRadius:13}}>
+            <table style={{width:"100%",borderCollapse:"collapse",minWidth:660,fontSize:13}}>
+              <thead><tr style={{background:"#f3f6fa",color:"#153253",textAlign:"left"}}><th scope="col" style={{padding:"13px 16px"}}>Eğitmen eğitimi</th><th scope="col" style={{padding:"13px 16px"}}>Kazandırdığı uzmanlıklar</th><th scope="col" style={{padding:"13px 16px"}}>Rozet sayısı</th></tr></thead>
+              <tbody>
+                {[
+                  ["İlkokul Akıcı ve Hızlı Okuma", "İlkokul Hızlı Okuma", 1],
+                  ["Ortaokul Hızlı Okuma", "Ortaokul Hızlı Okuma", 1],
+                  ["Lise Hızlı Okuma", "Lise Hızlı Okuma", 1],
+                  ["Yetişkin Hızlı Okuma", "Yetişkin Hızlı Okuma", 1],
+                  ["Ortaokul Paragraf Eğitmen Eğitimi", "Ortaokul Paragraf", 1],
+                  ["Lise Paragraf Eğitmen Eğitimi", "Lise Paragraf", 1],
+                  ["Ortaokul + Lise + Yetişkin Üçlü Set", "Ortaokul Hızlı Okuma · Lise Hızlı Okuma · Yetişkin Hızlı Okuma", 3],
+                  ["Ortaokul + Lise Paragraf İkili Set", "Ortaokul Paragraf · Lise Paragraf", 2],
+                ].map(([packageName, expertises, count], index) => (
+                  <tr key={String(packageName)} style={{borderTop:"1px solid #e4e9f1",background:index % 2 ? "#fafcff" : "#fff"}}>
+                    <td style={{padding:"12px 16px",fontWeight:650}}>{packageName}</td>
+                    <td style={{padding:"12px 16px",lineHeight:1.6}}>{expertises}</td>
+                    <td style={{padding:"12px 16px",fontWeight:700,color:"#dc5217"}}>{count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="admin-section-help" style={{marginTop:12}}>Bu eşleştirmeler kaynak koddaki TRAINER_PACKAGE_QUALIFICATIONS sözleşmesiyle uyumludur. Gerçek haklar yalnız geçerli ödeme/Owner onayı ve sunucu erişim denetimleriyle kazanılır. Yedinci Kıdemli Eğitmen rozeti altı farklı temel yetkinin tamamından türetilir.</p>
+        </section>
+        <p role="note" className="admin-section-help">Bu görünüm kaynak eşleştirme rehberidir. Mevcut kayıt ve uzmanlık haklarını değiştirmez. Gerçek yetkiler sunucu API'si tarafından denetlenir.</p></section>}
       {previewPackage && <div className="admin-preview-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setPreviewPackage(null)}}>
         <section className="admin-preview-dialog fx41j-preview" role="dialog" aria-modal="true" aria-labelledby="trainer-package-preview-title">
-          <div className="admin-preview-heading fx41j-preview-heading"><div><span className="admin-editor-eyebrow">PAKET ÖNİZLEMESİ</span><h2 id="trainer-package-preview-title">{previewPackage.title}</h2>{previewPackage.shortDescription && <p>{previewPackage.shortDescription}</p>}</div><button type="button" className="admin-quiet-button" onClick={()=>setPreviewPackage(null)} aria-label="Önizlemeyi kapat">Kapat</button></div>
+          <div className="admin-preview-heading fx41j-preview-heading"><div><span className="admin-editor-eyebrow">PAKET ÖNİZLEMESİ</span><h2 id="trainer-package-preview-title">{trainerPackageSentenceTitle(previewPackage.title || "")}</h2>{previewPackage.shortDescription && <p>{previewPackage.shortDescription}</p>}</div><button type="button" className="admin-quiet-button" onClick={()=>setPreviewPackage(null)} aria-label="Önizlemeyi kapat">Kapat</button></div>
           <div className="fx41j-preview-cover"><FixokuPhotoV41F src={trainerCourseCover020P(previewPackage.title||"",previewPackage.slug)||previewPackage.iconReference} alt="Eğitmen paket kapak görseli"><FixokuCatalogIconV40 kind="package" size={48}/></FixokuPhotoV41F></div>
           <div className="fx41j-preview-stats" aria-label="Paket özellikleri">
             <div className="fx41j-preview-stat"><FixokuCatalogIconV40 kind="school" size={21}/><span>Seviye</span><strong>{stageName(stageOf(previewPackage))}</strong></div>

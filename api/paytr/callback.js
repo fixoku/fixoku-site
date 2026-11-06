@@ -18,14 +18,20 @@ export default async function handler(req, res) {
     if (payload.status === "failed") { const student = await pool.query("update orders set status='PAYMENT_FAILED',updated_at=now() where id=$1 and payment_method='PAYTR' and status='PENDING_PAYMENT'", [payload.merchant_oid]); if (!student.rowCount) await pool.query("update trainer_package_orders set status='CANCELLED',cancelled_at=coalesce(cancelled_at,now()),updated_at=now() where id=$1 and payment_method='PAYTR' and status='PENDING_PAYMENT'", [payload.merchant_oid]); return text(res, 200, "OK"); }
     const order = (await pool.query("select total_minor,currency from orders where id=$1 and payment_method='PAYTR'", [payload.merchant_oid])).rows[0];
     if (!order) {
-      const trainerOrder = (await pool.query("select total_minor from trainer_package_orders where id=$1 and payment_method='PAYTR'", [payload.merchant_oid])).rows[0];
+      const trainerOrder = (await pool.query("select total_minor,currency from trainer_package_orders where id=$1 and payment_method='PAYTR'", [payload.merchant_oid])).rows[0];
       if (!trainerOrder) return text(res, 404, "ORDER_NOT_FOUND");
       if (Number(payload.total_amount) !== Number(trainerOrder.total_minor)) return text(res, 409, "PAYMENT_AMOUNT_MISMATCH");
+      if (String(payload.currency || trainerOrder.currency || "").toUpperCase() !== String(trainerOrder.currency || "").toUpperCase()) return text(res, 409, "PAYMENT_CURRENCY_MISMATCH");
       const client = await pool.connect();
-      try { await fulfillTrainerOrder(client, { orderId: payload.merchant_oid, actorUserId: null, provider: "PAYTR", providerReference: `paytr:${payload.merchant_oid}`, manageTransaction: true }); }
+      try { await fulfillTrainerOrder(client, { orderId: payload.merchant_oid, actorUserId: null, provider: "PAYTR", providerReference: `paytr:${payload.merchant_oid}`, amountMinor: Number(payload.total_amount), currency: payload.currency || trainerOrder.currency, manageTransaction: true }); }
       finally { client.release(); }
       return text(res, 200, "OK");
     }
+    // PayTR's callback is the settlement authority.  If the provider sends a
+    // currency field, it must agree with the immutable checkout snapshot;
+    // silently ignoring it would allow a signed callback for another
+    // currency to reach entitlement fulfilment.
+    if (payload.currency && String(payload.currency).toUpperCase() !== String(order.currency || "").toUpperCase()) return text(res, 409, "PAYMENT_CURRENCY_MISMATCH");
     const result = await fulfillSuccessfulPayment(pool, { orderId: payload.merchant_oid, provider: "PAYTR", providerEventId: `paytr:${payload.merchant_oid}`, amountMinor: Number(payload.total_amount), currency: order.currency });
     return text(res, 200, result.replay ? "OK" : "OK");
   } catch (error) { return text(res, error.status || 409, error.code || "CALLBACK_FAILED"); } finally { await pool.end(); }

@@ -81,6 +81,19 @@ export default async function handler(req,res){
     if(isReassignment&&!String(input.reassignmentReason||'').trim())throw Object.assign(new Error('REASSIGNMENT_REASON_REQUIRED'),{status:400});
     const trainer=(await c.query("select u.id,u.email from platform_users u join platform_memberships m on m.user_id=u.id and m.role='TRAINER' and m.scope_type='TRAINER' and m.scope_id=u.id and m.status='ACTIVE' where u.id=$1",[input.trainerId])).rows[0];
     if(!trainer)throw Object.assign(new Error('TRAINER_NOT_ELIGIBLE'),{status:403});
+    // R60C16E: A group-only service must be assigned through the group workflow.
+    // Legacy trainer-led programs with no explicit service-mode retain existing behavior.
+    const modeRows=(await c.query(`select distinct pp.service_mode as "serviceMode"
+      from package_entitlement_enrollments pee
+      join package_entitlements pe on pe.id=pee.package_entitlement_id and pe.status='ACTIVE' and pe.revoked_at is null
+      left join orders o on o.id=pe.source_order_id
+      left join order_items oi on oi.id=pee.source_order_item_id
+      join package_components pc on pc.package_version_id=coalesce(oi.package_version_id,pe.package_version_id) and pc.is_active=true
+      join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id) and pp.r6_product_type='TRAINING_SERVICE'
+      where pee.enrollment_id=$1 and (pe.source_type='OWNER_MANUAL' or o.status in ('PAID','PARTIALLY_REFUNDED'))`,[requestRow.enrollmentId])).rows;
+    if(modeRows.some((row)=>row.serviceMode==='GROUP') && !modeRows.some((row)=>row.serviceMode==='INDIVIDUAL')) {
+      throw Object.assign(new Error('GROUP_ASSIGNMENT_WORKFLOW_REQUIRED'),{status:409});
+    }
     const activeEntitlement=(await c.query("select 1 from package_entitlement_enrollments pee join package_entitlements pe on pe.id=pee.package_entitlement_id and pe.status='ACTIVE' and pe.revoked_at is null left join orders o on o.id=pe.source_order_id join enrollments e on e.id=pee.enrollment_id and e.status in ('ACTIVE','PAUSED') where pee.enrollment_id=$1 and (pe.source_type='OWNER_MANUAL' or o.status in ('PAID','PARTIALLY_REFUNDED')) limit 1",[requestRow.enrollmentId])).rows[0];
     if(!activeEntitlement)throw Object.assign(new Error('ACTIVE_ENTITLEMENT_REQUIRED'),{status:409});
     await assertTrainerEligibleForEnrollment(c,input.trainerId,requestRow.enrollmentId);

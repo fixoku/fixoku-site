@@ -1,6 +1,8 @@
 import pg from "pg";
+import { randomUUID } from "node:crypto";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 
+const H5N_TRAINER_SERVICES = Object.freeze([{"sku": "FX-TRN-PRIMARY-FAST", "title": "İlkokul akıcı ve hızlı okuma eğitmen eğitimi", "price": 739000, "trainingCode": "PRIMARY_FAST", "stages": ["PRIMARY"]}, {"sku": "FX-TRN-MIDDLE-FAST", "title": "Ortaokul hızlı okuma eğitmen eğitimi", "price": 739000, "trainingCode": "MIDDLE_FAST", "stages": ["MIDDLE"]}, {"sku": "FX-TRN-HIGH-FAST", "title": "Lise hızlı okuma eğitmen eğitimi", "price": 794000, "trainingCode": "HIGH_FAST", "stages": ["HIGH"]}, {"sku": "FX-TRN-ADULT-FAST", "title": "Yetişkin hızlı okuma eğitmen eğitimi", "price": 794000, "trainingCode": "ADULT_FAST", "stages": ["ADULT"]}, {"sku": "FX-TRN-MIDDLE-PARAGRAPH", "title": "Ortaokul paragraf teknikleri eğitmen eğitimi (LGS)", "price": 844000, "trainingCode": "MIDDLE_PARAGRAPH", "stages": ["MIDDLE"]}, {"sku": "FX-TRN-HIGH-PARAGRAPH", "title": "Lise paragraf teknikleri eğitmen eğitimi (TYT–AYT)", "price": 944000, "trainingCode": "HIGH_PARAGRAPH", "stages": ["HIGH"]}]);
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };
 const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([key, value]) => [key, Array.isArray(value) ? value.join(",") : String(value)]));
 async function read(req) { if (req.body && typeof req.body === "object") return req.body; let raw = ""; for await (const chunk of req) raw += chunk; return raw ? JSON.parse(raw) : {}; }
@@ -32,7 +34,7 @@ function fields(input) {
   if (!/^[A-Z0-9][A-Z0-9._-]{1,63}$/u.test(value.sku)) throw Object.assign(new Error("SKU_INVALID"), { status: 400 });
   if (value.title.length < 2 || value.title.length > 180) throw Object.assign(new Error("TITLE_REQUIRED"), { status: 400 });
   if (value.description.length > 2000) throw Object.assign(new Error("DESCRIPTION_INVALID"), { status: 400 });
-  if (!["PHYSICAL", "SOFTWARE", "SERVICE", "DIGITAL"].includes(value.productType)) throw Object.assign(new Error("PRODUCT_TYPE_INVALID"), { status: 400 });
+  if (!["PHYSICAL", "SOFTWARE", "SERVICE", "DIGITAL", "TRAINING_SERVICE"].includes(value.productType)) throw Object.assign(new Error("PRODUCT_TYPE_INVALID"), { status: 400 });
   if (value.stockLocation && value.stockLocation.length > 120) throw Object.assign(new Error("STOCK_LOCATION_INVALID"), { status: 400 });
   if (value.weightGrams !== null && (!Number.isSafeInteger(value.weightGrams) || value.weightGrams < 0)) throw Object.assign(new Error("WEIGHT_INVALID"), { status: 400 });
   if (!Number.isSafeInteger(value.lowStockThreshold) || value.lowStockThreshold < 0) throw Object.assign(new Error("LOW_STOCK_THRESHOLD_INVALID"), { status: 400 });
@@ -45,6 +47,14 @@ function fields(input) {
   if (value.serviceMode !== null && !["INDIVIDUAL", "GROUP"].includes(value.serviceMode)) throw Object.assign(new Error("SERVICE_MODE_INVALID"), { status: 400 });
   if (value.minStudents !== null && (!Number.isSafeInteger(value.minStudents) || value.minStudents < 1)) throw Object.assign(new Error("MIN_STUDENTS_INVALID"), { status: 400 });
   if (value.maxStudents !== null && (!Number.isSafeInteger(value.maxStudents) || value.maxStudents < 1 || (value.minStudents !== null && value.maxStudents < value.minStudents))) throw Object.assign(new Error("MAX_STUDENTS_INVALID"), { status: 400 });
+  if (value.productType === "TRAINING_SERVICE") {
+    const approved = H5N_TRAINER_SERVICES.find((item) => item.sku === value.sku);
+    if (!approved || value.title !== approved.title || value.listGrossMinor !== approved.price ||
+        value.vatRateBps !== 2000 || value.r6ProductType !== "TRAINING_SERVICE" ||
+        value.serviceMode !== null || value.serviceType !== "TRAINER_EDUCATION" || value.currency !== "TRY") {
+      throw Object.assign(new Error("TRAINER_EDUCATION_APPROVAL_MISMATCH"), { status: 400 });
+    }
+  }
   // eslint-disable-next-line no-control-regex
   if (value.imageReference !== null && (value.imageReference.length > 1000 || /[\u0000-\u001f]/u.test(value.imageReference))) throw Object.assign(new Error("IMAGE_REFERENCE_INVALID"), { status: 400 });
   return value;
@@ -56,6 +66,17 @@ export default async function handler(req, res) {
   const principal = await resolvePrincipal(headers(req)); if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
   const denied = requirePermission(principal, "product.manage"); if (denied) return json(res, denied.status, denied.body);
   if (!["GET", "POST"].includes(req.method)) return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
+  // New training-service writes are closed until a verified NEW isolated Neon DB is configured.
+  // Parse the body and reject before any DB connection. Other product flows retain their contract.
+  let h5nInput = null;
+  if (req.method === "POST") {
+    h5nInput = await read(req).catch(() => null);
+    if (!h5nInput || typeof h5nInput !== "object") return json(res, 400, { error: "PRODUCT_BODY_INVALID" });
+    if (String(h5nInput.productType || "").toUpperCase() === "TRAINING_SERVICE" &&
+        process.env.FIXOKU_H5N_NEW_DB_TRAINER_PRODUCTS !== "ENABLED") {
+      return json(res, 423, { error: "NEW_NEON_TRAINER_PRODUCT_WRITES_BLOCKED" });
+    }
+  }
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
     if (req.method === "GET") {
@@ -64,10 +85,21 @@ export default async function handler(req, res) {
       for (const product of products) product.stageScopes = stages.filter((stage) => stage.id === product.id).map((stage) => stage.stage);
       return json(res, 200, { products });
     }
-    const input = await read(req);
+    const input = h5nInput;
     const stageScopes = input.stageScopes === undefined ? ["PRIMARY","MIDDLE","HIGH","ADULT"] : input.stageScopes;
     if (!Array.isArray(stageScopes) || stageScopes.length < 1 || stageScopes.some((s) => !["PRIMARY","MIDDLE","HIGH","ADULT"].includes(s))) return json(res,400,{error:"PRODUCT_STAGES_INVALID"});
-    const body = fields(input);
+    const newProductType = String(input.productType || "PHYSICAL").toUpperCase();
+    const generatedSku = `FIXOKU-${newProductType === "PHYSICAL" ? "KITAP" : newProductType === "SERVICE" ? "EGITIM" : "YAZILIM"}-${newProductType === "SERVICE" ? (input.serviceMode === "GROUP" ? "GRUP-" : "BIREBIR-") : ""}${randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}`;
+    const sku = newProductType === "TRAINING_SERVICE" ? String(input.sku || "").trim().toUpperCase() : generatedSku;
+    const body = fields({ ...input, sku });
+    if (body.productType === "TRAINING_SERVICE") {
+      const approved = H5N_TRAINER_SERVICES.find(item => item.sku === body.sku);
+      if (!approved || JSON.stringify([...new Set(stageScopes)].sort()) !== JSON.stringify([...approved.stages].sort()))
+        return json(res, 400, { error: "TRAINER_EDUCATION_STAGE_MISMATCH" });
+    }
+    if (body.r6ProductType === "BOOK" && body.listGrossMinor !== 55000) return json(res, 400, { error: "BOOK_APPROVED_GROSS_PRICE_550_REQUIRED" });
+    const requiredVat = body.r6ProductType === "BOOK" ? 0 : 2000;
+    if (body.vatRateBps !== requiredVat) return json(res, 400, { error: "VAT_POLICY_MISMATCH" });
     const client = await pool.connect();
     let row;
     try {

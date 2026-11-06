@@ -32,15 +32,15 @@ export const instructorHero = {
   },
   images: {
     instructor: {
-      src: "/images/instructor-landing/egitmen.png",
+      src: "/images/instructor-landing/egitmen.webp",
       alt: "Fixoku eğitmenlik modelini temsil eden kadın eğitmen",
     },
     computer: {
-      src: "/images/instructor-landing/bilgisayar.png",
+      src: "/images/instructor-landing/bilgisayar.webp",
       alt: "Fixoku eğitim sisteminin masaüstü bilgisayar görünümü",
     },
     phone: {
-      src: "/images/instructor-landing/telefon.png",
+      src: "/images/instructor-landing/telefon.webp",
       alt: "Fixoku eğitim sisteminin mobil telefon görünümü",
     },
   },

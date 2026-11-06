@@ -75,7 +75,7 @@ export default function ConsentManager() {
         <section className="fixoku-consent-banner" role="region" aria-labelledby="fixoku-consent-title">
           <div>
             <p className="fixoku-consent-eyebrow">Gizlilik tercihleri</p>
-            <h2 id="fixoku-consent-title">Çerezleri nasıl kullandığımızı seçin</h2>
+            <div id="fixoku-consent-title" role="heading" aria-level="2" className="fixoku-consent-heading">Çerezleri nasıl kullandığımızı seçin</div>
             <p>Fixoku, zorunlu çerezleri hizmeti sunmak için kullanır. Analitik ve reklam çerezleri yalnızca izninizle etkinleşir.</p>
           </div>
           <div className="fixoku-consent-actions" aria-label="Çerez tercihleri işlemleri">

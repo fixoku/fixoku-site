@@ -183,6 +183,8 @@ export default async function handler(req, res) {
         actorUserId: principal.user.id,
         provider: "BANK_TRANSFER",
         providerReference: row.reference,
+        amountMinor: row.reported_amount_minor,
+        currency: row.currency,
         manageTransaction: false,
       });
 

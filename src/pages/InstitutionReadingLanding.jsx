@@ -338,7 +338,7 @@ export default function InstitutionReadingLanding() {
       if (response.ok && result?.ok === true) {
         pushEvent("institution_application_submit", { form_id: "institution_application" });
         pushEvent("generate_lead", { form_id: "institution_application" });
-        pushEvent("form_success", { form_id: "institution_application" });
+        pushEvent("form_submit_success", { form_id: "institution_application" });
         setFormStatus({
           type: "success",
           message: "Başvurunuz alınmıştır. Ekibimiz sizinle iletişime geçecektir.",
@@ -407,7 +407,7 @@ export default function InstitutionReadingLanding() {
                 label="Kurumlar için Neden Fixoku tanıtım videosunu oynat"
               />
               <img
-                src="/kurumsal-egitim-uzmani.png"
+                src="/kurumsal-egitim-uzmani.webp"
                 alt="Fixoku kurumsal eğitim danışmanı"
                 className="institution-hero-expert-image"
               />

@@ -215,6 +215,11 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
     if (currency !== undefined && String(currency).toUpperCase() !== String(order.currency).toUpperCase()) throw error("PAYMENT_CURRENCY_MISMATCH", 409);
     const payment = (await client.query("select * from payment_intents where order_id=$1 for update", [orderId])).rows[0];
     if (!payment) throw error("PAYMENT_INTENT_NOT_FOUND", 409);
+    // Settlement must agree with the immutable payment intent as well as the
+    // order.  Without this guard a stale/corrupted intent could let a valid
+    // PayTR callback activate entitlements for a different amount or
+    // currency even though the callback itself matches the order snapshot.
+    if (Number(payment.amount_minor) !== Number(order.total_minor) || String(payment.currency || "").toUpperCase() !== String(order.currency || "").toUpperCase()) throw error("PAYMENT_INTENT_MISMATCH", 409);
     const enrollmentChildColumn = await enrollmentChildColumnAvailable(client);
     if (provider === "BANK_TRANSFER") {
       if (order.payment_method !== "BANK_TRANSFER") throw error("BANK_TRANSFER_METHOD_REQUIRED", 409);
@@ -253,13 +258,14 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
         studentProfileId: order.beneficiary_student_profile_id,
         childProfileId: order.beneficiary_child_profile_id,
       };
-      if (itemBeneficiary.childProfileId) {
-        const child = (await client.query("select owner_user_id,legacy_student_profile_id from r6_student_child_profiles where id=$1", [item.beneficiary_child_profile_id])).rows[0];
+      const effectiveChildProfileId = item.beneficiary_child_profile_id || itemBeneficiary.childProfileId;
+      if (effectiveChildProfileId) {
+        const child = (await client.query("select owner_user_id,legacy_student_profile_id from r6_student_child_profiles where id=$1", [effectiveChildProfileId])).rows[0];
         if (!child || String(child.owner_user_id) !== String(itemBeneficiary.studentUserId)) throw error("ORDER_CHILD_BENEFICIARY_NOT_FOUND", 409);
         itemBeneficiary = {
           studentUserId: itemBeneficiary.studentUserId,
           studentProfileId: child.legacy_student_profile_id,
-          childProfileId: item.beneficiary_child_profile_id,
+          childProfileId: effectiveChildProfileId,
         };
       }
       const issuanceKey = `ENTITLEMENT:${item.id}:${itemBeneficiary.studentUserId}`;

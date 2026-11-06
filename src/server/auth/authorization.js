@@ -26,10 +26,11 @@ export function privilegedTwoFactorRequired(principal) {
   if (!productionLike && (localReviewRuntimeAllowed(process.env) || process.env.LOCAL_REVIEW_MODE === "1")) return false;
   const productionEnforced = productionLike || process.env.FIXOKU_REQUIRE_PRIVILEGED_2FA === "1";
   const roles = new Set(principal?.memberships?.map((membership) => membership.role) || []);
-  // Production can temporarily permit the explicitly configured first Owner
-  // to enter with email + password while keeping SUPER_ADMIN 2FA enforced.
-  // The global switch is never allowed to weaken SUPER_ADMIN in production.
-  const ownerEnforced = roles.has("OWNER") && process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA !== "0" && productionEnforced;
+  // Owner 2FA remains available as an explicit future opt-in. The current
+  // business rule keeps Owner panel/API access password-and-session based, so
+  // an Owner without an enrolled factor is not denied by default. Super Admin
+  // remains protected by the existing privileged 2FA rule.
+  const ownerEnforced = roles.has("OWNER") && process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA === "1" && productionEnforced;
   const superAdminEnforced = roles.has("SUPER_ADMIN") && productionEnforced;
   return Boolean((ownerEnforced || superAdminEnforced) && principal?.session?.user?.twoFactorEnabled !== true);
 }
@@ -57,7 +58,7 @@ export async function resolvePrincipal(headers) {
     const rows = await db.select({ user: users, membership: memberships }).from(users).leftJoin(memberships, eq(memberships.userId, users.id)).where(eq(users.authUserId, session.user.id));
     if (!rows.length) return { session, user: null, memberships: [] };
     const ownerId = rows[0].user.id;
-    const candidates = rows.map((row) => row.membership).filter(Boolean).filter((m) => validScopeType(m, ownerId));
+    const candidates = rows.map((row) => row.membership).filter(Boolean).filter((m) => validScopeType(m, ownerId) && (rows[0].user.emailVerified === true || !["STUDENT", "TRAINER", "GUARDIAN"].includes(m.role)));
     // Guardian membership grants portal entry, including its truthful empty
     // state. scopeId is never child authority: resource reads must validate
     // guardian_student_relationships against the requested StudentProfile.

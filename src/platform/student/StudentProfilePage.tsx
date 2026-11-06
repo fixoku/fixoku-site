@@ -11,6 +11,10 @@ type Profile = {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
+  guardianName: string;
+  guardianEmail: string;
+  guardianPhone: string;
+  guardianRelation: string;
   educationStage: string;
   grade: string;
   school: string;
@@ -30,6 +34,10 @@ const empty: Profile = {
   firstName: "",
   lastName: "",
   dateOfBirth: "",
+  guardianName: "",
+  guardianEmail: "",
+  guardianPhone: "",
+  guardianRelation: "",
   educationStage: "",
   grade: "",
   school: "",
@@ -90,6 +98,23 @@ export function StudentProfilePage({
   const [message, setMessage] = useState("");
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
+  // FIXOKU_R23_PHOTO_SAVE
+  const [photoSaving, setPhotoSaving] = useState(false);
+  const [photoNotice, setPhotoNotice] = useState("");
+  const savePhoto = async () => {
+    if (!photoDataUrl || photoSaving) return;
+    setPhotoSaving(true); setPhotoNotice("");
+    try {
+      const response = await fetch("/api/student/profile", { method: "PATCH", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ photoOnly: true, photoDataUrl }) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.photoStorageKey) throw new Error("PHOTO_SAVE_FAILED");
+      setProfile((current) => ({ ...current, photoStorageKey: result.photoStorageKey, photoUrl: result.photoUrl }));
+      setPhotoDataUrl(null); setRemovePhoto(false);
+      setPhotoNotice("Profil fotoğrafınız kaydedildi.");
+      window.dispatchEvent(new Event("fixoku:profile-photo-updated"));
+    } catch { setPhotoNotice("Fotoğraf kaydedilemedi. Tekrar deneyin."); }
+    finally { setPhotoSaving(false); }
+  };
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const load = () => {
@@ -192,6 +217,13 @@ export function StudentProfilePage({
       if (!profile.school.trim()) next.school = "Okulunuzun adını yazın.";
     }
 
+    if (profile.educationStage && profile.educationStage !== "ADULT") {
+      if (!(profile.guardianName || "").trim()) next.guardianName = "Veli adı ve soyadı zorunludur.";
+      if (!validEmail(profile.guardianEmail)) next.guardianEmail = "Geçerli veli e-posta adresi girin.";
+      if (!/^5\d{9}$/u.test(localMobile(profile.guardianPhone || ""))) next.guardianPhone = "5 ile başlayan 10 haneli veli cep telefonu girin.";
+      if (!["Anne", "Baba", "Vasi", "Diğer"].includes(profile.guardianRelation)) next.guardianRelation = "Yakınlık derecesini seçin.";
+    }
+
     if (!profile.city || !profile.district) {
       next.city = "İl ve ilçe seçin.";
     }
@@ -216,6 +248,12 @@ export function StudentProfilePage({
         firstName: profile.firstName,
         lastName: profile.lastName,
         dateOfBirth: profile.dateOfBirth || null,
+        ...(profile.educationStage !== "ADULT" ? {
+          guardianName: (profile.guardianName || "").trim(),
+          guardianEmail: (profile.guardianEmail || "").trim(),
+          guardianPhone: localMobile(profile.guardianPhone || ""),
+          guardianRelation: profile.guardianRelation,
+        } : {}),
         educationStage: profile.educationStage,
         grade: profile.educationStage === "ADULT" ? null : profile.grade,
         school: profile.educationStage === "ADULT" ? null : profile.school,
@@ -379,12 +417,9 @@ export function StudentProfilePage({
                       onChange={(value) => update("lastName", value)}
                     />
 
-                    <ProfileField
-                      label="Doğum tarihi"
-                      type="date"
-                      value={profile.dateOfBirth}
-                      max={todayIso()}
-                      readOnly={guardian}
+                    <BirthDatePicker
+                      value={profile.dateOfBirth || ""}
+                      disabled={guardian}
                       error={errors.dateOfBirth}
                       onChange={(value) => update("dateOfBirth", value)}
                     />
@@ -506,6 +541,78 @@ export function StudentProfilePage({
                       </>
                     )}
                   </div>
+
+                  {/* FIXOKU_STUDENT_R14_GUARDIAN */}
+                  {profile.educationStage && profile.educationStage !== "ADULT" && (
+                    <>
+                      <div className="student-profile-section-divider" />
+                      <div className="student-profile-section-heading">
+                        <div className="student-profile-section-icon"><PanelIcon name="users" size={20} /></div>
+                        <div>
+                          <h3>Veli Bilgileri</h3>
+                          <p>Öğrenciyle iletişim için veli bilgilerini girin.</p>
+                        </div>
+                      </div>
+                      <div className="profile-grid">
+                        <ProfileField
+                          label="Veli adı soyadı"
+                          value={profile.guardianName || ""}
+                          required
+                          readOnly={guardian}
+                          error={errors.guardianName}
+                          onChange={(value) => update("guardianName", value)}
+                        />
+                        <ProfileField
+                          label="Veli e-posta adresi"
+                          type="email"
+                          icon="mail"
+                          value={profile.guardianEmail || ""}
+                          required
+                          readOnly={guardian}
+                          error={errors.guardianEmail}
+                          onChange={(value) => update("guardianEmail", value)}
+                        />
+                        {/* FIXOKU_STUDENT_R15_GUARDIAN_PHONE */}
+                        <label className="profile-field">
+                          <span>Veli telefon numarası</span>
+                          <span className="profile-input-wrap trainer-phone-control">
+                            <b>+90</b>
+                            <input
+                              type="tel"
+                              inputMode="numeric"
+                              autoComplete="tel-national"
+                              maxLength={10}
+                              pattern="5[0-9]{9}"
+                              required
+                              readOnly={guardian}
+                              value={localMobile(profile.guardianPhone || "")}
+                              onChange={(event) => update("guardianPhone", event.currentTarget.value.replace(/\D/gu, "").slice(0, 10))}
+                              aria-invalid={Boolean(errors.guardianPhone)}
+                              placeholder="5XXXXXXXXX"
+                            />
+                          </span>
+                          {errors.guardianPhone && <small>{errors.guardianPhone}</small>}
+                        </label>
+                        <label className="profile-field ">
+                          <span>Yakınlık derecesi</span>
+                          <span className="profile-input-wrap student-profile-select-wrap">
+                            <select
+                              disabled={guardian}
+                              required
+                              value={profile.guardianRelation || ""}
+                              onChange={(event) => update("guardianRelation", event.target.value)}
+                            >
+                              <option value="">Seçiniz</option>
+                              {["Anne", "Baba", "Vasi", "Diğer"].map((relation) => (
+                                <option key={relation} value={relation}>{relation}</option>
+                              ))}
+                            </select>
+                          </span>
+                          {errors.guardianRelation && <small>{errors.guardianRelation}</small>}
+                        </label>
+                      </div>
+                    </>
+                  )}
 
                   <div className="student-profile-section-divider" />
 
@@ -659,8 +766,14 @@ export function StudentProfilePage({
 
                   <p className="student-profile-role-text">Öğrenci</p>
 
+                  {!guardian && photoDataUrl && (
+                    <button type="button" className="profile-button" disabled={photoSaving} onClick={() => void savePhoto()}>
+                      <PanelIcon name="save" size={20} />{photoSaving ? "Fotoğraf kaydediliyor..." : "Fotoğrafı Kaydet"}
+                    </button>
+                  )}
+                  {photoNotice && <small role="status" aria-live="polite" className="fixoku-r23-photo-notice">{photoNotice}</small>}
                   {!guardian &&
-                    (profile.photoStorageKey || photoDataUrl) && (
+                    Boolean(profile.photoStorageKey) && !photoDataUrl && (
                       <button
                         type="button"
                         className="profile-button profile-button-secondary trainer-photo-remove"
@@ -705,6 +818,48 @@ export function StudentProfilePage({
   );
 }
 
+/* FIXOKU_STUDENT_R14_BIRTHDATE */
+function BirthDatePicker({ value, onChange, disabled, error }: {
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+  error?: string;
+}) {
+  const parts = /^\d{4}-\d{2}-\d{2}$/u.test(value) ? value.split("-") : [];
+  const [year, setYear] = useState(parts[0] || "");
+  const [month, setMonth] = useState(parts[1] || "");
+  const [day, setDay] = useState(parts[2] ? String(Number(parts[2])) : "");
+  const currentYear = new Date().getFullYear();
+  const months = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const maxDay = year && month ? new Date(Number(year), Number(month), 0).getDate() : 31;
+  function change(y: string, m: string, d: string) {
+    const safeDay = y && m && Number(d) > new Date(Number(y), Number(m), 0).getDate() ? "" : d;
+    setYear(y);
+    setMonth(m);
+    setDay(safeDay);
+    onChange(y && m && safeDay ? `${y}-${m}-${safeDay.padStart(2,"0")}` : "");
+  }
+  return (
+    <fieldset className="student-r14-birthdate">
+      <legend>Doğum tarihi</legend>
+      <div className="student-r14-date-fields">
+        <select aria-label="Doğum günü" disabled={disabled} value={day} onChange={(e) => change(year, month, e.target.value)}>
+          <option value="">Gün</option>
+          {Array.from({ length: maxDay }, (_, i) => String(i + 1)).map((d) => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select aria-label="Doğum ayı" disabled={disabled} value={month} onChange={(e) => change(year, e.target.value, day)}>
+          <option value="">Ay</option>
+          {months.map((m, i) => <option key={m} value={String(i + 1).padStart(2,"0")}>{m}</option>)}
+        </select>
+        <select aria-label="Doğum yılı" disabled={disabled} value={year} onChange={(e) => change(e.target.value, month, day)}>
+          <option value="">Yıl</option>
+          {Array.from({length: 110}, (_, i) => String(currentYear - i)).map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+      </div>
+      {error && <small>{error}</small>}
+    </fieldset>
+  );
+}
 function ProfileField({
   label,
   value,

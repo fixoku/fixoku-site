@@ -70,6 +70,42 @@ const authOptions = {
            where auth_user_id=$3`,
           [verifiedUser.email, Boolean(verifiedUser.emailVerified), verifiedUser.id],
         );
+        // Direct trainer applicants receive an ACTIVE trainer membership after
+        // email verification, without requiring Owner approval or SMS.
+        // Only the applicant's own identity is eligible; invitations and
+        // unrelated roles are not changed.
+        if (verifiedUser.emailVerified === true) {
+          await syncPool.query(
+            `insert into platform_memberships (user_id, role, scope_type, scope_id, status)
+             select p.id, 'TRAINER', 'TRAINER', p.id, 'ACTIVE'
+               from platform_users p
+              where p.auth_user_id=$1 and p.email_verified=true
+                and exists (
+                  select 1 from trainer_applications a
+                   where a.candidate_user_id=p.id
+                     and a.status in ('RECEIVED','REVIEWING','PROFILE_READY')
+                )
+                and not exists (
+                  select 1 from platform_memberships m
+                   where m.user_id=p.id and m.role='TRAINER'
+                )`,
+            [verifiedUser.id],
+          );
+          await syncPool.query(
+            `update platform_memberships m
+                set status='ACTIVE', updated_at=now()
+               from platform_users p
+              where m.user_id=p.id and p.auth_user_id=$1
+                and p.email_verified=true and m.role='TRAINER'
+                and m.scope_type='TRAINER' and m.scope_id=p.id
+                and exists (
+                  select 1 from trainer_applications a
+                   where a.candidate_user_id=p.id
+                     and a.status in ('RECEIVED','REVIEWING','PROFILE_READY')
+                )`,
+            [verifiedUser.id],
+          );
+        }
       } finally {
         await syncPool.end();
       }
@@ -126,12 +162,13 @@ const authOptions = {
   advanced: { useSecureCookies: process.env.NODE_ENV === "production" },
 };
 
-// The normal auth surface keeps Better Auth's 2FA plugin for every account.
-// The private Owner entry point uses the same database, secret, session,
-// CSRF, and rate-limit configuration but intentionally omits the plugin so
-// the explicitly approved first Owner can enter with email + password. Server
-// authorization still checks the OWNER membership on every panel/API request.
+// The normal and private Owner HTTP entry points use the same Better Auth
+// instance, so an account that has explicitly enabled 2FA still receives the
+// normal challenge. The Owner policy does not make 2FA mandatory by default;
+// server authorization continues to check OWNER membership on every request.
 export const auth = betterAuth({ ...authOptions, plugins: [twoFactor({ issuer: "Fixoku" })] });
+// Retained for controlled non-HTTP fixtures that explicitly need a plugin-free
+// Better Auth instance. The Owner HTTP route does not use this instance.
 export const ownerAuth = betterAuth({ ...authOptions, plugins: [] });
 // A pending trainer applicant may use the same Better Auth password/session
 // checks to reach only the candidate profile area before e-mail verification.

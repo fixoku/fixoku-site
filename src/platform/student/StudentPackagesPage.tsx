@@ -3,13 +3,14 @@ import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { StudentPanelShell } from "./StudentPanelShell";
 import {
-  findFixokuPackageMedia,
+  FIXOKU_PACKAGE_MEDIA,
 } from "../../data/fixokuPackageMedia";
 import {
   findFixokuPackageCardContent,
 } from "../../data/fixokuPackageCardContent";
 import "./student-portal.css";
 import { StudentR6CommercePanel } from "./StudentR6CommercePanel";
+import { pushEvent } from "../../martech/events.js";
 
 type StudentChoice = {
   studentProfileId: string;
@@ -29,6 +30,7 @@ type Product = {
 type PackageRow = {
   packageVersionId: string;
   packageId: string;
+  slug?: string | null;
   coverImage?: string | null;
   versionNumber: number;
   title: string;
@@ -243,6 +245,14 @@ export function StudentPackagesPage({
 
       await refreshCart(studentProfileId, body?.context?.educationStage, body?.context?.grade);
 
+      pushEvent("add_to_cart", {
+        item_id: item.packageVersionId,
+        item_name: item.title,
+        item_category: body?.context?.educationStage || "student_package",
+        price: item.priceMinor == null ? undefined : Number(item.priceMinor) / 100,
+        currency: item.currency || undefined,
+      }, { onceKey: `student:add_to_cart:${item.packageVersionId}` });
+
       window.dispatchEvent(
         new CustomEvent("fixoku:student-cart-updated"),
       );
@@ -447,16 +457,20 @@ export function StudentPackagesPage({
         aria-label="Öğrenci paketleri"
       >
         {visiblePackages.map((item) => {
-          const media = findFixokuPackageMedia(stage, item.title);
-          const databaseImage =
+          const matchingCatalog = FIXOKU_PACKAGE_MEDIA.find(
+            (media) => media.slug === item.slug && media.stage === stage,
+          );
+          const catalogCover = matchingCatalog
+            ? `/images/fixoku-katalog/paketler/${matchingCatalog.slug}.webp`
+            : null;
+          // Owner cover wins. For a missing/broken image, ONLY an exactly
+          // matching catalog slug may be used. Other packages stay neutral.
+          const image =
             item.coverImage ||
+            catalogCover ||
             item.products.find((product) => product.imageReference)?.imageReference ||
             item.components?.find((component) => component.imageReference)?.imageReference ||
             null;
-          // Owner/DB media wins. Existing static media is only a visual
-          // yedek for legacy rows, and a neutral placeholder covers rows
-          // without either source.
-          const image = databaseImage || media?.image || null;
 
           const exact =
             findFixokuPackageCardContent(
@@ -502,8 +516,13 @@ export function StudentPackagesPage({
                     alt={item.title}
                     loading="lazy"
                     onError={(event) => {
-                      event.currentTarget.hidden = true;
-                      event.currentTarget.nextElementSibling?.removeAttribute("hidden");
+                      const img = event.currentTarget;
+                      if (catalogCover && !img.src.endsWith(catalogCover)) {
+                        img.src = catalogCover;
+                        return;
+                      }
+                      img.hidden = true;
+                      img.nextElementSibling?.removeAttribute("hidden");
                     }}
                   />
                 )}

@@ -10,6 +10,13 @@ const ownerOnly = (principal) => principal.memberships.some((membership) => memb
 const cleanName = (value) => String(value || "").trim().replace(/\s+/gu, " ").slice(0, 100);
 const cleanEmail = (value) => String(value || "").trim().toLowerCase().slice(0, 254);
 const validEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value);
+const closureTransitions = Object.freeze({
+  REQUESTED: new Set(["REVIEWING", "APPROVED", "REJECTED"]),
+  REVIEWING: new Set(["APPROVED", "REJECTED"]),
+  APPROVED: new Set(["COMPLETED"]),
+  REJECTED: new Set(),
+  COMPLETED: new Set(),
+});
 
 export default async function handler(req, res) {
   const principal = await resolvePrincipal(h(req));
@@ -83,12 +90,31 @@ export default async function handler(req, res) {
     if (path.endsWith("/closure-requests") && b.id) {
       const status = { review: "REVIEWING", approve: "APPROVED", reject: "REJECTED", complete: "COMPLETED" }[String(b.action || "")];
       if (!status) return json(res, 400, { error: "INVALID_CLOSURE_ACTION" });
-      const row = (await pool.query(
-        'update account_closure_requests set status=$1,review_note=$2,updated_at=now() where id=$3 returning id,user_id as "userId",status,review_note as "reviewNote",updated_at as "updatedAt"',
-        [status, b.note || null, b.id],
-      )).rows[0];
-      if (!row) return json(res, 404, { error: "NOT_FOUND" });
-      return json(res, 200, { request: row, hardDelete: false, retention: "EXTERNAL_LEGAL_POLICY_REQUIRED" });
+      const client = await pool.connect();
+      try {
+        await client.query("begin");
+        const current = (await client.query("select id,user_id,status,review_note,updated_at from account_closure_requests where id=$1 for update", [b.id])).rows[0];
+        if (!current) { await client.query("rollback"); return json(res, 404, { error: "NOT_FOUND" }); }
+        if (current.status === status) {
+          await client.query("commit");
+          return json(res, 200, { request: { id: current.id, userId: current.user_id, status: current.status, reviewNote: current.review_note, updatedAt: current.updated_at }, replay: true, hardDelete: false, retention: "EXTERNAL_LEGAL_POLICY_REQUIRED" });
+        }
+        if (!closureTransitions[current.status]?.has(status)) {
+          await client.query("rollback");
+          return json(res, 409, { error: "INVALID_CLOSURE_TRANSITION", from: current.status, to: status });
+        }
+        const row = (await client.query(
+          'update account_closure_requests set status=$1,review_note=$2,updated_at=now() where id=$3 and status=$4 returning id,user_id as "userId",status,review_note as "reviewNote",updated_at as "updatedAt"',
+          [status, b.note || null, b.id, current.status],
+        )).rows[0];
+        if (!row) throw Object.assign(new Error("CLOSURE_TRANSITION_CONFLICT"), { status: 409 });
+        await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,$2,'account_closure_request',$3,'SUCCESS',gen_random_uuid(),$4)", [principal.user.id, `account.closure.${status.toLowerCase()}`, row.id, JSON.stringify({ previousStatus: current.status, nextStatus: status, note: b.note || null })]);
+        await client.query("commit");
+        return json(res, 200, { request: row, hardDelete: false, retention: "EXTERNAL_LEGAL_POLICY_REQUIRED" });
+      } catch (error) {
+        try { await client.query("rollback"); } catch { /* preserve original transition failure */ }
+        return json(res, error.status || 409, { error: error.code || error.message || "CLOSURE_TRANSITION_FAILED" });
+      } finally { client.release(); }
     }
 
     if (path.endsWith("/trainer-applications") && b.id) {

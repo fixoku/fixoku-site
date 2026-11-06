@@ -1,0 +1,158 @@
+{
+  "phase": "R60C-20H5AH",
+  "mode": "MANUAL_ONLY_NEW_ISOLATED_NEON",
+  "products": [
+    {
+      "code": "PRIMARY_FAST",
+      "sku": "FX-TRN-PRIMARY-FAST",
+      "title": "İlkokul akıcı ve hızlı okuma eğitmen eğitimi",
+      "grossMinor": 739000,
+      "vatBps": 2000
+    },
+    {
+      "code": "MIDDLE_FAST",
+      "sku": "FX-TRN-MIDDLE-FAST",
+      "title": "Ortaokul hızlı okuma eğitmen eğitimi",
+      "grossMinor": 739000,
+      "vatBps": 2000
+    },
+    {
+      "code": "HIGH_FAST",
+      "sku": "FX-TRN-HIGH-FAST",
+      "title": "Lise hızlı okuma eğitmen eğitimi",
+      "grossMinor": 794000,
+      "vatBps": 2000
+    },
+    {
+      "code": "ADULT_FAST",
+      "sku": "FX-TRN-ADULT-FAST",
+      "title": "Yetişkin hızlı okuma eğitmen eğitimi",
+      "grossMinor": 794000,
+      "vatBps": 2000
+    },
+    {
+      "code": "MIDDLE_PARAGRAPH",
+      "sku": "FX-TRN-MIDDLE-PARAGRAPH",
+      "title": "Ortaokul paragraf teknikleri eğitmen eğitimi (LGS)",
+      "grossMinor": 844000,
+      "vatBps": 2000
+    },
+    {
+      "code": "HIGH_PARAGRAPH",
+      "sku": "FX-TRN-HIGH-PARAGRAPH",
+      "title": "Lise paragraf teknikleri eğitmen eğitimi (TYT–AYT)",
+      "grossMinor": 944000,
+      "vatBps": 2000
+    }
+  ],
+  "packages": [
+    {
+      "slug": "ilkokul-akici-hizli-okuma-egitimi",
+      "grossMinor": 1199000,
+      "bookSkus": [
+        "FIXOKU-PRIMARY-AKICI-HIZLI-OKUMA",
+        "FIXOKU-PRIMARY-ZIHIN-EGZERSIZLERI"
+      ],
+      "trainingCodes": [
+        "PRIMARY_FAST"
+      ],
+      "software": true
+    },
+    {
+      "slug": "ortaokul-hizli-okuma-egitimi",
+      "grossMinor": 1199000,
+      "bookSkus": [
+        "FIXOKU-MIDDLE-HIZLI-OKUMA",
+        "FIXOKU-MIDDLE-ZIHIN-EGZERSIZLERI"
+      ],
+      "trainingCodes": [
+        "MIDDLE_FAST"
+      ],
+      "software": true
+    },
+    {
+      "slug": "lise-hizli-okuma-egitimi",
+      "grossMinor": 1199000,
+      "bookSkus": [
+        "FIXOKU-HIGH-HIZLI-OKUMA"
+      ],
+      "trainingCodes": [
+        "HIGH_FAST"
+      ],
+      "software": true
+    },
+    {
+      "slug": "yetiskin-hizli-okuma-egitimi",
+      "grossMinor": 1199000,
+      "bookSkus": [
+        "FIXOKU-ADULT-HIZLI-OKUMA"
+      ],
+      "trainingCodes": [
+        "ADULT_FAST"
+      ],
+      "software": true
+    },
+    {
+      "slug": "ortaokul-paragraf-teknikleri-egitmen-egitimi-lgs",
+      "grossMinor": 899000,
+      "bookSkus": [
+        "FIXOKU-STUDENT-ORTAOKUL-PARAGRAF"
+      ],
+      "trainingCodes": [
+        "MIDDLE_PARAGRAPH"
+      ],
+      "software": false
+    },
+    {
+      "slug": "lise-paragraf-teknikleri-egitmen-egitimi-tyt-ayt",
+      "grossMinor": 999000,
+      "bookSkus": [
+        "FIXOKU-STUDENT-LISE-PARAGRAF"
+      ],
+      "trainingCodes": [
+        "HIGH_PARAGRAPH"
+      ],
+      "software": false
+    },
+    {
+      "slug": "ortaokul-lise-yetiskin-hizli-okuma-egitimi",
+      "grossMinor": 1750000,
+      "bookSkus": [
+        "FIXOKU-PRIMARY-AKICI-HIZLI-OKUMA",
+        "FIXOKU-PRIMARY-ZIHIN-EGZERSIZLERI",
+        "FIXOKU-MIDDLE-HIZLI-OKUMA",
+        "FIXOKU-MIDDLE-ZIHIN-EGZERSIZLERI",
+        "FIXOKU-HIGH-HIZLI-OKUMA",
+        "FIXOKU-ADULT-HIZLI-OKUMA"
+      ],
+      "trainingCodes": [
+        "MIDDLE_FAST",
+        "HIGH_FAST",
+        "ADULT_FAST"
+      ],
+      "software": true
+    },
+    {
+      "slug": "ortaokul-lise-paragraf-egitmen-egitimi-ikili-set",
+      "grossMinor": 1250000,
+      "bookSkus": [
+        "FIXOKU-STUDENT-ORTAOKUL-PARAGRAF",
+        "FIXOKU-STUDENT-LISE-PARAGRAF"
+      ],
+      "trainingCodes": [
+        "MIDDLE_PARAGRAPH",
+        "HIGH_PARAGRAPH"
+      ],
+      "software": false
+    }
+  ],
+  "componentCount": 32,
+  "rules": {
+    "bookGrossMinor": 55000,
+    "bookVatBps": 0,
+    "softwarePackageGrossMinor": 350000,
+    "noHistoricalDelete": true,
+    "databaseExecutionByInstaller": false,
+    "invoicePricingIntegration": "PENDING"
+  }
+}

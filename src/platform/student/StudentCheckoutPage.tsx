@@ -5,6 +5,7 @@ import PaytrCheckout from "../commerce/PaytrCheckout.jsx";
 import CheckoutLegalConsents from "../commerce/CheckoutLegalConsents.jsx";
 import { BankTransferPayment } from "../commerce/BankTransferPayment";
 import { TrainerPhysicalProducts } from "../trainer/commerce/TrainerPhysicalProducts";
+import { pushEvent } from "../../martech/events.js";
 import {
   TURKEY_LOCATIONS,
   getTurkeyDistricts,
@@ -21,6 +22,7 @@ type Cart = {
     grade?: string | null;
   };
   items: Array<{
+    packageVersionId?: string | null;
     title: string;
     priceMinor: number;
     currency: string;
@@ -99,7 +101,7 @@ export function StudentCheckoutPage({
     useState(() => `student-checkout-${crypto.randomUUID()}`);
 
   const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod>("PAYTR");
+    useState<PaymentMethod>("BANK_TRANSFER");
 
   const [shipping, setShipping] =
     useState({
@@ -218,6 +220,17 @@ export function StudentCheckoutPage({
     };
   }, [studentProfileId]);
 
+  useEffect(() => {
+    if (!cart?.items?.length) return;
+    const items = cart.items.slice(0, 50).map((item) => ({
+      item_id: item.packageVersionId || item.title,
+      item_name: item.title,
+      price: Number(item.priceMinor) / 100,
+      currency: item.currency || cart.currency,
+    }));
+    pushEvent("begin_checkout", { currency: cart.currency, value: Number(cart.totalMinor || 0) / 100, items }, { onceKey: `student:begin_checkout:${items.map((item) => item.item_id).join(",")}` });
+  }, [cart]);
+
   const submit = async (
     event: FormEvent,
   ) => {
@@ -283,6 +296,8 @@ export function StudentCheckoutPage({
       setMessage(
         body.error === "PAYTR_CUSTOMER_INFO_REQUIRED"
           ? "Kartla ödeme için ad, soyad, telefon ve fatura/iletişim adresini kontrol edin."
+          : body.error === "SHIPPING_VAT_RATE_REQUIRED"
+          ? "Sipariş oluşturulamadı: Kargo KDV oranı Owner tarafından henüz onaylanmamış. Lütfen destekle iletişime geçin; ödeme yapmayın."
           : body.error || "Sipariş oluşturulamadı.",
       );
       return;
@@ -948,7 +963,7 @@ export function StudentCheckoutPage({
                       onChange={(consents: { preInformation: boolean; distanceSales: boolean; privacy: boolean; marketing: boolean; commencement: boolean }) => setLegalAcceptance(consents)}
                     />
                   </div>
-                  <div className="trainer-legal-approval__additional" aria-label="İncelenecek hukuki metinler">
+                  <details className="trainer-legal-approval__documents" style={{marginTop:12}}><summary style={{cursor:"pointer",padding:"12px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontWeight:700}}>Diğer yasal belgeleri görüntüle (11 belge)</summary><div className="trainer-legal-approval__additional" aria-label="İncelenecek hukuki metinler" style={{paddingTop:12}}>
                     {[
                       ["Satıcı / Sağlayıcı Künyesi", "/satici-bilgileri"],
                       ["Üyelik ve Platform Kullanım Koşulları", "/uyelik-sozlesmesi"],
@@ -964,8 +979,8 @@ export function StudentCheckoutPage({
                     ].map(([title, href]) => (
                       <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="trainer-legal-approval__link trainer-legal-approval__chip">{title} ↗</a>
                     ))}
-                  </div>
-                  <p className="student-checkout-legal__note">Bu görünüm yasal belge içeriklerini değiştirmez. Siparişe özel belge sürümleri ve hukuki onay kayıtları canlı satış öncesinde ayrıca doğrulanmalıdır.</p>
+                  </div></details>
+                  <p className="student-checkout-legal__note">Belgeler ayrı sekmede açılır; sipariş bilgilerinizi kaybetmeden inceleyebilirsiniz.</p>
                 </div>
 
                 <button

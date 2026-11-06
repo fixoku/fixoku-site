@@ -14,10 +14,14 @@ try {
   delete process.env.LOCAL_REVIEW_MODE;
   process.env.FIXOKU_REQUIRE_PRIVILEGED_2FA = "0";
   delete process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA;
-  assert.equal(privilegedTwoFactorRequired(owner), true, "R82_GLOBAL_ZERO_DOES_NOT_WEAKEN_PRODUCTION");
-  process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA = "0";
   assert.equal(privilegedTwoFactorRequired(owner), false, "R82_OWNER_PASSWORD_ONLY_CONFIG");
   assert.equal(requireMembership(owner, "OWNER"), null, "R82_OWNER_MEMBERSHIP_GATE");
+  process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA = "1";
+  assert.equal(privilegedTwoFactorRequired(owner), true, "OWNER_2FA_FUTURE_OPT_IN");
+  assert.deepEqual(requireMembership(owner, "OWNER"), { status: 403, body: { error: "TWO_FACTOR_REQUIRED" } }, "OWNER_2FA_OPT_IN_GATE");
+  process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA = "0";
+  assert.equal(privilegedTwoFactorRequired(owner), false, "OWNER_2FA_DISABLED_BY_DEFAULT");
+  assert.equal(requireMembership(owner, "OWNER"), null, "OWNER_PASSWORD_ONLY_GATE");
   assert.equal(privilegedTwoFactorRequired(superAdmin), true, "R82_SUPER_ADMIN_2FA_PRESERVED");
   assert.deepEqual(requireMembership(student, "OWNER"), { status: 403, body: { error: "FORBIDDEN" } }, "R82_STUDENT_OWNER_REJECTED");
   assert.deepEqual(requireMembership(null, "OWNER"), { status: 401, body: { error: "UNAUTHENTICATED" } }, "R82_ANONYMOUS_OWNER_REJECTED");
@@ -26,9 +30,10 @@ try {
   assert.match(login, /owner-private-email/u);
   assert.match(login, /owner-private-password/u);
   assert.match(login, /Giriş Yap/u);
-  for (const forbidden of ["twoFactorRedirect", "owner-2fa", "Authenticator", "TOTP", "QR", "6 haneli", "Şifremi unuttum", "sifremi-unuttum"]) assert.doesNotMatch(login, new RegExp(forbidden, "iu"), `R82_OWNER_UI_FORBIDDEN:${forbidden}`);
+  assert.match(login, /!challenge \?/u, "OWNER_LOGIN_DEFAULTS_TO_PASSWORD_FORM");
+  assert.match(login, /twoFactorRedirect|verify-totp/u, "OPTIONAL_OWNER_2FA_CHALLENGE_REMAINS_AVAILABLE");
   const route = fs.readFileSync(new URL("../api/owner-sign-in.js", import.meta.url), "utf8");
-  assert.match(route, /ownerAuth/u);
+  assert.match(route, /import \{ auth \}/u);
   assert.match(route, /requireApplicationOrigin/u);
   assert.match(route, /OWNER_AUTH_ORIGIN_UNAVAILABLE/u);
   assert.doesNotMatch(route, /https:\/\/fixoku\.com/u);
@@ -36,6 +41,7 @@ try {
   assert.match(route, /scope_type='GLOBAL'/u);
   assert.match(route, /role='OWNER'/u);
   assert.match(route, /sign-out/u);
+  assert.match(route, /twoFactorRedirect/u, "TOPLU_A_ACCOUNT_2FA_CHALLENGE_PASSTHROUGH");
   assert.doesNotMatch(route, /local-review|switch-user|FIXOKU_LOCAL_OWNER/u);
   const auth = fs.readFileSync(new URL("../src/server/auth/auth.js", import.meta.url), "utf8");
   assert.match(auth, /export const auth = betterAuth\(\{ \.\.\.authOptions, plugins: \[twoFactor/u);

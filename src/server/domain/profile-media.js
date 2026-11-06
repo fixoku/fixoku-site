@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { createSignedReadUrl, getDigitalStorageConfig, resolvePrivateStoragePath } from "./digital-delivery.js";
@@ -8,14 +9,21 @@ const MAX_BYTES = 2 * 1024 * 1024;
 
 /** Profile media is private by default. A local root is an explicit test/dev adapter. */
 export function getProfileMediaConfig(env = globalThis.process?.env || {}) {
-  const provider = String(env.PROFILE_MEDIA_PROVIDER || env.DIGITAL_STORAGE_PROVIDER || "DISABLED").trim().toUpperCase();
+  // FIXOKU_R23_PHOTO_SAVE: guarded, local-only fallback without Vite restart.
+  // Never enable local storage outside an explicitly enabled local review runtime.
+  const localReview = env.LOCAL_REVIEW_MODE === "1" &&
+    env.NODE_ENV !== "production" &&
+    String(env.FIXOKU_LOCAL_ORIGIN || "") === "http://127.0.0.1:5173" &&
+    /^postgres(?:ql)?:\/\/[^@]+@(?:127\.0\.0\.1|localhost):55432\/fixoku_four_user_review(?:[?#]|$)/u.test(String(env.DATABASE_URL || ""));
+  const fallbackRoot = path.join(os.homedir(), "Documents", "FIXOKU_LOCAL_PROFILE_MEDIA");
+  const provider = String(env.PROFILE_MEDIA_PROVIDER || (localReview ? "LOCAL" : env.DIGITAL_STORAGE_PROVIDER || "DISABLED")).trim().toUpperCase();
   if (provider === "S3" || provider === "R2") {
     const storage = getDigitalStorageConfig({ ...env, DIGITAL_STORAGE_PROVIDER: provider });
     return storage.enabled ? { ...storage, mediaPrefix: "" } : { provider, enabled: false, reason: storage.reason || "PROFILE_MEDIA_CONFIG_REQUIRED" };
   }
   if (provider !== "LOCAL") return { provider: "DISABLED", enabled: false, reason: "PROFILE_MEDIA_CONFIG_REQUIRED" };
   if (String(env.NODE_ENV || "").toLowerCase() === "production") return { provider, enabled: false, reason: "LOCAL_PROFILE_MEDIA_FORBIDDEN_IN_PRODUCTION" };
-  const root = String(env.PROFILE_MEDIA_ROOT || "").trim();
+  const root = String(env.PROFILE_MEDIA_ROOT || (localReview ? fallbackRoot : "")).trim();
   if (!root) return { provider, enabled: false, reason: "PROFILE_MEDIA_ROOT_REQUIRED" };
   return { provider, enabled: true, root: path.resolve(root) };
 }

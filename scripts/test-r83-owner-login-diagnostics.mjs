@@ -10,6 +10,9 @@ try {
   process.env.FIXOKU_REQUIRE_PRIVILEGED_2FA = "1";
   delete process.env.LOCAL_REVIEW_MODE;
   delete process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA;
+  assert.equal(privilegedTwoFactorRequired(owner), false);
+  assert.equal(requireMembership(owner, "OWNER"), null);
+  process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA = "1";
   assert.equal(privilegedTwoFactorRequired(owner), true);
   assert.deepEqual(requireMembership(owner, "OWNER"), { status: 403, body: { error: "TWO_FACTOR_REQUIRED" } });
   process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA = "0";

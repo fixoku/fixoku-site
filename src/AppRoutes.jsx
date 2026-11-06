@@ -40,6 +40,7 @@ import { RoleLoginPage, StudentRegistrationPage, PasswordForgotPage, PasswordRes
 import OwnerPrivateLogin from "./pages/OwnerPrivateLogin.jsx";
 import { TrainerPanelEntrySwitch } from "./pages/TrainerCandidatePage.jsx";
 import LocalReviewHub from "./pages/LocalReviewHub.jsx";
+import LocalReviewPanelPreview from "./pages/LocalReviewPanelPreview.jsx";
 import { localReviewEnabled } from "./pages/local-review-data.js";
 import { PanelShell } from "./platform/panel/layout/PanelShell";
 import { AdminDashboardPage } from "./platform/admin/AdminDashboardPage";
@@ -86,7 +87,10 @@ export default function AppRoutes() {
       <SeoRouteManager />
       <ScrollToTop />
       <Routes>
-        {localReviewEnabled() && <Route path="/yerel-inceleme" element={<LocalReviewHub />} />}
+                {localReviewEnabled() && <>
+          <Route path="/yerel-inceleme" element={<LocalReviewHub />} />
+          <Route path="/yerel-inceleme/:panel" element={<LocalReviewPanelPreview />} />
+        </>}
         <Route path="/giris" element={<LoginGatewayPage />} />
         <Route path="/egitim-platformu-girisi" element={<Giris />} />
         <Route path="/ogrenci-girisi" element={<RoleLoginPage role="STUDENT" />} />

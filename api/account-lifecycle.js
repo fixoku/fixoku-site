@@ -4,7 +4,7 @@ import { auth } from "../src/server/auth/auth.js";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";
 import { validateEducationSegment } from "../src/server/domain/student-segment.js";
 import { resolveTurkeyLocation } from "../src/data/turkeyLocations.js";
-import { requireApplicationOrigin } from "../src/server/auth/origin.js";
+import { requireApplicationOrigin, resolveTrustedOrigins } from "../src/server/auth/origin.js";
 import { queueRolePanelNotifications } from "../src/server/domain/panel-notifications.js";
 import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 const json=(r,s,b)=>{r.statusCode=s;r.setHeader("Content-Type","application/json; charset=utf-8");r.setHeader("Cache-Control","no-store");r.setHeader("X-Content-Type-Options","nosniff");r.end(JSON.stringify(b));};
@@ -34,7 +34,14 @@ function normalizeDateOfBirth(value){
   if(date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day || date > todayUtc) throw Object.assign(new Error("DATE_OF_BIRTH_INVALID"),{code:"DATE_OF_BIRTH_INVALID",status:400});
   return raw;
 }
-async function authCall(path,method,body,req){const h=headers(req);h.set('content-type','application/json');h.set('origin',requireApplicationOrigin(process.env));const out=await auth.handler(new Request("http://local/api/auth"+path,{method,headers:h,body:body?JSON.stringify(body):undefined}));return out;}
+function trustedOriginError() { return Object.assign(new Error("ORIGIN_NOT_ALLOWED"), { status: 403, code: "ORIGIN_NOT_ALLOWED" }); }
+function requestOrigin(req, required = false) {
+  const supplied = headers(req).get("origin");
+  if (required && !supplied) throw trustedOriginError();
+  if (supplied && !resolveTrustedOrigins(process.env).includes(supplied)) throw trustedOriginError();
+  return supplied || requireApplicationOrigin(process.env);
+}
+async function authCall(path,method,body,req){const h=headers(req);h.set('content-type','application/json');h.set('origin',requestOrigin(req,method !== 'GET'));const out=await auth.handler(new Request("http://local/api/auth"+path,{method,headers:h,body:body?JSON.stringify(body):undefined}));return out;}
 export default async function handler(req,res){if(!cleanPreviewGateResponse(res))return;const rawPath=new URL(req.url||'http://local', 'http://local').pathname; const path=rawPath === '/api/trainer-applications' ? '/trainer-application' : (rawPath.replace('/api/account-lifecycle','') || '/');
  try {
   if(path==='/register'&&req.method==='POST'){
@@ -87,7 +94,7 @@ export default async function handler(req,res){if(!cleanPreviewGateResponse(res)
 
     const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});
     try{
-      await pool.query(
+      const studentProfileUpdate = await pool.query(
         `update student_profiles sp
             set education_stage=$1::education_stage,
                 grade=$2,
@@ -123,6 +130,7 @@ export default async function handler(req,res){if(!cleanPreviewGateResponse(res)
           payload.user?.id
         ]
       );
+      if (studentProfileUpdate.rowCount !== 1) throw new Error("STUDENT_PROFILE_RECORD_MISSING");
       const registeredUser = (await pool.query("select id from platform_users where auth_user_id=$1", [payload.user?.id])).rows[0];
       if (registeredUser?.id) {
         await queueRolePanelNotifications(pool, {
@@ -243,11 +251,33 @@ export default async function handler(req,res){if(!cleanPreviewGateResponse(res)
           });
         } catch { /* Account creation and verification remain authoritative if delivery is temporarily unavailable. */ }
         return json(res,201,{success:true,emailVerification:true,application:{id:row.id,status:'E-POSTA BEKLENİYOR'},profileComplete:false});
-      } catch { try { await client.query('rollback'); } catch { /* rollback best effort */ } return json(res,503,{message:'Hesap oluşturuldu ancak başvuru durumu tamamlanamadı. Destek ekibi incelemeli.'}); }
+      } catch {
+        try { await client.query('rollback'); } catch { /* rollback best effort */ }
+        // Better Auth has already created the credential at this point. Keep
+        // the account recoverable instead of leaving an orphaned student-only
+        // mapping that blocks a safe retry. The recovered application remains
+        // email-verified but never grants teaching expertise.
+        try {
+          await client.query('begin');
+          const recoveredPlatform = (await client.query('select id from platform_users where auth_user_id=$1 for update',[authUserId])).rows[0];
+          if (!recoveredPlatform) throw new Error('ACCOUNT_MAPPING_MISSING');
+          await client.query("update platform_memberships set status='REVOKED',updated_at=now() where user_id=$1 and role='STUDENT'",[recoveredPlatform.id]);
+          await client.query('insert into trainer_profiles(user_id,first_name,last_name,phone) values($1,$2,$3,$4) on conflict(user_id) do update set first_name=excluded.first_name,last_name=excluded.last_name,phone=excluded.phone,updated_at=now()',[recoveredPlatform.id,parts[0],parts.slice(1).join(' '),phone]);
+          const recovered = previous
+            ? (await client.query("update trainer_applications set first_name=$1,last_name=$2,phone=$3,legal_acknowledged=true,candidate_user_id=$4,status='RECEIVED',updated_at=now() where id=$5 and candidate_user_id is null returning id,status",[parts[0],parts.slice(1).join(' '),phone,recoveredPlatform.id,previous.id])).rows[0]
+            : (await client.query("insert into trainer_applications(first_name,last_name,email,phone,legal_acknowledged,candidate_user_id,status) values($1,$2,$3,$4,true,$5,'RECEIVED') returning id,status",[parts[0],parts.slice(1).join(' '),email,phone,recoveredPlatform.id])).rows[0];
+          if (!recovered) throw new Error('APPLICATION_RECOVERY_CONFLICT');
+          await client.query('commit');
+          return json(res,202,{success:true,pending:true,emailVerification:true,application:{id:recovered.id,status:'E-POSTA BEKLENİYOR'},recoveredAccount:true});
+        } catch {
+          try { await client.query('rollback'); } catch { /* preserve recovery failure */ }
+          return json(res,503,{message:'Hesap oluşturuldu ancak başvuru durumu tamamlanamadı. Destek ekibi incelemeli.',error:'TRAINER_APPLICATION_RECOVERY_REQUIRED'});
+        }
+      }
       finally { client.release(); }
     }finally{await pool.end();}
   }
 
   if(path==='/closure'&&req.method==='POST'){const p=await resolvePrincipal(headers(req));if(!p?.user)return json(res,401,{message:'Oturum gerekli.'});const b=await read(req);const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});try{const row=(await pool.query('insert into account_closure_requests(user_id,reason) values($1,$2) returning id,status,created_at',[p.user.id,b.reason||null])).rows[0];return json(res,201,{request:{id:row.id,status:row.status}});}finally{await pool.end();}}
   return json(res,405,{message:'İşlem desteklenmiyor.'});
- } catch (error) { return json(res,error instanceof SyntaxError ? 400 : 503,{message:error instanceof SyntaxError ? 'Geçersiz istek.' : 'İşlem şu anda tamamlanamadı.'});}}
+ } catch (error) { return json(res,error instanceof SyntaxError ? 400 : error.status || 503,{message:error instanceof SyntaxError ? 'Geçersiz istek.' : error.code === 'ORIGIN_NOT_ALLOWED' ? 'İstek kaynağı doğrulanamadı.' : 'İşlem şu anda tamamlanamadı.',error:error.code || undefined});}}

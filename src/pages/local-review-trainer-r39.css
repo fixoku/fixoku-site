@@ -1,0 +1,94 @@
+/* FIXOKU H5EG-R39 | trainer-only local preview mobile refinements */
+/* This stylesheet never loads in the authenticated production panel. */
+@media (max-width: 640px) {
+  /* Compact the review-only purple heading without changing genuine panel headers. */
+  body:has([aria-label^="Salt-okunur eğitmen "]) .review-six-shell {
+    padding: 10px 14px !important;
+    width: min(100%, calc(100% - 12px)) !important;
+  }
+  body:has([aria-label^="Salt-okunur eğitmen "]) .review-six-shell h1 {
+    font-size: clamp(18px, 5.5vw, 22px) !important;
+    line-height: 1.2 !important;
+    margin-block: 2px 4px !important;
+  }
+  body:has([aria-label^="Salt-okunur eğitmen "]) .review-six-shell p {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    margin-block: 2px 4px !important;
+  }
+  /* Hide purely promotional ultra-wide banners on narrow phones: their embedded
+     wording becomes unreadable at 360px, but educational cards remain intact. */
+  [aria-label^="Salt-okunur eğitmen "] img:is(.trainings-bottom-banner,.resources-bottom-banner,.students-bottom-banner) {
+    display: none !important;
+  }
+  /* Give the trainer/student identity its own line and preserve email readability. */
+  [aria-label^="Salt-okunur eğitmen "] .roster20-person-head {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] .roster20-person-head > div {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 190px !important;
+    min-width: 0 !important;
+    gap: 5px !important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] .roster20-person-head > div > span {
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    line-height: 1.5 !important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] .roster20-status {
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+  }
+  /* Make the existing earnings table a native responsive card list visually;
+     keep each table cell and its data-label accessible without JS changes. */
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap {
+    overflow-x: visible !important;
+    max-width: 100% !important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap table,
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap tbody,
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap tr,
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap td {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap thead {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap tr {
+    padding: 11px 12px !important;
+    margin: 0 0 12px !important;
+    border: 1px solid #e4eaf1 !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap td {
+    padding: 6px 0 !important;
+    min-height: 24px;
+    border-bottom: 1px solid #eef1f5 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap td:last-child { border-bottom: 0 !important; }
+  [aria-label^="Salt-okunur eğitmen "] .earnings-table-wrap td::before {
+    content: attr(data-label);
+    display: block;
+    color: #60738c;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+}

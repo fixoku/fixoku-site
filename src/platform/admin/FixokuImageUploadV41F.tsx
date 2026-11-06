@@ -29,7 +29,7 @@ export function FixokuImageUploadV41F({kind, id, value, fallback, label, width, 
       const payload=await result.json().catch(()=>({}));
       if(!result.ok || typeof payload.imageReference!=="string") throw Error(payload.error || "Görsel yüklenemedi.");
       onChange(payload.imageReference);
-      setMessage("Görsel yüklendi. Kayda bağlamak için formun Kaydet düğmesine basın.");
+      setMessage(payload.localOnly ? "Görsel yalnız yerel geliştirme bilgisayarına yüklendi. Canlı yayına aktarılmaz; R2 bağlantısı tamamlanmadan yayında kullanmayın. Formu ayrıca kaydetmelisiniz." : "Görsel yüklendi. Kayda bağlamak için formu ayrıca kaydedin.");
     } catch(error) {setMessage(error instanceof Error?error.message:"Görsel yüklenemedi.");}
     finally {setBusy(false);if(fileInput.current)fileInput.current.value="";}
   };

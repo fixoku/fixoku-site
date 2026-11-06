@@ -14,13 +14,13 @@ import {
 import "./student-reading-landing.css";
 
 const STANDING_CHILD_IMAGE = {
-  src: "/images/landing/ogrenciler-icin-hizli-okuma-egitimi/ayakta-cocuk.png",
+  src: "/images/landing/ogrenciler-icin-hizli-okuma-egitimi/ayakta-cocuk.webp",
   width: 607,
   height: 1013,
 };
 
 const SEATED_CHILD_IMAGE = {
-  src: "/images/landing/ogrenciler-icin-hizli-okuma-egitimi/oturan-cocuk.png",
+  src: "/images/landing/ogrenciler-icin-hizli-okuma-egitimi/oturan-cocuk.webp",
   width: 1405,
   height: 1120,
 };

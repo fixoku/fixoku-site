@@ -93,7 +93,7 @@ try {
   process.env.VERCEL = "1";
   process.env.VERCEL_ENV = "preview";
   process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA = "0";
-  assert.equal(privilegedTwoFactorRequired(owner), false, "preview Owner override remains explicit only");
+  assert.equal(privilegedTwoFactorRequired(owner), false, "preview Owner remains password-only by default");
   assert.equal(privilegedTwoFactorRequired(superAdmin), true, "SUPER_ADMIN 2FA remains required");
   process.env.FIXOKU_OWNER_REQUIRE_PRIVILEGED_2FA = "1";
   assert.equal(privilegedTwoFactorRequired(owner), true, "Owner 2FA enforced without override");

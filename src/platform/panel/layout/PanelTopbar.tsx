@@ -22,6 +22,16 @@ type TopbarCart = {
   items: TopbarCartItem[];
 };
 
+type TopbarNotification = {
+  id: string;
+  title: string;
+  body: string;
+  eventType?: string;
+  readAt?: string | null;
+  createdAt?: string;
+  metadataJson?: string | null;
+};
+
 const roleLabel: Record<PanelRole, string> = {
   OWNER: "Yönetici",
   ADMIN: "Yönetici",
@@ -94,6 +104,9 @@ export function PanelTopbar({
 
   const [search, setSearch] = useState("");
   const [unread, setUnread] = useState(0);
+  const [topbarNotifications, setTopbarNotifications] = useState<TopbarNotification[]>([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationBusyId, setNotificationBusyId] = useState<string | null>(null);
   const [cart, setCart] = useState<TopbarCart>({ uniqueCount: 0, items: [] });
   const [cartOpen, setCartOpen] = useState(false);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
@@ -109,20 +122,23 @@ export function PanelTopbar({
   ];
 
   useEffect(() => {
-    if (role !== "TRAINER") {
+    if (role !== "TRAINER" && role !== "STUDENT") {
       setProfilePhotoUrl(null);
       return;
     }
     let active = true;
-    fetch("/api/trainer/profile", { credentials: "same-origin", cache: "no-store" })
+    const endpoint = role === "STUDENT" ? "/api/student/profile" : "/api/trainer/profile";
+    const refreshPhoto = () => fetch(endpoint, { credentials: "same-origin", cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
-        if (active) setProfilePhotoUrl(data?.profile?.photoUrl || null);
+        if (active) setProfilePhotoUrl(data?.profile?.photoUrl ? `${data.profile.photoUrl}?photoVersion=${encodeURIComponent(data.profile.photoStorageKey || "")}` : null);
       })
       .catch(() => {
         if (active) setProfilePhotoUrl(null);
       });
-    return () => { active = false; };
+    void refreshPhoto();
+    window.addEventListener("fixoku:profile-photo-updated", refreshPhoto);
+    return () => { active = false; window.removeEventListener("fixoku:profile-photo-updated", refreshPhoto); };
   }, [role]);
 
   const profileImage = resolveProfileImage({ name: user.name, email: user.email, photoUrl: profilePhotoUrl });
@@ -145,10 +161,12 @@ export function PanelTopbar({
   useEffect(() => {
     let active = true;
 
-    fetch("/api/notifications", { credentials: "same-origin" })
+    fetch("/api/notifications", { credentials: "same-origin", cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
-        if (active && data) setUnread(Number(data.unreadCount || 0));
+        if (!active || !data) return;
+        setUnread(Math.max(0, Number(data.unreadCount || 0)));
+        setTopbarNotifications(Array.isArray(data.notifications) ? data.notifications.slice(0, 3) : []);
       })
       .catch(() => {
         // Bildirim sayısı yüklenemese de panel çalışmaya devam eder.
@@ -247,6 +265,47 @@ export function PanelTopbar({
           : "fixoku:trainer-cart-updated",
       ),
     );
+  };
+
+  const notificationPath = (notification: TopbarNotification) => {
+    try {
+      const metadata = notification.metadataJson ? JSON.parse(notification.metadataJson) : {};
+      const path = typeof metadata?.path === "string" ? metadata.path : "";
+      return path.startsWith("/panel/") && !path.includes("\\") && !path.includes("//") ? path : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const notificationDate = (value?: string) => {
+    if (!value) return "";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("tr-TR");
+  };
+
+  const markTopbarNotificationRead = async (notification: TopbarNotification, path?: string | null) => {
+    if (notificationBusyId) return;
+    setNotificationBusyId(notification.id);
+    try {
+      if (!notification.readAt) {
+        const response = await fetch("/api/notifications", {
+          method: "PATCH",
+          credentials: "same-origin",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ id: notification.id }),
+        });
+        if (response.ok) {
+          setTopbarNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, readAt: new Date().toISOString() } : item));
+          setUnread((current) => Math.max(0, current - 1));
+        }
+      }
+      if (path) {
+        setNotificationsOpen(false);
+        navigate(path);
+      }
+    } finally {
+      setNotificationBusyId(null);
+    }
   };
 
   const cartMoney = (minor: number, currency: string) =>
@@ -411,34 +470,51 @@ export function PanelTopbar({
           </div>
         )}
 
-        <button
-          type="button"
-          className="panel-notification"
-          aria-label={`Bildirimler${unread ? `, ${unread} okunmamış` : ""}`}
-          title="Bildirim merkezini aç"
-          onClick={() => navigate("/panel/bildirimler")}
-        >
-          <Icon name="bell" size={26} />
-          {unread > 0 && (
-            <span
-              className="panel-notification-dot"
-              aria-label={`${unread} okunmamış bildirim`}
-            />
+        <div className="panel-notification-wrap">
+          <button
+            type="button"
+            className="panel-notification"
+            aria-label={`Bildirimler${unread ? `, ${unread} okunmamış` : ""}`}
+            title="Bildirimleri aç"
+            aria-expanded={notificationsOpen}
+            aria-controls="panel-notification-popover"
+            onClick={() => setNotificationsOpen((open) => !open)}
+          >
+            <Icon name="bell" size={26} />
+            {unread > 0 && <span className="panel-notification-dot" aria-label={`${unread} okunmamış bildirim`} />}
+          </button>
+          {notificationsOpen && (
+            <div id="panel-notification-popover" className="panel-notification-popover" role="dialog" aria-label="Son bildirimler">
+              <div className="panel-notification-popover-head"><strong>Bildirimler</strong><span>{unread > 0 ? `${unread} okunmamış` : "Güncel"}</span></div>
+              {topbarNotifications.length === 0 ? <p className="panel-notification-empty">Yeni bildiriminiz yok.</p> : <ul>
+                {topbarNotifications.map((notification) => {
+                  const path = notificationPath(notification);
+                  return <li key={notification.id} className={!notification.readAt ? "is-unread" : ""}>
+                    <button type="button" disabled={notificationBusyId === notification.id} onClick={() => void markTopbarNotificationRead(notification, path)}>
+                      <strong>{notification.title}</strong>
+                      <span>{notification.body}</span>
+                      {notification.createdAt && <time dateTime={notification.createdAt}>{notificationDate(notification.createdAt)}</time>}
+                    </button>
+                  </li>;
+                })}
+              </ul>}
+              <button type="button" className="panel-notification-all" onClick={() => { setNotificationsOpen(false); navigate("/panel/bildirimler"); }}>Tümünü Gör <span aria-hidden="true">→</span></button>
+            </div>
           )}
-        </button>
+        </div>
 
         <div
           className="panel-profile"
           aria-label={`${roleLabel[role]} kullanıcı hesabı`}
         >
-          <div className="panel-profile-avatar" aria-hidden="true">
-            {profileImage && !profilePhotoError ? <img src={profileImage} alt="" onError={() => setProfilePhotoError(true)} /> : initials}
+          <div className="panel-profile-avatar" aria-hidden="true" style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {profileImage && !profilePhotoError ? <img src={profileImage} alt="" onError={() => setProfilePhotoError(true)} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block" }} /> : initials}
           </div>
           <div>
             <strong>{user.name}</strong>
             <span>{roleLabel[role]}</span>
           </div>
-          <PanelIcon name="chevron-down" size={20} />
+
         </div>
       </div>
     </header>

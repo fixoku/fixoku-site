@@ -2640,3 +2640,12 @@ html {
 .trainer-legal-dialog__buyer small { color:#75675d; }
 .trainer-legal-dialog__plain { font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#1c2a3a; }
 .trainer-legal-error {color:#a62117;font-size:13px;font-weight:600;margin-top:8px;}
+
+/* H5CA: trainer service images and Owner content details; scoped to the cart. */
+.trainer-cart-page .fixoku-trainer-cart-service { display:flex; align-items:center; gap:12px; margin:9px 0; }
+.trainer-cart-page .fixoku-trainer-cart-service > span:last-child { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.trainer-cart-page .fixoku-trainer-service-photo { display:flex; flex:0 0 56px; height:56px; border:1px solid #e7eaf0; border-radius:9px; overflow:hidden; justify-content:center; align-items:center; background:#fafafa; }
+.trainer-cart-page .fixoku-trainer-service-photo img { width:100%; height:100%; object-fit:contain; }
+.trainer-cart-page .fixoku-trainer-cart-content-notes { padding:12px 0; }
+.trainer-cart-page .fixoku-trainer-cart-content-notes ol { margin:8px 0; padding-left:23px; }
+.trainer-cart-page .fixoku-trainer-cart-content-notes li { margin-bottom:5px; }

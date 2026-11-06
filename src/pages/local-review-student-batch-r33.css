@@ -1,0 +1,153 @@
+/* FIXOKU H5EG-R33: strictly local and inert student preview surfaces. */
+/* Never style the live panel: all rules require the preview-only inert wrapper. */
+[aria-label="Salt-okunur kargo önizlemesi"],
+[aria-label="Salt-okunur bildirim önizlemesi"],
+[aria-label="Salt-okunur sepet önizlemesi"] {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  --r33-edge: #e0e8f2;
+  --r33-shadow: 0 8px 24px rgb(22 45 75 / 5%);
+}
+[aria-label="Salt-okunur kargo önizlemesi"] .student-portal__hero,
+[aria-label="Salt-okunur bildirim önizlemesi"] .notification-center-heading,
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-commerce-heading {
+  max-width: 100%;
+  min-width: 0;
+}
+[aria-label="Salt-okunur kargo önizlemesi"] .student-shipment-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  align-items: start;
+  gap: clamp(14px, 1.6vw, 22px);
+}
+[aria-label="Salt-okunur kargo önizlemesi"] .student-shipment-card {
+  min-width: 0;
+  border: 1px solid var(--r33-edge);
+  border-radius: 16px;
+  box-shadow: var(--r33-shadow);
+  padding: clamp(16px, 1.6vw, 24px);
+  overflow-wrap: anywhere;
+}
+[aria-label="Salt-okunur kargo önizlemesi"] .student-shipment-card dl {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+[aria-label="Salt-okunur kargo önizlemesi"] .student-shipment-card dl > div {
+  min-width: 0;
+}
+[aria-label="Salt-okunur kargo önizlemesi"] .student-shipment-card dd {
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+}
+[aria-label="Salt-okunur bildirim önizlemesi"] .notification-center-page {
+  min-width: 0;
+  max-width: 1380px;
+  margin-inline: auto;
+}
+[aria-label="Salt-okunur bildirim önizlemesi"] .notification-list {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+[aria-label="Salt-okunur bildirim önizlemesi"] .notification-item {
+  min-width: 0;
+  border-radius: 15px;
+  border: 1px solid var(--r33-edge);
+  box-shadow: var(--r33-shadow);
+  padding: clamp(14px, 1.5vw, 22px);
+}
+[aria-label="Salt-okunur bildirim önizlemesi"] .notification-item.is-unread {
+  border-color: #b4d4f5;
+  background: #f7fbff;
+}
+[aria-label="Salt-okunur bildirim önizlemesi"] .notification-item-copy,
+[aria-label="Salt-okunur bildirim önizlemesi"] .notification-item-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+[aria-label="Salt-okunur bildirim önizlemesi"] .notification-item-meta time {
+  white-space: normal;
+}
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-page {
+  min-width: 0;
+  max-width: 1440px;
+  margin-inline: auto;
+}
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-layout {
+  min-width: 0;
+  gap: clamp(14px, 1.7vw, 24px);
+  align-items: start;
+}
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-list,
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-order-summary,
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-item {
+  min-width: 0;
+  border-radius: 16px;
+  overflow-wrap: anywhere;
+}
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-item,
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-order-summary {
+  border: 1px solid var(--r33-edge);
+  box-shadow: var(--r33-shadow);
+}
+[aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-item-price {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* The controls remain inert. The styling only clarifies their disabled state. */
+[aria-label="Salt-okunur bildirim önizlemesi"] button,
+[aria-label="Salt-okunur sepet önizlemesi"] button,
+[aria-label="Salt-okunur sepet önizlemesi"] a {
+  cursor: not-allowed !important;
+}
+@media (max-width: 900px) {
+  [aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [aria-label="Salt-okunur sepet önizlemesi"] .trainer-order-summary {
+    width: 100%;
+    max-width: none;
+  }
+}
+@media (max-width: 640px) {
+  [aria-label="Salt-okunur kargo önizlemesi"] .student-shipment-list,
+  [aria-label="Salt-okunur bildirim önizlemesi"] .notification-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  [aria-label="Salt-okunur kargo önizlemesi"] .student-shipment-card,
+  [aria-label="Salt-okunur bildirim önizlemesi"] .notification-item {
+    padding: 16px;
+    border-radius: 13px;
+  }
+  [aria-label="Salt-okunur bildirim önizlemesi"] .notification-center-heading,
+  [aria-label="Salt-okunur bildirim önizlemesi"] .notification-center-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  [aria-label="Salt-okunur bildirim önizlemesi"] .notification-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  [aria-label="Salt-okunur bildirim önizlemesi"] .notification-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  [aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-item {
+    padding: 14px;
+  }
+  [aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-item-copy,
+  [aria-label="Salt-okunur sepet önizlemesi"] .trainer-cart-list-heading {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

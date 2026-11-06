@@ -29,7 +29,11 @@ export default async function handler(req,res){
   if(!["product","package"].includes(kind))return reply(res,400,{error:"MEDIA_KIND_INVALID"});
   const denied=requirePermission(principal,kind==="product"?"product.manage":"package.manage");
   if(denied)return reply(res,denied.status,denied.body);
-  const fileName=kind==="product"?studentProductImageSlugsV41F[key]:(studentPackageKeysV41F.has(key)?key:undefined);
+  // Existing catalog IDs keep their historical filenames. New draft identifiers are
+  // explicitly restricted to safe, short, URL-safe slugs (never filesystem paths).
+  const knownName=kind==="product"?studentProductImageSlugsV41F[key]:(studentPackageKeysV41F.has(key)?key:undefined);
+  const newDraftName=/^[a-z0-9][a-z0-9-]{2,79}$/u.test(key) ? key : undefined;
+  const fileName=knownName || newDraftName;
   if(!fileName)return reply(res,400,{error:"CATALOG_MEDIA_ID_INVALID"});
   const format=formats[String(input.contentType||"")];
   if(!format||typeof input.base64!=="string"||!(/^[A-Za-z0-9+/=]+$/u.test(input.base64)))return reply(res,400,{error:"UNSUPPORTED_IMAGE"});

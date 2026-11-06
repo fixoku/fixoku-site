@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getNextReadingText } from "./utils/readingTextRotation.js";
+import { createAnonymousId, pushEvent } from "./martech/events.js";
 
 function getReadingGradeKey(level, subLevel) {
   if (level === "ilkokul" && subLevel === "3-sinif") return "3";
@@ -67,6 +68,14 @@ export default function ReadingSpeedTest({ isOpen, onClose }) {
   const [readingWarning, setReadingWarning] = useState("");
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
   const [readingFontSize, setReadingFontSize] = useState(18);
+  const readingSessionId = useRef(null);
+
+  useEffect(() => {
+    const sessionId = readingSessionId.current;
+    if (!sessionId || step !== "result") return;
+    pushEvent("reading_test_complete", { test_id: "free_reading", test_session_id: sessionId, level }, { onceKey: `reading:${sessionId}:complete` });
+    pushEvent("reading_test_result_view", { test_id: "free_reading", test_session_id: sessionId, level }, { onceKey: `reading:${sessionId}:result` });
+  }, [step, level]);
 
   useEffect(() => {
     if (!isOpen || step !== "reading" || !startedAt) return undefined;
@@ -109,6 +118,7 @@ export default function ReadingSpeedTest({ isOpen, onClose }) {
 
 
   const resetTest = () => {
+    readingSessionId.current = null;
     setStep("level");
     setLevel("");
     setSubLevel("");
@@ -156,6 +166,9 @@ export default function ReadingSpeedTest({ isOpen, onClose }) {
   };
 
   const startReading = () => {
+    const sessionId = createAnonymousId();
+    readingSessionId.current = sessionId;
+    pushEvent("reading_test_start", { test_id: "free_reading", test_session_id: sessionId, level }, { onceKey: `reading:${sessionId}:start` });
     setStartedAt(Date.now());
     setReadingSeconds(0);
     setStep("reading");
@@ -275,7 +288,7 @@ export default function ReadingSpeedTest({ isOpen, onClose }) {
     onClick={finishReading}
     disabled={readingSeconds < 40}
   >
-    {readingSeconds < 40 ? "Okumayı Bitirdim (" + (40 - readingSeconds) + " sn sonra)" : "Okumayı Bitirdim"}
+    {"Okumayı Bitirdim"}
   </button>
 
   {readingWarning && (

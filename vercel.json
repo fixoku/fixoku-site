@@ -23,6 +23,10 @@
                 ],
     "rewrites":  [
                      {
+                         "source":  "/giris",
+                         "destination":  "/index.html"
+                     },
+                     {
                          "source":  "/panel",
                          "destination":  "/panel.html"
                      },

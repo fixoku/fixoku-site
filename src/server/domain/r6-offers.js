@@ -181,3 +181,13 @@ export function normalizeR6OfferTokenForLookup(token) {
 }
 
 export const R6_OFFER_MAX_SAFE = MAX_SAFE;
+
+// Discounts above half of the catalog total are an exceptional commercial
+// decision. The caller must send an explicit confirmation flag; the server
+// remains the authority for the computed percentage.
+export const R6_HIGH_DISCOUNT_THRESHOLD_BPS = 5_000;
+export function assertR6HighDiscountConfirmed(summary, confirmed) {
+  const percentBps = integer(summary?.discountPercentBps ?? 0, "OFFER_DISCOUNT_INVALID", { max: 10_000 });
+  if (percentBps > R6_HIGH_DISCOUNT_THRESHOLD_BPS && confirmed !== true) fail("OFFER_HIGH_DISCOUNT_CONFIRMATION_REQUIRED", 409);
+  return true;
+}

@@ -142,26 +142,31 @@ export function R6CustomOffersPage() {
   const [expiresAt, setExpiresAt] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0);
   const [specialTotalText, setSpecialTotalText] = useState("");
+  const [confirmHighDiscount, setConfirmHighDiscount] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const [offerResponse, familyResponse, packageResponse, productResponse, userResponse] = await Promise.all([
+    const [offerResponse, familyResponse, packageResponse, productResponse, userResponse, trainerUserResponse, trainerPackageResponse] = await Promise.all([
       fetch("/api/admin/r6-custom-offers", { credentials: "same-origin", cache: "no-store" }),
       fetch("/api/admin/family-offers", { credentials: "same-origin", cache: "no-store" }),
       fetch("/api/admin/packages", { credentials: "same-origin", cache: "no-store" }),
       fetch("/api/admin/products", { credentials: "same-origin", cache: "no-store" }),
       fetch("/api/admin/users?role=STUDENT&pageSize=100", { credentials: "same-origin", cache: "no-store" }),
+      fetch("/api/admin/users?role=TRAINER&pageSize=100", { credentials: "same-origin", cache: "no-store" }),
+      fetch("/api/admin/trainer-packages", { credentials: "same-origin", cache: "no-store" }),
     ]);
 
     const offerBody = await offerResponse.json().catch(() => ({}));
     const familyBody = await familyResponse.json().catch(() => ({}));
     const packageBody = await packageResponse.json().catch(() => ({}));
     const productBody = await productResponse.json().catch(() => ({}));
-    const userBody = await userResponse.json().catch(() => ({}));
+    const studentUserBody = await userResponse.json().catch(() => ({}));
+    const trainerUserBody = await trainerUserResponse.json().catch(() => ({}));
+    const trainerPackageBody = await trainerPackageResponse.json().catch(() => ({}));
 
     setOffers(offerBody.offers || []);
     setFamilyOffers(familyBody.offers || []);
-    setUsers(userBody.users || []);
+    setUsers([...new Map([...(studentUserBody.users || []), ...(trainerUserBody.users || [])].map((user) => [user.userId, user])).values()]);
 
     const packageRows: CatalogItem[] = (packageBody.packages || []).flatMap((item: any) =>
       (item.versions || [])
@@ -189,7 +194,8 @@ export function R6CustomOffersPage() {
         imageReference: item.imageReference || item.image_reference || null,
       }));
 
-    setCatalog([...packageRows, ...productRows]);
+    const trainerPackageRows: CatalogItem[] = (trainerPackageBody.packages || []).filter((item: any) => item.versionStatus === "PUBLISHED" || item.status === "PUBLISHED").map((item: any) => ({ id: item.packageVersionId, kind: "PACKAGE" as const, title: item.title, priceMinor: Number(item.priceGrossMinor || item.priceMinor) || 0, currency: item.currency || "TRY", subtype: "TRAINER_PACKAGE", imageReference: item.iconReference || null }));
+    setCatalog([...packageRows, ...trainerPackageRows, ...productRows]);
     setLoading(false);
   };
 
@@ -207,6 +213,7 @@ export function R6CustomOffersPage() {
   const specialTotal = Math.min(normalTotal, specialMinorInput ?? defaultSpecialTotal);
   const discountMinor = Math.max(0, normalTotal - specialTotal);
   const derivedDiscountPercent = normalTotal ? Math.round((discountMinor / normalTotal) * 100) : 0;
+  const highDiscount = normalTotal > 0 && discountMinor * 2 > normalTotal;
 
   const selectedCustomer = useMemo(() => users.find((user) => user.userId === customerUserId), [customerUserId, users]);
 
@@ -316,6 +323,7 @@ export function R6CustomOffersPage() {
     setExpiresAt("");
     setDiscountPercent(0);
     setSpecialTotalText("");
+    setConfirmHighDiscount(false);
     setMessage("");
   };
 
@@ -357,8 +365,8 @@ export function R6CustomOffersPage() {
 
   const createStandardOffer = async () => {
     setMessage("");
-    if (!title.trim() || !customerEmail.trim() || !lines.length) {
-      setMessage("Müşteri e-postası, teklif başlığı ve en az bir teklif kalemi zorunludur.");
+    if (!title.trim() || !customerEmail.trim() || !customerUserId || !lines.length) {
+      setMessage("Kayıtlı öğrenci, veli veya eğitmen seçimi; teklif başlığı ve en az bir teklif kalemi zorunludur.");
       return;
     }
 
@@ -368,6 +376,7 @@ export function R6CustomOffersPage() {
       customerUserId: customerUserId || null,
       customerEmail: customerEmail.trim(),
       expiresAt: expiresAt || null,
+      confirmHighDiscount,
       lines: lines.map((line, index) => ({
         lineKind: line.kind,
         packageVersionId: line.kind === "PACKAGE" ? line.reference : undefined,
@@ -378,6 +387,11 @@ export function R6CustomOffersPage() {
         lineOrder: index,
       })),
     };
+
+    if (highDiscount && !confirmHighDiscount) {
+      setMessage("%50 üzeri indirim için Owner teyidi gereklidir.");
+      return;
+    }
 
     const response = await fetch("/api/admin/r6-custom-offers", {
       method: "POST",
@@ -592,6 +606,7 @@ export function R6CustomOffersPage() {
                     </div>
                     <label className="offer-v3-range">İndirim oranı <strong>%{derivedDiscountPercent}</strong><input type="range" min="0" max="50" value={derivedDiscountPercent} onChange={(event) => { const percent = Number(event.target.value); setDiscountPercent(percent); setSpecialTotalText(((normalTotal * (1 - percent / 100)) / 100).toFixed(2).replace(".", ",")); }} /></label>
                     <div className="offer-v3-discount-pills">{[0, 5, 10, 15, 20].map((value) => <button type="button" key={value} className={derivedDiscountPercent === value ? "is-active" : ""} onClick={() => { setDiscountPercent(value); setSpecialTotalText(((normalTotal * (1 - value / 100)) / 100).toFixed(2).replace(".", ",")); }}>%{value}</button>)}</div>
+                    {highDiscount && <label className="offer-v3-high-discount-confirm"><input type="checkbox" checked={confirmHighDiscount} onChange={(event) => setConfirmHighDiscount(event.target.checked)} /> %50 üzeri indirimi Owner teyidiyle onaylıyorum.</label>}
                   </div>
                   <div className="offer-v3-price-card">
                     <h3>Geçerlilik</h3>

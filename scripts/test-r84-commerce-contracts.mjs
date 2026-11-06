@@ -16,7 +16,12 @@ assert.match(studentAdmin, /PACKAGE_CREATION_FORBIDDEN/u);
 assert.doesNotMatch(studentAdmin, /student_commerce\.package\.created/u);
 assert.match(studentAdmin, /version\.status !== "DRAFT"/u);
 assert.match(studentAdmin, /PUBLISHED_VERSION_IMMUTABLE/u);
-assert.match(studentAdminUi, /Yeni paket oluşturma yetkisi kapalıdır/u);
+// The current student commerce editor intentionally creates a hidden DRAFT
+// through the guarded API. The old assertion described the retired UI that
+// blocked all package creation and therefore failed without proving a
+// security regression.
+assert.match(studentAdminUi, /Yeni paket önce gizli taslak olarak kaydedilir/u);
+assert.match(studentAdminUi, /Taslağı Oluştur/u);
 
 assert.match(paytrToken, /o\.payment_method='PAYTR'/u);
 assert.match(paytrCallback, /payment_method='PAYTR'/u);

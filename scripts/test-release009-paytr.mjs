@@ -34,14 +34,15 @@ try {
   process.env.PAYTR_ENABLED = "1";
   assert.equal((await invoke({ ...signed(order, 100000), hash: "invalid" })).status, 401);
   assert.equal((await invoke(signed(order, 100001))).status, 409, "amount mismatch");
+  assert.equal((await invoke({ ...signed(order, 100000), currency: "USD" })).status, 409, "currency mismatch");
   const paid = await invoke(signed(order, 100000));
   assert.equal(paid.status, 200, "trainer callback settlement");
   assert.equal(paid.body, "OK");
   assert.equal((await invoke(signed(order, 100000))).status, 200, "callback replay");
   assert.equal((await pool.query("select status from trainer_package_orders where id=$1", [order])).rows[0].status, "PAID");
   assert.equal(Number((await pool.query("select count(*) as count from trainer_package_entitlements where source_order_id=$1", [order])).rows[0].count), 1);
-  assert.equal(Number((await pool.query("select count(*) as count from r6_trainer_qualification_grants where source_order_id=$1", [order])).rows[0].count), 1);
-  console.log(JSON.stringify({ CALLBACK_DISABLED_REJECTED: "PASS", INVALID_SIGNATURE_REJECTED: "PASS", AMOUNT_MISMATCH_REJECTED: "PASS", TRAINER_CALLBACK_TRANSACTION: "PASS", CALLBACK_REPLAY: "PASS", ENTITLEMENT_EXPERTISE: "PASS", PAYTR_NETWORK_CALLS: 0, DATABASE_ISOLATION: "DISPOSABLE_ONLY" }));
+  assert.equal(Number((await pool.query("select count(*) as count from r6_trainer_qualification_grants where source_order_id=$1", [order])).rows[0].count), 0);
+  console.log(JSON.stringify({ CALLBACK_DISABLED_REJECTED: "PASS", INVALID_SIGNATURE_REJECTED: "PASS", AMOUNT_MISMATCH_REJECTED: "PASS", CURRENCY_MISMATCH_REJECTED: "PASS", TRAINER_CALLBACK_TRANSACTION: "PASS", CALLBACK_REPLAY: "PASS", ENTITLEMENT_ACCESS_ONLY: "PASS", PAYTR_NETWORK_CALLS: 0, DATABASE_ISOLATION: "DISPOSABLE_ONLY" }));
 } finally {
   for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
   await disposable.dispose();

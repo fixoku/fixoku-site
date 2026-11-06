@@ -1,5 +1,4 @@
-import pg from "pg";
-import { auth, candidateAuth } from "../src/server/auth/auth.js";
+import { auth } from "../src/server/auth/auth.js";
 import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 
 async function readPayload(request) {
@@ -29,28 +28,6 @@ async function forwardAuthResponse(response, authResponse) {
   response.end(Buffer.from(await authResponse.arrayBuffer()));
 }
 
-async function pendingTrainerCandidate(email) {
-  if (!process.env.DATABASE_URL || !String(email || "").trim()) return false;
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1, connectionTimeoutMillis: 2000 });
-  try {
-    const result = await pool.query(`select 1
-      from trainer_applications a
-      join platform_users p on p.id=a.candidate_user_id
-      where lower(p.email)=lower($1)
-        and p.email_verified=false
-        and a.status in ('RECEIVED','REVIEWING','PROFILE_READY')
-        and not exists (select 1 from platform_memberships m where m.user_id=p.id and m.role='TRAINER' and m.status='ACTIVE')
-      limit 1`, [String(email).trim().toLowerCase()]);
-    return result.rowCount > 0;
-  } catch {
-    // Candidate detection is fail-closed: if the lookup is unavailable, use
-    // the normal verified-account auth path and never broaden candidate access.
-    return false;
-  } finally {
-    await pool.end();
-  }
-}
-
 // Same Better Auth login, explicit Vercel endpoint for trainer/student access.
 export default async function handler(request, response) {
   if (!cleanPreviewGateResponse(response)) return;
@@ -63,10 +40,9 @@ export default async function handler(request, response) {
     return;
   }
   const payload = await readPayload(request);
-  const selectedAuth = payload.value && await pendingTrainerCandidate(payload.value.email) ? candidateAuth : auth;
   const headers = requestHeaders(request);
   headers.set("content-type", "application/json");
-  const authResponse = await selectedAuth.handler(new Request("http://local/api/auth/sign-in/email", {
+  const authResponse = await auth.handler(new Request("http://local/api/auth/sign-in/email", {
     method: "POST",
     headers,
     body: payload.raw || JSON.stringify(payload.value || {}),

@@ -62,6 +62,15 @@ export default async function handler(req, res) {
        if (isPhoto) { const mediaConfig = getProfileMediaConfig(); if (profile.photo_storage_key && (mediaConfig.provider === "S3" || mediaConfig.provider === "R2")) { res.statusCode = 302; res.setHeader("Location", createProfilePhotoUrl(mediaConfig, profile.photo_storage_key)); res.setHeader("Cache-Control", "private, no-store"); res.setHeader("Referrer-Policy", "no-referrer"); res.end(); return; } const media = await (await import("../../src/server/domain/profile-media.js")).readProfilePhoto(mediaConfig, profile.photo_storage_key); if (!media) return json(res, 404, { error: "PHOTO_NOT_FOUND" }); res.statusCode = 200; res.setHeader("Content-Type", media.mime); res.setHeader("Cache-Control", "private, no-store"); res.setHeader("X-Content-Type-Options", "nosniff"); res.end(media.buffer); return; }
       if (req.method === "GET") { const dob = profile.date_of_birth instanceof Date ? profile.date_of_birth.toISOString().slice(0, 10) : String(profile.date_of_birth || "").slice(0, 10); return json(res, 200, { profile: { id: profile.id, userId: profile.user_id, firstName: profile.first_name || profile.user_name?.split(/\s+/u)[0] || "", lastName: profile.last_name || profile.user_name?.split(/\s+/u).slice(1).join(" ") || "", photoStorageKey: profile.photo_storage_key || null, photoUrl: profile.photo_storage_key ? "/api/student/profile/photo" : null, dateOfBirth: dob, educationStage: profile.education_stage, grade: profile.grade, classBranch: profile.class_branch, school: profile.school, schoolType: profile.school_type, city: profile.city, district: profile.district, email: profile.email, phone: profile.phone, guardianRelation: profile.guardian_relation, guardianName: profile.guardian_name, guardianPhone: profile.guardian_phone, guardianEmail: profile.guardian_email, addressLine: profile.address_line, postalCode: profile.postal_code, marketingConsent: Boolean(profile.marketing_consent) } }); }
       const b = await body(req);
+      // FIXOKU_R23_PHOTO_SAVE: photo-only update, avoids unrelated form validation.
+      if (b.photoOnly === true) {
+        if (typeof b.photoDataUrl !== "string" || !b.photoDataUrl) return json(res, 400, { error: "PHOTO_REQUIRED" });
+        const mediaConfig = getProfileMediaConfig();
+        const media = await saveProfilePhoto(mediaConfig, profile.user_id, b.photoDataUrl);
+        const updated = (await c.query("update student_profiles set photo_storage_key=$1,updated_at=now() where id=$2 returning photo_storage_key", [media.key, profile.id])).rows[0];
+        if (!updated) return json(res, 404, { error: "STUDENT_PROFILE_NOT_FOUND" });
+        return json(res, 200, { photoStorageKey: updated.photo_storage_key, photoUrl: "/api/student/profile/photo" });
+      }
       let segment;
       let phone;
       let school;
@@ -96,6 +105,10 @@ export default async function handler(req, res) {
         "address_line",
         "postal_code",
         "marketing_consent",
+        "guardian_name",
+        "guardian_email",
+        "guardian_phone",
+        "guardian_relation",
       ];
 
       const values = {
@@ -111,19 +124,29 @@ export default async function handler(req, res) {
         address_line: b.addressLine || null,
         postal_code: b.postalCode || null,
         marketing_consent: b.marketingConsent === true,
+        guardian_name: segment.educationStage === "ADULT" ? profile.guardian_name : String(b.guardianName ?? profile.guardian_name ?? "").trim(),
+        guardian_email: segment.educationStage === "ADULT" ? profile.guardian_email : String(b.guardianEmail ?? profile.guardian_email ?? "").trim().toLowerCase(),
+        guardian_phone: segment.educationStage === "ADULT" ? profile.guardian_phone : String(b.guardianPhone ?? profile.guardian_phone ?? "").trim(),
+        guardian_relation: segment.educationStage === "ADULT" ? profile.guardian_relation : String(b.guardianRelation ?? profile.guardian_relation ?? "").trim(),
       };
 
       const errors = {};
       if (values.first_name.length < 1 || values.first_name.length > 80) errors.firstName = "Ad alanı zorunludur.";
       if (values.last_name.length < 1 || values.last_name.length > 80) errors.lastName = "Soyad alanı zorunludur.";
       if (values.date_of_birth && !/^\d{4}-\d{2}-\d{2}$/u.test(values.date_of_birth)) errors.dateOfBirth = "Tarih geçersiz.";
+      if (segment.educationStage !== "ADULT") {
+        if (values.guardian_name.length < 2 || values.guardian_name.length > 160) errors.guardianName = "Veli adı soyadı zorunludur.";
+        if (values.guardian_email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(values.guardian_email)) errors.guardianEmail = "Geçerli bir veli e-postası girin.";
+        if (!["Anne","Baba","Vasi","Diğer"].includes(values.guardian_relation)) errors.guardianRelation = "Yakınlık derecesini seçin.";
+        try { values.guardian_phone = normalizeTrMobile(values.guardian_phone); } catch { errors.guardianPhone = "Geçerli bir veli cep telefonu girin."; }
+      }
       if (Object.keys(errors).length) return json(res, 400, { error: "VALIDATION_ERROR", errors });
       let photoKey = profile.photo_storage_key || null; if (b.photoDataUrl) photoKey = (await saveProfilePhoto(getProfileMediaConfig(), profile.user_id, b.photoDataUrl)).key; if (b.removePhoto) photoKey = null;
       const set = fields.map((f, i) => `"${f}"=$${i + 1}`).join(", "); const params = fields.map((f) => values[f]); params.push(photoKey, profile.id);
       const saved = (await c.query(`update student_profiles set ${set}, photo_storage_key=$${params.length - 1}, updated_at=now() where id=$${params.length} returning *`, params)).rows[0];
       if (b.removePhoto && profile.photo_storage_key) await removeProfilePhoto(getProfileMediaConfig(), profile.photo_storage_key);
       await c.query("update platform_users set display_name=$1,updated_at=now() where id=$2", [`${values.first_name} ${values.last_name}`.trim(), profile.user_id]);
-      return json(res, 200, { profile: { ...values, id: saved.id, userId: profile.user_id, email: profile.email, photoStorageKey: saved.photo_storage_key || null, photoUrl: saved.photo_storage_key ? "/api/student/profile/photo" : null, guardianName: saved.guardian_name, guardianPhone: saved.guardian_phone, guardianEmail: saved.guardian_email, addressLine: saved.address_line, postalCode: saved.postal_code, marketingConsent: Boolean(saved.marketing_consent) } });
+      return json(res, 200, { profile: { ...values, id: saved.id, userId: profile.user_id, email: profile.email, photoStorageKey: saved.photo_storage_key || null, photoUrl: saved.photo_storage_key ? "/api/student/profile/photo" : null, guardianName: saved.guardian_name, guardianRelation: saved.guardian_relation, guardianPhone: saved.guardian_phone, guardianEmail: saved.guardian_email, addressLine: saved.address_line, postalCode: saved.postal_code, marketingConsent: Boolean(saved.marketing_consent) } });
     } finally { c.release(); }
   } catch (error) { return json(res, error.code === "22P02" ? 400 : 503, { error: error.code === "22P02" ? "VALIDATION_ERROR" : "STUDENT_PROFILE_UNAVAILABLE" }); } finally { await pool.end(); }
 }

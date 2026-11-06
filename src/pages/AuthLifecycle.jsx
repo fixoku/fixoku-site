@@ -399,6 +399,7 @@ export function TrainerApplicationPage() {
       setForm((current) => ({ ...current, password: "", passwordConfirm: "" }));
       if (result.emailVerification) navigate("/e-posta-dogrula?alan=egitmen", { replace: true });
       pushEvent("trainer_application_submit", { form_id: "trainer_application" });
+      pushEvent("form_submit_success", { form_id: "trainer_application" });
       pushEvent("generate_lead", { form_id: "trainer_application" });
     } catch {
       pushEvent("form_error", { form_id: "trainer_application", response_status: "network" });

@@ -98,10 +98,9 @@ export const CLEAN_STAGING_HOSTS = Object.freeze({
   direct: `${CLEAN_STAGING_METADATA.endpoint}.${CLEAN_STAGING_METADATA.regionSuffix}`,
 });
 
-// R16's Neon project/branch identity was verified in the Neon console. The
-// console evidence supplied for this change does not include pooled/direct DNS
-// hostnames, so they remain unset here. Authorized deployment metadata must
-// provide both hosts and pass the exact endpoint/role/domain checks below.
+// R16's Neon project/branch and pooled/direct DNS identities were verified in
+// the Neon console. Keep these values source-controlled so a runtime metadata
+// value cannot select an arbitrary Neon endpoint or region.
 export const R16_STAGING_METADATA = Object.freeze({
   project: "tiny-fire-86403197",
   branch: "br-delicate-moon-b1qfnzdd",
@@ -110,8 +109,8 @@ export const R16_STAGING_METADATA = Object.freeze({
   branchName: "fixoku-r16-staging-20261106",
   schemaOnly: true,
   autoDelete: "never",
-  pooledHost: "",
-  directHost: "",
+  pooledHost: "ep-old-tree-b1gdwjcz-pooler.c-5.eu-central-1.aws.neon.tech",
+  directHost: "ep-old-tree-b1gdwjcz.c-5.eu-central-1.aws.neon.tech",
 });
 
 export const R16_STAGING_HOSTS = Object.freeze({
@@ -187,25 +186,33 @@ export function exactPreviewContractEnvironment(contract, env = process.env) {
 }
 
 /**
+ * Validate deployment metadata without consulting the attestation flag. This
+ * is the read-only bootstrap proof used by the R16 diagnostic route; business
+ * access still requires previewContractMetadataAttested().
+ */
+export function previewContractMetadataConfigured(contract, env = process.env) {
+  if (!contract) return false;
+  const metadata = contract.metadata;
+  const target = contract === PREVIEW_CONTRACTS.r16Staging ? R16_STAGING_METADATA : CLEAN_STAGING_METADATA;
+  const pooledHost = normalizedHost(env[metadata.pooledHost]);
+  const directHost = normalizedHost(env[metadata.directHost]);
+  const hostsMatch = contract === PREVIEW_CONTRACTS.r16Staging
+    ? pooledHost === R16_STAGING_HOSTS.pooled && directHost === R16_STAGING_HOSTS.direct
+    : pooledHost === CLEAN_STAGING_HOSTS.pooled && directHost === CLEAN_STAGING_HOSTS.direct;
+  return env[metadata.project] === target.project
+    && env[metadata.branch] === target.branch
+    && env[metadata.database] === target.database
+    && hostsMatch;
+}
+
+/**
  * This is an operator attestation, not a database query. It is deliberately
  * exact and branch-scoped; callers must still perform the independent pooled
  * and direct read-only fingerprints before setting the attestation value.
  */
 export function previewContractMetadataAttested(contract, env = process.env) {
-  if (!contract) return false;
-  const metadata = contract.metadata;
-  const isR16 = contract === PREVIEW_CONTRACTS.r16Staging;
-  const target = isR16 ? R16_STAGING_METADATA : CLEAN_STAGING_METADATA;
-  const pooledHost = normalizedHost(env[metadata.pooledHost]);
-  const directHost = normalizedHost(env[metadata.directHost]);
-  const hostsMatch = isR16
-    ? isR16StagingHost(pooledHost, "pooled") && isR16StagingHost(directHost, "direct")
-    : pooledHost === CLEAN_STAGING_HOSTS.pooled && directHost === CLEAN_STAGING_HOSTS.direct;
-  return env[metadata.attested] === "1"
-    && env[metadata.project] === target.project
-    && env[metadata.branch] === target.branch
-    && env[metadata.database] === target.database
-    && hostsMatch;
+  return previewContractMetadataConfigured(contract, env)
+    && env[contract.metadata.attested] === "1";
 }
 
 /**

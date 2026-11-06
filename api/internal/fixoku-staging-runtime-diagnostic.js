@@ -18,6 +18,7 @@ import {
   R16_STAGING_METADATA,
   exactPreviewContractEnvironment,
   isR16StagingHost,
+  previewContractMetadataConfigured,
   previewContractMetadataAttested,
   previewContractForBranch,
 } from "../../src/server/auth/preview-contract.js";
@@ -91,21 +92,28 @@ function exactPath(req) {
   }
 }
 
-function runtimeProjectId(env) {
+function runtimeProjectId(env, contract) {
   const values = [
     env?.NEON_PROJECT_ID,
     env?.DATABASE_NEON_PROJECT_ID,
+    env?.VERCEL_NEON_PROJECT_ID,
   ].map((value) => String(value || "").trim()).filter(Boolean);
+  if (contract === PREVIEW_CONTRACTS.r16Staging) {
+    values.push(String(env?.[contract.metadata.project] || "").trim());
+  }
   if (new Set(values).size > 1) return null;
   return values[0] || "";
 }
 
-function runtimeBranchId(env) {
+function runtimeBranchId(env, contract) {
   const values = [
     env?.NEON_BRANCH_ID,
     env?.DATABASE_NEON_BRANCH_ID,
     env?.VERCEL_NEON_BRANCH_ID,
   ].map((value) => String(value || "").trim()).filter(Boolean);
+  if (contract === PREVIEW_CONTRACTS.r16Staging) {
+    values.push(String(env?.[contract.metadata.branch] || "").trim());
+  }
   if (new Set(values).size > 1) return null;
   return values[0] || "";
 }
@@ -137,10 +145,13 @@ function targetMatchesExpected(target, kind, contract, env) {
   const expectedMetadata = isR16 ? R16_STAGING_METADATA : CLEAN_STAGING_METADATA;
   const metadataHostName = kind === "pooled" ? contract.metadata.pooledHost : contract.metadata.directHost;
   const expectedHost = String(env?.[metadataHostName] || "").trim().toLowerCase();
+  const targetHost = isR16
+    ? (kind === "pooled" ? R16_STAGING_METADATA.pooledHost : R16_STAGING_METADATA.directHost)
+    : (kind === "pooled" ? CLEAN_STAGING_HOSTS.pooled : CLEAN_STAGING_HOSTS.direct);
   const roleMatches = kind === "pooled" ? target.pooled : !target.pooled;
-  const hostMatches = isR16
-    ? isR16StagingHost(target.host, kind) && target.host === expectedHost
-    : target.host === (kind === "pooled" ? CLEAN_STAGING_HOSTS.pooled : CLEAN_STAGING_HOSTS.direct);
+  const hostMatches = target.host === targetHost
+    && expectedHost === targetHost
+    && (!isR16 || isR16StagingHost(target.host, kind));
   return roleMatches
     && hostMatches
     && target.endpoint === expectedMetadata.endpoint
@@ -226,9 +237,6 @@ export function createStagingRuntimeDiagnosticHandler({
     if (!exactPreviewRuntime(env)) return json(res, 404, { error: "STAGING_DIAGNOSTIC_NOT_FOUND" });
 
     const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
-    if (!previewContractMetadataAttested(contract, env)) {
-      return json(res, 503, { error: "RUNTIME_STAGING_METADATA_UNATTESTED" });
-    }
     const tokenHeader = contract?.probeTokenHeader || STAGING_DIAGNOSTIC_TOKEN_HEADER;
     const tokenEnv = contract?.probeTokenEnv || STAGING_DIAGNOSTIC_TOKEN_ENV;
 
@@ -243,11 +251,25 @@ export function createStagingRuntimeDiagnosticHandler({
     // assertion before opening either read-only database connection.
     if (!tokenAuthorized && !oidcAuthorized) return json(res, 404, { error: "STAGING_DIAGNOSTIC_NOT_FOUND" });
 
-    const configuredProjectId = runtimeProjectId(env);
+    // R16 may bootstrap its read-only fingerprint before the operator writes
+    // the attestation flag. Clean Preview and every other contract retain the
+    // existing attestation requirement; this route never opens business APIs.
+    if (!previewContractMetadataConfigured(contract, env)) {
+      return json(res, 503, { error: "RUNTIME_STAGING_METADATA_UNVERIFIED" });
+    }
+    const attestation = String(env[contract.metadata.attested] || "").trim();
+    if (contract !== PREVIEW_CONTRACTS.r16Staging && !previewContractMetadataAttested(contract, env)) {
+      return json(res, 503, { error: "RUNTIME_STAGING_METADATA_UNATTESTED" });
+    }
+    if (contract === PREVIEW_CONTRACTS.r16Staging && !["", "0", "1"].includes(attestation)) {
+      return json(res, 503, { error: "RUNTIME_STAGING_METADATA_UNATTESTED" });
+    }
+
+    const configuredProjectId = runtimeProjectId(env, contract);
     if (configuredProjectId === null) {
       return json(res, 503, { error: "RUNTIME_NEON_PROJECT_METADATA_MISMATCH" });
     }
-    const configuredBranchId = runtimeBranchId(env);
+    const configuredBranchId = runtimeBranchId(env, contract);
     if (configuredBranchId === null) {
       return json(res, 503, { error: "RUNTIME_NEON_BRANCH_METADATA_MISMATCH" });
     }
@@ -275,6 +297,12 @@ export function createStagingRuntimeDiagnosticHandler({
     let pooled;
     try {
       pooled = await readOnlyRuntimeFingerprint("pooled", env.DATABASE_URL, poolFactory);
+      const expectedDatabase = contract === PREVIEW_CONTRACTS.r16Staging
+        ? R16_STAGING_METADATA.database
+        : CLEAN_STAGING_METADATA.database;
+      if (pooled.database !== expectedDatabase) {
+        return json(res, 503, { error: "RUNTIME_DATABASE_MISMATCH" });
+      }
       if (pooled.projectId === STAGING_DIAGNOSTIC_PRODUCTION_PROJECT) {
         return json(res, 503, { error: "RUNTIME_PRODUCTION_TARGET_BLOCKED" });
       }
@@ -301,6 +329,10 @@ export function createStagingRuntimeDiagnosticHandler({
     if (direct.projectId === STAGING_DIAGNOSTIC_PRODUCTION_PROJECT) {
       return json(res, 503, { error: "RUNTIME_PRODUCTION_TARGET_BLOCKED" });
     }
+    const expectedDatabase = contract === PREVIEW_CONTRACTS.r16Staging
+      ? R16_STAGING_METADATA.database
+      : CLEAN_STAGING_METADATA.database;
+    if (direct.database !== expectedDatabase) return json(res, 503, { error: "RUNTIME_DATABASE_MISMATCH" });
     if (!direct.projectId && !configuredProjectId) return json(res, 503, { error: "RUNTIME_NEON_PROJECT_METADATA_UNAVAILABLE" });
     if (direct.projectId && direct.projectId !== STAGING_DIAGNOSTIC_EXPECTED_PROJECT) return json(res, 503, { error: "RUNTIME_NEON_PROJECT_MISMATCH", target: { expectedProjectId: STAGING_DIAGNOSTIC_EXPECTED_PROJECT, observedProjectId: direct.projectId, matched: false } });
     if (pooled.projectId && direct.projectId && direct.projectId !== pooled.projectId) return json(res, 503, { error: "RUNTIME_NEON_PROJECT_MISMATCH", target: { pooledProjectId: pooled.projectId, directProjectId: direct.projectId, matched: false } });

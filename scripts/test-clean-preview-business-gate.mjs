@@ -110,15 +110,22 @@ try {
     FIXOKU_R16_RUNTIME_EXPECTED_COMMIT_SHA: R16_SHA,
     FIXOKU_R16_RUNTIME_PROBE_ENABLED: "1",
     FIXOKU_R16_STAGING_PROJECT_ID: "tiny-fire-86403197",
-    FIXOKU_R16_STAGING_BRANCH_ID: "br-sweet-resonance-b17h2ttf",
+    FIXOKU_R16_STAGING_BRANCH_ID: "br-delicate-moon-b1qfnzdd",
     FIXOKU_R16_STAGING_DATABASE: "neondb",
-    FIXOKU_R16_STAGING_POOLED_HOST: CLEAN_STAGING_HOSTS.pooled,
-    FIXOKU_R16_STAGING_DIRECT_HOST: CLEAN_STAGING_HOSTS.direct,
+    // Keep host metadata absent in this negative case so R16 remains blocked
+    // until the complete endpoint attestation is supplied.
   };
   setEnv(r16Base);
   assert.equal(isCleanPreviewBusinessAccessBlocked(), true, "R16 missing attestation blocks business access");
   setEnv({ ...r16Base, FIXOKU_R16_STAGING_ENDPOINT_METADATA_ATTESTED: "1" });
-  assert.equal(isCleanPreviewBusinessAccessBlocked(), false, "R16 verified metadata permits guarded dispatch");
+  assert.equal(isCleanPreviewBusinessAccessBlocked(), true, "R16 missing verified host metadata remains blocked");
+  setEnv({
+    ...r16Base,
+    FIXOKU_R16_STAGING_ENDPOINT_METADATA_ATTESTED: "1",
+    FIXOKU_R16_STAGING_POOLED_HOST: "ep-old-tree-b1gdwjcz-pooler.c-5.eu-central-1.aws.neon.tech",
+    FIXOKU_R16_STAGING_DIRECT_HOST: "ep-old-tree-b1gdwjcz.c-5.eu-central-1.aws.neon.tech",
+  });
+  assert.equal(isCleanPreviewBusinessAccessBlocked(), false, "R16 verified attested metadata permits guarded dispatch");
   setEnv({ ...r16Base, VERCEL_GIT_COMMIT_SHA: "e1380f2cd80a28c6e92940ed0a7b739328f07082", FIXOKU_R16_RUNTIME_EXPECTED_COMMIT_SHA: "e1380f2cd80a28c6e92940ed0a7b739328f07082", FIXOKU_R16_STAGING_ENDPOINT_METADATA_ATTESTED: "1" });
   assert.equal(isCleanPreviewBusinessAccessBlocked(), true, "R15 source SHA is forbidden for R16");
 

@@ -264,12 +264,16 @@ export function previewContractMetadataAttested(contract, env = process.env) {
  * Legacy R98 and Production do not consult this gate.
  */
 export function isCleanPreviewBusinessAccessBlocked(env = process.env) {
-  const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
-  const isCleanPreview = contract?.businessGate === true
-    && env.VERCEL === "1"
+  const isPreview = env.VERCEL === "1"
     && String(env.VERCEL_ENV || "").trim().toLowerCase() === "preview";
-  return isCleanPreview
-    && (!exactPreviewContractEnvironment(contract, env) || !previewContractMetadataAttested(contract, env));
+  if (!isPreview) return false;
+  const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+  // Unknown or missing Preview branch metadata must never bypass the business gate.
+  if (!contract) return true;
+  // Preserve the explicitly grandfathered legacy R98 contract.
+  if (contract.businessGate !== true) return false;
+  return !exactPreviewContractEnvironment(contract, env)
+    || !previewContractMetadataAttested(contract, env);
 }
 
 export function cleanPreviewGateResponse(res, env = process.env) {

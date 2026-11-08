@@ -82,7 +82,7 @@ async function verifyVercelOidcSignature(token) {
 }
 
 export async function hasVercelOidcAuthorization(req, env = process.env) {
-  if (env.VERCEL !== "1") return false;
+  if (env.VERCEL !== "1" || String(env.VERCEL_ENV || "").trim().toLowerCase() !== "preview") return false;
   const provided = getHeader(req, VERCEL_OIDC_HEADER).trim();
   if (!provided) return false;
   const payload = await verifyVercelOidcSignature(provided);
@@ -95,7 +95,7 @@ export async function hasVercelOidcAuthorization(req, env = process.env) {
     || !audience.includes(VERCEL_OIDC_AUDIENCE)
     || payload.project !== "fixoku-site"
     || payload.project_id !== TARGET_PROJECT_ID
-    || !["development", "preview"].includes(String(payload.environment || ""))
+    || payload.environment !== "preview"
     || scope !== projectScope
     || !Number.isFinite(Number(payload.exp))
     || Number(payload.exp) <= now

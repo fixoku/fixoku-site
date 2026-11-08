@@ -228,7 +228,7 @@ function exactPreviewRuntime(env) {
   const contract = previewContractForBranch(env?.VERCEL_GIT_COMMIT_REF);
   return (contract === PREVIEW_CONTRACTS.cleanIntegration || contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance)
     && env?.VERCEL_PROJECT_ID === VERCEL_PROJECT_ID
-    && env?.VERCEL_ORG_ID === VERCEL_ORG_ID
+    // VERCEL_ORG_ID is not a documented Vercel system variable; VERCEL_PROJECT_ID is checked above.
     && exactPreviewContractEnvironment(contract, env);
 }
 

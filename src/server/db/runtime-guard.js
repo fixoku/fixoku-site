@@ -1,5 +1,5 @@
 /* global process */
-import { R16_STAGING_METADATA, isR16StagingHost } from "../auth/preview-contract.js";
+import { R16_STAGING_METADATA, R18_STAGING_METADATA, isR16StagingHost } from "../auth/preview-contract.js";
 /*
  * FIXOKU clean Preview database guard.
  *
@@ -28,6 +28,8 @@ export const R16_STAGING_DATABASE = R16_STAGING_METADATA.database;
 export const R16_STAGING_ENDPOINT_ID = R16_STAGING_METADATA.endpoint;
 export const R16_STAGING_POOLED_HOST = R16_STAGING_METADATA.pooledHost;
 export const R16_STAGING_DIRECT_HOST = R16_STAGING_METADATA.directHost;
+
+export const R18_PREVIEW_BRANCH = "codex/fixoku-r18-owner-acceptance-20261108";
 
 const SHA256_HEX = /^[0-9a-f]{40}$/iu;
 
@@ -107,6 +109,27 @@ export function r16PreviewEnvironmentStatus(env = process.env) {
   return Object.freeze({ ok: Object.values(checks).every(Boolean), checks });
 }
 
+export function r18PreviewEnvironmentStatus(env = process.env) {
+  const expectedCommit = text(env.FIXOKU_R18_RUNTIME_EXPECTED_COMMIT_SHA).toLowerCase();
+  const actualCommit = text(env.VERCEL_GIT_COMMIT_SHA).toLowerCase();
+  const checks = {
+    vercel: text(env.VERCEL) === "1",
+    preview: text(env.VERCEL_ENV).toLowerCase() === "preview",
+    branch: text(env.VERCEL_GIT_COMMIT_REF) === R18_PREVIEW_BRANCH,
+    expectedCommitFormat: SHA256_HEX.test(expectedCommit),
+    actualCommitFormat: SHA256_HEX.test(actualCommit),
+    commitMatch: Boolean(expectedCommit) && expectedCommit === actualCommit,
+    probeEnabled: text(env.FIXOKU_R18_RUNTIME_PROBE_ENABLED) === "1",
+    project: text(env.FIXOKU_R18_STAGING_PROJECT_ID) === R18_STAGING_METADATA.project,
+    branchId: text(env.FIXOKU_R18_STAGING_BRANCH_ID) === R18_STAGING_METADATA.branch,
+    database: text(env.FIXOKU_R18_STAGING_DATABASE) === R18_STAGING_METADATA.database,
+    endpointAttested: text(env.FIXOKU_R18_STAGING_ENDPOINT_METADATA_ATTESTED) === "1",
+    pooledMetadataHost: metadataHost(env.FIXOKU_R18_STAGING_POOLED_HOST) === R18_STAGING_METADATA.pooledHost,
+    directMetadataHost: metadataHost(env.FIXOKU_R18_STAGING_DIRECT_HOST) === R18_STAGING_METADATA.directHost,
+  };
+  return Object.freeze({ ok: Object.values(checks).every(Boolean), checks });
+}
+
 export function isExactCleanPreviewEnvironment(env = process.env) {
   return cleanPreviewEnvironmentStatus(env).ok;
 }
@@ -155,6 +178,15 @@ export function assertR16PreviewConnectionUrl(rawUrl, kind = "pooled", env = pro
   }).toString();
 }
 
+export function assertR18PreviewConnectionUrl(rawUrl, kind = "pooled", env = process.env) {
+  if (!r18PreviewEnvironmentStatus(env).ok) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+  return parseConnectionUrlForTarget(rawUrl, kind, {
+    pooledHost: R18_STAGING_METADATA.pooledHost,
+    directHost: R18_STAGING_METADATA.directHost,
+    database: R18_STAGING_METADATA.database,
+  }).toString();
+}
+
 function parseConnectionUrlForTarget(rawUrl, kind, target) {
   const value = text(rawUrl);
   if (!value) fail("DATABASE_URL_MISSING");
@@ -185,6 +217,7 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
   const environment = text(env.VERCEL_ENV).toLowerCase();
   if (environment === "preview") {
     const branch = text(env.VERCEL_GIT_COMMIT_REF);
+    if (branch === R18_PREVIEW_BRANCH) return assertR18PreviewConnectionUrl(rawUrl, "pooled", env);
     if (branch === R16_PREVIEW_BRANCH) return assertR16PreviewConnectionUrl(rawUrl, "pooled", env);
     if (branch === CLEAN_PREVIEW_BRANCH) return assertCleanPreviewConnectionUrl(rawUrl, "pooled", env);
     fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");

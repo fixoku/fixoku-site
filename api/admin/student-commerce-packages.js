@@ -4,6 +4,7 @@ import { resolvePrincipal, requirePermission, requirePackagePermission, packageP
 import { UUID_PATTERN, normalizeCurrency } from "../../src/server/domain/commerce.js";
 import { validateEducationSegment, EDUCATION_STAGE_GRADES } from "../../src/server/domain/student-segment.js";
 import { publishPackageVersionsAtomically } from "../../src/server/domain/package-version.js";
+import { snapshotComponentPricing, restoreComponentPricing } from "../../src/server/domain/package-component-pricing.js";
 
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };
 const headers = (req) => new Headers(Object.entries(req.headers || {}).map(([key, value]) => [key, String(value)]));
@@ -43,6 +44,12 @@ const PUBLICATION_CONDITION_TEXT = Object.freeze({
   ACTIVE_COMPONENT_INVALID: "Aktif ürünlerin kimliği ve miktarı geçerli olmalı.",
   COMPONENT_PRODUCT_TYPE_INVALID: "Fiziksel bileşen fiziksel ürün olmalı.",
   COMPONENT_TYPE_INVALID: "Paket bileşeni türü geçerli olmalı.",
+  PRODUCT_ID_NOT_RESOLVED: "Bileşen ürünü katalogda çözümlenemedi.",
+  PRODUCT_INACTIVE: "Bileşen ürünü pasif; yayınlama engellendi.",
+  MISSING_COMPONENT_PRICING: "Aktif bileşenin fiyat kaydı eksik; varsayılan fiyat kullanılmadı.",
+  COMPONENT_PRICING_ARITHMETIC_INVALID: "Bileşen fiyatında brüt, indirim, net veya KDV aritmetiği tutarsız.",
+  COMPONENT_PRICING_REVIEW_REQUIRED: "Yeni bileşen için Owner fiyat düzenlemesi gerekli; işlem geri alındı.",
+  COMPONENT_PRICING_MAPPING_AMBIGUOUS: "Tekrarlanan bileşenlerin fiyat eşlemesi belirsiz; işlem geri alındı.",
 });
 
 function publicationGateResponse(error) {
@@ -126,6 +133,7 @@ async function replaceComponents(client, versionId, products) {
 }
 
 export async function replaceStructuredComponents(client, versionId, components, educationStage = null) {
+  const priorPricing = await snapshotComponentPricing(client, versionId);
   const productIds = components.filter((item) => item.componentType !== "TEXT_ITEM").map((item) => item.physicalProductId || item.productId);
   if (productIds.some((id) => !UUID_PATTERN.test(String(id || "")))) throw bad("PACKAGE_PRODUCT_INVALID");
   if (new Set(productIds).size !== productIds.length) throw bad("PACKAGE_PRODUCT_DUPLICATE", 409);
@@ -190,6 +198,7 @@ export async function replaceStructuredComponents(client, versionId, components,
   const unusedTextIds = reusable.filter((row) => row.component_type === "TEXT_ITEM" && !used.has(row.id)).map((row) => row.id);
   if (unusedTextIds.length) await client.query("delete from package_components where package_version_id=$1 and id=any($2::uuid[])", [versionId, unusedTextIds]);
   if (existing.length) await client.query("update package_components set is_active=false where package_version_id=$1 and not (id=any($2::uuid[]))", [versionId, [...used]]);
+  await restoreComponentPricing(client, versionId, priorPricing);
 }
 
 // Published versions are immutable. Resolve an editable draft while holding
@@ -206,6 +215,7 @@ export async function resolveEditableStudentVersion(client, packageId, requested
   const nextVersion = Number((await client.query("select coalesce(max(version_number),0)+1 as version from package_versions where package_id=$1", [packageId])).rows[0].version);
   const draft = (await client.query("insert into package_versions(package_id,version_number,title,description,short_description,features_json,sku,invoice_product_code,invoice_product_name,invoice_description,unit,vat_rate_bps,price_net_minor,price_gross_minor,price_minor,currency,purchase_enabled,status) select package_id,$2,title,description,short_description,features_json,sku,invoice_product_code,invoice_product_name,invoice_description,unit,vat_rate_bps,price_net_minor,price_gross_minor,price_minor,currency,false,'DRAFT' from package_versions where id=$1 returning *", [requested.id, nextVersion])).rows[0];
   await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) select $1,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json from package_components where package_version_id=$2", [draft.id, requested.id]);
+  await restoreComponentPricing(client, draft.id, await snapshotComponentPricing(client, requested.id));
   return { version: draft, draftCreated: true, previousVersionId: requested.id };
 }
 
@@ -221,7 +231,7 @@ export default async function handler(req, res) {
     if (req.method === "PATCH" && ["priceMinor", "priceGrossMinor", "currency", "priceNetMinor"].some((field) => Object.prototype.hasOwnProperty.call(input, field))) { const priceDenied = await requirePackagePermission(client, principal, PACKAGE_PERMISSIONS.PRICE_EDIT); if (priceDenied) return json(res, priceDenied.status, priceDenied.body); }
     if (req.method === "POST" && action === "publish") {
       await client.query("begin");
-      const target = (await client.query("select pv.id as version_id,pv.package_id,p.slug,p.audience,p.catalog_scope as \"catalogScope\",pv.version_number from package_versions pv join packages p on p.id=pv.package_id where pv.id=$1 and p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE'", [input.versionId])).rows[0];
+      const target = (await client.query("select pv.id as version_id,pv.package_id,p.slug,p.audience,p.catalog_scope as \"catalogScope\",pv.version_number,coalesce(pv.price_gross_minor,pv.price_minor) as price_minor,pv.currency from package_versions pv join packages p on p.id=pv.package_id where pv.id=$1 and p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE'", [input.versionId])).rows[0];
       if (!target) throw bad("PACKAGE_VERSION_NOT_FOUND", 404);
       const result = await publishPackageVersionsAtomically(client, { targets: [target], principal });
       await client.query("commit"); return json(res, 200, result);
@@ -248,6 +258,7 @@ export default async function handler(req, res) {
       const next = Number(source.version_number) + 1;
       const draft = (await client.query("insert into package_versions(package_id,version_number,title,description,short_description,features_json,sku,invoice_product_code,invoice_product_name,invoice_description,unit,vat_rate_bps,price_net_minor,price_gross_minor,price_minor,currency,purchase_enabled,status) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,false,'DRAFT') returning id", [input.packageId, next, source.title, source.description, source.short_description, source.features_json, source.sku, source.invoice_product_code, source.invoice_product_name, source.invoice_description, source.unit, source.vat_rate_bps, source.price_net_minor, source.price_gross_minor, source.price_minor, source.currency])).rows[0];
       await client.query("insert into package_components(package_version_id,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json) select $1,component_type,reference_id,physical_product_id,title_snapshot,display_label,is_active,quantity,display_order,metadata_json from package_components where package_version_id=$2", [draft.id, source.id]);
+      await restoreComponentPricing(client, draft.id, await snapshotComponentPricing(client, source.id));
       await client.query("commit"); return json(res, 201, { packageVersionId: draft.id });
     }
     if (req.method === "POST" && action === "componentsSave") {
@@ -326,7 +337,7 @@ export default async function handler(req, res) {
       // visibility choice are committed and reported as unpublished.
       await client.query("savepoint owner_publication_attempt");
       try {
-        const target = (await client.query("select pv.id as version_id,pv.package_id,p.slug,p.audience,p.catalog_scope as \"catalogScope\",pv.version_number from package_versions pv join packages p on p.id=pv.package_id where pv.id=$1 and p.id=$2 and p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE'", [version.id, input.packageId])).rows[0];
+        const target = (await client.query("select pv.id as version_id,pv.package_id,p.slug,p.audience,p.catalog_scope as \"catalogScope\",pv.version_number,coalesce(pv.price_gross_minor,pv.price_minor) as price_minor,pv.currency from package_versions pv join packages p on p.id=pv.package_id where pv.id=$1 and p.id=$2 and p.audience='STUDENT' and p.catalog_scope='STUDENT_COMMERCE'", [version.id, input.packageId])).rows[0];
         if (!target) throw bad("PACKAGE_VERSION_NOT_FOUND", 404);
         const result = await publishPackageVersionsAtomically(client, { targets: [target], principal });
         await client.query("release savepoint owner_publication_attempt");

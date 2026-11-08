@@ -1,5 +1,5 @@
 /* global process */
-import { eq } from "drizzle-orm";
+import { eq, getTableColumns } from "drizzle-orm";
 import { createDb } from "../db/client.js";
 import { memberships, users } from "../db/schema.js";
 import { localReviewRuntimeAllowed } from "./local-review-runtime.js";
@@ -55,7 +55,7 @@ export async function resolvePrincipal(headers) {
   if (!session) return null;
   const { db, pool } = createDb();
   try {
-    const rows = await db.select({ user: users, membership: memberships }).from(users).leftJoin(memberships, eq(memberships.userId, users.id)).where(eq(users.authUserId, session.user.id));
+    const rows = await db.select({ user: Object.fromEntries(Object.entries(getTableColumns(users)).filter(([, column]) => column.name !== "allow_multiple_students")), membership: memberships }).from(users).leftJoin(memberships, eq(memberships.userId, users.id)).where(eq(users.authUserId, session.user.id));
     if (!rows.length) return { session, user: null, memberships: [] };
     const ownerId = rows[0].user.id;
     const candidates = rows.map((row) => row.membership).filter(Boolean).filter((m) => validScopeType(m, ownerId) && (rows[0].user.emailVerified === true || !["STUDENT", "TRAINER", "GUARDIAN"].includes(m.role)));

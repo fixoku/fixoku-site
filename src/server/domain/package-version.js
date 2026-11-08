@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { requirePackagePermission } from "../auth/authorization.js";
+import { assertComponentPricingIntegrity } from "./package-component-pricing.js";
 
 const PROTECTED_FIELDS = ["title", "description", "price_minor", "currency"];
 
@@ -50,19 +51,11 @@ export const CORE001_PUBLICATION_CATALOG = Object.freeze({
 
 const publicationError = (code, status = 409, details = undefined) => Object.assign(new Error(code), { code, status, details });
 
-function publicationTargets() {
-  return [
-    ...Object.entries(STUDENT_CORE001_PRICES).map(([slug, expectedPriceMinor]) => ({ slug, audience: "STUDENT", catalogScope: "STUDENT_COMMERCE", expectedPriceMinor })),
-    ...Object.entries(TRAINER_CORE001_PRICES).map(([slug, expectedPriceMinor]) => ({ slug, audience: "TRAINER", catalogScope: "TRAINER_COMMERCE", expectedPriceMinor })),
-  ];
-}
-
 function assertUuid(value, code = "PACKAGE_VERSION_ID_INVALID") {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(String(value || ""))) throw publicationError(code, 400);
 }
 
 export async function resolveCore001PublicationTargets(client) {
-  const expected = publicationTargets();
   const rows = (await client.query(`
     select p.id as package_id, p.slug, p.audience, p.catalog_scope, p.status as package_status,
       pv.id as version_id, pv.version_number, pv.status as version_status,
@@ -70,16 +63,11 @@ export async function resolveCore001PublicationTargets(client) {
       coalesce((select count(*) from package_components pc where pc.package_version_id=pv.id and pc.is_active=true), 0)::int as active_component_count
     from packages p
     join package_versions pv on pv.package_id=p.id and pv.status='DRAFT'
-    where p.slug=any($1::text[]) and p.catalog_scope in ('STUDENT_COMMERCE','TRAINER_COMMERCE')
+    where p.catalog_scope in ('STUDENT_COMMERCE','TRAINER_COMMERCE')
     order by p.audience, p.slug, pv.version_number desc, pv.id
-  `, [expected.map((item) => item.slug)])).rows;
-  const bySlug = new Map();
-  for (const row of rows) {
-    if (!bySlug.has(row.slug)) bySlug.set(row.slug, row);
-  }
-  const missing = expected.filter((item) => !bySlug.has(item.slug)).map((item) => item.slug);
-  if (missing.length || bySlug.size !== expected.length || rows.length !== expected.length) throw publicationError("CORE001_TARGET_SET_INVALID", 409, { missing, found: [...bySlug.keys()], draftCount: rows.length });
-  return expected.map((item) => ({ ...item, ...bySlug.get(item.slug) }));
+  `)).rows;
+  if (!rows.length) throw publicationError("CORE001_TARGET_SET_EMPTY", 409);
+  return rows.map((row) => ({ ...row, expectedPriceMinor: Number(row.price_minor) }));
 }
 
 async function lockPublicationRows(client, targets) {
@@ -105,8 +93,9 @@ async function validatePublicationTargets(client, targets, lockedVersions) {
   for (const target of targets) {
     const row = byVersion.get(target.version_id);
     if (!row || row.package_id !== target.package_id || row.slug !== target.slug || row.audience !== target.audience || row.catalog_scope !== target.catalogScope) errors.push({ slug: target.slug, reason: "PACKAGE_IDENTITY_INVALID" });
+    if (!row || !row.slug) errors.push({ slug: target.slug, reason: "PRODUCT_ID_NOT_RESOLVED" });
     if (!row || row.version_status !== "DRAFT") errors.push({ slug: target.slug, reason: "PACKAGE_VERSION_NOT_DRAFT" });
-    if (!row || Number(row.price_minor) !== Number(target.expectedPriceMinor) || String(row.currency || "").toUpperCase() !== "TRY") errors.push({ slug: target.slug, reason: "PACKAGE_PRICE_INVALID", actual: row?.price_minor, currency: row?.currency, expected: target.expectedPriceMinor });
+    if (!row || !Number.isSafeInteger(Number(row.price_minor)) || Number(row.price_minor) < 0 || String(row.currency || "").toUpperCase() !== "TRY") errors.push({ slug: target.slug, reason: "PACKAGE_PRICE_INVALID", actual: row?.price_minor, currency: row?.currency, expected: target.expectedPriceMinor });
   }
   const components = (await client.query(`
     select pc.package_version_id, pc.id, pc.component_type, pc.is_active, pc.quantity,
@@ -121,7 +110,12 @@ async function validatePublicationTargets(client, targets, lockedVersions) {
   for (const component of components) {
     if (!grouped.has(component.package_version_id)) grouped.set(component.package_version_id, []);
     grouped.get(component.package_version_id).push(component);
-    if (component.component_type !== "TEXT_ITEM" && (!component.product_id || !component.product_is_active || !Number.isSafeInteger(Number(component.quantity)) || Number(component.quantity) < 1)) errors.push({ versionId: component.package_version_id, reason: "ACTIVE_COMPONENT_INVALID" });
+    if (component.component_type !== "TEXT_ITEM" && !component.product_id) errors.push({ versionId: component.package_version_id, reason: "PRODUCT_ID_NOT_RESOLVED" });
+    if (component.component_type !== "TEXT_ITEM" && !component.product_is_active) errors.push({ versionId: component.package_version_id, reason: "PRODUCT_INACTIVE" });
+    if (component.component_type !== "TEXT_ITEM" && (!Number.isSafeInteger(Number(component.quantity)) || Number(component.quantity) < 1)) errors.push({ versionId: component.package_version_id, reason: "ACTIVE_COMPONENT_INVALID" });
+  }
+  try { await assertComponentPricingIntegrity(client, targets.map((target) => target.version_id)); } catch (error) {
+    errors.push({ reason: error.code || "MISSING_COMPONENT_PRICING", details: error.details });
   }
   for (const target of targets) {
     const active = grouped.get(target.version_id) || [];
@@ -168,8 +162,8 @@ export async function publishPackageVersionsAtomically(client, { targets = null,
   if (!resolved.length) throw publicationError("CORE001_TARGET_SET_EMPTY");
   const normalized = resolved.map((target) => {
     const catalogScope = target.catalogScope || target.catalog_scope;
-    const expectedPriceMinor = CORE001_PUBLICATION_CATALOG[catalogScope]?.[target.slug];
-    if (!Number.isSafeInteger(expectedPriceMinor) || target.expectedPriceMinor != null && target.expectedPriceMinor !== expectedPriceMinor) throw publicationError("CORE001_TARGET_PRICE_AUTHORITY_INVALID");
+    const expectedPriceMinor = Number(target.expectedPriceMinor ?? target.price_minor);
+    if (!Number.isSafeInteger(expectedPriceMinor) || expectedPriceMinor < 0) throw publicationError("CORE001_TARGET_PRICE_AUTHORITY_INVALID");
     return { ...target, catalogScope, expectedPriceMinor };
   });
   for (const target of normalized) assertUuid(target.version_id, "PACKAGE_VERSION_ID_INVALID");

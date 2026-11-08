@@ -16,6 +16,8 @@ import {
   CLEAN_STAGING_METADATA,
   PREVIEW_CONTRACTS,
   R16_STAGING_METADATA,
+  R18_STAGING_METADATA,
+  R18_STAGING_HOSTS,
   exactPreviewContractEnvironment,
   isR16StagingHost,
   previewContractMetadataConfigured,
@@ -98,7 +100,7 @@ function runtimeProjectId(env, contract) {
     env?.DATABASE_NEON_PROJECT_ID,
     env?.VERCEL_NEON_PROJECT_ID,
   ].map((value) => String(value || "").trim()).filter(Boolean);
-  if (contract === PREVIEW_CONTRACTS.r16Staging) {
+  if (contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance) {
     values.push(String(env?.[contract.metadata.project] || "").trim());
   }
   if (new Set(values).size > 1) return null;
@@ -111,7 +113,7 @@ function runtimeBranchId(env, contract) {
     env?.DATABASE_NEON_BRANCH_ID,
     env?.VERCEL_NEON_BRANCH_ID,
   ].map((value) => String(value || "").trim()).filter(Boolean);
-  if (contract === PREVIEW_CONTRACTS.r16Staging) {
+  if (contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance) {
     values.push(String(env?.[contract.metadata.branch] || "").trim());
   }
   if (new Set(values).size > 1) return null;
@@ -142,12 +144,15 @@ function connectionTarget(raw, kind) {
 function targetMatchesExpected(target, kind, contract, env) {
   if (!target) return false;
   const isR16 = contract === PREVIEW_CONTRACTS.r16Staging;
-  const expectedMetadata = isR16 ? R16_STAGING_METADATA : CLEAN_STAGING_METADATA;
+  const isR18 = contract === PREVIEW_CONTRACTS.r18Acceptance;
+  const expectedMetadata = isR16 ? R16_STAGING_METADATA : isR18 ? R18_STAGING_METADATA : CLEAN_STAGING_METADATA;
   const metadataHostName = kind === "pooled" ? contract.metadata.pooledHost : contract.metadata.directHost;
   const expectedHost = String(env?.[metadataHostName] || "").trim().toLowerCase();
   const targetHost = isR16
     ? (kind === "pooled" ? R16_STAGING_METADATA.pooledHost : R16_STAGING_METADATA.directHost)
-    : (kind === "pooled" ? CLEAN_STAGING_HOSTS.pooled : CLEAN_STAGING_HOSTS.direct);
+    : isR18
+      ? (kind === "pooled" ? R18_STAGING_HOSTS.pooled : R18_STAGING_HOSTS.direct)
+      : (kind === "pooled" ? CLEAN_STAGING_HOSTS.pooled : CLEAN_STAGING_HOSTS.direct);
   const roleMatches = kind === "pooled" ? target.pooled : !target.pooled;
   const hostMatches = target.host === targetHost
     && expectedHost === targetHost
@@ -219,7 +224,7 @@ export async function readOnlyRuntimeFingerprint(kind, connectionString, poolFac
 
 function exactPreviewRuntime(env) {
   const contract = previewContractForBranch(env?.VERCEL_GIT_COMMIT_REF);
-  return (contract === PREVIEW_CONTRACTS.cleanIntegration || contract === PREVIEW_CONTRACTS.r16Staging)
+  return (contract === PREVIEW_CONTRACTS.cleanIntegration || contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance)
     && env?.VERCEL_PROJECT_ID === VERCEL_PROJECT_ID
     && env?.VERCEL_ORG_ID === VERCEL_ORG_ID
     && exactPreviewContractEnvironment(contract, env);
@@ -258,10 +263,10 @@ export function createStagingRuntimeDiagnosticHandler({
       return json(res, 503, { error: "RUNTIME_STAGING_METADATA_UNVERIFIED" });
     }
     const attestation = String(env[contract.metadata.attested] || "").trim();
-    if (contract !== PREVIEW_CONTRACTS.r16Staging && !previewContractMetadataAttested(contract, env)) {
+    if (contract !== PREVIEW_CONTRACTS.r16Staging && contract !== PREVIEW_CONTRACTS.r18Acceptance && !previewContractMetadataAttested(contract, env)) {
       return json(res, 503, { error: "RUNTIME_STAGING_METADATA_UNATTESTED" });
     }
-    if (contract === PREVIEW_CONTRACTS.r16Staging && !["", "0", "1"].includes(attestation)) {
+    if ((contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance) && !["", "0", "1"].includes(attestation)) {
       return json(res, 503, { error: "RUNTIME_STAGING_METADATA_UNATTESTED" });
     }
 
@@ -279,8 +284,13 @@ export function createStagingRuntimeDiagnosticHandler({
     if (configuredProjectId !== STAGING_DIAGNOSTIC_EXPECTED_PROJECT) {
       return json(res, 503, { error: "RUNTIME_NEON_PROJECT_MISMATCH", target: { expectedProjectId: STAGING_DIAGNOSTIC_EXPECTED_PROJECT, configuredProjectId, matched: false } });
     }
-    if (contract === PREVIEW_CONTRACTS.r16Staging && configuredBranchId !== R16_STAGING_METADATA.branch) {
-      return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH", target: { expectedBranchId: R16_STAGING_METADATA.branch, configuredBranchId, matched: false } });
+    const expectedBranchId = contract === PREVIEW_CONTRACTS.r16Staging
+      ? R16_STAGING_METADATA.branch
+      : contract === PREVIEW_CONTRACTS.r18Acceptance
+        ? R18_STAGING_METADATA.branch
+        : null;
+    if (expectedBranchId && configuredBranchId !== expectedBranchId) {
+      return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH", target: { expectedBranchId, configuredBranchId, matched: false } });
     }
 
     const pooledTarget = connectionTarget(env.DATABASE_URL, "pooled");
@@ -299,7 +309,9 @@ export function createStagingRuntimeDiagnosticHandler({
       pooled = await readOnlyRuntimeFingerprint("pooled", env.DATABASE_URL, poolFactory);
       const expectedDatabase = contract === PREVIEW_CONTRACTS.r16Staging
         ? R16_STAGING_METADATA.database
-        : CLEAN_STAGING_METADATA.database;
+        : contract === PREVIEW_CONTRACTS.r18Acceptance
+          ? R18_STAGING_METADATA.database
+          : CLEAN_STAGING_METADATA.database;
       if (pooled.database !== expectedDatabase) {
         return json(res, 503, { error: "RUNTIME_DATABASE_MISMATCH" });
       }
@@ -312,6 +324,9 @@ export function createStagingRuntimeDiagnosticHandler({
       }
       if (configuredProjectId && pooled.projectId && pooled.projectId !== configuredProjectId) {
         return json(res, 503, { error: "RUNTIME_NEON_PROJECT_MISMATCH", target: { configuredProjectId, observedProjectId: pooled.projectId, matched: false } });
+      }
+      if (expectedBranchId && pooled.branchId !== expectedBranchId) {
+        return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH" });
       }
       if (configuredBranchId && pooled.branchId !== configuredBranchId) {
         return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH", target: { configuredBranchId, observedBranchId: pooled.branchId, matched: false } });
@@ -331,12 +346,15 @@ export function createStagingRuntimeDiagnosticHandler({
     }
     const expectedDatabase = contract === PREVIEW_CONTRACTS.r16Staging
       ? R16_STAGING_METADATA.database
-      : CLEAN_STAGING_METADATA.database;
+      : contract === PREVIEW_CONTRACTS.r18Acceptance
+        ? R18_STAGING_METADATA.database
+        : CLEAN_STAGING_METADATA.database;
     if (direct.database !== expectedDatabase) return json(res, 503, { error: "RUNTIME_DATABASE_MISMATCH" });
     if (!direct.projectId && !configuredProjectId) return json(res, 503, { error: "RUNTIME_NEON_PROJECT_METADATA_UNAVAILABLE" });
     if (direct.projectId && direct.projectId !== STAGING_DIAGNOSTIC_EXPECTED_PROJECT) return json(res, 503, { error: "RUNTIME_NEON_PROJECT_MISMATCH", target: { expectedProjectId: STAGING_DIAGNOSTIC_EXPECTED_PROJECT, observedProjectId: direct.projectId, matched: false } });
     if (pooled.projectId && direct.projectId && direct.projectId !== pooled.projectId) return json(res, 503, { error: "RUNTIME_NEON_PROJECT_MISMATCH", target: { pooledProjectId: pooled.projectId, directProjectId: direct.projectId, matched: false } });
     if (configuredProjectId && direct.projectId && direct.projectId !== configuredProjectId) return json(res, 503, { error: "RUNTIME_NEON_PROJECT_MISMATCH", target: { configuredProjectId, observedProjectId: direct.projectId, matched: false } });
+    if (expectedBranchId && direct.branchId !== expectedBranchId) return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH" });
     if (configuredBranchId && direct.branchId !== configuredBranchId) return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH", target: { configuredBranchId, observedBranchId: direct.branchId, matched: false } });
     if (pooled.branchId !== direct.branchId) return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH" });
     if (pooled.database !== direct.database) return json(res, 503, { error: "RUNTIME_DATABASE_MISMATCH" });

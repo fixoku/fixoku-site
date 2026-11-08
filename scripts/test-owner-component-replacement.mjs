@@ -4,11 +4,13 @@ import { replaceStructuredComponents } from "../api/admin/student-commerce-packa
 const productId = "11111111-1111-4111-8111-111111111111";
 const referencedId = "22222222-2222-4222-8222-222222222222";
 const sqlLog = [];
+let syntheticInsertId = 0;
 const client = {
   async query(sql) {
     sqlLog.push(String(sql));
     if (String(sql).includes("from physical_products")) return { rows: [{ id: productId, sku: "BOOK-1", title: "Test kitap", productType: "PHYSICAL", r6ProductType: "BOOK", isActive: true, stageScopes: [] }] };
     if (String(sql).includes("from package_components pc")) return { rows: [{ id: referencedId, component_type: "PHYSICAL_PRODUCT", physical_product_id: productId, reference_id: productId, display_order: 0, hasPricingReference: true, hasOrderReference: false, hasFamilyReference: false }] };
+    if (String(sql).includes("insert into package_components")) return { rows: [{ id: `synthetic-component-${++syntheticInsertId}` }] };
     return { rows: [] };
   },
 };

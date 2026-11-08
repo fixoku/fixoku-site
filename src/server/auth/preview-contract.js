@@ -56,6 +56,26 @@ export const PREVIEW_CONTRACTS = Object.freeze({
       "f1167d8b0afe8bc30da85369d277316d9ffaa3c3",
     ]),
   }),
+  r18Acceptance: Object.freeze({
+    id: "r18-owner-acceptance",
+    businessGate: true,
+    branch: "codex/fixoku-r18-owner-acceptance-20261108",
+    expectedCommitEnv: "FIXOKU_R18_RUNTIME_EXPECTED_COMMIT_SHA",
+    probeEnabledEnv: "FIXOKU_R18_RUNTIME_PROBE_ENABLED",
+    probeTokenEnv: "FIXOKU_R18_RUNTIME_PROBE_TOKEN",
+    probeTokenHeader: "x-fixoku-r18-runtime-token",
+    metadata: Object.freeze({
+      attested: "FIXOKU_R18_STAGING_ENDPOINT_METADATA_ATTESTED",
+      project: "FIXOKU_R18_STAGING_PROJECT_ID",
+      branch: "FIXOKU_R18_STAGING_BRANCH_ID",
+      database: "FIXOKU_R18_STAGING_DATABASE",
+      pooledHost: "FIXOKU_R18_STAGING_POOLED_HOST",
+      directHost: "FIXOKU_R18_STAGING_DIRECT_HOST",
+    }),
+    fixedOrigins: Object.freeze(["https://staging.fixoku.com"]),
+    deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-r18-owner-acceptance-20261108|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
+    forbiddenCommits: Object.freeze([]),
+  }),
   r16Staging: Object.freeze({
     id: "r16-staging",
     businessGate: true,
@@ -111,6 +131,20 @@ export const R16_STAGING_METADATA = Object.freeze({
   autoDelete: "never",
   pooledHost: "ep-old-tree-b1gdwjcz-pooler.c-5.eu-central-1.aws.neon.tech",
   directHost: "ep-old-tree-b1gdwjcz.c-5.eu-central-1.aws.neon.tech",
+});
+
+export const R18_STAGING_METADATA = Object.freeze({
+  project: "tiny-fire-86403197",
+  branch: "br-fragrant-grass-b14anzbn",
+  database: "neondb",
+  endpoint: "ep-red-bonus-b1ioer0k",
+  pooledHost: "ep-red-bonus-b1ioer0k-pooler.c-5.eu-central-1.aws.neon.tech",
+  directHost: "ep-red-bonus-b1ioer0k.c-5.eu-central-1.aws.neon.tech",
+});
+
+export const R18_STAGING_HOSTS = Object.freeze({
+  pooled: R18_STAGING_METADATA.pooledHost,
+  direct: R18_STAGING_METADATA.directHost,
 });
 
 export const R16_STAGING_HOSTS = Object.freeze({
@@ -193,12 +227,22 @@ export function exactPreviewContractEnvironment(contract, env = process.env) {
 export function previewContractMetadataConfigured(contract, env = process.env) {
   if (!contract) return false;
   const metadata = contract.metadata;
-  const target = contract === PREVIEW_CONTRACTS.r16Staging ? R16_STAGING_METADATA : CLEAN_STAGING_METADATA;
+  const target = contract === PREVIEW_CONTRACTS.r16Staging
+    ? R16_STAGING_METADATA
+    : contract === PREVIEW_CONTRACTS.r18Acceptance
+      ? R18_STAGING_METADATA
+      : contract === PREVIEW_CONTRACTS.cleanIntegration
+        ? CLEAN_STAGING_METADATA
+        : null;
+  if (!target) return false;
   const pooledHost = normalizedHost(env[metadata.pooledHost]);
   const directHost = normalizedHost(env[metadata.directHost]);
-  const hostsMatch = contract === PREVIEW_CONTRACTS.r16Staging
-    ? pooledHost === R16_STAGING_HOSTS.pooled && directHost === R16_STAGING_HOSTS.direct
-    : pooledHost === CLEAN_STAGING_HOSTS.pooled && directHost === CLEAN_STAGING_HOSTS.direct;
+  const expectedHosts = contract === PREVIEW_CONTRACTS.r16Staging
+    ? R16_STAGING_HOSTS
+    : contract === PREVIEW_CONTRACTS.r18Acceptance
+      ? R18_STAGING_HOSTS
+      : CLEAN_STAGING_HOSTS;
+  const hostsMatch = pooledHost === expectedHosts.pooled && directHost === expectedHosts.direct;
   return env[metadata.project] === target.project
     && env[metadata.branch] === target.branch
     && env[metadata.database] === target.database

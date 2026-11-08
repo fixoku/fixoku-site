@@ -18,7 +18,9 @@ import {
   R16_STAGING_METADATA,
   R18_STAGING_METADATA,
   R18_STAGING_HOSTS,
+  exactPreviewCommit,
   exactPreviewContractEnvironment,
+  trustedPreviewDeploymentHost,
   isR16StagingHost,
   previewContractMetadataConfigured,
   previewContractMetadataAttested,
@@ -239,7 +241,21 @@ export function createStagingRuntimeDiagnosticHandler({
     if (!exactPath(req) || requestHasBody(req)) return json(res, 400, { error: "REQUEST_BODY_NOT_ALLOWED" });
 
     const env = process.env;
-    if (!exactPreviewRuntime(env)) return json(res, 404, { error: "STAGING_DIAGNOSTIC_NOT_FOUND" });
+    if (!exactPreviewRuntime(env)) {
+      const c = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
+      // Temporary read-only 404 diagnosis. Emit boolean checks only, never values.
+      console.warn("FIXOKU_R24Y_GATE", JSON.stringify({
+        contractKnown: Boolean(c),
+        vercelRuntime: env.VERCEL === "1",
+        previewEnvironment: env.VERCEL_ENV === "preview",
+        projectMatch: env.VERCEL_PROJECT_ID === VERCEL_PROJECT_ID,
+        orgMatch: env.VERCEL_ORG_ID === VERCEL_ORG_ID,
+        commitMatch: Boolean(c && exactPreviewCommit(c, env)),
+        probeEnabled: Boolean(c && env[c.probeEnabledEnv] === "1"),
+        hostMatch: Boolean(c && trustedPreviewDeploymentHost(c, env)),
+      }));
+      return json(res, 404, { error: "STAGING_DIAGNOSTIC_NOT_FOUND" });
+    }
 
     const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
     const tokenHeader = contract?.probeTokenHeader || STAGING_DIAGNOSTIC_TOKEN_HEADER;
@@ -254,7 +270,16 @@ export function createStagingRuntimeDiagnosticHandler({
     // that the caller passed Vercel Deployment Protection. Require either the
     // independently configured probe token or a verified deployment OIDC
     // assertion before opening either read-only database connection.
-    if (!tokenAuthorized && !oidcAuthorized) return json(res, 404, { error: "STAGING_DIAGNOSTIC_NOT_FOUND" });
+    if (!tokenAuthorized && !oidcAuthorized) {
+      // Temporary: presence booleans only, never token/header values.
+      console.warn("FIXOKU_R24Y_AUTH", JSON.stringify({
+        tokenHeaderPresent: Boolean(header(req, tokenHeader)),
+        tokenConfigured: Boolean(env[tokenEnv]),
+        tokenAccepted: tokenAuthorized,
+        oidcAccepted: oidcAuthorized,
+      }));
+      return json(res, 404, { error: "STAGING_DIAGNOSTIC_NOT_FOUND" });
+    }
 
     // R16 may bootstrap its read-only fingerprint before the operator writes
     // the attestation flag. Clean Preview and every other contract retain the

@@ -75,6 +75,30 @@ function signedQuery(config, storageKey, expiresIn, now, method = "GET") {
   return `${config.endpoint.origin}${canonicalUri}?${canonicalQuery}&X-Amz-Signature=${signature}`;
 }
 
+/** Public R2/S3-compatible media configuration. Credentials are process-only. */
+export function getPublicMediaConfig(env = process.env) {
+  const provider = String(env.PUBLIC_MEDIA_PROVIDER || "DISABLED").trim().toUpperCase();
+  if (!["S3", "R2"].includes(provider)) return { provider: "DISABLED", enabled: false, reason: "PUBLIC_MEDIA_CONFIG_REQUIRED" };
+  const bucket = String(env.PUBLIC_S3_BUCKET || "").trim();
+  const region = String(env.PUBLIC_S3_REGION || (provider === "R2" ? "auto" : "")).trim();
+  const accessKeyId = String(env.PUBLIC_S3_ACCESS_KEY_ID || "").trim();
+  const secretAccessKey = String(env.PUBLIC_S3_SECRET_ACCESS_KEY || "");
+  const endpoint = parseEndpoint(env.PUBLIC_S3_ENDPOINT, { production: String(env.NODE_ENV || "").toLowerCase() === "production" });
+  const publicOrigin = String(env.PUBLIC_MEDIA_ORIGIN || "").trim().replace(/\/+$/u, "");
+  if (!bucket || !region || !accessKeyId || !secretAccessKey || !endpoint || !publicOrigin) return { provider, enabled: false, reason: "PUBLIC_MEDIA_RUNTIME_NOT_CONFIGURED" };
+  return { provider, enabled: true, endpoint, bucket, region, accessKeyId, secretAccessKey, publicOrigin, signedUrlTtlSeconds: signedUrlTtl(env.PUBLIC_MEDIA_SIGNED_URL_TTL_SECONDS) };
+}
+
+export function createSignedUploadUrl(config, storageKey, { expiresIn = 300, now = new Date() } = {}) {
+  if (!config?.enabled || !["S3", "R2"].includes(config.provider)) throw new Error(config?.reason || "PUBLIC_MEDIA_RUNTIME_NOT_CONFIGURED");
+  return signedQuery(config, storageKey, signedUrlTtl(expiresIn), now, "PUT");
+}
+
+export async function inspectRemoteObject(config, storageKey) {
+  const response = await fetch(createSignedReadUrl(config, storageKey, { method: "HEAD" }), { method: "HEAD", redirect: "error" });
+  return { ok: response.ok, status: response.status, contentType: response.headers.get("content-type") || "", contentLength: Number(response.headers.get("content-length") || 0) };
+}
+
 /**
  * Private media configuration. S3 is intentionally S3-compatible so the same
  * adapter works with Cloudflare R2 (`region=auto`, R2 endpoint) without a
@@ -127,7 +151,7 @@ export function createSignedReadUrl(config, storageKey, { expiresIn = config?.si
 /** Fetch a private object without exposing a permanent URL or credentials. */
 export async function fetchPrivateObject(config, storageKey, options = {}) {
   const method = options.method || "GET";
-  const response = await fetch(createSignedReadUrl(config, storageKey, options), { method, redirect: "error" });
+  const response = await fetch(createSignedReadUrl(config, storageKey, options), { method, headers: options.headers, redirect: "error" });
   return response;
 }
 

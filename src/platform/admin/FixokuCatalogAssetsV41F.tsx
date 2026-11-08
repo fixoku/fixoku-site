@@ -1,4 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { catalogMediaCandidatesV41F } from "./catalog-media-candidates";
+export { catalogMediaCandidatesV41F } from "./catalog-media-candidates";
 
 // Visible codes are Turkish presentation labels; historical database SKUs remain unchanged.
 export const fixokuImageSlugsV41F: Record<string,string> = {
@@ -83,13 +85,13 @@ const packageCoverPathsV41I: Record<string,string> = {
   "student-high-paragraf-kitabi": "/images/fixoku-katalog/paketler/student-high-paragraf-kitabi.webp",
 };
 export const packageImageDefaultV41F = (slug:string):string =>
-  packageCoverPathsV41I[slug] || (packageImageFolderV41F + slug + ".webp");
+  packageCoverPathsV41I[slug] || (packageImageFolderV41F + slug + ".png");
 // FIXOKU_V41I_COVER_MAP_END
 export const moneySuffixV41F = (minor:number):string => new Intl.NumberFormat("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(minor/100) + " ₺";
 export function FixokuPhotoV41F({src, fallbackSrc, alt, children}:{src?:string|null;fallbackSrc?:string|null;alt:string;children:ReactNode}) {
   const [attempt, setAttempt] = useState(0);
   useEffect(()=>setAttempt(0),[src,fallbackSrc]);
-  const urls = [src,fallbackSrc].filter((x):x is string=>Boolean(x));
+  const urls = [src,fallbackSrc].filter((x):x is string=>Boolean(x)).flatMap(catalogMediaCandidatesV41F);
   const unique = Array.from(new Set(urls));
   const chosen = unique[attempt];
   return chosen ? <img src={chosen} alt={alt} loading="lazy" onError={()=>setAttempt(attempt+1)} /> : <>{children}</>;

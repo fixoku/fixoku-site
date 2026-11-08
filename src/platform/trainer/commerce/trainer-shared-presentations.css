@@ -19,6 +19,9 @@
 .trainer-shared-presentation-card-label{display:grid;gap:10px;padding:15px 16px 17px;min-height:100px}
 .trainer-shared-presentation-card-label strong{font-size:15px;line-height:1.35;color:#172033}
 .trainer-shared-presentation-card-label small{font-size:12px;color:#e45a12;font-weight:700}
+.trainer-shared-presentation-modal-bottom .trainer-shared-presentation-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.trainer-shared-presentation-modal-bottom a{color:#c2410c;font-size:12px;font-weight:750;text-decoration:underline}
+.trainer-shared-presentation-pdf-state{color:#64748b!important;font-size:11px!important;font-weight:650!important}
 .trainer-shared-presentation-overlay{position:fixed;inset:0;z-index:2147482000;background:#070d19;color:white;display:flex;flex-direction:column}
 .trainer-shared-presentation-modal-top,.trainer-shared-presentation-modal-bottom{height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:7px 18px;background:#101827}
 .trainer-shared-presentation-modal-title{display:flex;align-items:center;gap:11px;min-width:0}

@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import pg from "pg";
 import { resolvePrincipal } from "../auth/authorization.js";
-import { fetchPrivateObject, getDigitalStorageConfig, productionPrivateMediaAvailable } from "./digital-delivery.js";
+import { fetchPrivateObject, getDigitalStorageConfig, inspectPrivateFile, inspectRemoteObject, productionPrivateMediaAvailable, resolvePrivateStoragePath } from "./digital-delivery.js";
+import { getSharedPresentationPdfDefinition } from "./trainer-shared-presentation-pdf.js";
 
 const ROOT = path.resolve(process.cwd(), "private", "trainer-shared-presentations");
 
@@ -84,5 +85,33 @@ export async function authorizeSharedPresentation(req) {
   const localRoot = storage.provider === "LOCAL" && storage.root
     ? path.resolve(storage.root, "trainer-shared-presentations")
     : ROOT;
-  return { status: 200, presentations: data.presentations, root: localRoot, storage, url };
+  return { status: 200, presentations: data.presentations, root: localRoot, storage, url, manifest: data };
 }
+
+export async function inspectSharedPresentationPdf(auth, definition) {
+  if (!auth?.status || auth.status !== 200 || !definition?.available) return { state: "CONFIG_MISSING", available: false };
+  const storage = auth.storage;
+  if (storage?.provider === "LOCAL") {
+    const inspected = await inspectPrivateFile(storage, definition.key);
+    return inspected ? { state: "READY", available: true, ...inspected } : { state: "OBJECT_MISSING", available: false };
+  }
+  if (storage?.provider === "S3" || storage?.provider === "R2") {
+    try {
+      const inspected = await inspectRemoteObject(storage, definition.key);
+      if (!inspected.ok) return { state: inspected.status === 404 ? "OBJECT_MISSING" : "STORAGE_UNAVAILABLE", available: false, ...inspected };
+      return { state: "READY", available: true, ...inspected };
+    } catch {
+      return { state: "STORAGE_UNAVAILABLE", available: false };
+    }
+  }
+  const filePath = resolvePrivateStoragePath(auth.root, definition.key);
+  if (!filePath) return { state: "OBJECT_MISSING", available: false };
+  try {
+    const stat = fs.statSync(filePath);
+    return stat.isFile() ? { state: "READY", available: true, filePath, size: stat.size } : { state: "OBJECT_MISSING", available: false };
+  } catch {
+    return { state: "OBJECT_MISSING", available: false };
+  }
+}
+
+export { getSharedPresentationPdfDefinition };

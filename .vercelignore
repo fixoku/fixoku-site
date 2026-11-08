@@ -33,3 +33,14 @@ api/internal/r97g-runtime-fingerprint.js
 src/server/db/install-guard.js
 FIXOKU_R97F0_SOURCE_MANIFEST_SHA256.json
 FIXOKU_R97G07_SOURCE_MANIFEST_SHA256.json
+# R16-R23 reports, transfer archives, rollback patches and local evidence are
+# retained in the workspace but are not deployment sources.
+R16_*
+R17_*
+R21_*
+R22_*
+R23_*
+R16_OWNER_CATALOG_TRANSFER_PREP_20261107/
+*.bak
+*.patch
+*.rar

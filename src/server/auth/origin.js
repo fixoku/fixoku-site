@@ -59,6 +59,14 @@ export function resolveTrustedOrigins(env = process.env) {
   const applicationOrigin = resolveApplicationOrigin(env);
   if (!applicationOrigin) return [];
   const origins = [applicationOrigin];
+  // R54S only: trust the public staging domain for Better Auth requests.
+  // Keep the R18 database and Vercel Preview runtime identity fail-closed.
+  const previewBranch = String(env.VERCEL_GIT_COMMIT_REF || "").trim();
+  const isR54S = previewBranch === PREVIEW_CONTRACTS.r54StudentAcceptance.branch || !previewBranch;
+  if (isR54S && r54sSafePreviewRuntime(env)) {
+    const stagingOrigin = "https://staging.fixoku.com";
+    if (!origins.includes(stagingOrigin)) origins.push(stagingOrigin);
+  }
   const deployment = parseOrigin(env.VERCEL_URL, { preview: true });
   if (String(env.VERCEL_ENV || "").trim().toLowerCase() === "preview" && deployment && !origins.includes(deployment.origin)) {
     origins.push(deployment.origin);

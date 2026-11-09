@@ -76,6 +76,26 @@ export const PREVIEW_CONTRACTS = Object.freeze({
     deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-r18-owner-acceptance-20261108|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
     forbiddenCommits: Object.freeze([]),
   }),
+  r54StudentAcceptance: Object.freeze({
+    id: "r54-student-acceptance",
+    businessGate: true,
+    branch: "codex/fixoku-r54s-preview-20261109",
+    expectedCommitEnv: "FIXOKU_R54S_RUNTIME_EXPECTED_COMMIT_SHA",
+    probeEnabledEnv: "FIXOKU_R54S_RUNTIME_PROBE_ENABLED",
+    probeTokenEnv: "FIXOKU_R54S_RUNTIME_PROBE_TOKEN",
+    probeTokenHeader: "x-fixoku-r54s-runtime-token",
+    metadata: Object.freeze({
+      attested: "FIXOKU_R18_STAGING_ENDPOINT_METADATA_ATTESTED",
+      project: "FIXOKU_R18_STAGING_PROJECT_ID",
+      branch: "FIXOKU_R18_STAGING_BRANCH_ID",
+      database: "FIXOKU_R18_STAGING_DATABASE",
+      pooledHost: "FIXOKU_R18_STAGING_POOLED_HOST",
+      directHost: "FIXOKU_R18_STAGING_DIRECT_HOST",
+    }),
+    fixedOrigins: Object.freeze(["https://staging.fixoku.com"]),
+    deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-r54s-preview-20261109|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
+    forbiddenCommits: Object.freeze([]),
+  }),
   r16Staging: Object.freeze({
     id: "r16-staging",
     businessGate: true,
@@ -188,7 +208,34 @@ export function exactPreviewCommit(contract, env = process.env) {
     && actual === expected;
 }
 
+/**
+ * R54S accepts Vercel CLI Preview deployments without Git metadata. Its
+ * only authorized database is the immutable, source-attested R18 Neon branch.
+ * This is an identity check, not a database connection.
+ */
+export function r54sSafePreviewRuntime(env = process.env) {
+  if (String(env.VERCEL || '').trim() !== '1') return false;
+  if (String(env.VERCEL_ENV || '').trim().toLowerCase() !== 'preview') return false;
+  const branch = String(env.VERCEL_GIT_COMMIT_REF || '').trim();
+  if (branch && branch !== PREVIEW_CONTRACTS.r54StudentAcceptance.branch) return false;
+  if (!trustedPreviewDeploymentHost(PREVIEW_CONTRACTS.r54StudentAcceptance, env)) return false;
+  let url;
+  try { url = new URL(String(env.DATABASE_URL || '').trim()); }
+  catch { return false; }
+  if (!['postgres:', 'postgresql:'].includes(url.protocol)) return false;
+  if (!url.username || !url.password || url.port && url.port !== '5432') return false;
+  if (url.hostname.toLowerCase() !== R18_STAGING_METADATA.pooledHost) return false;
+  let database;
+  try { database = decodeURIComponent(url.pathname.replace(/^\/+/, '')); }
+  catch { return false; }
+  if (database !== R18_STAGING_METADATA.database) return false;
+  const sslMode = url.searchParams.get('sslmode');
+  if (sslMode && sslMode.toLowerCase() !== 'require') return false;
+  return true;
+}
+
 export function previewContractEnvironment(contract, env = process.env) {
+  if (contract === PREVIEW_CONTRACTS.r54StudentAcceptance) return r54sSafePreviewRuntime(env);
   return Boolean(contract)
     && env.VERCEL === "1"
     && String(env.VERCEL_ENV || "").trim().toLowerCase() === "preview"
@@ -229,7 +276,7 @@ export function previewContractMetadataConfigured(contract, env = process.env) {
   const metadata = contract.metadata;
   const target = contract === PREVIEW_CONTRACTS.r16Staging
     ? R16_STAGING_METADATA
-    : contract === PREVIEW_CONTRACTS.r18Acceptance
+    : (contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.r54StudentAcceptance)
       ? R18_STAGING_METADATA
       : contract === PREVIEW_CONTRACTS.cleanIntegration
         ? CLEAN_STAGING_METADATA
@@ -239,7 +286,7 @@ export function previewContractMetadataConfigured(contract, env = process.env) {
   const directHost = normalizedHost(env[metadata.directHost]);
   const expectedHosts = contract === PREVIEW_CONTRACTS.r16Staging
     ? R16_STAGING_HOSTS
-    : contract === PREVIEW_CONTRACTS.r18Acceptance
+    : (contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.r54StudentAcceptance)
       ? R18_STAGING_HOSTS
       : CLEAN_STAGING_HOSTS;
   const hostsMatch = pooledHost === expectedHosts.pooled && directHost === expectedHosts.direct;
@@ -255,6 +302,8 @@ export function previewContractMetadataConfigured(contract, env = process.env) {
  * and direct read-only fingerprints before setting the attestation value.
  */
 export function previewContractMetadataAttested(contract, env = process.env) {
+  // The R54S source-pinned URL identity replaces operator-supplied metadata.
+  if (contract === PREVIEW_CONTRACTS.r54StudentAcceptance) return r54sSafePreviewRuntime(env);
   return previewContractMetadataConfigured(contract, env)
     && env[contract.metadata.attested] === "1";
 }
@@ -267,8 +316,11 @@ export function isCleanPreviewBusinessAccessBlocked(env = process.env) {
   const isPreview = env.VERCEL === "1"
     && String(env.VERCEL_ENV || "").trim().toLowerCase() === "preview";
   if (!isPreview) return false;
-  const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
-  // Unknown or missing Preview branch metadata must never bypass the business gate.
+  const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF)
+    || (!String(env.VERCEL_GIT_COMMIT_REF || '').trim() && r54sSafePreviewRuntime(env)
+      ? PREVIEW_CONTRACTS.r54StudentAcceptance : null);
+  // An unknown branch still fails closed. Only R54S with a verified R18
+  // database URL may use Vercel CLI's absent Git branch metadata.
   if (!contract) return true;
   // Preserve the explicitly grandfathered legacy R98 contract.
   if (contract.businessGate !== true) return false;

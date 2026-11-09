@@ -94,7 +94,97 @@ export default async function handler(req,res){if(!cleanPreviewGateResponse(res)
 
     const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});
     try{
-      const studentProfileUpdate = await pool.query(
+      // R54G: Repair only the newly created student's platform mapping.
+      const authUserId = payload.user?.id;
+      const registrationEmail = String(b.email || "").trim().toLowerCase();
+      if (!authUserId) throw new Error("REGISTRATION_AUTH_ID_MISSING");
+
+      const mappingClient = await pool.connect();
+      try {
+        await mappingClient.query("BEGIN");
+
+        const matchingAuth = await mappingClient.query(
+          `select id from public."user"
+           where id=$1 and lower(email)=lower($2) for share`,
+          [authUserId, registrationEmail]
+        );
+        if (matchingAuth.rowCount !== 1) {
+          throw new Error("REGISTRATION_AUTH_IDENTITY_MISMATCH");
+        }
+
+        await mappingClient.query(
+          `insert into platform_users
+             (auth_user_id, email, display_name, email_verified)
+           values ($1, $2, $3, false)
+           on conflict (auth_user_id) do nothing`,
+          [
+            authUserId,
+            registrationEmail,
+            String(payload.user?.name || "").trim() ||
+              `${String(b.firstName || "").trim()} ${String(b.lastName || "").trim()}`.trim()
+          ]
+        );
+
+        const platformResult = await mappingClient.query(
+          `select id from platform_users
+           where auth_user_id=$1 and lower(email)=lower($2)
+           for update`,
+          [authUserId, registrationEmail]
+        );
+
+        if (platformResult.rowCount !== 1) {
+          throw new Error("REGISTRATION_PLATFORM_MAPPING_MISSING");
+        }
+
+        const platformUserId = platformResult.rows[0].id;
+
+        const otherRoles = await mappingClient.query(
+          `select 1 from platform_memberships
+           where user_id=$1 and role <> 'STUDENT' limit 1`,
+          [platformUserId]
+        );
+        if (otherRoles.rowCount !== 0) {
+          throw new Error("REGISTRATION_OTHER_ROLE_PROTECTED");
+        }
+
+        await mappingClient.query(
+          `insert into platform_memberships
+             (user_id, role, scope_type, scope_id, status)
+           select $1, 'STUDENT', 'STUDENT', $1, 'ACTIVE'
+           where not exists (
+             select 1 from platform_memberships
+             where user_id=$1 and role='STUDENT'
+           )`,
+          [platformUserId]
+        );
+
+        const activeStudent = await mappingClient.query(
+          `select 1 from platform_memberships
+           where user_id=$1 and role='STUDENT'
+             and status='ACTIVE' limit 1`,
+          [platformUserId]
+        );
+        if (activeStudent.rowCount !== 1) {
+          throw new Error("REGISTRATION_ACTIVE_STUDENT_ROLE_MISSING");
+        }
+
+      // Recover a missing profile for this newly registered student only.
+      await mappingClient.query(
+        `insert into student_profiles (user_id, first_name, last_name)
+         select p.id, $2, $3
+           from platform_users p
+          where p.auth_user_id=$1
+            and exists (
+              select 1 from platform_memberships m
+               where m.user_id=p.id
+                 and m.role='STUDENT'
+                 and m.status='ACTIVE'
+            )
+         on conflict (user_id) do nothing`,
+        [payload.user?.id, String(b.firstName||'').trim(), String(b.lastName||'').trim() || null]
+      );
+
+      const studentProfileUpdate = await mappingClient.query(
         `update student_profiles sp
             set education_stage=$1::education_stage,
                 grade=$2,
@@ -131,8 +221,18 @@ export default async function handler(req,res){if(!cleanPreviewGateResponse(res)
         ]
       );
       if (studentProfileUpdate.rowCount !== 1) throw new Error("STUDENT_PROFILE_RECORD_MISSING");
+
+        await mappingClient.query("COMMIT");
+      } catch (mappingError) {
+        try { await mappingClient.query("ROLLBACK"); }
+        catch { /* Preserve original error. */ }
+        throw mappingError;
+      } finally {
+        mappingClient.release();
+      }
       const registeredUser = (await pool.query("select id from platform_users where auth_user_id=$1", [payload.user?.id])).rows[0];
       if (registeredUser?.id) {
+        try {
         await queueRolePanelNotifications(pool, {
           role: "OWNER",
           scopeType: "GLOBAL",
@@ -143,6 +243,9 @@ export default async function handler(req,res){if(!cleanPreviewGateResponse(res)
           dedupeKey: `student-registration:${registeredUser.id}`,
           emailSubject: "Yeni öğrenci kaydı",
         });
+        } catch {
+          console.warn("STUDENT_REGISTRATION_NOTIFICATION_FAILED");
+        }
       }
     }finally{
       await pool.end();

@@ -1,3 +1,4 @@
+import * as r54PreviewHostContract from "../auth/preview-contract.js";
 /* global process */
 import { R16_STAGING_METADATA, R18_STAGING_METADATA, isR16StagingHost } from "../auth/preview-contract.js";
 /*
@@ -30,6 +31,7 @@ export const R16_STAGING_POOLED_HOST = R16_STAGING_METADATA.pooledHost;
 export const R16_STAGING_DIRECT_HOST = R16_STAGING_METADATA.directHost;
 
 export const R18_PREVIEW_BRANCH = "codex/fixoku-r18-owner-acceptance-20261108";
+export const R54S_PREVIEW_BRANCH = "codex/fixoku-r54s-preview-20261109";
 
 const SHA256_HEX = /^[0-9a-f]{40}$/iu;
 
@@ -130,6 +132,16 @@ export function r18PreviewEnvironmentStatus(env = process.env) {
   return Object.freeze({ ok: Object.values(checks).every(Boolean), checks });
 }
 
+export function r54sPreviewEnvironmentStatus(env = process.env) {
+  // No mutable commit/probe/metadata attestation is needed for R54S.
+  // r54sSafePreviewRuntime verifies the exact R18 staging database URL,
+  // Preview deployment host, and optional R54S Git branch identity.
+  const checks = {
+    verifiedPreviewAndR18Database: r54PreviewHostContract.r54sSafePreviewRuntime(env),
+  };
+  return Object.freeze({ ok: Object.values(checks).every(Boolean), checks });
+}
+
 export function isExactCleanPreviewEnvironment(env = process.env) {
   return cleanPreviewEnvironmentStatus(env).ok;
 }
@@ -187,6 +199,16 @@ export function assertR18PreviewConnectionUrl(rawUrl, kind = "pooled", env = pro
   }).toString();
 }
 
+export function assertR54SPreviewConnectionUrl(rawUrl, kind = "pooled", env = process.env) {
+  if (!r54sPreviewEnvironmentStatus(env).ok) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+  if (!r54PreviewHostContract.trustedPreviewDeploymentHost(r54PreviewHostContract.PREVIEW_CONTRACTS.r54StudentAcceptance, env)) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+  return parseConnectionUrlForTarget(rawUrl, kind, {
+    pooledHost: R18_STAGING_METADATA.pooledHost,
+    directHost: R18_STAGING_METADATA.directHost,
+    database: R18_STAGING_METADATA.database,
+  }).toString();
+}
+
 function parseConnectionUrlForTarget(rawUrl, kind, target) {
   const value = text(rawUrl);
   if (!value) fail("DATABASE_URL_MISSING");
@@ -217,6 +239,10 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
   const environment = text(env.VERCEL_ENV).toLowerCase();
   if (environment === "preview") {
     const branch = text(env.VERCEL_GIT_COMMIT_REF);
+    if (branch === R54S_PREVIEW_BRANCH
+      || (!branch && r54PreviewHostContract.r54sSafePreviewRuntime(env))) {
+      return assertR54SPreviewConnectionUrl(rawUrl, "pooled", env);
+    }
     if (branch === R18_PREVIEW_BRANCH) return assertR18PreviewConnectionUrl(rawUrl, "pooled", env);
     if (branch === R16_PREVIEW_BRANCH) return assertR16PreviewConnectionUrl(rawUrl, "pooled", env);
     if (branch === CLEAN_PREVIEW_BRANCH) return assertCleanPreviewConnectionUrl(rawUrl, "pooled", env);

@@ -97,8 +97,20 @@
     content.innerHTML=html+'</div>';
   }
   function handleOpen(){state.open=!state.open;panel.classList.toggle('is-open',state.open);launch.setAttribute('aria-expanded',String(state.open));render();if(state.open)root.querySelector('.fxw-close').focus();}
-  function activePath(){return !/^\/(panel|owner|egitmen-panel|ogrenci-panel|veli-panel)(\/|$)/i.test(location.pathname);}
-  function refreshVisibility(){root.style.display=activePath()?'':'none';top.classList.toggle('is-shown',window.scrollY>250);}
+  function activePath(){
+    let path='/';
+    try { path=decodeURIComponent(location.pathname||'/').toLowerCase().replace(/\/+$/,'')||'/'; }
+    catch { return false; } // fail closed on malformed routes
+    // Private areas including nested owner, instructor, student and parent panels.
+    if(/(?:^|\/)(?:panel|dashboard|admin|owner|hesabim|hesap|yerel-inceleme)(?:\/|$)/.test(path))return false;
+    if(/(?:^|\/)(?:egitmen-panel|ogrenci-panel|veli-panel|ogretmen-panel|kurum-panel)(?:\/|$)/.test(path))return false;
+    // Login, registration, verification, invitation, reset and account flows.
+    if(/(?:^|\/)(?:giris|giris-yap|login|sign-in|signin|signup|sign-up|register|registration|kayit|kayit-ol|uye-ol|auth|authentication|verify-email|forgot-password|reset-password|sifre|sifremi-unuttum|sifre-sifirla|e-posta-dogrula|eposta-dogrula|hesap-kapatma)(?:\/|$)/.test(path))return false;
+    if(/(?:^|\/)(?:ogrenci|egitmen|ogretmen|veli|owner|admin|kurum)-(?:giris|girisi|kayit|kaydi|basvuru|aktivasyon|davet|sifre|panel)(?:\/|$)/.test(path))return false;
+    if(/(?:^|\/)(?:egitim-platformu-girisi|admin-davet-kabul|ogretmen-aday-aktivasyon|seniseviim)(?:\/|$)/.test(path))return false;
+    return true;
+  }
+  function refreshVisibility(){const visible=activePath();root.style.display=visible?'':'none';if(!visible&&state.open){state.open=false;panel.classList.remove('is-open');launch.setAttribute('aria-expanded','false');}top.classList.toggle('is-shown',window.scrollY>250);}
   root.addEventListener('click',(e)=>{
     if(e.target.closest('.fxw-launch'))return handleOpen();
     if(e.target.closest('.fxw-close'))return handleOpen();
@@ -115,6 +127,6 @@
     // Native link click: preserve existing site's delegated conversion tracking.
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.open)handleOpen();});
-  function mount(){if(!document.body)return;document.body.append(root);render();refreshVisibility();window.addEventListener('scroll',refreshVisibility,{passive:true});const observe=new MutationObserver(refreshVisibility);observe.observe(document.body,{subtree:false,childList:true});window.addEventListener('popstate',refreshVisibility);}
+  function mount(){if(!document.body)return;document.body.append(root);render();refreshVisibility();window.addEventListener('scroll',refreshVisibility,{passive:true});const observe=new MutationObserver(refreshVisibility);observe.observe(document.getElementById('root')||document.body,{subtree:true,childList:true});window.addEventListener('popstate',refreshVisibility);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();

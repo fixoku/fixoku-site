@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 import { twoFactor } from "better-auth/plugins";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { createDb } from "../db/client.js";
-import { users, memberships, studentProfiles } from "../db/schema.js";
+import { users } from "../db/schema.js";
 import { captureLifecycleMail } from "../domain/test-email-capture.js";
 import { sendTransactionalEmail } from "../domain/email-outbox.js";
 import { requireApplicationOrigin, resolveTrustedOrigins } from "./origin.js";
@@ -129,26 +129,14 @@ const authOptions = {
         after: async (createdUser) => {
           const { db: hookDb, pool: hookPool } = createDb();
           try {
-            const platform = await hookDb.insert(users).values({
+            await hookDb.transaction(async (tx) => {
+            await tx.insert(users).values({
               authUserId: createdUser.id,
               email: createdUser.email,
               displayName: createdUser.name,
               emailVerified: Boolean(createdUser.emailVerified),
-            }).onConflictDoNothing({ target: users.authUserId }).returning({ id: users.id });
-            const platformUserId = platform[0]?.id;
-            if (!platformUserId) return;
-            await hookDb.insert(memberships).values({
-              userId: platformUserId,
-              scopeType: "STUDENT",
-              scopeId: platformUserId,
-              role: "STUDENT",
-              status: "ACTIVE",
-            }).onConflictDoNothing();
-            await hookDb.insert(studentProfiles).values({
-              userId: platformUserId,
-              firstName: createdUser.name.split(/\s+/u)[0] || createdUser.name,
-              lastName: createdUser.name.split(/\s+/u).slice(1).join(" ") || null,
-            }).onConflictDoNothing({ target: studentProfiles.userId });
+            }).onConflictDoNothing({ target: users.authUserId });
+            });
           } finally {
             await hookPool.end();
           }

@@ -5,6 +5,7 @@ import {
   exactPreviewCommit,
   isContractDeploymentHost,
   previewContractForBranch,
+  r54sSafePreviewRuntime,
 } from "./preview-contract.js";
 
 const PRODUCTION_HOSTS = new Set(["fixoku.com", "www.fixoku.com"]);
@@ -29,7 +30,12 @@ export function resolveApplicationOrigin(env = process.env) {
     const contract = previewContractForBranch(env.VERCEL_GIT_COMMIT_REF);
     // Preview identity comes from Vercel system metadata. Unknown branches,
     // missing deployment URLs, and stale expected-commit values fail closed.
-    if (!contract || !deployment || !isVercelPreviewOrigin(deployment, contract) || !exactPreviewCommit(contract, env)) return null;
+    // R54S uses the source-pinned R18 test DB identity instead of a mutable
+    // expected-commit environment variable. Other branches retain the original gate.
+    const runtimeVerified = contract === PREVIEW_CONTRACTS.r54StudentAcceptance
+      ? r54sSafePreviewRuntime(env)
+      : exactPreviewCommit(contract, env);
+    if (!contract || !deployment || !isVercelPreviewOrigin(deployment, contract) || !runtimeVerified) return null;
     if (hasConfigured && !configured) return null;
     if (configured) {
       if (!isApprovedPreviewOrigin(configured, contract, deployment)) return null;

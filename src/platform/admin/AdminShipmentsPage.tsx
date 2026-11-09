@@ -112,7 +112,7 @@ function Icon({ name, size = 19 }: { name: string; size?: number }) {
 }
 
 export function AdminShipmentsPage() {
-  const [mode, setMode] = useState<Mode>("demo");
+  const [mode, setMode] = useState<Mode>("real");
   const [demo, setDemo] = useState<Shipment[]>(readDemo);
   const [real, setReal] = useState<Shipment[]>([]);
   const [realState, setRealState] = useState<"idle" | "loading" | "ready" | "error">("idle");
@@ -206,10 +206,6 @@ export function AdminShipmentsPage() {
     <div className="fx-cargo-header">
       <div><div className="fx-cargo-eyebrow">OPERASYON / KARGO</div><h1>Kargo ve Gönderiler</h1><p>Gönderilerin durumunu görün, sorunlu kayıtları hızlıca çözün.</p></div>
       <div className="fx-cargo-actions">
-        <div className="fx-cargo-mode" aria-label="Veri modu">
-          <button type="button" className={mode === "demo" ? "active" : ""} onClick={() => switchMode("demo")}>Test Kargoları</button>
-          <button type="button" className={mode === "real" ? "active" : ""} onClick={() => switchMode("real")}>Gerçek Kargolar</button>
-        </div>
         {mode === "demo" && <><button className="fx-cargo-button" type="button" onClick={() => { if (window.confirm("Örnek kargoları başlangıç durumuna döndürmek istiyor musunuz?")) { setDemo(makeDemo()); setNotice("Sekiz test kargosu başlangıç durumuna döndürüldü."); setSelectedId(null); clearFilters(); } }}><Icon name="refresh" size={16}/> Sıfırla</button>
           <button className="fx-cargo-button primary" type="button" onClick={() => setCreateOpen(true)}><Icon name="plus" size={16}/> Yeni Test Kargosu</button></>}
       </div>
@@ -237,7 +233,7 @@ export function AdminShipmentsPage() {
         <label className="fx-cargo-check"><input checked={onlyMissing} onChange={e => setOnlyMissing(e.target.checked)} type="checkbox"/> Takip no olmayanlar</label>
         <button className="fx-cargo-button compact" type="button" onClick={clearFilters}>Temizle</button>
       </div>
-      {realState === "loading" && mode === "real" ? <div className="fx-cargo-empty" role="status">Gerçek gönderiler yükleniyor…</div> : realState === "error" && mode === "real" ? <div className="fx-cargo-empty" role="alert">{realMessage} <button className="fx-cargo-button" type="button" onClick={() => { switchMode("demo"); }}>Test ekranına dön</button></div> :
+      {realState === "loading" && mode === "real" ? <div className="fx-cargo-empty" role="status">Gerçek gönderiler yükleniyor…</div> : realState === "error" && mode === "real" ? <div className="fx-cargo-empty" role="alert">{realMessage} <button className="fx-cargo-button" type="button" onClick={() => window.location.reload()}>Yeniden dene</button></div> :
         <div className="fx-cargo-tablewrap"><table><thead><tr><th>Sipariş / Alıcı</th><th>Ürün</th><th>Taşıyıcı</th><th>Takip numarası</th><th>Güncel durum</th><th>Son işlem</th><th>İşlem</th></tr></thead><tbody>
           {filtered.map(item => <tr key={`${item.kind}:${item.id}`}><td><div className="fx-cargo-order">{item.orderId ? `#${item.orderId.slice(0, 20)}` : "Gönderi"}</div><div className="fx-cargo-person"><span className="fx-cargo-avatar">{item.person.charAt(0).toLocaleUpperCase("tr-TR")}</span><div><b>{item.person}</b><small>{item.kind === "student" ? "Öğrenci" : "Eğitmen"}</small></div></div></td><td><span className="fx-cargo-product" title={item.product}>{item.product}</span></td><td>{item.carrier}</td><td>{item.tracking ? <code>{item.tracking}</code> : <span className="fx-cargo-muted">Henüz yok</span>}</td><td><span className={`fx-cargo-chip s-${item.status}`}>{statusText[item.status]}</span></td><td>{safeDate(item.updatedAt)}</td><td><button className="fx-cargo-button compact" onClick={() => openDetails(item)} type="button">Ayrıntılar <Icon name="chevron" size={14}/></button></td></tr>)}
           {!filtered.length && <tr><td colSpan={7}><div className="fx-cargo-empty">Bu filtrelerde gönderi bulunamadı. Filtreleri temizleyerek yeniden deneyebilirsin.</div></td></tr>}

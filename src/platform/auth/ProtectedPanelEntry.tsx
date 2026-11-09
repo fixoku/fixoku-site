@@ -109,18 +109,31 @@ function VerifiedCandidateLockedPage() {
 export function ProtectedPanelEntry({ requiredRole, children }: { requiredRole?: string | readonly string[]; children?: (context: PanelContext) => ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [state, setState] = useState<{ status: "loading" } | { status: "ready"; context: PanelContext } | { status: "denied" }>({ status: "loading" });
+  const [state, setState] = useState<{ status: "loading" } | { status: "ready"; context: PanelContext } | { status: "denied"; code: number | null }>({ status: "loading" });
   useEffect(() => {
     let active = true;
     // New view aliases reuse the existing trainer permission checks and data APIs.
     const panelPath = location.pathname === "/panel/egitmen/hakedislerim" ? "/panel/egitmen/bakiyem" : location.pathname === "/panel/egitmen/paketler" ? "/panel/egitmen/egitimlerim" : location.pathname;
     readPanelContext(panelPath, Boolean(requiredRole)).then((context) => {
       if (active) setState({ status: "ready", context });
-    }).catch(() => active && setState({ status: "denied" }));
+    }).catch((error) => {
+      if (!active) return;
+      const matched = String(error?.message ?? "").match(/^PANEL_CONTEXT_(\d{3})$/);
+      setState({ status: "denied", code: matched ? Number(matched[1]) : null });
+    });
     return () => { active = false; };
   }, [location.pathname, requiredRole]);
   if (state.status === "loading") return <main className="route-loading-status" aria-live="polite">Oturum doğrulanıyor…</main>;
   if (state.status === "denied") {
+    const isManagementRoute = /^\/panel\/(?:admin|owner)(?:\/|$)/.test(location.pathname);
+    if (isManagementRoute && state.code !== 401) {
+      const forbidden = state.code === 403;
+      return <main className="platform-access-denied" role="alert">
+        <h1>{forbidden ? "Bu sayfaya erişim izniniz yok." : "Panel bilgileri şu anda yüklenemiyor."}</h1>
+        <p>{forbidden ? "Hesabınızın yetkilerini kontrol edin." : `Oturumunuz kapatılmadı. ${state.code ? `Sunucu yanıtı: ${state.code}. ` : "Bağlantı hatası. "}Lütfen tekrar deneyin.`}</p>
+        <button type="button" onClick={() => window.location.reload()}>Yeniden dene</button>
+      </main>;
+    }
     const pendingIntent = location.pathname === "/panel/ogrenci/paketler"
       ? readStudentPurchaseIntent()
       : null;

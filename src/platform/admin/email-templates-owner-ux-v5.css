@@ -76,3 +76,48 @@
  .email-template-review .fixoku-mail-v5-addresses .email-identity-table {width: calc(100% - 24px) !important; margin: 12px 12px 0 !important;}
  .email-template-review .fixoku-mail-v5-addresses > .fixoku-mail-v5-address-heading {padding: 16px 14px !important; font-size: 15px;}
 }
+
+/* FIXOKU R29 EMAIL LIBRARY HEIGHT FIX
+   Keep the full template catalogue accessible without altering templates or API. */
+@media (min-width: 900px) {
+  .email-template-review .email-template-workspace > .email-template-library {
+    display: flex !important;
+    flex-direction: column !important;
+    align-self: start !important;
+    height: min(820px, calc(100vh - 100px)) !important;
+    min-height: 520px !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+  .email-template-review .email-template-library > .admin-section-heading {
+    flex: 0 0 auto !important;
+  }
+  .email-template-review .email-template-library > .email-template-list {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .email-template-review .email-template-library > .email-template-list button {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    text-align: left !important;
+  }
+}
+@media (max-width: 899px) {
+  .email-template-review .email-template-workspace > .email-template-library {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .email-template-review .email-template-library > .email-template-list {
+    max-height: 50vh !important;
+    overflow-y: auto !important;
+  }
+}

@@ -17,3 +17,32 @@
 .fx-trainer-shared-020n .admin-content-row-main input{width:100%;min-width:0;}
 .fx-trainer-shared-020n .admin-preview-dialog .fx41j-preview-cover img{width:100%;max-height:220px;object-fit:contain;}
 @media(max-width:720px){.fx-trainer-shared-020n .admin-package-cover-upload .admin-book-cover{width:92px;height:92px;}}
+
+/* FIXOKU_R31C_OWNER_TRAINER_COVER_START
+ * Owner trainer package editor ONLY: constrain cover preview;
+ * preserve original media, catalog cards and preview dialogs.
+ */
+.fx-trainer-shared-020n .admin-package-cover-upload.fx-r60c18d-cover > :first-child {
+  width: 250px !important;
+  height: 250px !important;
+  max-width: 100% !important;
+  flex: 0 0 250px !important;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.fx-trainer-shared-020n .admin-package-cover-upload.fx-r60c18d-cover > :first-child img {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+}
+@media (max-width: 720px) {
+  .fx-trainer-shared-020n .admin-package-cover-upload.fx-r60c18d-cover > :first-child {
+    width: 190px !important;
+    height: 190px !important;
+    flex-basis: 190px !important;
+  }
+}
+/* FIXOKU_R31C_OWNER_TRAINER_COVER_END */

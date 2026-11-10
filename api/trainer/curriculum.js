@@ -20,6 +20,14 @@ const headers = (req) =>
     Object.entries(req.headers || {}).map(([key, value]) => [key, String(value)])
   );
 
+function validManifestItem(item) {
+  if (!item || typeof item !== "object") return false;
+  const file = String(item.file || "");
+  const type = item.type === "video" ? "video" : item.type === "slide" ? "slide" : "";
+  if (!type || !file || path.basename(file) !== file) return false;
+  return type === "video" ? /\.mp4$/iu.test(file) : /\.png$/iu.test(file);
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
@@ -79,8 +87,10 @@ export default async function handler(req, res) {
       try { manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8")); } catch { return json(res, 503, { error: "CURRICULUM_MANIFEST_INVALID" }); }
     }
 
-    const items = Array.isArray(manifest.items)
-      ? manifest.items.map((item) => ({
+    const rawItems = Array.isArray(manifest.items) ? manifest.items : [];
+    if (rawItems.some((item) => !validManifestItem(item))) return json(res, 503, { error: "CURRICULUM_MANIFEST_INVALID" });
+    const items = rawItems
+      .map((item) => ({
           index: Number(item.index),
           type: item.type === "video" ? "video" : "slide",
           slideNo: Number(item.slideNo),
@@ -91,8 +101,7 @@ export default async function handler(req, res) {
           thumbSrc:
             `/api/trainer/curriculum-media?packageId=${encodeURIComponent(packageId)}` +
             `&item=${encodeURIComponent(String(item.index))}&mode=thumb`,
-        }))
-      : [];
+        }));
 
     return json(res, 200, {
       slideCount: Number(manifest.slideCount || 0),

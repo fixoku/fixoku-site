@@ -4,7 +4,7 @@ import pg from "pg";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 import { getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
-import { getRealTrainerLessons } from "./video-config.js";
+import { loadRealTrainerLessons } from "./video-config.js";
 import { previewProgress, previewRecord } from "./video-preview-progress.js";
 import { readTrainerVideoProgress, recordTrainerVideoProgress } from "../../src/server/domain/trainer-completion.js";
 // Local preview state remains a compatibility yedek only when a disposable
@@ -49,8 +49,10 @@ export default async function handler(req, res) {
     if (!pkg) return respond(res, 404, { error: "PACKAGE_NOT_FOUND" });
     const entitled = (await pool.query("select id from trainer_package_entitlements where trainer_user_id=$1 and package_id=$2 and status='ACTIVE' and revoked_at is null", [user.id, pkg.id])).rows[0];
     if (!entitled) return respond(res, 403, { error: "ENTITLEMENT_REQUIRED" });
-    const lessons = getRealTrainerLessons(pkg.slug);
-    if (lessons.length && !allMediaPresent(pkg.slug, lessons)) {
+    const lessonResult = await loadRealTrainerLessons(pkg.slug);
+    if (lessonResult.state === "UNAVAILABLE") return respond(res, 503, { error: "PRIVATE_MEDIA_UNAVAILABLE" });
+    const lessons = lessonResult.lessons;
+    if (lessons.length && !storageIsRemote() && !allMediaPresent(pkg.slug, lessons)) {
       // R96B local review stores the canonical MP4s in the curriculum manifest
       // tree. Keep the existing standalone lesson viewer fail-closed when its
       // legacy intake/poster pair is absent, but allow the same page to open so
@@ -101,4 +103,9 @@ export default async function handler(req, res) {
     }
   } catch (error) { return respond(res, error.status || 403, { error: error.code || error.message || "TRAINER_VIDEO_ACCESS_DENIED" }); }
   finally { await pool.end(); }
+}
+
+function storageIsRemote() {
+  const storage = getDigitalStorageConfig();
+  return storage.provider === "S3" || storage.provider === "R2";
 }

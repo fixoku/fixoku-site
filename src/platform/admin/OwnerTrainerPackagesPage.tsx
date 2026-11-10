@@ -547,6 +547,7 @@ export function OwnerTrainerPackagesPage() {
             <fieldset disabled={!canEdit}><legend>Paket Bilgileri</legend><div className="admin-form-two-column">
               <label>Paket başlığı<input value={form.title} onChange={e=>updateForm({title:e.target.value})}/></label>
               <label>Alt başlık<input value={form.shortDescription} onChange={e=>updateForm({shortDescription:e.target.value})}/></label>
+              <label className="admin-form-full">Paket açıklaması<textarea required value={form.description} onChange={e=>updateForm({description:e.target.value})}/></label>
               
             </div></fieldset><fieldset disabled={previewOnly}><div className="admin-form-full"><label>Yönetici notu (yalnız Owner)<textarea value={ownerNote} maxLength={4000} readOnly={ownerNoteState !== "ready" || previewOnly} onChange={e=>{setOwnerNote(e.target.value);setOwnerNoteFeedback("");}} placeholder="Yalnız Owner tarafından görülür; paket açıklaması değildir." aria-label="Yönetici notu" /></label><div className="admin-row-actions"><span aria-live="polite">{ownerNoteFeedback || (ownerNoteState === "loading" ? "Yönetici notu okunuyor..." : ownerNoteState === "blocked" ? "Yeni Neon etkinleşene kadar not kilitli." : `${ownerNote.length}/4000 karakter`)}</span><button type="button" className="admin-outline-button" disabled={ownerNoteState !== "ready" || previewOnly || ownerNote === ownerNoteInitial || !selectedId} onClick={()=>void saveOwnerNote()}>Yönetici Notunu Kaydet</button></div></div></fieldset>
             <fieldset disabled={!canEdit}>

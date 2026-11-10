@@ -134,6 +134,8 @@
     "test:r73-legal-publication": "node scripts/test-r73-legal-publication-preparation.mjs",
     "test:r74-legal-readiness": "node scripts/test-r74-legal-readiness.mjs",
     "test:r75-resend-r2-contracts": "node scripts/test-r75-resend-r2-contracts.mjs",
+    "test:r78-media-manifest": "node scripts/test-r78-media-manifest.mjs",
+    "test:r78-video-manifest": "node scripts/test-r78-video-manifest-contracts.mjs",
     "test:r76-owner-legal-isolated": "node scripts/test-r76-owner-legal-isolated.mjs",
     "test:r77d-owner-legal-source": "node scripts/test-r77d-owner-legal-source.mjs",
     "test:r77e-legal-integration": "node scripts/test-r77e-legal-integration.mjs",

@@ -95,6 +95,10 @@ export default async function handler(req, res) {
       return stop(res, 404);
     }
 
+    const itemFile = String(item.file || "");
+    const validItemFile = path.basename(itemFile) === itemFile && (item.type === "video" ? /\.mp4$/iu.test(itemFile) : item.type === "slide" && /\.png$/iu.test(itemFile));
+    if (!validItemFile) return stop(res, 404);
+
     res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -134,7 +138,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const fileName = path.basename(String(item.file || ""));
+    const fileName = path.basename(itemFile);
 
     if (!fileName || fileName !== String(item.file || "")) {
       return stop(res, 400);

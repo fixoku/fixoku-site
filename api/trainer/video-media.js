@@ -4,7 +4,7 @@ import pg from "pg";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 import { createSignedReadUrl, getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
-import { getRealTrainerLessons } from "./video-config.js";
+import { loadRealTrainerLessons } from "./video-config.js";
 import { previewUnlocked } from "./video-preview-progress.js";
 import { readTrainerVideoProgress } from "../../src/server/domain/trainer-completion.js";
 
@@ -33,8 +33,10 @@ export default async function handler(req, res) {
     const result = await pool.query(`select p.slug from packages p join trainer_package_entitlements e on e.package_id=p.id where p.id=$1 and p.audience='TRAINER' and e.trainer_user_id=$2 and e.status='ACTIVE' and e.revoked_at is null limit 1`, [packageId, user.id]);
     const slug = result.rows[0]?.slug;
     if (!slug) return reply(res, 403);
-    const lessons = getRealTrainerLessons(slug);
-    const lesson = lessons[videoIndex - 1];
+    const lessonResult = await loadRealTrainerLessons(slug);
+    if (lessonResult.state === "UNAVAILABLE") return reply(res, 503);
+    const lessons = lessonResult.lessons;
+    const lesson = lessons.find((item) => item.videoIndex === videoIndex);
     if (!lesson) return reply(res, 404);
     if (!poster) {
       const persisted = await readTrainerVideoProgress(pool, user.id, packageId, videoIndex);
@@ -43,9 +45,7 @@ export default async function handler(req, res) {
     }
     const storage = getDigitalStorageConfig();
     if (storage.provider === "S3" || storage.provider === "R2") {
-      const storageKey = poster
-        ? `trainer-video-posters/${slug}/${lesson.poster}`
-        : `trainer-curriculum-intake/release-015l-egitmen-dersleri/${slug}/${lesson.filename}`;
+      const storageKey = poster ? lesson.posterKey : lesson.videoKey;
       res.statusCode = 302;
       res.setHeader("Location", createSignedReadUrl(storage, storageKey));
       res.setHeader("Cache-Control", "private, no-store");

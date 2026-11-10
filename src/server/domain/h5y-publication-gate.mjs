@@ -36,6 +36,6 @@ export async function assertTrainerPublicationFromDb(client,{slug,versionId}) {
  if (!Object.hasOwn(APPROVED_TRAINER_PRICES,slug)) return {scope:'CUSTOM_PACKAGE_UNCHANGED'};
  const version=(await client.query('select price_gross_minor as "priceGrossMinor" from package_versions where id=$1',[versionId])).rows[0];
  if(!version)throw Object.assign(new Error('TRAINER_VERSION_NOT_FOUND'),{status:404});
- const components=(await client.query(`select c.component_type as "componentType",c.is_active as "isActive",p.sku,p.product_type as "productType",p.vat_rate_bps as "vatRateBps",p.list_gross_minor as "listGrossMinor" from package_components c left join physical_products p on p.id=c.physical_product_id where c.package_version_id=$1`,[versionId])).rows;
+ const components=(await client.query(`select c.component_type as "componentType",c.is_active as "isActive",p.sku,p.product_type as "productType",p.vat_rate_bps as "vatRateBps",p.list_gross_minor as "listGrossMinor" from package_components c left join physical_products p on p.id=coalesce(c.physical_product_id,c.reference_id) where c.package_version_id=$1`,[versionId])).rows;
  return assertApprovedTrainerPublication({slug,priceGrossMinor:version.priceGrossMinor,components});
 }

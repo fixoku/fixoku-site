@@ -216,6 +216,7 @@ export function OwnerTrainerPackagesPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [actionTarget, setActionTarget] = useState<"fields" | "components" | "publish" | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState<StageFilter>("ALL");
@@ -295,8 +296,8 @@ export function OwnerTrainerPackagesPage() {
   const rows = all.slice((pageSafe - 1) * 10, pageSafe * 10);
   const visibleProducts = catalog.products.filter(p => p.isActive && `${p.title} ${p.sku}`.toLocaleLowerCase("tr-TR").includes(productSearch.toLocaleLowerCase("tr-TR")));
 
-  const choose = (item: PackageRecord, readOnly = false) => {
-    setSelectedId(item.id);
+  const choose = (item: PackageRecord, readOnly = false, preserveAction = false) => {
+    setSelectedId(item.id); if (!preserveAction) setActionTarget(null);
     void loadOwnerNote(item.id);
     setForm(toEditor(item));
     setPreviewOnly(readOnly);
@@ -320,7 +321,7 @@ export function OwnerTrainerPackagesPage() {
     const item = (result.packages as PackageRecord[]).find(p => p.id === id);
     if (!item) throw new Error("PACKAGE_NOT_FOUND");
     setCatalog(current => ({ ...current, packages: [item, ...current.packages.filter(p => p.id !== id)], catalogLinkedComponents: Array.isArray(result.catalogLinkedComponents) ? result.catalogLinkedComponents as LinkedCatalogPackage[] : current.catalogLinkedComponents?.filter(p => p.packageId !== id) }));
-    choose(item);
+    choose(item, false, true);
     return item;
   };
   // A published version is immutable.  Keep the Owner's form values in memory
@@ -478,8 +479,8 @@ export function OwnerTrainerPackagesPage() {
         <button type="button" role="tab" aria-selected={tab === "products"} className={tab === "products" ? "selected" : ""} onClick={() => setTab("products")}><FixokuCatalogIconV40 kind="grid" size={19}/> Ürünler</button>
         <button type="button" role="tab" aria-selected={tab === "expertise"} className={tab === "expertise" ? "selected" : ""} onClick={() => setTab("expertise")}><FixokuCatalogIconV40 kind="school" size={19}/> Uzmanlıklar</button>
       </div>
-      {error && <p role="alert" className={`admin-feedback ${saveStatus === "error" ? "admin-feedback-error" : ""}`}>{error}</p>}
-      {message && <p role={saveStatus === "error" ? "alert" : "status"} className={`admin-feedback admin-feedback-${saveStatus}`}>{message}</p>}
+      {error && (!actionTarget || tab !== "packages") && <p role="alert" className="admin-feedback admin-feedback-error">{error}</p>}
+      {message && (!actionTarget || tab !== "packages") && <p role="status" className="admin-feedback">{message}</p>}
       {tab === "packages" && (
         <>
         <section className="admin-package-layout is-editing">
@@ -667,7 +668,39 @@ export function OwnerTrainerPackagesPage() {
                 <label className="admin-switch"><input type="checkbox" checked={false} disabled readOnly/><span className="admin-switch-track"/><span>Web sitesinde göster (eğitmen paketleri için kapalı)</span></label>
                 <label className="admin-switch"><input type="checkbox" checked={form.purchaseEnabled} onChange={e=>updateForm({purchaseEnabled:e.target.checked})}/><span className="admin-switch-track"/><span>Satın alınabilir</span></label>
               </div></fieldset></div>
-            <div className="admin-editor-actions"><button type="button" className="admin-primary-action" disabled={!canEdit} onClick={()=>void saveFields()}>Paket Bilgilerini Kaydet</button><button type="button" className="admin-secondary-action" disabled={!canEdit||!safeComponentEditing} onClick={()=>void saveComponents()}>Ürün ve İçeriği Kaydet</button><button type="button" className="admin-secondary-action" onClick={()=>{setForm(null);setSelectedId("");}}>Düzenlemeden Çık</button><button type="button" className="admin-secondary-action" disabled={!draft||busy} onClick={()=>void publishDraft()}>Yayınla</button></div>
+            <style>{`
+.fx-r122v-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.fx-r122v-action{display:flex;flex-direction:column;gap:7px;min-width:0}
+.fx-r122v-action button{width:100%!important;min-height:51px!important;border-radius:10px!important;font-weight:800!important;font-size:14px!important;white-space:normal!important}
+.fx-r122v-save button{background:#fff3eb!important;color:#b9450d!important;border:2px solid #e96624!important}
+.fx-r122v-components button{background:#fff!important;color:#17375d!important;border:2px solid #a8b9cd!important}
+.fx-r122v-exit button{background:#edf1f6!important;color:#40536b!important;border:1px solid #b8c5d3!important}
+.fx-r122v-publish{grid-column:1/-1}
+.fx-r122v-publish button{min-height:62px!important;background:#ed4e0b!important;color:white!important;border:2px solid #ed4e0b!important;font-size:17px!important}
+.fx-r122v-actions button:disabled{opacity:.5!important;cursor:not-allowed!important}
+.fx-r122v-feedback{margin:0;padding:9px 11px;border-radius:8px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.fx-r122v-feedback.is-error{background:#fff0ef;color:#a72222;border:1px solid #f2b8b5}
+.fx-r122v-feedback.is-ok{background:#eef9f1;color:#17643a;border:1px solid #b9e3c7}
+.fx-r122v-feedback.is-busy{background:#edf4ff;color:#234b82;border:1px solid #c9dafa}
+@media(max-width:650px){.fx-r122v-actions{grid-template-columns:1fr}.fx-r122v-publish{grid-column:1}}
+`}</style>
+<div className="fx-r122v-actions">
+  <div className="fx-r122v-action fx-r122v-save">
+    <button type="button" disabled={!canEdit || busy} onClick={()=>{setActionTarget("fields");void saveFields();}}>Paket Bilgilerini Kaydet</button>
+    {actionTarget==="fields" && (busy || error || message) && <p role={error?"alert":"status"} className={`fx-r122v-feedback ${error?"is-error":busy?"is-busy":"is-ok"}`}>{error || (busy?"Kaydediliyor...":message)}</p>}
+  </div>
+  <div className="fx-r122v-action fx-r122v-components">
+    <button type="button" disabled={!canEdit || !safeComponentEditing || busy} onClick={()=>{setActionTarget("components");void saveComponents();}}>Ürün ve İçeriği Kaydet</button>
+    {actionTarget==="components" && (busy || error || message) && <p role={error?"alert":"status"} className={`fx-r122v-feedback ${error?"is-error":busy?"is-busy":"is-ok"}`}>{error || (busy?"Kaydediliyor...":message)}</p>}
+  </div>
+  <div className="fx-r122v-action fx-r122v-exit">
+    <button type="button" onClick={()=>{setActionTarget(null);setForm(null);setSelectedId("");}}>Düzenlemeden Çık</button>
+  </div>
+  <div className="fx-r122v-action fx-r122v-publish">
+    <button type="button" disabled={!draft || busy} onClick={()=>{setActionTarget("publish");void publishDraft();}}>Yayınla</button>
+    {actionTarget==="publish" && (busy || error || message) && <p role={error?"alert":"status"} className={`fx-r122v-feedback ${error?"is-error":busy?"is-busy":"is-ok"}`}>{error || (busy?"Yayınlanıyor...":message)}</p>}
+  </div>
+</div>
 
           </section> : <aside className="panel-card fx41e-empty-editor"><span className="fx41e-empty-art"><FixokuCatalogIconV40 kind="package" size={32}/></span><h2>Paketi Düzenle</h2><p>Soldaki bir paketi seçin.</p></aside>}
         </section>

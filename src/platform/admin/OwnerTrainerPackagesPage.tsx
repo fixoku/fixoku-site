@@ -535,7 +535,16 @@ export function OwnerTrainerPackagesPage() {
 .fx-r60c18d-notice{margin-top:9px;padding:9px 11px;border-radius:8px;font-size:12px;background:#ecfdf3;color:#166534}
 .fx-r60c18d-notice.is-dirty{background:#fff7ed;color:#9a3412}
 @container (min-width:680px){.fx-r60c18e-row{grid-template-columns:36px minmax(0,1fr) 74px 50px 136px!important;min-height:56px!important}.fx-r60c18e-actions{grid-column:5;grid-row:1}}`}</style>
-            <div className="admin-package-cover-upload fx-r60c18d-cover"><FixokuImageUploadV41F
+            <div className="admin-package-cover-upload fx-r60c18d-cover">
+              <div aria-label="Mevcut paket kapağı" style={{width:"100%",maxWidth:360,aspectRatio:"1 / 1",overflow:"hidden",borderRadius:12,border:"1px solid #e3eaf2",background:"#f8fafc"}}>
+                <FixokuPhotoV41F
+                  src={form.coverReference || selected.iconReference || trainerCourseCover020P(selected.title || "", selected.slug)}
+                  fallbackSrc={trainerCourseCover020P(selected.title || "", selected.slug)}
+                  alt={selected.title || "Paket kapağı"}>
+                  <FixokuCatalogIconV40 kind="package" size={48}/>
+                </FixokuPhotoV41F>
+              </div>
+              <FixokuImageUploadV41F
               kind="trainer-package" id={selected.slug} value={form.coverReference}
               fallback={trainerCourseCover020P(selected.title || "", selected.slug)}
               label="Paket Kapak Görseli" width={1000} height={1000}
@@ -547,9 +556,9 @@ export function OwnerTrainerPackagesPage() {
             <fieldset disabled={!canEdit}><legend>Paket Bilgileri</legend><div className="admin-form-two-column">
               <label>Paket başlığı<input value={form.title} onChange={e=>updateForm({title:e.target.value})}/></label>
               <label>Alt başlık<input value={form.shortDescription} onChange={e=>updateForm({shortDescription:e.target.value})}/></label>
-              <label className="admin-form-full">Paket açıklaması<textarea required value={form.description} onChange={e=>updateForm({description:e.target.value})}/></label>
               
-            </div></fieldset><fieldset disabled={previewOnly}><div className="admin-form-full"><label>Yönetici notu (yalnız Owner)<textarea value={ownerNote} maxLength={4000} readOnly={ownerNoteState !== "ready" || previewOnly} onChange={e=>{setOwnerNote(e.target.value);setOwnerNoteFeedback("");}} placeholder="Yalnız Owner tarafından görülür; paket açıklaması değildir." aria-label="Yönetici notu" /></label><div className="admin-row-actions"><span aria-live="polite">{ownerNoteFeedback || (ownerNoteState === "loading" ? "Yönetici notu okunuyor..." : ownerNoteState === "blocked" ? "Yeni Neon etkinleşene kadar not kilitli." : `${ownerNote.length}/4000 karakter`)}</span><button type="button" className="admin-outline-button" disabled={ownerNoteState !== "ready" || previewOnly || ownerNote === ownerNoteInitial || !selectedId} onClick={()=>void saveOwnerNote()}>Yönetici Notunu Kaydet</button></div></div></fieldset>
+
+            </div></fieldset>
             <fieldset disabled={!canEdit}>
               <div className="admin-section-toolbar"><legend>Paket İçeriği</legend><div className="admin-row-actions">
               </div></div>
@@ -599,8 +608,8 @@ export function OwnerTrainerPackagesPage() {
                   <small style={{display:"block",marginTop:8}}>Bu bölüm yalnız gerçek API kayıtlarını gösterir. Aşağıdaki hedef eğitim taslağı ve fatura önizlemesi ayrı kaynaklardan gelir; veritabanı geçişi yapılmış sayılmaz.</small>
                 </div>;
               })()}
-              {(() => {const plan=h5vInvoicePreviewPlans.find(v=>v.slug===selected.slug);const rows=plan?.items.filter(v=>v.kind==="TRAINER_EDUCATION")||[];return rows.length>0 && <div style={{padding:"12px 14px",marginBottom:12,border:"1px solid #d8e6ff",background:"#f4f8ff",borderRadius:10}}><strong style={{fontSize:13}}>Onaylı eğitmen eğitimleri (hedef taslak, kayıtlı ürün değil)</strong><div style={{display:"grid",gap:6,marginTop:8}}>{rows.map(v=><div key={v.name} style={{display:"flex",justifyContent:"space-between",gap:8,fontSize:12}}><span>{v.name}</span><b>{(v.grossMinor/100).toLocaleString("tr-TR",{style:"currency",currency:"TRY"})}</b></div>)}</div><small style={{display:"block",marginTop:7}}>Yeni Neon veritabanında kayıt ve paket bağlantısı yapılana kadar bu satırlar düzenlenebilir gerçek bileşen değildir.</small></div>})()}
-              {form.components.some(c=>/bireysel eğitim hizmeti/iu.test(c.title||"")) && <div role="status" style={{padding:"12px 14px",marginBottom:12,border:"1px solid #f6c8af",borderRadius:10,background:"#fff8f1",fontSize:13}}><strong>Eski öğrenci hizmetleri geçiş bekliyor</strong><p style={{margin:"5px 0 0"}}>Bireysel eğitim bağlantıları normal ürün listesinden ayrıldı; mevcut kayıtlardan silinmedi. Yeni Neon ürün kimlikleri olmadan ürün/içerik kaydetme veya yayınlama yapmayın.</p></div>}
+
+
               <div className="admin-book-list">{form.components.filter(c=>c.componentType!=="TEXT_ITEM" && !/bireysel eğitim hizmeti/iu.test(c.title||"" )).map(c=>{const index=form.components.indexOf(c);const product=catalog.products.find(p=>p.id===String(c.physicalProductId||c.productId||c.referenceId));return <div className="admin-book-row" key={c.componentId||`${c.componentType}-${index}`}>
                 <div className="admin-book-cover"><FixokuPhotoV41F src={product?.imageReference||c.imageReference} fallbackSrc={productImageDefaultV41F(product?.sku||"")} alt={product?.title||c.title||componentTypeLabel(c.componentType)}><FixokuCatalogIconV40 kind={c.componentType === "PHYSICAL_PRODUCT" ? "book" : c.componentType === "TRAINER_SERVICE" ? "individual" : "software"} size={25}/></FixokuPhotoV41F></div>
                 <div className="admin-book-details"><strong>{product?.title||c.title||componentTypeLabel(c.componentType)}</strong><span>{componentTypeLabel(c.componentType)}{product?.sku ? ` · ${product.sku}` : ""}</span><input aria-label="Pakette görünen ürün adı" placeholder="Pakette görünen ad" value={c.displayLabel||""} onChange={e=>updateComponent(index,{displayLabel:e.target.value})}/></div>
@@ -612,26 +621,7 @@ export function OwnerTrainerPackagesPage() {
                 <div className="admin-book-picker-results fx40-picker-grid">{visibleProducts.map(p=><article className="fx40-picker-tile" key={p.id}><div className="fx40-picker-art"><FixokuPhotoV41F src={p.imageReference} fallbackSrc={productImageDefaultV41F(p.sku)} alt={p.title}><FixokuCatalogIconV40 kind={p.productType === "PHYSICAL" ? "book" : "software"} size={34}/></FixokuPhotoV41F></div><strong>{p.title}</strong><small>{p.productType === "PHYSICAL" ? "Kitap" : "Yazılım / dijital erişim"} · {p.sku}</small><button type="button" disabled={form.components.some(c=>String(c.physicalProductId||c.productId)===p.id)} onClick={()=>addProduct(p)}>Ekle</button></article>)}</div>
               </div>}
             </fieldset>
-             {(() => {
-               const plan = h5uApprovedPlans.find(p => p.packageSlug === selected.slug);
-               if (!plan) return null;
-               const verified = Number(plan.itemsGrossMinor) - Number(plan.discountGrossMinor) === Number(plan.ownerSaleGrossMinor);
-               const editorPriceMatches = Math.round(Number(form.price || 0)*100) === plan.ownerSaleGrossMinor;
-               return <section aria-label="Onaylı hedef paket fiyat önizlemesi" style={{border:"1px solid #ead2bd",borderRadius:12,padding:14,margin:"14px 0",background:"#fffaf5"}}>
-                 <strong>Onaylı hedef içerik ve fiyat planı</strong>
-                 <p style={{fontSize:12,margin:"6px 0 10px"}}>Bu alan H5T yerel planından gelir. Henüz veritabanına eklenmemiş ürünlerin kaydı veya canlı fatura sonucu değildir.</p>
-                 <div style={{display:"grid",gap:6,fontSize:13}}>
-                   <div>Kitap: <strong>{plan.books} adet</strong> · Yazılım: <strong>{plan.hasSoftware ? "Var (paket içi 3.500 TL)" : "Yok"}</strong> · Eğitmen eğitimi: <strong>{plan.trainings.length} ayrı uzmanlık</strong></div>
-                   <div>Onaylı ürünler toplamı: <strong>{formatMoney(plan.itemsGrossMinor)}</strong></div>
-                   <div>Paket iskontosu: <strong>{formatMoney(plan.discountGrossMinor)}</strong></div>
-                   <div>Onaylı paket fiyatı: <strong>{formatMoney(plan.ownerSaleGrossMinor)}</strong></div>
-                   <div>Kargo: <strong>Ücretsiz Kargo</strong></div>
-                 </div>
-                 {!verified && <p role="alert">Hedef fiyat sözleşmesi tutarsız. Kayıt yapılmamalı.</p>}
-                 {!editorPriceMatches && <p role="status" style={{fontSize:12}}>Düzenleme formundaki satış fiyatı hedef plandan farklı. Bu alan formu veya kayıtlı fiyatı otomatik değiştirmez.</p>}
-                 <small style={{display:"block",marginTop:9}}>Alt bölüm mevcut API kayıtlarını ayrı doğrular. Orada eski bireysel eğitim ürünleri ve eksik fiyat uyarıları yeni Neon kayıtları oluşturulana kadar devam edebilir.</small>
-               </section>;
-             })()}
+
              <section className="fx-h5-price-preview" aria-label="Paket iskonto fiyat önizlemesi" style={{border:"1px solid #ddd",borderRadius:12,padding:16,margin:"18px 0"}}>
                <strong>Ürün listesi ve paket iskontosu kontrolü</strong>
                {(() => {

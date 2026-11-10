@@ -128,7 +128,7 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
   // Editing existing approved products only. Do not offer creation or change historical SKU/type identity.
   useEffect(() => {
     if (items.length && !form.id && !creating) {
-      const first = items.find((item) => isApprovedStudentSkuV41(item.sku));
+      const first = items.find((item) => trainerMode ? isCatalogItem(item.sku) : isApprovedStudentSkuV41(item.sku));
       if (first) edit(first);
     }
   }, [items, creating]);
@@ -137,9 +137,9 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
     event.preventDefault();
     if (form.productType === "TRAINING_SERVICE") {
       const approved = h5nTrainerServices.find(item => item.sku === form.sku);
-      if (!trainerMode || !approved || form.title !== approved.title ||
-          parseMoneyMinorV41D(form.listGrossInput) !== approved.price) {
-        event.preventDefault(); setStatus("Yalnız onaylı altı eğitmen eğitimi ve sabit fiyatları kullanılabilir."); return;
+      if (!trainerMode || !approved) {
+        setStatus("Eğitmen eğitimi ürün kimliği doğrulanamadı.");
+        return;
       }
     }
     if (form.id && !isCatalogItem(form.sku)) { setStatus("Ürün kodu doğrulanamadı."); return; }
@@ -271,11 +271,11 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
           </div>
           {!creating && <small style={{display:"block",marginTop:10,color:"#66748a"}}>Mevcut ürünün kayıtlı seviyeleri gösteriliyor. Değişiklik yapılmaz; geçmiş paket bağlantıları korunur.</small>}
         </fieldset>
-        <label>Ürün adı<input required value={form.title} readOnly={form.productType === "TRAINING_SERVICE"} onChange={(event)=>setForm({...form,title:event.target.value})}/></label>
+        <label>Ürün adı<input required value={form.title} onChange={(event)=>setForm({...form,title:event.target.value})}/></label>
         <label>Ürün Kodu (SKU)<input readOnly value={creating ? "Kaydedildiğinde otomatik oluşturulacak" : friendlySkuV41F(form.sku)}/><small className="fx41f-sku-note">SKU sunucuda otomatik üretilir; mevcut ürünün kodu değiştirilemez.</small></label>
         <section className="fx41d-price-card" aria-label="Ürün fiyatı düzenleme">
           <div className="fx41d-price-heading"><strong>Ürün Fiyatı</strong><span>KDV dahil · ₺</span></div>
-          <label>Kaydedilecek liste satış fiyatı <span className="fx41f-money-entry"><input required inputMode="decimal" autoComplete="off" placeholder="Örn. 3500,00" value={form.listGrossInput} readOnly={form.productType === "TRAINING_SERVICE"} onChange={(event)=>setForm({...form,listGrossInput:event.target.value})}/><span>₺</span></span></label>
+          <label>Kaydedilecek liste satış fiyatı <span className="fx41f-money-entry"><input required inputMode="decimal" autoComplete="off" placeholder="Örn. 3500,00" value={form.listGrossInput} onChange={(event)=>setForm({...form,listGrossInput:event.target.value})}/><span>₺</span></span></label>
           <div className="fx41d-price-footer"><span>KDV: %{creating ? (form.productType === "PHYSICAL" ? 0 : 20) : Number(items.find((item) => item.id === form.id)?.vatRateBps || 0) / 100}</span></div>
           <p>Buradan yalnız ürünün liste fiyatı değişir. Paket toplamı ve paketin bileşen fiyatları bu işlemle değiştirilmez.</p>
         </section>

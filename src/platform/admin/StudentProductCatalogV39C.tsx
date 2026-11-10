@@ -8,7 +8,7 @@ type Stage = "ALL" | "PRIMARY" | "MIDDLE" | "HIGH" | "ADULT";
 type ProductType = "PHYSICAL" | "SOFTWARE" | "SERVICE" | "TRAINING_SERVICE";
 type CatalogProductV39C = {
   id: string; sku: string; title: string; description?: string;
-  productType: ProductType; isActive: boolean;
+  productType: ProductType; r6ProductType?: string | null; serviceType?: string | null; isActive: boolean;
   imageReference?: string | null; stageScopes?: string[]; serviceMode?: string | null;
   stockLocation?: string | null; costMinor?: number; listGrossMinor?: number; vatRateBps?: number;
 };
@@ -59,6 +59,20 @@ const productSaveMessageV85 = (error: unknown): string => {
   return "Ürün kaydedilemedi.";
 };
 
+// Classify display labels using the R6 subtype, not the DIGITAL database base type.
+function displayProductV62(item: CatalogProductV39C): CatalogProductV39C {
+  const base = String(item.productType || '').toUpperCase();
+  const r6 = String(item.r6ProductType || '').toUpperCase();
+  const serviceType = String(item.serviceType || '').toUpperCase();
+  const knownTrainer = h5nTrainerServices.some(s => s.sku === item.sku);
+  const productType: ProductType =
+    r6 === 'BOOK' || base === 'PHYSICAL' ? 'PHYSICAL' :
+    r6 === 'SOFTWARE' || base === 'SOFTWARE' ? 'SOFTWARE' :
+    ((r6 === 'TRAINING_SERVICE' && serviceType === 'TRAINER_EDUCATION') || knownTrainer) ? 'TRAINING_SERVICE' :
+    (r6 === 'TRAINING_SERVICE' || base === 'SERVICE') ? 'SERVICE' :
+    base === 'TRAINING_SERVICE' ? 'TRAINING_SERVICE' : 'SERVICE';
+  return { ...item, productType };
+}
 export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = false }: { onCatalogChanged: () => Promise<unknown>; trainerMode?: boolean }) {
   const [items, setItems] = useState<CatalogProductV39C[]>([]);
   const [form, setForm] = useState<ProductFormV39C>(() => emptyForm());
@@ -77,10 +91,7 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
       const response = await fetch("/api/admin/products", { credentials: "same-origin", cache: "no-store" });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Ürün kataloğu okunamadı.");
-      setItems(Array.isArray(payload.products) ? payload.products.map((item: CatalogProductV39C) =>
-        trainerMode && item.productType === "SERVICE" && h5nTrainerServices.some(training => training.sku === item.sku)
-          ? { ...item, productType: "TRAINING_SERVICE" as const } : item
-      ) : []);
+      setItems(Array.isArray(payload.products) ? payload.products.map((item: CatalogProductV39C) => displayProductV62(item)) : []);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Ürünler yüklenemedi.");
     } finally {
@@ -150,11 +161,15 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
     try {
       const payload = {
         sku:form.sku.trim().toUpperCase(), title:form.title.trim(), description:form.description.trim(),
-        productType:form.productType, imageReference:form.imageReference.trim(), isActive:form.isActive, listGrossMinor:parsedListGrossMinorV41D,
-        r6ProductType:form.productType === "PHYSICAL" ? "BOOK" : form.productType === "TRAINING_SERVICE" || form.productType === "SERVICE" ? "TRAINING_SERVICE" : "SOFTWARE",
-        serviceType:form.productType === "TRAINING_SERVICE" ? "TRAINER_EDUCATION" : null,
-        serviceMode:form.productType === "SERVICE" ? form.serviceMode : null,
-        vatRateBps: form.id ? undefined : (form.productType === "PHYSICAL" ? 0 : 2000),
+        // Existing product identity must stay unchanged; display types are not DB types.
+        ...(!form.id ? {
+          productType:form.productType,
+          r6ProductType:form.productType === "PHYSICAL" ? "BOOK" : form.productType === "TRAINING_SERVICE" || form.productType === "SERVICE" ? "TRAINING_SERVICE" : "SOFTWARE",
+          serviceType:form.productType === "TRAINING_SERVICE" ? "TRAINER_EDUCATION" : null,
+          serviceMode:form.productType === "SERVICE" ? form.serviceMode : null,
+          vatRateBps:form.productType === "PHYSICAL" ? 0 : 2000,
+        } : {}),
+        imageReference:form.imageReference.trim(), isActive:form.isActive, listGrossMinor:parsedListGrossMinorV41D,
         stageScopes: form.id ? undefined : form.stages,
         // Existing product shipping weights and physical metadata must NOT be erased on edit.
         ...(form.id ? {} : {
@@ -176,7 +191,7 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
       const verifyProduct = (Array.isArray(verifyData.products) ? verifyData.products : []).find((p:CatalogProductV39C) => p.id === data.product.id);
       const expectedStages = [...(form.id ? (originalProductV41D?.stageScopes || []) : form.stages)].sort();
       const actualStages = Array.isArray(verifyProduct?.stageScopes) ? [...verifyProduct.stageScopes].sort() : [];
-      if (!verifyProduct || verifyProduct.title !== payload.title || verifyProduct.description !== payload.description || verifyProduct.productType !== payload.productType ||
+      if (!verifyProduct || verifyProduct.title !== payload.title || verifyProduct.description !== payload.description || (!form.id && verifyProduct.productType !== payload.productType) ||
           verifyProduct.imageReference !== (payload.imageReference || null) && !(verifyProduct.imageReference === "" && !payload.imageReference) ||
           Number(verifyProduct.listGrossMinor) !== Number(payload.listGrossMinor) ||
           (!form.id && (verifyProduct.sku !== data.product.sku || Number(verifyProduct.vatRateBps) !== Number(payload.vatRateBps) ||
@@ -184,7 +199,7 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
           (form.productType === "SERVICE" && verifyProduct.serviceMode !== payload.serviceMode)))) {
         throw new Error("Ürün sunucuda oluşturulmuş olabilir ancak tüm alanlar geri okuma testini geçmedi. Yenilemeden yeniden Kaydet'e basmayın.");
       }
-      setItems(verifyData.products);
+      setItems(verifyData.products.map((item: CatalogProductV39C) => displayProductV62(item)));
       await onCatalogChanged();
       if (!form.id) {
         const created = data.product as CatalogProductV39C;

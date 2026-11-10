@@ -127,12 +127,10 @@ function normalizeMobileInput(value) {
 export function StudentRegistrationPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     phone: "",
     password: "",
-    dateOfBirth: "",
     educationStage: "",
     grade: "",
     school: "",
@@ -145,7 +143,6 @@ export function StudentRegistrationPage() {
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const todayIso = new Date().toISOString().slice(0, 10);
 
   const selectedStage = educationStages.find((item) => item.value === form.educationStage);
   const selectedDistricts = getTurkeyDistricts(form.city);
@@ -164,6 +161,12 @@ export function StudentRegistrationPage() {
 
   async function submit(event) {
     event.preventDefault();
+    const normalizedName = form.fullName.trim().replace(/\s+/gu, " ");
+    const nameParts = normalizedName.split(" ").filter(Boolean);
+    if (nameParts.length < 2 || normalizedName.length > 160) {
+      setError("Lütfen adınızı ve soyadınızı birlikte yazın.");
+      return;
+    }
     if (!form.terms || !form.kvkk) {
       setError("Üyelik koşullarını ve KVKK aydınlatma metnini kabul etmeniz gerekir.");
       return;
@@ -171,13 +174,6 @@ export function StudentRegistrationPage() {
     if (!/^5\d{9}$/u.test(form.phone)) {
       setError("Telefon numarası 5 ile başlayan 10 haneli Türkiye cep telefonu olmalıdır.");
       return;
-    }
-    if (form.dateOfBirth) {
-      const parsed = new Date(`${form.dateOfBirth}T00:00:00Z`);
-      if (!/^\d{4}-\d{2}-\d{2}$/u.test(form.dateOfBirth) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== form.dateOfBirth || form.dateOfBirth > todayIso) {
-        setError("Geçerli ve bugünden önce veya bugüne eşit bir doğum tarihi girin.");
-        return;
-      }
     }
     if (form.educationStage !== "ADULT" && !form.school.trim()) {
       setError("Okulunuzun adını yazın.");
@@ -191,7 +187,7 @@ export function StudentRegistrationPage() {
         method: "POST",
         credentials: "same-origin",
         headers: { "content-type": "application/json", origin: window.location.origin },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, fullName: undefined, firstName: nameParts.slice(0, -1).join(" "), lastName: nameParts[nameParts.length - 1] }),
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -207,8 +203,7 @@ export function StudentRegistrationPage() {
 
   return <Shell title="Öğrenci Kaydı" description="Hesabınızı oluşturun; size uygun paketler seçtiğiniz gruba ve sınıfa göre otomatik gösterilir.">
     <form className="auth-registration-form" onSubmit={submit} noValidate>
-      <label htmlFor="student-firstName">Ad<input id="student-firstName" value={form.firstName} onChange={update("firstName")} required /></label>
-      <label htmlFor="student-lastName">Soyad<input id="student-lastName" value={form.lastName} onChange={update("lastName")} required /></label>
+      <label htmlFor="student-fullName">Ad Soyad<input id="student-fullName" value={form.fullName} onChange={update("fullName")} autoComplete="name" required /></label>
       <label htmlFor="student-email">E-posta<input id="student-email" type="email" value={form.email} onChange={update("email")} required /></label>
 
       <label htmlFor="student-phone">Telefon
@@ -219,7 +214,6 @@ export function StudentRegistrationPage() {
       </label>
 
       <label htmlFor="student-password">Parola<input id="student-password" type="password" minLength={8} value={form.password} onChange={update("password")} required /></label>
-      <label htmlFor="student-dateOfBirth">Doğum tarihi<input id="student-dateOfBirth" type="date" max={todayIso} value={form.dateOfBirth} onChange={update("dateOfBirth")} /></label>
 
       <label htmlFor="student-education-stage">Size uygun paket grubunu seçin
         <select id="student-education-stage" value={form.educationStage} onChange={update("educationStage")} required>

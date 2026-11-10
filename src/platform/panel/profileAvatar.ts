@@ -1,5 +1,6 @@
 const profileFallbacks: Readonly<Record<string, string>> = {
   ersin: "/images/profiles/ersin.jpg",
+  "ersin usta": "/images/profiles/ersin.jpg",
   "elif usta": "/images/profiles/elif.jpg",
   elif: "/images/profiles/elif.jpg",
   "ozlem kaplan": "/images/profiles/ozlem.jpg",

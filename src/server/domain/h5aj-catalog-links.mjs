@@ -13,7 +13,7 @@ export function projectCatalogLinkedComponents(packages, products) {
   }
   return packages.map(pkg => {
     const components = Array.isArray(pkg?.components) ? pkg.components : [];
-    const links = components.filter(c => c?.isActive !== false).map(c => {
+    const links = components.filter(c => c?.isActive !== false && c?.componentType !== 'TEXT_ITEM').map(c => {
       const id = canonical(c?.physicalProductId || c?.productId);
       const product = productById.get(id);
       const sku = canonical(c?.sku);

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./admin-panel.css";
 import "./owner-trainer-h5v.css";
 import { StudentProductCatalogV39C } from "./StudentProductCatalogV39C";
+import { FixokuImageUploadV41F } from "./FixokuImageUploadV41F";
 import { FixokuCatalogIconV40 } from "./FixokuCatalogIconV40";
 import { FixokuPhotoV41F, productImageDefaultV41F } from "./FixokuCatalogAssetsV41F";
 import { trainerCourseCover020P } from "../trainer/components/trainerCourseCovers020P";
@@ -91,6 +92,7 @@ type Editor = {
   panelVisible: boolean;
   purchaseEnabled: boolean;
   publicWebVisible: boolean;
+  coverReference: string;
   components: Component[];
 };
 
@@ -131,6 +133,7 @@ const toEditor = (item: PackageRecord): Editor => {
     description: item.description || item.shortDescription || "", featuresText: Array.isArray(item.features) ? item.features.join("\n") : "",
     price: toInput(item.priceGrossMinor), panelVisible: Boolean(item.panelVisible),
     purchaseEnabled: Boolean(item.purchaseEnabled), publicWebVisible: Boolean(item.publicWebVisible),
+    coverReference: item.iconReference || "",
     components: [...legacyText, ...originals],
   };
 };
@@ -362,7 +365,7 @@ export function OwnerTrainerPackagesPage() {
           features: form.featuresText.split("\n").map(s => s.trim()).filter(Boolean),
           priceGrossMinor: minor, vatRateBps: Number(selected.vatRateBps ?? 2000),
           shippingPolicy: selected.shippingPolicy || "FREE", shippingPriceMinor: Number(selected.shippingPriceMinor || 0),
-          currency: "TRY", iconReference: selected.iconReference || null,
+          currency: "TRY", iconReference: form.coverReference.trim() || null,
           purchaseEnabled: form.purchaseEnabled, panelVisible: form.panelVisible, publicWebVisible: form.publicWebVisible,
         }),
       });
@@ -492,7 +495,7 @@ export function OwnerTrainerPackagesPage() {
                 {rows.map(item => <article key={item.id} className={`admin-package-card ${selectedId===item.id ? "is-selected" : ""}`}>
                   <div className="admin-package-card-top"><span className={`admin-status ${item.versionStatus === "DRAFT" ? "admin-status-draft" : "admin-status-published"}`}>{item.versionStatus === "DRAFT" ? "Taslak" : item.versionStatus === "PUBLISHED" ? "Yayında" : "Diğer"}</span><span className="admin-package-stage">{stageOf(item)==="ALL" ? "Eğitmen" : stageName(stageOf(item))}</span></div>
                   <div className="fx40-package-identity"><div className={`fx40-package-art fx40-art-${stageOf(item).toLowerCase()}`}>
-                    <FixokuPhotoV41F src={trainerCourseCover020P(item.title || "", item.slug) || item.iconReference} alt={item.title || "Eğitmen paketi"}><FixokuCatalogIconV40 kind="package" size={39}/></FixokuPhotoV41F>
+                    <FixokuPhotoV41F src={item.iconReference || trainerCourseCover020P(item.title || "", item.slug)} alt={item.title || "Eğitmen paketi"}><FixokuCatalogIconV40 kind="package" size={39}/></FixokuPhotoV41F>
                   </div><div className="admin-package-card-title"><h3>{trainerPackageSentenceTitle(item.title || "Başlıksız paket")}</h3><p>{item.shortDescription || item.description || "Açıklama bulunmuyor"}</p></div></div>
                   <dl>
                     <div><dt><FixokuCatalogIconV40 kind="book" size={16}/> Kitap</dt><dd>{item.components.filter(c=>c.componentType==="PHYSICAL_PRODUCT").length}</dd></div>
@@ -532,7 +535,13 @@ export function OwnerTrainerPackagesPage() {
 .fx-r60c18d-notice{margin-top:9px;padding:9px 11px;border-radius:8px;font-size:12px;background:#ecfdf3;color:#166534}
 .fx-r60c18d-notice.is-dirty{background:#fff7ed;color:#9a3412}
 @container (min-width:680px){.fx-r60c18e-row{grid-template-columns:36px minmax(0,1fr) 74px 50px 136px!important;min-height:56px!important}.fx-r60c18e-actions{grid-column:5;grid-row:1}}`}</style>
-            <div className="admin-package-cover-upload fx-r60c18d-cover"><FixokuPhotoV41F src={trainerCourseCover020P(selected.title || "",selected.slug)} fallbackSrc={selected.iconReference} alt={`${selected.title || "Paket"} kapak görseli`}><FixokuCatalogIconV40 kind="package" size={48}/></FixokuPhotoV41F><div><strong>Paket Kapak Görseli</strong><p className="admin-section-help">Mevcut R2 kapak dosyası önce denenir; uygulamadaki yerel kopya yalnız yedek olarak kullanılır. Yeni yükleme henüz bağlanmadı.</p></div></div>
+            <div className="admin-package-cover-upload fx-r60c18d-cover"><FixokuImageUploadV41F
+              kind="trainer-package" id={selected.slug} value={form.coverReference}
+              fallback={trainerCourseCover020P(selected.title || "", selected.slug)}
+              label="Paket Kapak Görseli" width={1000} height={1000}
+              onChange={(coverReference)=>updateForm({coverReference})}>
+              <FixokuCatalogIconV40 kind="package" size={48}/>
+            </FixokuImageUploadV41F><p className="admin-section-help">Görsel R2'ye yüklendikten sonra Paket Bilgilerini Kaydet'e basın. Kayıtlı kapak tüm panellerde önceliklidir.</p></div>
             {!draft && !previewOnly && <div className="admin-feedback"><p>Yayındaki sürüm korunur. Kaydet düğmesi ilk tıklamada mevcut sürümden tek bir taslak açıp değişikliği bu taslağa kaydeder.</p><button type="button" className="admin-outline-button" disabled={busy || !selected.packageVersionId} onClick={()=>void newDraft(selected)}>+ Yeni Sürüm Taslağı Aç</button></div>}
             {previewOnly && <p className="admin-feedback">Önizleme salt okunurdur.</p>}
             <fieldset disabled={!canEdit}><legend>Paket Bilgileri</legend><div className="admin-form-two-column">
@@ -761,7 +770,7 @@ export function OwnerTrainerPackagesPage() {
       {previewPackage && <div className="admin-preview-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setPreviewPackage(null)}}>
         <section className="admin-preview-dialog fx41j-preview" role="dialog" aria-modal="true" aria-labelledby="trainer-package-preview-title">
           <div className="admin-preview-heading fx41j-preview-heading"><div><span className="admin-editor-eyebrow">PAKET ÖNİZLEMESİ</span><h2 id="trainer-package-preview-title">{trainerPackageSentenceTitle(previewPackage.title || "")}</h2>{previewPackage.shortDescription && <p>{previewPackage.shortDescription}</p>}</div><button type="button" className="admin-quiet-button" onClick={()=>setPreviewPackage(null)} aria-label="Önizlemeyi kapat">Kapat</button></div>
-          <div className="fx41j-preview-cover"><FixokuPhotoV41F src={trainerCourseCover020P(previewPackage.title||"",previewPackage.slug)||previewPackage.iconReference} alt="Eğitmen paket kapak görseli"><FixokuCatalogIconV40 kind="package" size={48}/></FixokuPhotoV41F></div>
+          <div className="fx41j-preview-cover"><FixokuPhotoV41F src={previewPackage.iconReference || trainerCourseCover020P(previewPackage.title||"",previewPackage.slug)} alt="Eğitmen paket kapak görseli"><FixokuCatalogIconV40 kind="package" size={48}/></FixokuPhotoV41F></div>
           <div className="fx41j-preview-stats" aria-label="Paket özellikleri">
             <div className="fx41j-preview-stat"><FixokuCatalogIconV40 kind="school" size={21}/><span>Seviye</span><strong>{stageName(stageOf(previewPackage))}</strong></div>
             <div className="fx41j-preview-stat"><FixokuCatalogIconV40 kind="book" size={21}/><span>Kitap</span><strong>{previewPackage.components.filter(c=>c.componentType==="PHYSICAL_PRODUCT" && c.isActive!==false).length} adet</strong></div>

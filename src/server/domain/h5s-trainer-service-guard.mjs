@@ -13,7 +13,7 @@ export function assertTrainerServiceProducts(components, products) {
   const byId = new Map(products.map(p=>[String(p.id),p]));
   const seen = new Set();
   for (const c of components) {
-    if (String(c.componentType) !== 'TRAINER_SERVICE') continue;
+    if (String(c.componentType) !== 'TRAINER_SERVICE' || c.isActive === false) continue;
     const id=String(c.physicalProductId || c.productId || c.referenceId || '');
     const p=byId.get(id);
     if (!p || String(p.productType)!=='TRAINING_SERVICE') throw new Error('TRAINER_PRODUCT_INVALID');

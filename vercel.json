@@ -22,9 +22,17 @@
                     }
                 ],
     "rewrites":  [
+                     {"source": "/ogrenci-kayit", "destination": "/auth-shell"},
+                     {"source": "/ogretmen-basvuru", "destination": "/auth-shell"},
+                     {"source": "/ogrenci-girisi", "destination": "/auth-shell"},
+                     {"source": "/ogretmen-girisi", "destination": "/auth-shell"},
+                     {"source": "/admin-girisi", "destination": "/auth-shell"},
+                     {"source": "/owner-girisi", "destination": "/auth-shell"},
+                     {"source": "/egitim-platformu-girisi", "destination": "/auth-shell"},
+                     {"source": "/sifremi-unuttum", "destination": "/auth-shell"},
                      {
                          "source":  "/giris",
-                         "destination":  "/index.html"
+                         "destination":  "/auth-shell"
                      },
                      {
                          "source":  "/panel",
@@ -36,23 +44,23 @@
                      },
                      {
                          "source":  "/sifre-sifirla",
-                         "destination":  "/index.html"
+                         "destination":  "/auth-shell"
                      },
                      {
                          "source":  "/e-posta-dogrula",
-                         "destination":  "/index.html"
+                         "destination":  "/auth-shell"
                      },
                      {
                          "source":  "/ogretmen-aday-aktivasyon",
-                         "destination":  "/index.html"
+                         "destination":  "/auth-shell"
                      },
                      {
                          "source":  "/ogretmen-aktivasyon",
-                         "destination":  "/index.html"
+                         "destination":  "/auth-shell"
                      },
                      {
                          "source":  "/admin-davet-kabul",
-                         "destination":  "/index.html"
+                         "destination":  "/auth-shell"
                      }
                  ],
     "redirects":  [

@@ -683,6 +683,23 @@ check(
   "404 görünür H1 ve dönüş bağlantıları içeriyor.",
 );
 
+const authRoutePaths = new Set([
+  "/giris",
+  "/ogrenci-kayit",
+  "/ogretmen-basvuru",
+  "/ogrenci-girisi",
+  "/ogretmen-girisi",
+  "/admin-girisi",
+  "/owner-girisi",
+  "/egitim-platformu-girisi",
+  "/sifremi-unuttum",
+  "/sifre-sifirla",
+  "/e-posta-dogrula",
+  "/ogretmen-aktivasyon",
+  "/ogretmen-aday-aktivasyon",
+  "/admin-davet-kabul",
+]);
+
 const vercelConfig = JSON.parse(await readFile(path.join(projectRoot, "vercel.json"), "utf8"));
 const rewrites = vercelConfig.rewrites ?? [];
 const hasGlobalCatchAll = rewrites.some(({ source }) =>
@@ -693,7 +710,12 @@ check(
   vercelConfig.cleanUrls === true &&
     vercelConfig.trailingSlash === false &&
     rewrites.length > 0 &&
-    rewrites.every(({ source }) => source === "/panel" || source.startsWith("/panel/") || ["/giris", "/sifre-sifirla", "/e-posta-dogrula", "/ogretmen-aday-aktivasyon", "/ogretmen-aktivasyon", "/admin-davet-kabul"].includes(source)),
+    rewrites.filter(({ source }) => authRoutePaths.has(source)).length === 14 &&
+    rewrites.every(({ source, destination }) =>
+      ((source === "/panel" || source.startsWith("/panel/")) &&
+        destination === "/panel.html") ||
+      (authRoutePaths.has(source) && destination === "/auth-shell")
+    ),
   "Vercel clean URL, panel ve kimlik yaşam döngüsü yedek yapılandırması doğru.",
 );
 

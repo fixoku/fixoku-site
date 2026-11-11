@@ -122,6 +122,17 @@ await writeRouteHtml("seniseviim.html", panelHtml);
 console.log("[prerender] /seniseviim -> dist/seniseviim.html");
 console.log("[prerender] /panel/* -> dist/panel.html");
 
+const authShellHtml = applyTemplate(template, {
+  head: createNonIndexableHead({
+    title: "FIXOKU | Guvenli Hesap Islemleri",
+    description: "FIXOKU hesap, giris ve dogrulama islemleri.",
+    robots: "noindex, nofollow",
+  }),
+  markup: "",
+  renderMode: "client",
+});
+await writeRouteHtml("auth-shell.html", authShellHtml);
+console.log("[prerender] account routes -> dist/auth-shell.html");
 const notFoundMarkup = renderRoute("/__fixoku-static-404__");
 const notFoundHtml = applyTemplate(template, {
   head: createNonIndexableHead(notFoundSeo),

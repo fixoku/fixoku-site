@@ -144,11 +144,18 @@ export async function replaceStructuredComponents(client, versionId, components,
   // (restrict_violation) as soon as a previously published component had been
   // referenced.  Reuse only unreferenced rows; referenced rows stay intact and
   // are superseded by fresh draft rows.
+  // Optional family selection table may not exist in staging.
+  const familyTablePresent = (await client.query(
+    "select to_regclass('public.family_offer_child_selections') is not null as present"
+  )).rows[0]?.present === true;
+  const familyReferenceSql = familyTablePresent
+    ? "exists(select 1 from public.family_offer_child_selections fcs where fcs.package_component_id=pc.id)"
+    : "false";
   const existing = (await client.query(`
     select pc.*,
       exists(select 1 from r6_package_component_pricing pcp where pcp.package_component_id=pc.id) as "hasPricingReference",
       exists(select 1 from r6_order_component_snapshots ocs where ocs.package_component_id=pc.id) as "hasOrderReference",
-      exists(select 1 from family_offer_child_selections fcs where fcs.package_component_id=pc.id) as "hasFamilyReference"
+      ${familyReferenceSql} as "hasFamilyReference"
     from package_components pc
     where pc.package_version_id=$1
     order by pc.display_order,pc.id

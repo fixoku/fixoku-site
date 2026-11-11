@@ -186,7 +186,7 @@ export async function replaceStructuredComponents(client, versionId, components,
     const quantity = Number(item.quantity);
     const displayLabel = item.displayLabel == null || String(item.displayLabel).trim() === "" ? null : String(item.displayLabel).trim().slice(0, 300);
     if (!product || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 99) throw bad("PACKAGE_PRODUCT_INVALID");
-    const expectedType = product.productType === "PHYSICAL" ? "PHYSICAL_PRODUCT" : product.productType === "SOFTWARE" || product.productType === "DIGITAL" ? "DIGITAL_ACCESS" : "TRAINER_SERVICE";
+    const expectedType = product.r6ProductType === "TRAINING_SERVICE" ? "TRAINER_SERVICE" : product.productType === "PHYSICAL" ? "PHYSICAL_PRODUCT" : product.productType === "SOFTWARE" || product.productType === "DIGITAL" ? "DIGITAL_ACCESS" : "TRAINER_SERVICE";
     if (componentType !== expectedType) throw bad("PACKAGE_COMPONENT_PRODUCT_TYPE_INVALID");
     const prior = takeReusable(componentType, productId, index);
     const metadata = JSON.stringify({ sku: product.sku, fulfillmentType: product.productType, r6ProductType: product.r6ProductType });

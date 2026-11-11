@@ -33,7 +33,7 @@ function publicPasswordResetUrl(providerUrl) {
 }
 const authRateLimit = { enabled: true, storage: "database", window: 10, max: 100, customRules: {
   "/sign-in/email": async (request, currentRule) => request.url.startsWith("http://local/") && request.headers.get("x-fixoku-local-review-proof") === secret ? { ...currentRule, window: 900, max: 50 } : { window: 900, max: 5 },
-  "/sign-up/email": { window: 3600, max: 1 },
+  "/sign-up/email": { window: 3600, max: 5 },
 } };
 
 const authOptions = {

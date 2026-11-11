@@ -320,7 +320,18 @@ export default async function handler(req,res){if(!cleanPreviewGateResponse(res)
       if(previous?.candidate_user_id) return json(res,409,{message:'Bu e-posta adresiyle hesap işlemi zaten başlatılmış.'});
       const authResponse = await authCall('/sign-up/email','POST',{name,email,password,callbackURL:'/e-posta-dogrula?alan=egitmen'},req);
       const authPayload = await authResponse.json().catch(()=>({}));
-      if(!authResponse.ok) return json(res, authResponse.status === 409 ? 409 : 400, { message: authResponse.status === 409 ? 'Bu e-posta ile zaten bir hesap bulunuyor.' : 'Hesap oluşturulamadı. Girdiğiniz bilgileri kontrol edin.' });
+      if(!authResponse.ok) {
+        if(authResponse.status === 429) return json(res,429,{
+          message:'Güvenlik nedeniyle kısa sürede çok fazla hesap açma isteği alındı. Lütfen daha sonra tekrar deneyin.',
+          error:'SIGNUP_RATE_LIMITED'
+        });
+        return json(res,authResponse.status === 409 ? 409 : 400,{
+          message:authResponse.status === 409
+            ? 'Bu e-posta ile zaten bir hesap bulunuyor.'
+            : 'Hesap oluşturulamadı. Lütfen bilgilerinizi kontrol edin.',
+          error:'TRAINER_SIGNUP_REJECTED'
+        });
+      }
       const authUserId = authPayload?.user?.id;
       if(!authUserId) return json(res,503,{message:'Hesap oluşturma yanıtı geçersiz.'});
       const client = await pool.connect();

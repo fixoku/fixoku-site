@@ -26,7 +26,7 @@ export async function snapshotComponentPricing(client, versionId) {
       p.net_minor, p.vat_minor, p.currency
     from package_components pc
     join r6_package_component_pricing p on p.package_component_id=pc.id
-    where pc.package_version_id=$1
+    where pc.package_version_id=$1 and pc.is_active=true
     order by pc.display_order, pc.id
   `, [versionId])).rows;
 }

@@ -46,3 +46,54 @@
 @media(max-width:1000px){.trainer-shared-presentation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.trainer-video-page .trainer-course-tabs{width:100%!important}.trainer-video-page .trainer-course-tabs button{gap:5px!important;flex-direction:row!important;align-items:center!important;justify-content:center;padding:9px 5px!important;font-size:11px!important;white-space:normal!important;line-height:1.2!important;text-align:left}.trainer-video-page .trainer-course-tabs button svg{height:19px;width:19px}.trainer-shared-presentation-modal-body{grid-template-columns:minmax(0,1fr)}.trainer-shared-presentation-rail{max-height:135px}.trainer-shared-presentation-thumbs{display:flex;gap:5px;overflow:auto}.trainer-shared-presentation-thumbs button{width:110px;flex:none;flex-direction:column}.trainer-shared-presentation-thumbs img{width:100%;height:58px}.trainer-shared-presentation-modal-top,.trainer-shared-presentation-modal-bottom{padding:7px 8px}.trainer-shared-presentation-modal-title strong{font-size:12px}}
 @media(max-width:540px){.trainer-shared-presentation-grid{grid-template-columns:1fr}.trainer-shared-presentations-intro{align-items:flex-start}.trainer-shared-presentations-intro>span{font-size:11px}}
+
+/* R143D PDF DOWNLOAD */
+.trainer-shared-presentation-download-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 800;
+}
+.trainer-shared-presentation-download-hint svg {
+  width: 18px;
+  height: 18px;
+}
+.trainer-shared-presentation-modal-bottom a.trainer-shared-presentation-download-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  color: #991b1b;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: normal;
+}
+.trainer-shared-presentation-download-cta svg {
+  width: 25px;
+  height: 25px;
+  flex: none;
+}
+.trainer-shared-presentation-download-cta span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: #991b1b;
+  white-space: normal;
+}
+.trainer-shared-presentation-download-cta small {
+  font-size: 11px;
+  font-weight: 650;
+}
+.trainer-shared-presentation-download-cta:hover {
+  background: #fee2e2;
+}
+.trainer-shared-presentation-download-cta:focus-visible {
+  outline: 3px solid #fb923c;
+  outline-offset: 3px;
+}

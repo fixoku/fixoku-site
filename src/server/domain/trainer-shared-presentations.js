@@ -9,28 +9,35 @@ import { getSharedPresentationPdfDefinition } from "./trainer-shared-presentatio
 const ROOT = path.resolve(process.cwd(), "private", "trainer-shared-presentations");
 
 /**
- * Shared presentations are a free, authenticated Trainer resource. They do
- * not inherit the paid package entitlement gate used by curriculum/video
- * media. A verified candidate may see this resource before Owner review; an
- * ordinary student, guardian or anonymous principal may not.
+ * Shared presentations require an active trainer package entitlement.
+ * Paid purchases and Owner-granted active packages both qualify.
  */
 export async function resolveTrainerPresentationViewer(pool, principal) {
   if (!principal?.user?.id || principal.user.emailVerified !== true) return null;
-  const activeTrainer = principal.memberships?.some((membership) =>
-    membership.role === "TRAINER" && membership.status === "ACTIVE" && membership.scopeType === "TRAINER"
-  );
-  if (activeTrainer) return { kind: "TRAINER", userId: principal.user.id };
 
-  const candidate = (await pool.query(`
+  const activeTrainer = principal.memberships?.some((membership) =>
+    membership.role === "TRAINER" &&
+    membership.status === "ACTIVE" &&
+    membership.scopeType === "TRAINER"
+  );
+
+  if (!activeTrainer) return null;
+
+  const entitlement = await pool.query(`
     select 1
-      from trainer_applications a
-      join platform_users u on u.id=a.candidate_user_id
-     where a.candidate_user_id=$1
-       and a.status in ('RECEIVED','REVIEWING','PROFILE_READY')
-       and u.email_verified=true
-     limit 1
-  `, [principal.user.id])).rowCount;
-  return candidate ? { kind: "VERIFIED_CANDIDATE", userId: principal.user.id } : null;
+    from trainer_package_entitlements e
+    join packages p on p.id = e.package_id
+    where e.trainer_user_id = $1
+      and e.status = 'ACTIVE'
+      and e.revoked_at is null
+      and e.effective_at <= now()
+      and p.audience = 'TRAINER'
+    limit 1
+  `, [principal.user.id]);
+
+  return entitlement.rowCount > 0
+    ? { kind: "TRAINER_WITH_PACKAGE", userId: principal.user.id }
+    : null;
 }
 
 export function replyJson(res, status, body) {

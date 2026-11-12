@@ -93,6 +93,23 @@ async function grant(client, actorUserId, student, pkg, note) {
   if (!eligible(student, pkg)) throw fail("PACKAGE_NOT_ELIGIBLE_FOR_STUDENT", 409);
   const existing = (await client.query(`select * from package_entitlements where beneficiary_student_user_id=$1 and package_version_id=$2 and beneficiary_child_profile_id is not distinct from $3 order by case when status='ACTIVE' then 0 else 1 end,effective_at desc,id desc limit 1 for update`, [student.id, pkg.packageVersionId, childProfileId])).rows[0];
   if (existing?.status === "ACTIVE") return { status: "DUPLICATE", entitlement: existing, enrollmentIds: [], assignmentRequestIds: [] };
+  const delivery = (await client.query(`
+    select
+      exists(
+        select 1 from package_components pc
+        where pc.package_version_id=$1
+          and pc.is_active=true
+          and pc.component_type='TRAINER_SERVICE'
+      ) as "trainerRequired",
+      exists(
+        select 1 from package_entitlement_definitions ped
+        where ped.package_version_id=$1
+          and ped.delivery_mode in ('TRAINER_LED','HYBRID')
+      ) as "trainerDefined"
+  `, [pkg.packageVersionId])).rows[0];
+  if (delivery?.trainerRequired && !delivery?.trainerDefined) {
+    throw fail("TRAINER_SERVICE_DELIVERY_NOT_CONFIGURED", 409);
+  }
   let entitlement;
   if (existing?.source_type === "OWNER_MANUAL") {
     entitlement = (await client.query(`update package_entitlements set beneficiary_student_profile_id=$1,beneficiary_child_profile_id=$2,source_type='OWNER_MANUAL',assigned_by=$3,note=$4,status='ACTIVE',effective_at=now(),revoked_at=null,revoked_by=null,revoke_reason=null,updated_at=now() where id=$5 returning *`, [studentProfileId, childProfileId, actorUserId, note, existing.id])).rows[0];

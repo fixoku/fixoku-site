@@ -45,6 +45,7 @@ type PackageRow = {
   components?: Array<{ componentType: string; title: string; titleSnapshot?: string; displayLabel?: string | null; quantity: number; imageReference?: string | null; isActive?: boolean }>;
   contentItems?: Array<{ title: string; titleSnapshot?: string }>;
   accessState: "AVAILABLE" | "OWNED" | "PENDING_PAYMENT";
+  ownershipSourceType?: string | null;
   priceRequired: boolean;
   pendingOrderId?: string | null;
 };
@@ -541,9 +542,10 @@ export function StudentPackagesPage({
                     className={`student-package-state student-package-state--${item.accessState.toLowerCase()}`}
                   >
                     {
-                      stateLabel[
-                        item.accessState
-                      ]
+                      item.accessState === "OWNED" &&
+                      item.ownershipSourceType === "OWNER_MANUAL"
+                        ? "Owner tarafından ücretsiz tanımlandı"
+                        : stateLabel[item.accessState]
                     }
                   </span>
 
@@ -708,7 +710,9 @@ export function StudentPackagesPage({
                   {item.accessState ===
                     "OWNED" && (
                     <div className="student-package-card__notice">
-                      Bu paket için sistemde bir erişim kaydı bulunuyor. Bu kayıt, ödemenin yapıldığı anlamına tek başına gelmez. Erişim ve sipariş durumunu ayrıca doğrulayın.
+                      {item.ownershipSourceType === "OWNER_MANUAL"
+                        ? "Bu paket Owner tarafından hesabınıza ücretsiz tanımlandı. Ödeme yapmanız gerekmez."
+                        : "Bu paket için aktif erişim hakkınız bulunuyor."}
                     </div>
                   )}
                 </div>

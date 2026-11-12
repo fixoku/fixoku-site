@@ -116,8 +116,9 @@ const componentTypeLabel = (type: string) => ({ PHYSICAL_PRODUCT: "Kitap", DIGIT
 // A trainer's catalogue uses active TEXT_ITEM components when available; otherwise legacy features_json.
 // For editing a legacy package, stage its features as TEXT_ITEM entries without writing to the database.
 const toEditor = (item: PackageRecord): Editor => {
-  const originals = safeComponents(item.components).map(component => ({ ...component }));
-  const hasTextItems = originals.some(component => component.componentType === "TEXT_ITEM");
+  const allComponents = safeComponents(item.components).map(component => ({ ...component }));
+  const originals = allComponents.filter(component => component.isActive !== false);
+  const hasTextItems = allComponents.some(component => component.componentType === "TEXT_ITEM");
   const existingLegacyFeatures = Array.isArray(item.features) ? item.features.filter(feature => String(feature).trim()) : [];
   const historicalFeatures = HISTORICAL_TRAINER_CONTENT_R60C18B[item.slug] || [];
   const stageFeatures = existingLegacyFeatures.length ? existingLegacyFeatures : historicalFeatures;
@@ -387,14 +388,18 @@ export function OwnerTrainerPackagesPage() {
   const saveComponents = async () => {
     if (!selected || !form || previewOnly || busy) return;
     if (!safeComponentEditing) { setError("Bu pakette mevcut API'nin desteklemediği içerik türleri var. Kayıt engellendi; hiçbir bileşen silinmedi."); return; }
+    if (editingContentIndex !== null && !editingContentValue.trim()) {
+      setError("İçerik maddesi boş bırakılamaz.");
+      return;
+    }
     const textItems = form.components.filter(item => item.componentType === "TEXT_ITEM");
     // The trainer-facing fallback would reveal all old features again if every TEXT_ITEM were disabled.
     if (textItems.length && !textItems.some(item => item.isActive !== false)) {
       setError("Öğretmen panelindeki eski içeriklerin yeniden görünmemesi için en az bir içerik maddesi açık kalmalı."); return;
     }
-    const components = form.components.map((item) => item.componentType === "TEXT_ITEM"
-      ? { componentType: "TEXT_ITEM", text: String(item.titleSnapshot || item.title || "").trim(), isActive: item.isActive !== false }
-      : { componentType: item.componentType, productId: String(item.physicalProductId || item.productId || item.referenceId || ""), physicalProductId: item.componentType === "PHYSICAL_PRODUCT" ? String(item.physicalProductId || item.productId || "") : null, quantity: Number(item.quantity || 1), displayLabel: item.displayLabel || null, isActive: item.isActive !== false });
+    const components = form.components.map((item, index) => item.componentType === "TEXT_ITEM"
+      ? { componentId: item.componentId, componentType: "TEXT_ITEM", text: String(index === editingContentIndex ? editingContentValue : (item.titleSnapshot || item.title || "")).trim(), isActive: item.isActive !== false }
+      : { componentId: item.componentId, componentType: item.componentType, productId: String(item.physicalProductId || item.productId || item.referenceId || ""), physicalProductId: item.componentType === "PHYSICAL_PRODUCT" ? String(item.physicalProductId || item.productId || "") : null, quantity: Number(item.quantity || 1), displayLabel: item.displayLabel || null, isActive: item.isActive !== false });
     setBusy(true); setError(""); setMessage("");
     try {
       const versionId = await ensureDraftVersion(selected);
@@ -406,6 +411,98 @@ export function OwnerTrainerPackagesPage() {
       showSaved("Ürün ve içerik kayıtları sunucudan tekrar okunarak kaydetme işlemi tamamlandı. Alan bazlı eşleşme için ayrı veritabanı kabul testi bekleniyor.");
     } catch (err) { setSaveStatus("error"); setError(ownerPackageError(err, "Paket içerikleri kaydedilemedi.")); }
     finally { setBusy(false); }
+  };
+  const saveAll = async () => {
+    if (!selected || !form || previewOnly || busy) return;
+    if (!safeComponentEditing) {
+      setError("Desteklenmeyen içerik türü var. Kayıt yapılmadı.");
+      return;
+    }
+    const minor = toMinor(form.price);
+    if (!form.title.trim() || !form.slug.trim() ||
+        !form.description.trim() || minor === null) {
+      setError("Paket adı, açıklama ve geçerli fiyat zorunludur.");
+      return;
+    }
+
+    const components = form.components.map((item, index) =>
+      item.componentType === "TEXT_ITEM"
+        ? {
+            componentId: item.componentId,
+            componentType: "TEXT_ITEM",
+            text: String(index === editingContentIndex
+              ? editingContentValue
+              : (item.titleSnapshot || item.title || "")).trim(),
+            isActive: item.isActive !== false
+          }
+        : {
+            componentId: item.componentId,
+            componentType: item.componentType,
+            productId: String(item.physicalProductId || item.productId ||
+              item.referenceId || ""),
+            physicalProductId: item.componentType === "PHYSICAL_PRODUCT"
+              ? String(item.physicalProductId || item.productId ||
+                  item.referenceId || "")
+              : null,
+            quantity: Number(item.quantity || 1),
+            displayLabel: item.displayLabel || null,
+            isActive: item.isActive !== false
+          }
+    );
+
+    const texts = components.filter(c => c.componentType === "TEXT_ITEM");
+    if (texts.some(c => !c.text) ||
+        (texts.length > 0 && !texts.some(c => c.isActive))) {
+      setError("İçerik maddesi boş olamaz. En az biri aktif kalmalıdır.");
+      return;
+    }
+
+    setBusy(true);
+    setSaveStatus("saving");
+    setError("");
+    setMessage("Kaydediliyor...");
+
+    try {
+      const result = await api(
+        `/api/admin/trainer-packages?id=${encodeURIComponent(selected.id)}`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            action: "saveAll",
+            versionId: selected.packageVersionId,
+            title: form.title.trim(),
+            slug: form.slug.trim(),
+            shortDescription: form.shortDescription.trim(),
+            description: form.description.trim(),
+            features: form.featuresText.split("\n")
+              .map(s => s.trim()).filter(Boolean),
+            priceGrossMinor: minor,
+            vatRateBps: Number(selected.vatRateBps ?? 2000),
+            shippingPolicy: selected.shippingPolicy || "FREE",
+            shippingPriceMinor: Number(selected.shippingPriceMinor || 0),
+            currency: "TRY",
+            iconReference: form.coverReference.trim() || null,
+            purchaseEnabled: form.purchaseEnabled,
+            panelVisible: form.panelVisible,
+            publicWebVisible: form.publicWebVisible,
+            components
+          })
+        }
+      );
+
+      if (result.atomicSave !== true || result.published === true) {
+        throw new Error("ATOMIC_SAVE_RESPONSE_UNEXPECTED");
+      }
+
+      await refreshSelected(selected.id);
+      showSaved("Paket bilgileri, ürünler ve içerikler kaydedildi. Yayınla ayrı bir işlemdir.");
+    } catch (err) {
+      setSaveStatus("error");
+      setError(ownerPackageError(err, "Birleşik kayıt doğrulanamadı."));
+    } finally {
+      setBusy(false);
+    }
   };
   const publishDraft = async () => {
     if (!selected || !draft || !selected.packageVersionId || previewOnly || busy) return;
@@ -686,12 +783,24 @@ export function OwnerTrainerPackagesPage() {
 `}</style>
 <div className="fx-r122v-actions">
   <div className="fx-r122v-action fx-r122v-save">
-    <button type="button" disabled={!canEdit || busy} onClick={()=>{setActionTarget("fields");void saveFields();}}>Paket Bilgilerini Kaydet</button>
-    {actionTarget==="fields" && (busy || error || message) && <p role={error?"alert":"status"} className={`fx-r122v-feedback ${error?"is-error":busy?"is-busy":"is-ok"}`}>{error || (busy?"Kaydediliyor...":message)}</p>}
-  </div>
-  <div className="fx-r122v-action fx-r122v-components">
-    <button type="button" disabled={!canEdit || !safeComponentEditing || busy} onClick={()=>{setActionTarget("components");void saveComponents();}}>Ürün ve İçeriği Kaydet</button>
-    {actionTarget==="components" && (busy || error || message) && <p role={error?"alert":"status"} className={`fx-r122v-feedback ${error?"is-error":busy?"is-busy":"is-ok"}`}>{error || (busy?"Kaydediliyor...":message)}</p>}
+    <button
+      type="button"
+      disabled={!canEdit || !safeComponentEditing || busy}
+      onClick={() => {
+        setActionTarget("components");
+        void saveAll();
+      }}
+    >
+      Kaydet
+    </button>
+    {actionTarget === "components" && (busy || error || message) && (
+      <p
+        role={error ? "alert" : "status"}
+        className={`fx-r122v-feedback ${error ? "is-error" : busy ? "is-busy" : "is-ok"}`}
+      >
+        {error || (busy ? "Kaydediliyor..." : message)}
+      </p>
+    )}
   </div>
   <div className="fx-r122v-action fx-r122v-exit">
     <button type="button" onClick={()=>{setActionTarget(null);setForm(null);setSelectedId("");}}>Düzenlemeden Çık</button>

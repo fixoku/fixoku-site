@@ -35,7 +35,12 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [mediaRefresh, setMediaRefresh] = useState(0);
+  const playbackRecoveryRef = useRef<{ position: number; resume: boolean } | null>(null);
+  const mediaRetriesRef = useRef(0);
+  const mediaStallTimerRef = useRef<number | null>(null);
   const [completionToast, setCompletionToast] = useState(false);
+  const [completionHasNext, setCompletionHasNext] = useState(false);
   const [activeTab, setActiveTab] = useState<"videos" | "curriculum" | "presentations">("videos");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoFrameRef = useRef<HTMLDivElement | null>(null);
@@ -48,6 +53,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   const sendingRef = useRef(false);
   const pendingEndedRef = useRef(false);
   const selectedVideo = payload?.videos[selected] || null;
+  const trainerFirstName = String(payload?.watermark?.name || user.name || "Eğitmenimiz").trim().split(/\s+/u)[0];
 
   const load = async () => {
     setStatus("loading");
@@ -64,10 +70,23 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
 
   useEffect(() => {
     setIsPlaying(false);
+    setMediaRefresh(0);
+    mediaRetriesRef.current = 0;
+    playbackRecoveryRef.current = null;
+    if (mediaStallTimerRef.current !== null) {
+      window.clearTimeout(mediaStallTimerRef.current);
+      mediaStallTimerRef.current = null;
+    }
     lastSentRef.current = 0;
     lastAllowedRef.current = Number(selectedVideo?.progress?.lastPositionSeconds || 0);
     lastHeartbeatRef.current = 0;
     if (videoRef.current) videoRef.current.currentTime = lastAllowedRef.current;
+    return () => {
+      if (mediaStallTimerRef.current !== null) {
+        window.clearTimeout(mediaStallTimerRef.current);
+        mediaStallTimerRef.current = null;
+      }
+    };
   }, [selected, slug]);
 
   const sendProgress = async (ended = false) => {
@@ -86,12 +105,12 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) { setMessage(body.error === "VIDEO_FORWARD_SEEK_REJECTED" ? "Videolar sırayla izlenmelidir; ileri sarma kapatıldı." : "Geçici izleme durumu güncellenemedi."); return; }
-      lastSentRef.current = Math.max(lastSentRef.current, end);
+      if (!element.seeking && Math.abs(element.currentTime - end) < 4) lastSentRef.current = end;
       lastAllowedRef.current = Math.max(lastAllowedRef.current, end);
       if (body.progress?.completedAt && payload) {
         setPayload((current) => current ? { ...current, videos: current.videos.map((item) => item.videoIndex === selectedVideo.videoIndex ? { ...item, locked: false, progress: { ...item.progress, ...body.progress } } : item) } : current);
       }
-      if (body.nextUnlocked) {
+      if (ended && body.progress?.completedAt) {
         const refreshResponse = await fetch(`/api/trainer/videos?slug=${encodeURIComponent(slug)}`, { credentials: "same-origin" });
         if (refreshResponse.ok) {
           setPayload(await refreshResponse.json() as Payload);
@@ -100,6 +119,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
             setCompletionToast(false);
 
             window.setTimeout(() => {
+              setCompletionHasNext(Boolean(body.nextUnlocked));
               setCompletionToast(true);
             }, 50);
 
@@ -116,6 +136,28 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
       sendingRef.current = false;
       if (pendingEndedRef.current) { pendingEndedRef.current = false; window.setTimeout(() => void sendProgress(true), 0); }
     }
+  };
+
+  const clearMediaStall = () => {
+    if (mediaStallTimerRef.current !== null) {
+      window.clearTimeout(mediaStallTimerRef.current);
+      mediaStallTimerRef.current = null;
+    }
+  };
+
+  const recoverMedia = (element: HTMLVideoElement) => {
+    if (mediaRetriesRef.current >= 2) {
+      setMessage("Video bağlantısı yeniden kurulamadı. Sayfayı yenileyip tekrar deneyin.");
+      return;
+    }
+    mediaRetriesRef.current += 1;
+    playbackRecoveryRef.current = {
+      position: Number.isFinite(element.currentTime) ? element.currentTime : 0,
+      resume: !element.paused
+    };
+    clearMediaStall();
+    setMessage("Video bağlantısı yenileniyor…");
+    setMediaRefresh((value) => value + 1);
   };
 
   const onTimeUpdate = () => {
@@ -210,19 +252,50 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
         className={activeTab === "videos" ? "trainer-tab-description" : "trainer-tab-description is-placeholder"}
         aria-hidden={activeTab !== "videos"}
       >
-        Dersler sıralıdır: %95 izleme ve sona ulaşma gereklidir. Bu, yalnızca yerel test oturumudur; kalıcı ilerleme kaydı yapılmaz.
+        Dersler sırayla tamamlanır. Bir sonraki dersin açılması için mevcut dersin en az %95 izlenmesi ve sonuna ulaşılması gerekir.
       </p></div>{activeTab === "videos" && <>
       {message && <p className={`trainer-commerce-message${message.startsWith("Video tamamlandı") ? " is-success" : ""}`} role="status">{message}</p>}
       <section className="trainer-video-layout">
         <div ref={videoMainRef} className="trainer-video-main">
           <div ref={videoFrameRef} className="trainer-video-frame">
-            {cardList.length === 0 ? <div className="trainer-video-locked"><TrainerIcon name="book" size={40}/><strong>Video dersleri hazırlanıyor</strong><span>Bu eğitime ait gerçek ders videoları henüz eklenmedi. Müfredat ve Sunumlarım sekmelerini inceleyebilirsiniz.</span></div> : selectedVideo?.src ? <video ref={videoRef} key={selectedVideo.src} controls controlsList="nodownload noplaybackrate noremoteplayback" disablePictureInPicture disableRemotePlayback playsInline preload="metadata" onContextMenu={(event) => event.preventDefault()} src={selectedVideo.src} poster={selectedVideo.posterSrc ?? undefined} onLoadedMetadata={(event) => { const current = event.currentTarget; const completed = Boolean(selectedVideo.progress?.completedAt); const start = completed ? 0 : Number(selectedVideo.progress?.lastPositionSeconds || 0); lastAllowedRef.current = start; lastSentRef.current = Math.min(start, Math.max(0, current.duration - 1)); current.currentTime = start; }} onTimeUpdate={() => onTimeUpdate()} onSeeking={(event) => { const current = event.currentTarget; if (current.currentTime > lastAllowedRef.current + 0.15) current.currentTime = lastAllowedRef.current; }} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => { setIsPlaying(false); void sendProgress(true); }} /> : <div className="trainer-video-locked"><TrainerIcon name="lock" size={40}/><strong>Video kilitli</strong><span>Önceki videoyu tamamladığınızda açılır.</span></div>}
+            {cardList.length === 0 ? <div className="trainer-video-locked"><TrainerIcon name="book" size={40}/><strong>Video dersleri hazırlanıyor</strong><span>Bu eğitime ait gerçek ders videoları henüz eklenmedi. Müfredat ve Sunumlarım sekmelerini inceleyebilirsiniz.</span></div> : selectedVideo?.src ? <video ref={videoRef} key={`${selectedVideo.src}-${mediaRefresh}`} controls controlsList="nodownload noplaybackrate noremoteplayback" disablePictureInPicture disableRemotePlayback playsInline preload="metadata" onContextMenu={(event) => event.preventDefault()} src={`${selectedVideo.src}&renew=${mediaRefresh}`} poster={selectedVideo.posterSrc ?? undefined} onLoadedMetadata={(event) => {
+              const current = event.currentTarget;
+              const recovery = playbackRecoveryRef.current;
+              playbackRecoveryRef.current = null;
+              const completed = Boolean(selectedVideo.progress?.completedAt);
+              const stored = completed ? 0 : Number(selectedVideo.progress?.lastPositionSeconds || 0);
+              const position = recovery ? recovery.position : stored;
+              const start = Math.max(0, Math.min(position, Math.max(0, current.duration - 0.5)));
+              lastAllowedRef.current = Math.max(lastAllowedRef.current, start);
+              lastSentRef.current = start;
+              lastHeartbeatRef.current = start;
+              current.currentTime = start;
+              if (recovery?.resume) {
+                void current.play().catch(() => {
+                  setMessage("Bağlantı yenilendi. Devam etmek için oynat düğmesine basın.");
+                });
+              } else if (recovery) {
+                setMessage("");
+              }
+            }} onTimeUpdate={() => onTimeUpdate()} onSeeking={(event) => { const current = event.currentTarget; if (current.currentTime > lastAllowedRef.current + 0.15) current.currentTime = lastAllowedRef.current; }} onSeeked={(event) => { const current = event.currentTarget; if (current.currentTime <= lastAllowedRef.current + 0.15) { lastSentRef.current = current.currentTime; lastHeartbeatRef.current = current.currentTime; } }} onPlay={() => { clearMediaStall(); setIsPlaying(true); }}
+              onPlaying={() => { clearMediaStall(); setMessage(""); }}
+              onWaiting={(event) => {
+                clearMediaStall();
+                const element = event.currentTarget;
+                mediaStallTimerRef.current = window.setTimeout(() => {
+                  mediaStallTimerRef.current = null;
+                  if (!element.paused && element.readyState < 3) {
+                    recoverMedia(element);
+                  }
+                }, 12000);
+              }}
+              onError={(event) => recoverMedia(event.currentTarget)} onPause={() => { clearMediaStall(); setIsPlaying(false); }} onEnded={() => { setIsPlaying(false); void sendProgress(true); }} /> : <div className="trainer-video-locked"><TrainerIcon name="lock" size={40}/><strong>Video kilitli</strong><span>Önceki videoyu tamamladığınızda açılır.</span></div>}
             {isPlaying && <div className="trainer-video-playing-status" role="status"><span className="trainer-video-playing-dot" aria-hidden="true" />Video Oynatılıyor</div>}
             {completionToast && (
               <div className="trainer-video-completion-toast" role="status">
                 <span aria-hidden="true">✓</span>
-                <strong>Video tamamlandı.</strong>
-                <small>Sıradaki video kilidi açıldı.</small>
+                <strong>Tebrikler {trainerFirstName} Hocam! Bu video eğitimini başarıyla tamamladınız.</strong>
+                <small>{completionHasNext ? "Sıradaki eğitim videonuzun kilidi açıldı. Keyifli öğrenmeler!" : "Bu eğitimdeki tüm video derslerini tamamladınız. Tebrikler!"}</small>
               </div>
             )}
             <div className="trainer-video-watermark" aria-hidden="true">
@@ -231,7 +304,6 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   <span className="trainer-video-watermark-warning"><span aria-hidden="true">⛔</span> Videonun FİXOKU Web Sayfası dışında gösterilmesi kesinlikle yasaktır.</span>
 </div>
           </div>
-          <p className="trainer-video-note">Yerel inceleme: Kilitler bu sunucu oturumunda çalışır. Sunucu yeniden başlatıldığında ilerleme sıfırlanır; kalıcı eğitim tamamlanması veya hakediş oluşturmaz.</p>
         </div>
         <aside ref={videoRailRef} className="trainer-video-list" style={videoRailHeight ? ({ "--fixoku-video-rail-height": `${videoRailHeight}px` } as React.CSSProperties) : undefined} aria-label="Video dersleri"><h3>Video dersleri</h3>{cardList.length === 0 && <p role="status" style={{ padding: "12px" }}>Gerçek ders videoları henüz eklenmedi.</p>}{cardList.map((item, index) => <button key={item.videoIndex} type="button" className={`trainer-video-item ${index === selected ? "is-selected" : ""} ${item.locked ? "is-locked" : ""}`} disabled={item.locked} onClick={() => { setMessage(""); setSelected(index); }}><TrainerVideoThumbnail
                 posterSrc={item.posterSrc}

@@ -148,6 +148,20 @@ export function createSignedReadUrl(config, storageKey, { expiresIn = config?.si
   return signedQuery(config, storageKey, signedUrlTtl(expiresIn), now, method);
 }
 
+/**
+ * Two-hour signed GET URL for private trainer MP4 lessons.
+ * Other media retain their original short-lived URLs.
+ */
+export function createSignedTrainerVideoReadUrl(config, storageKey, { now = new Date() } = {}) {
+  if (!config?.enabled || !["S3", "R2"].includes(config.provider)) {
+    throw new Error(config?.reason || "S3_RUNTIME_NOT_CONFIGURED");
+  }
+  const key = String(storageKey || "");
+  if (!/^trainer-curriculum-intake\/release-015l-egitmen-dersleri\/[a-z0-9]+(?:-[a-z0-9]+)*\/[A-Za-z0-9][A-Za-z0-9._-]*\.mp4$/u.test(key)) {
+    throw new Error("TRAINER_VIDEO_KEY_INVALID");
+  }
+  return signedQuery(config, key, 7200, now, "GET");
+}
 /** Fetch a private object without exposing a permanent URL or credentials. */
 export async function fetchPrivateObject(config, storageKey, options = {}) {
   const method = options.method || "GET";

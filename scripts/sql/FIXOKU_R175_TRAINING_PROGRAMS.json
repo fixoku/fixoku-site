@@ -1,0 +1,73 @@
+{
+  "task": "FIXOKU_R175",
+  "type": "TRAINING_PROGRAM_SOURCE",
+  "status": "DRAFT_NOT_APPLIED",
+  "programs": [
+    {
+      "slug": "fixoku-student-middle-reading-group",
+      "title": "Ortaokul Hızlı Okuma Grup Eğitimi",
+      "short_description": "FIXOKU öğrenci paketine bağlı canlı eğitmen hizmeti.",
+      "status": "PUBLISHED"
+    },
+    {
+      "slug": "fixoku-student-middle-reading-individual",
+      "title": "Ortaokul Hızlı Okuma Bireysel Eğitimi",
+      "short_description": "FIXOKU öğrenci paketine bağlı canlı eğitmen hizmeti.",
+      "status": "PUBLISHED"
+    },
+    {
+      "slug": "fixoku-student-primary-reading-group",
+      "title": "İlkokul Hızlı Okuma Grup Eğitimi",
+      "short_description": "FIXOKU öğrenci paketine bağlı canlı eğitmen hizmeti.",
+      "status": "PUBLISHED"
+    },
+    {
+      "slug": "fixoku-student-primary-reading-individual",
+      "title": "İlkokul Hızlı Okuma Bireysel Eğitimi",
+      "short_description": "FIXOKU öğrenci paketine bağlı canlı eğitmen hizmeti.",
+      "status": "PUBLISHED"
+    }
+  ],
+  "links": [
+    {
+      "package_slug": "student-middle-platinum-egitim",
+      "version_number": 1,
+      "program_slug": "fixoku-student-middle-reading-individual",
+      "delivery_mode": "TRAINER_LED"
+    },
+    {
+      "package_slug": "student-middle-premium-egitim",
+      "version_number": 1,
+      "program_slug": "fixoku-student-middle-reading-group",
+      "delivery_mode": "TRAINER_LED"
+    },
+    {
+      "package_slug": "student-primary-platinum-egitim",
+      "version_number": 3,
+      "program_slug": "fixoku-student-primary-reading-individual",
+      "delivery_mode": "TRAINER_LED"
+    },
+    {
+      "package_slug": "student-primary-platinum-egitim",
+      "version_number": 4,
+      "program_slug": "fixoku-student-primary-reading-individual",
+      "delivery_mode": "TRAINER_LED"
+    },
+    {
+      "package_slug": "student-primary-platinum-egitim",
+      "version_number": 5,
+      "program_slug": "fixoku-student-primary-reading-individual",
+      "delivery_mode": "TRAINER_LED"
+    },
+    {
+      "package_slug": "student-primary-premium-egitim",
+      "version_number": 4,
+      "program_slug": "fixoku-student-primary-reading-group",
+      "delivery_mode": "TRAINER_LED"
+    }
+  ],
+  "source": "VERIFIED_STAGING",
+  "paymentWrites": false,
+  "priceWrites": false,
+  "productionWrites": false
+}

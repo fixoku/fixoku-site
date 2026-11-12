@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     if (req.method === "GET") {
       const videos = await Promise.all(lessons.map(async (lesson, index) => {
         const persisted = await readTrainerVideoProgress(pool, user.id, pkg.id, index + 1);
-        const locked = index > 0 && !persisted?.completedAt;
+        const previous = index > 0 ? await readTrainerVideoProgress(pool, user.id, pkg.id, index) : null; const locked = index > 0 && !previous?.completedAt;
         const route = `/api/trainer/video-media?packageId=${encodeURIComponent(pkg.id)}&video=${lesson.videoIndex}`;
         return { videoIndex: lesson.videoIndex, title: lesson.title, locked, src: locked ? null : route, posterSrc: `${route}&poster=1`, progress: persisted || previewProgress(user.id, pkg.id, lesson.videoIndex) };
       }));
@@ -85,13 +85,13 @@ export default async function handler(req, res) {
     const data = await readJson(req);
     const requestedLesson = lessons.findIndex((lesson) => Number(lesson.videoIndex) === Number(data.videoIndex));
     if (requestedLesson < 0) return respond(res, 400, { error: "VIDEO_INDEX_INVALID" });
-    await pool.query("begin");
+    const tx = await pool.connect(); try { await tx.query("begin");
     try {
-      const result = await recordTrainerVideoProgress(pool, { trainerUserId: user.id, packageId: pkg.id, ...data, videoIndex: requestedLesson + 1, lessonsCount: lessons.length });
-      await pool.query("commit");
+      const result = await recordTrainerVideoProgress(tx, { trainerUserId: user.id, packageId: pkg.id, ...data, videoIndex: requestedLesson + 1, lessonsCount: lessons.length });
+      await tx.query("commit");
       return respond(res, 200, { ...result, progressScope: "PERSISTED_TRAINER_VIDEO_PROGRESS" });
     } catch (error) {
-      await pool.query("rollback");
+      await tx.query("rollback");
       // Keep an older local review runner usable when its disposable schema
       // predates trainer_video_progress. This response is explicitly marked as
       // a schema yedek and cannot be returned by production.
@@ -101,6 +101,7 @@ export default async function handler(req, res) {
       }
       throw error;
     }
+    } finally { tx.release(); }
   } catch (error) { return respond(res, error.status || 403, { error: error.code || error.message || "TRAINER_VIDEO_ACCESS_DENIED" }); }
   finally { await pool.end(); }
 }

@@ -3,7 +3,7 @@ import path from "node:path";
 import pg from "pg";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
-import { createSignedReadUrl, getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
+import { createSignedReadUrl, createSignedTrainerVideoReadUrl, getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
 import { loadRealTrainerLessons } from "./video-config.js";
 import { previewUnlocked } from "./video-preview-progress.js";
 import { readTrainerVideoProgress } from "../../src/server/domain/trainer-completion.js";
@@ -39,15 +39,18 @@ export default async function handler(req, res) {
     const lesson = lessons.find((item) => item.videoIndex === videoIndex);
     if (!lesson) return reply(res, 404);
     if (!poster) {
-      const persisted = await readTrainerVideoProgress(pool, user.id, packageId, videoIndex);
-      const unlocked = videoIndex === 1 || Boolean(persisted?.completedAt) || previewUnlocked(user.id, packageId, videoIndex);
+      const ordinal = lessons.findIndex((item) => item.videoIndex === videoIndex);
+      const previous = ordinal > 0
+        ? await readTrainerVideoProgress(pool, user.id, packageId, ordinal)
+        : null;
+      const unlocked = ordinal === 0 || Boolean(previous?.completedAt);
       if (!unlocked) return reply(res, 403);
     }
     const storage = getDigitalStorageConfig();
     if (storage.provider === "S3" || storage.provider === "R2") {
       const storageKey = poster ? lesson.posterKey : lesson.videoKey;
       res.statusCode = 302;
-      res.setHeader("Location", createSignedReadUrl(storage, storageKey));
+      res.setHeader("Location", (poster ? createSignedReadUrl(storage, storageKey, { expiresIn: 900 }) : createSignedTrainerVideoReadUrl(storage, storageKey)));
       res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("Referrer-Policy", "no-referrer");
       return res.end();

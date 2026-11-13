@@ -1,6 +1,13 @@
 import * as r54PreviewHostContract from "../auth/preview-contract.js";
 /* global process */
-import { R16_STAGING_METADATA, R18_STAGING_METADATA, isR16StagingHost } from "../auth/preview-contract.js";
+import {
+  PREVIEW_CONTRACTS,
+  R16_STAGING_METADATA,
+  R18_STAGING_METADATA,
+  STAGING_ACCEPTANCE_METADATA,
+  isR16StagingHost,
+  trustedPreviewDeploymentHost,
+} from "../auth/preview-contract.js";
 /*
  * FIXOKU clean Preview database guard.
  *
@@ -32,6 +39,8 @@ export const R16_STAGING_DIRECT_HOST = R16_STAGING_METADATA.directHost;
 
 export const R18_PREVIEW_BRANCH = "codex/fixoku-r18-owner-acceptance-20261108";
 export const R54S_PREVIEW_BRANCH = "codex/fixoku-r54s-preview-20261109";
+export const STAGING_ACCEPTANCE_PREVIEW_BRANCH = PREVIEW_CONTRACTS.stagingAcceptance.branch;
+export const STAGING_ACCEPTANCE_VERCEL_PROJECT_ID = PREVIEW_CONTRACTS.stagingAcceptance.vercelProjectId;
 
 const SHA256_HEX = /^[0-9a-f]{40}$/iu;
 
@@ -142,6 +151,30 @@ export function r54sPreviewEnvironmentStatus(env = process.env) {
   return Object.freeze({ ok: Object.values(checks).every(Boolean), checks });
 }
 
+export function stagingAcceptancePreviewEnvironmentStatus(env = process.env) {
+  const expectedCommit = text(env.FIXOKU_STAGING_ACCEPTANCE_RUNTIME_EXPECTED_COMMIT_SHA).toLowerCase();
+  const actualCommit = text(env.VERCEL_GIT_COMMIT_SHA).toLowerCase();
+  const contract = PREVIEW_CONTRACTS.stagingAcceptance;
+  const checks = {
+    vercel: text(env.VERCEL) === "1",
+    preview: text(env.VERCEL_ENV).toLowerCase() === "preview",
+    project: text(env.VERCEL_PROJECT_ID) === STAGING_ACCEPTANCE_VERCEL_PROJECT_ID,
+    branch: text(env.VERCEL_GIT_COMMIT_REF) === STAGING_ACCEPTANCE_PREVIEW_BRANCH,
+    deploymentHost: trustedPreviewDeploymentHost(contract, env),
+    expectedCommitFormat: SHA256_HEX.test(expectedCommit),
+    actualCommitFormat: SHA256_HEX.test(actualCommit),
+    commitMatch: Boolean(expectedCommit) && expectedCommit === actualCommit,
+    probeEnabled: text(env.FIXOKU_STAGING_ACCEPTANCE_RUNTIME_PROBE_ENABLED) === "1",
+    neonProject: text(env.FIXOKU_STAGING_ACCEPTANCE_NEON_PROJECT_ID) === STAGING_ACCEPTANCE_METADATA.project,
+    neonBranch: text(env.FIXOKU_STAGING_ACCEPTANCE_NEON_BRANCH_ID) === STAGING_ACCEPTANCE_METADATA.branch,
+    database: text(env.FIXOKU_STAGING_ACCEPTANCE_DATABASE) === STAGING_ACCEPTANCE_METADATA.database,
+    endpointAttested: text(env.FIXOKU_STAGING_ACCEPTANCE_ENDPOINT_METADATA_ATTESTED) === "1",
+    pooledMetadataHost: metadataHost(env.FIXOKU_STAGING_ACCEPTANCE_POOLED_HOST) === STAGING_ACCEPTANCE_METADATA.pooledHost,
+    directMetadataHost: metadataHost(env.FIXOKU_STAGING_ACCEPTANCE_DIRECT_HOST) === STAGING_ACCEPTANCE_METADATA.directHost,
+  };
+  return Object.freeze({ ok: Object.values(checks).every(Boolean), checks });
+}
+
 export function isExactCleanPreviewEnvironment(env = process.env) {
   return cleanPreviewEnvironmentStatus(env).ok;
 }
@@ -209,6 +242,15 @@ export function assertR54SPreviewConnectionUrl(rawUrl, kind = "pooled", env = pr
   }).toString();
 }
 
+export function assertStagingAcceptancePreviewConnectionUrl(rawUrl, kind = "pooled", env = process.env) {
+  if (!stagingAcceptancePreviewEnvironmentStatus(env).ok) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+  return parseConnectionUrlForTarget(rawUrl, kind, {
+    pooledHost: STAGING_ACCEPTANCE_METADATA.pooledHost,
+    directHost: STAGING_ACCEPTANCE_METADATA.directHost,
+    database: STAGING_ACCEPTANCE_METADATA.database,
+  }).toString();
+}
+
 function parseConnectionUrlForTarget(rawUrl, kind, target) {
   const value = text(rawUrl);
   if (!value) fail("DATABASE_URL_MISSING");
@@ -239,6 +281,7 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
   const environment = text(env.VERCEL_ENV).toLowerCase();
   if (environment === "preview") {
     const branch = text(env.VERCEL_GIT_COMMIT_REF);
+    if (branch === STAGING_ACCEPTANCE_PREVIEW_BRANCH) return assertStagingAcceptancePreviewConnectionUrl(rawUrl, "pooled", env);
     if (branch === R54S_PREVIEW_BRANCH
       || (!branch && r54PreviewHostContract.r54sSafePreviewRuntime(env))) {
       return assertR54SPreviewConnectionUrl(rawUrl, "pooled", env);

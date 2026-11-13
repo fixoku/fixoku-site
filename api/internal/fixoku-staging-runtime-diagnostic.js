@@ -102,7 +102,7 @@ function runtimeProjectId(env, contract) {
     env?.DATABASE_NEON_PROJECT_ID,
     env?.VERCEL_NEON_PROJECT_ID,
   ].map((value) => String(value || "").trim()).filter(Boolean);
-  if (contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance) {
+  if (contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.stagingAcceptance) {
     values.push(String(env?.[contract.metadata.project] || "").trim());
   }
   if (new Set(values).size > 1) return null;
@@ -115,7 +115,7 @@ function runtimeBranchId(env, contract) {
     env?.DATABASE_NEON_BRANCH_ID,
     env?.VERCEL_NEON_BRANCH_ID,
   ].map((value) => String(value || "").trim()).filter(Boolean);
-  if (contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance) {
+  if (contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.stagingAcceptance) {
     values.push(String(env?.[contract.metadata.branch] || "").trim());
   }
   if (new Set(values).size > 1) return null;
@@ -146,7 +146,7 @@ function connectionTarget(raw, kind) {
 function targetMatchesExpected(target, kind, contract, env) {
   if (!target) return false;
   const isR16 = contract === PREVIEW_CONTRACTS.r16Staging;
-  const isR18 = contract === PREVIEW_CONTRACTS.r18Acceptance;
+  const isR18 = contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.stagingAcceptance;
   const expectedMetadata = isR16 ? R16_STAGING_METADATA : isR18 ? R18_STAGING_METADATA : CLEAN_STAGING_METADATA;
   const metadataHostName = kind === "pooled" ? contract.metadata.pooledHost : contract.metadata.directHost;
   const expectedHost = String(env?.[metadataHostName] || "").trim().toLowerCase();
@@ -226,7 +226,7 @@ export async function readOnlyRuntimeFingerprint(kind, connectionString, poolFac
 
 function exactPreviewRuntime(env) {
   const contract = previewContractForBranch(env?.VERCEL_GIT_COMMIT_REF);
-  return (contract === PREVIEW_CONTRACTS.cleanIntegration || contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance)
+  return (contract === PREVIEW_CONTRACTS.cleanIntegration || contract === PREVIEW_CONTRACTS.r16Staging || contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.stagingAcceptance)
     && env?.VERCEL_PROJECT_ID === VERCEL_PROJECT_ID
     // VERCEL_ORG_ID is not a documented Vercel system variable; VERCEL_PROJECT_ID is checked above.
     && exactPreviewContractEnvironment(contract, env);
@@ -311,7 +311,7 @@ export function createStagingRuntimeDiagnosticHandler({
     }
     const expectedBranchId = contract === PREVIEW_CONTRACTS.r16Staging
       ? R16_STAGING_METADATA.branch
-      : contract === PREVIEW_CONTRACTS.r18Acceptance
+      : (contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.stagingAcceptance)
         ? R18_STAGING_METADATA.branch
         : null;
     if (expectedBranchId && configuredBranchId !== expectedBranchId) {
@@ -334,7 +334,7 @@ export function createStagingRuntimeDiagnosticHandler({
       pooled = await readOnlyRuntimeFingerprint("pooled", env.DATABASE_URL, poolFactory);
       const expectedDatabase = contract === PREVIEW_CONTRACTS.r16Staging
         ? R16_STAGING_METADATA.database
-        : contract === PREVIEW_CONTRACTS.r18Acceptance
+        : (contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.stagingAcceptance)
           ? R18_STAGING_METADATA.database
           : CLEAN_STAGING_METADATA.database;
       if (pooled.database !== expectedDatabase) {
@@ -371,7 +371,7 @@ export function createStagingRuntimeDiagnosticHandler({
     }
     const expectedDatabase = contract === PREVIEW_CONTRACTS.r16Staging
       ? R16_STAGING_METADATA.database
-      : contract === PREVIEW_CONTRACTS.r18Acceptance
+      : (contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.stagingAcceptance)
         ? R18_STAGING_METADATA.database
         : CLEAN_STAGING_METADATA.database;
     if (direct.database !== expectedDatabase) return json(res, 503, { error: "RUNTIME_DATABASE_MISMATCH" });

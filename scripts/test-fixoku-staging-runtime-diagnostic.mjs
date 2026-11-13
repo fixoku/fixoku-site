@@ -10,7 +10,13 @@ import {
   STAGING_DIAGNOSTIC_PRODUCTION_PROJECT,
   createStagingRuntimeDiagnosticHandler,
 } from "../api/internal/fixoku-staging-runtime-diagnostic.js";
-import { PREVIEW_CONTRACTS, R16_STAGING_HOSTS, R16_STAGING_METADATA } from "../src/server/auth/preview-contract.js";
+import {
+  PREVIEW_CONTRACTS,
+  R16_STAGING_HOSTS,
+  R16_STAGING_METADATA,
+  STAGING_ACCEPTANCE_HOSTS,
+  STAGING_ACCEPTANCE_METADATA,
+} from "../src/server/auth/preview-contract.js";
 
 const TOKEN = "staging-runtime-probe-token-012345678901234567890";
 const COMMIT = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -21,6 +27,11 @@ const R16_COMMIT = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const R16_CONTRACT = PREVIEW_CONTRACTS.r16Staging;
 const R16_POOLED = `postgresql://runtime-user:runtime-password@${R16_STAGING_HOSTS.pooled}/neondb?sslmode=require`;
 const R16_DIRECT = `postgresql://runtime-user:runtime-password@${R16_STAGING_HOSTS.direct}/neondb?sslmode=require`;
+const STAGING_ACCEPTANCE_TOKEN = "staging-acceptance-runtime-probe-token-012345678901234567890";
+const STAGING_ACCEPTANCE_COMMIT = "4060ad4a605d1ee31f298c980b6cad658304a05b";
+const STAGING_ACCEPTANCE_CONTRACT = PREVIEW_CONTRACTS.stagingAcceptance;
+const STAGING_ACCEPTANCE_POOLED = `postgresql://runtime-user:runtime-password@${STAGING_ACCEPTANCE_HOSTS.pooled}/neondb?sslmode=require`;
+const STAGING_ACCEPTANCE_DIRECT = `postgresql://runtime-user:runtime-password@${STAGING_ACCEPTANCE_HOSTS.direct}/neondb?sslmode=require`;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BASE_ENV = {
   VERCEL: "1",
@@ -127,6 +138,29 @@ const R16_ENV = {
   DATABASE_URL_UNPOOLED: R16_DIRECT,
 };
 
+const STAGING_ACCEPTANCE_ENV = {
+  VERCEL: "1",
+  VERCEL_ENV: "preview",
+  VERCEL_PROJECT_ID: "prj_yWvXfOndJ6se89FdCiPbvKIZoGwR",
+  VERCEL_ORG_ID: "team_G4NbdNKM6NSdvIVMUkszTQYc",
+  VERCEL_GIT_COMMIT_REF: STAGING_ACCEPTANCE_CONTRACT.branch,
+  VERCEL_GIT_COMMIT_SHA: STAGING_ACCEPTANCE_COMMIT,
+  VERCEL_URL: "fixoku-site-git-codex-fixoku-staging-acceptance-20261113-fixoku.vercel.app",
+  [STAGING_ACCEPTANCE_CONTRACT.expectedCommitEnv]: STAGING_ACCEPTANCE_COMMIT,
+  [STAGING_ACCEPTANCE_CONTRACT.probeEnabledEnv]: "1",
+  [STAGING_ACCEPTANCE_CONTRACT.probeTokenEnv]: STAGING_ACCEPTANCE_TOKEN,
+  [STAGING_ACCEPTANCE_CONTRACT.metadata.attested]: "1",
+  [STAGING_ACCEPTANCE_CONTRACT.metadata.project]: STAGING_ACCEPTANCE_METADATA.project,
+  [STAGING_ACCEPTANCE_CONTRACT.metadata.branch]: STAGING_ACCEPTANCE_METADATA.branch,
+  [STAGING_ACCEPTANCE_CONTRACT.metadata.database]: STAGING_ACCEPTANCE_METADATA.database,
+  [STAGING_ACCEPTANCE_CONTRACT.metadata.pooledHost]: STAGING_ACCEPTANCE_HOSTS.pooled,
+  [STAGING_ACCEPTANCE_CONTRACT.metadata.directHost]: STAGING_ACCEPTANCE_HOSTS.direct,
+  NEON_PROJECT_ID: STAGING_ACCEPTANCE_METADATA.project,
+  NEON_BRANCH_ID: STAGING_ACCEPTANCE_METADATA.branch,
+  DATABASE_URL: STAGING_ACCEPTANCE_POOLED,
+  DATABASE_URL_UNPOOLED: STAGING_ACCEPTANCE_DIRECT,
+};
+
 await withEnv(BASE_ENV, async () => {
   const calls = [];
   const result = await invoke(BASE_ENV, request({ host: BASE_ENV.VERCEL_URL, [STAGING_DIAGNOSTIC_TOKEN_HEADER]: TOKEN }), fakePoolFactory(calls));
@@ -178,6 +212,33 @@ for (const [name, changes] of [
 ]) {
   const calls = [];
   const result = await invoke({ ...BASE_ENV, ...changes }, request({ host: BASE_ENV.VERCEL_URL }), fakePoolFactory(calls));
+  assert.notEqual(result.state.statusCode, 200, name);
+  assert.equal(calls.length, 0, name);
+}
+
+{
+  const calls = [];
+  const result = await invoke(
+    STAGING_ACCEPTANCE_ENV,
+    request({ host: STAGING_ACCEPTANCE_ENV.VERCEL_URL, [STAGING_ACCEPTANCE_CONTRACT.probeTokenHeader]: STAGING_ACCEPTANCE_TOKEN }),
+    fakePoolFactory(calls, STAGING_ACCEPTANCE_METADATA.project, STAGING_ACCEPTANCE_METADATA.branch),
+  );
+  assert.equal(result.state.statusCode, 200);
+  assert.equal(result.body.commit, STAGING_ACCEPTANCE_COMMIT);
+  assert.equal(calls.length, 2);
+}
+
+for (const [name, changes] of [
+  ["wrong-staging-acceptance-commit", { VERCEL_GIT_COMMIT_SHA: "0000000000000000000000000000000000000000" }],
+  ["wrong-staging-acceptance-host", { VERCEL_URL: "fixoku-site-attacker-fixoku.vercel.app" }],
+  ["wrong-staging-acceptance-branch", { [STAGING_ACCEPTANCE_CONTRACT.metadata.branch]: "br-other-branch" }],
+]) {
+  const calls = [];
+  const result = await invoke(
+    { ...STAGING_ACCEPTANCE_ENV, ...changes },
+    request({ host: STAGING_ACCEPTANCE_ENV.VERCEL_URL, [STAGING_ACCEPTANCE_CONTRACT.probeTokenHeader]: STAGING_ACCEPTANCE_TOKEN }),
+    fakePoolFactory(calls, STAGING_ACCEPTANCE_METADATA.project, STAGING_ACCEPTANCE_METADATA.branch),
+  );
   assert.notEqual(result.state.statusCode, 200, name);
   assert.equal(calls.length, 0, name);
 }

@@ -96,6 +96,27 @@ export const PREVIEW_CONTRACTS = Object.freeze({
     deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-r54s-preview-20261109|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
     forbiddenCommits: Object.freeze([]),
   }),
+  stagingAcceptance: Object.freeze({
+    id: "staging-acceptance-20261113",
+    businessGate: true,
+    branch: "codex/fixoku-staging-acceptance-20261113",
+    vercelProjectId: "prj_yWvXfOndJ6se89FdCiPbvKIZoGwR",
+    expectedCommitEnv: "FIXOKU_STAGING_ACCEPTANCE_RUNTIME_EXPECTED_COMMIT_SHA",
+    probeEnabledEnv: "FIXOKU_STAGING_ACCEPTANCE_RUNTIME_PROBE_ENABLED",
+    probeTokenEnv: "FIXOKU_STAGING_ACCEPTANCE_RUNTIME_PROBE_TOKEN",
+    probeTokenHeader: "x-fixoku-staging-acceptance-runtime-token",
+    metadata: Object.freeze({
+      attested: "FIXOKU_STAGING_ACCEPTANCE_ENDPOINT_METADATA_ATTESTED",
+      project: "FIXOKU_STAGING_ACCEPTANCE_NEON_PROJECT_ID",
+      branch: "FIXOKU_STAGING_ACCEPTANCE_NEON_BRANCH_ID",
+      database: "FIXOKU_STAGING_ACCEPTANCE_DATABASE",
+      pooledHost: "FIXOKU_STAGING_ACCEPTANCE_POOLED_HOST",
+      directHost: "FIXOKU_STAGING_ACCEPTANCE_DIRECT_HOST",
+    }),
+    fixedOrigins: Object.freeze(["https://staging.fixoku.com"]),
+    deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-staging-acceptance-20261113|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
+    forbiddenCommits: Object.freeze([]),
+  }),
   r16Staging: Object.freeze({
     id: "r16-staging",
     businessGate: true,
@@ -165,6 +186,23 @@ export const R18_STAGING_METADATA = Object.freeze({
 export const R18_STAGING_HOSTS = Object.freeze({
   pooled: R18_STAGING_METADATA.pooledHost,
   direct: R18_STAGING_METADATA.directHost,
+});
+
+// The staging-acceptance branch is intentionally pinned to the already
+// attested R18 Neon target. The branch gets its own Vercel variable namespace
+// and commit/host contract; no runtime variable may select another database.
+export const STAGING_ACCEPTANCE_METADATA = Object.freeze({
+  project: R18_STAGING_METADATA.project,
+  branch: R18_STAGING_METADATA.branch,
+  database: R18_STAGING_METADATA.database,
+  endpoint: R18_STAGING_METADATA.endpoint,
+  pooledHost: R18_STAGING_METADATA.pooledHost,
+  directHost: R18_STAGING_METADATA.directHost,
+});
+
+export const STAGING_ACCEPTANCE_HOSTS = Object.freeze({
+  pooled: STAGING_ACCEPTANCE_METADATA.pooledHost,
+  direct: STAGING_ACCEPTANCE_METADATA.directHost,
 });
 
 export const R16_STAGING_HOSTS = Object.freeze({
@@ -240,6 +278,7 @@ export function previewContractEnvironment(contract, env = process.env) {
     && env.VERCEL === "1"
     && String(env.VERCEL_ENV || "").trim().toLowerCase() === "preview"
     && String(env.VERCEL_GIT_COMMIT_REF || "").trim() === contract.branch
+    && (!contract.vercelProjectId || String(env.VERCEL_PROJECT_ID || "").trim() === contract.vercelProjectId)
     && exactPreviewCommit(contract, env)
     && env[contract.probeEnabledEnv] === "1";
 }
@@ -274,10 +313,13 @@ export function exactPreviewContractEnvironment(contract, env = process.env) {
 export function previewContractMetadataConfigured(contract, env = process.env) {
   if (!contract) return false;
   const metadata = contract.metadata;
+  const usesR18Target = contract === PREVIEW_CONTRACTS.r18Acceptance
+    || contract === PREVIEW_CONTRACTS.r54StudentAcceptance
+    || contract === PREVIEW_CONTRACTS.stagingAcceptance;
   const target = contract === PREVIEW_CONTRACTS.r16Staging
     ? R16_STAGING_METADATA
-    : (contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.r54StudentAcceptance)
-      ? R18_STAGING_METADATA
+    : usesR18Target
+      ? (contract === PREVIEW_CONTRACTS.stagingAcceptance ? STAGING_ACCEPTANCE_METADATA : R18_STAGING_METADATA)
       : contract === PREVIEW_CONTRACTS.cleanIntegration
         ? CLEAN_STAGING_METADATA
         : null;
@@ -286,8 +328,8 @@ export function previewContractMetadataConfigured(contract, env = process.env) {
   const directHost = normalizedHost(env[metadata.directHost]);
   const expectedHosts = contract === PREVIEW_CONTRACTS.r16Staging
     ? R16_STAGING_HOSTS
-    : (contract === PREVIEW_CONTRACTS.r18Acceptance || contract === PREVIEW_CONTRACTS.r54StudentAcceptance)
-      ? R18_STAGING_HOSTS
+    : usesR18Target
+      ? (contract === PREVIEW_CONTRACTS.stagingAcceptance ? STAGING_ACCEPTANCE_HOSTS : R18_STAGING_HOSTS)
       : CLEAN_STAGING_HOSTS;
   const hostsMatch = pooledHost === expectedHosts.pooled && directHost === expectedHosts.direct;
   return env[metadata.project] === target.project

@@ -3,7 +3,9 @@
 import {
   PREVIEW_CONTRACTS,
   exactPreviewCommit,
+  exactPreviewContractEnvironment,
   isContractDeploymentHost,
+  previewContractMetadataAttested,
   previewContractForBranch,
   r54sSafePreviewRuntime,
 } from "./preview-contract.js";
@@ -34,7 +36,9 @@ export function resolveApplicationOrigin(env = process.env) {
     // expected-commit environment variable. Other branches retain the original gate.
     const runtimeVerified = contract === PREVIEW_CONTRACTS.r54StudentAcceptance
       ? r54sSafePreviewRuntime(env)
-      : exactPreviewCommit(contract, env);
+      : contract?.vercelProjectId
+        ? exactPreviewContractEnvironment(contract, env)
+        : exactPreviewCommit(contract, env);
     if (!contract || !deployment || !isVercelPreviewOrigin(deployment, contract) || !runtimeVerified) return null;
     if (hasConfigured && !configured) return null;
     if (configured) {
@@ -59,11 +63,15 @@ export function resolveTrustedOrigins(env = process.env) {
   const applicationOrigin = resolveApplicationOrigin(env);
   if (!applicationOrigin) return [];
   const origins = [applicationOrigin];
-  // R54S only: trust the public staging domain for Better Auth requests.
-  // Keep the R18 database and Vercel Preview runtime identity fail-closed.
   const previewBranch = String(env.VERCEL_GIT_COMMIT_REF || "").trim();
+  const contract = previewContractForBranch(previewBranch);
   const isR54S = previewBranch === PREVIEW_CONTRACTS.r54StudentAcceptance.branch || !previewBranch;
-  if (isR54S && r54sSafePreviewRuntime(env)) {
+  const r54sVerified = isR54S && r54sSafePreviewRuntime(env);
+  const contractVerified = contract && contract !== PREVIEW_CONTRACTS.r54StudentAcceptance
+    ? exactPreviewContractEnvironment(contract, env) && previewContractMetadataAttested(contract, env)
+    : false;
+  const stagingContract = contract || (isR54S ? PREVIEW_CONTRACTS.r54StudentAcceptance : null);
+  if ((r54sVerified || contractVerified) && stagingContract?.fixedOrigins?.includes("https://staging.fixoku.com")) {
     const stagingOrigin = "https://staging.fixoku.com";
     if (!origins.includes(stagingOrigin)) origins.push(stagingOrigin);
   }

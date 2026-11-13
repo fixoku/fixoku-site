@@ -52,7 +52,7 @@ export async function recordTrainerVideoProgress(client, { trainerUserId, packag
   const completedAt = row?.completed_at || (coverageBps >= 9500 && endedSeen ? new Date(now) : null);
   await client.query(`insert into trainer_video_progress(trainer_user_id,package_id,video_index,duration_seconds,watched_ranges_json,coverage_bps,last_position_seconds,ended_seen,completed_at)
     values($1,$2,$3,$4,$5,$6,$7,$8,$9)
-    on conflict(trainer_user_id,package_id,video_index) do update set duration_seconds=excluded.duration_seconds,watched_ranges_json=excluded.watched_ranges_json,coverage_bps=excluded.coverage_bps,last_position_seconds=excluded.last_position_seconds,ended_seen=excluded.ended_seen,completed_at=coalesce(trainer_video_progress.completed_at,excluded.completed_at),updated_at=now()`, [trainerUserId, packageId, dbIndex, duration, JSON.stringify(ranges), coverageBps, Math.max(position, Math.min(duration, endSeconds)), endedSeen, completedAt]);
+    on conflict(trainer_user_id,package_id,video_index) do update set duration_seconds=excluded.duration_seconds,watched_ranges_json=excluded.watched_ranges_json,coverage_bps=excluded.coverage_bps,last_position_seconds=excluded.last_position_seconds,ended_seen=excluded.ended_seen,completed_at=coalesce(trainer_video_progress.completed_at,excluded.completed_at),updated_at=now()`, [trainerUserId, packageId, dbIndex, duration, JSON.stringify(ranges), coverageBps, Math.floor(Math.max(position, Math.min(duration, endSeconds))), endedSeen, completedAt]);
   let expertiseActivated = false;
   if (completedAt) {
     const completed = Number((await client.query("select count(*)::int as count from trainer_video_progress where trainer_user_id=$1 and package_id=$2 and video_index between $3 and $4 and completed_at is not null", [trainerUserId, packageId, 1001, 1000 + lessonsCount])).rows[0]?.count || 0);
@@ -64,5 +64,5 @@ export async function recordTrainerVideoProgress(client, { trainerUserId, packag
       }
     }
   }
-  return { progress: rowResult({ duration_seconds: duration, coverage_bps: coverageBps, last_position_seconds: Math.max(position, Math.min(duration, endSeconds)), ended_seen: endedSeen, completed_at: completedAt }, videoIndex), nextUnlocked: Boolean(completedAt && videoIndex < lessonsCount), expertiseActivated };
+  return { progress: rowResult({ duration_seconds: duration, coverage_bps: coverageBps, last_position_seconds: Math.floor(Math.max(position, Math.min(duration, endSeconds))), ended_seen: endedSeen, completed_at: completedAt }, videoIndex), nextUnlocked: Boolean(completedAt && videoIndex < lessonsCount), expertiseActivated };
 }

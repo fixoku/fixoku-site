@@ -492,10 +492,7 @@ export function StudentPackagesPage({
           const busy =
             busyId === item.packageVersionId;
 
-          const displaySubtitle =
-            item.description ||
-            item.subtitle ||
-            exact?.subtitle;
+          const displaySubtitle = item.subtitle || exact?.subtitle || "";
 
           const databaseContent = unique([
             ...(item.contentItems || []).map((content) => content.title || content.titleSnapshot || ""),

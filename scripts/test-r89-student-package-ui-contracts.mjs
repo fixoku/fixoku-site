@@ -15,7 +15,7 @@ assert.doesNotMatch(source, /const visiblePackages = body\.packages\.filter\(/u)
 assert.match(source, /const matchingCatalog =\s*FIXOKU_PACKAGE_MEDIA\.find\(/u);
 assert.match(source, /const catalogCover =\s*matchingCatalog\s*\?/u);
 assert.match(source, /const image =\s*item\.coverImage \|\|\s*catalogCover \|\|\s*item\.products\.find\(\(product\) => product\.imageReference\)/u);
-assert.match(source, /item\.description \|\|\s*item\.subtitle \|\|\s*exact\?\.subtitle/u);
+assert.match(source, /item\.subtitle \|\| exact\?\.subtitle \|\| ""/u);
 assert.match(source, /const databaseContent = unique\(\[/u);
 assert.match(source, /const contentItems = databaseContent\.length\s*\?\s*databaseContent\s*:\s*unique\(exact\?\.features \|\| \[\]\)/u);
 

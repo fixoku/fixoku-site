@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { legalSnapshotRows, readPublishedLegalDocuments, studentLegalAcceptance } from "./trainer-legal-documents.js";
 import { UUID_PATTERN, listBeneficiaries, normalizeCurrency, readEffectiveVatDecision, resolveBeneficiary, sha256 } from "./commerce.js";
 import { validateEducationSegment } from "./student-segment.js";
-import { countPhysicalBooks, shippingForBookCount } from "./book-shipping.js";
+import { shippingForStudentCartItems } from "./book-shipping.js";
 import { allocatePackageGross } from "./package-price-allocation.js";
 import { queueRolePanelNotifications } from "./panel-notifications.js";
 
@@ -102,8 +102,7 @@ export async function readStudentCart(client, principal, requestedProfileId = nu
   }
   const currencies = new Set(items.map((item) => item.currency)); if (currencies.size > 1) throw error("CART_CURRENCY_MISMATCH", 409);
   const subtotalMinor = items.reduce((sum, item) => sum + item.priceMinor, 0);
-  const bookCount = items.reduce((sum, item) => sum + Number(item.bookCount || countPhysicalBooks(item.components || [])), 0);
-  const shippingMinor = shippingForBookCount(bookCount);
+  const shippingMinor = shippingForStudentCartItems(items);
   const catalogSegments = items.filter((item) => item.packageVersionId).map((item) => ({ packageVersionId: item.packageVersionId, educationStage: item.beneficiary?.educationStage, grade: item.beneficiary?.grade }));
   return { beneficiary, items, catalogSegments, subtotalMinor, shippingMinor, totalMinor: subtotalMinor + shippingMinor, currency: items[0]?.currency || "TRY", requiresShipping: items.some((item) => item.requiresShipping) };
 }
@@ -185,10 +184,10 @@ export async function createStudentCommerceOrder(client, principal, input) {
   if (input?.legalAcceptance?.preInformation !== true || input?.legalAcceptance?.distanceSales !== true || input?.legalAcceptance?.privacy !== true) throw error("LEGAL_EXPLICIT_ACCEPTANCE_REQUIRED", 400);
   // Shipping VAT is never inferred from a package/product rate. A current
   // Owner-approved SHIPPING decision is required before a physical sale.
-  const shippingVatDecision = cart.requiresShipping ? await readEffectiveVatDecision(client, "SHIPPING") : null;
-  if (cart.requiresShipping && (!shippingVatDecision || shippingVatDecision.vatRateBps == null)) throw error("SHIPPING_VAT_RATE_REQUIRED", 409);
+  const shippingVatDecision = cart.shippingMinor > 0 ? await readEffectiveVatDecision(client, "SHIPPING") : null;
+  if (cart.shippingMinor > 0 && (!shippingVatDecision || shippingVatDecision.vatRateBps == null)) throw error("SHIPPING_VAT_RATE_REQUIRED", 409);
   const shippingVatRateBps = shippingVatDecision?.vatRateBps == null ? 0 : Number(shippingVatDecision.vatRateBps);
-  const shippingVatMinor = cart.requiresShipping ? Math.round(Number(cart.shippingMinor || 0) * shippingVatRateBps / (10000 + shippingVatRateBps)) : 0;
+  const shippingVatMinor = cart.shippingMinor > 0 ? Math.round(Number(cart.shippingMinor || 0) * shippingVatRateBps / (10000 + shippingVatRateBps)) : 0;
   const shippingNetMinor = Number(cart.shippingMinor || 0) - shippingVatMinor;
   if (cart.items.some((item) => item.components.some((component) => component.vatRateBps == null))) throw error("PACKAGE_VAT_RATE_REQUIRED", 409);
   const legalCodes = ["PRE_INFO", "DISTANCE", "KVKK", ...(cart.requiresShipping ? ["DELIVERY"] : []), ...(input?.legalAcceptance?.commencement === true ? ["DIGITAL"] : [])];

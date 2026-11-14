@@ -5,7 +5,7 @@ const fail = (code,status=409) =>
   Object.assign(new Error(code),{code,status});
 
 export function resolveTrustedTrainerVideoDuration(
-  slug,lesson,reportedDuration
+  slug,lesson,reportedDuration, exact = false
 ) {
   const index=Number(lesson?.videoIndex);
 
@@ -54,5 +54,5 @@ export function resolveTrustedTrainerVideoDuration(
   // The integer database column uses ceiling rather than
   // rounding down, so the completion threshold is not
   // reached earlier than the measured 95% duration.
-  return trusted.storageDurationSeconds;
+  return exact ? trusted.durationSeconds : trusted.storageDurationSeconds;
 }

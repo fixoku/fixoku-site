@@ -26,7 +26,21 @@ function TrainerVideoThumbnail({ posterSrc, locked, index }: { posterSrc: string
   );
 }
 
-const pct = (value: number | undefined) => `${Math.min(100, Math.round((Number(value || 0) / 10000) * 100))}%`;
+const pct = (value: number | undefined) => `${Math.max(0, Math.min(100, Math.floor(Number(value || 0) / 100)))}%`;
+const videoClock = (seconds: number) => {
+  const s = Math.max(0, Math.floor(seconds || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+};
+// A rejected sample must not reset the clock and permanently strand the frontier.
+function playbackSampleAccepted(previous: number, position: number, elapsed: number, played: TimeRanges) {
+  const delta = position - previous;
+  if (delta < 0) return false;
+  if (delta <= elapsed + 0.5) return true;
+  for (let i = 0; i < played.length; i += 1) {
+    if (played.start(i) <= previous + 0.05 && played.end(i) >= position - 0.05) return true;
+  }
+  return false;
+}
 
 export function TrainerVideoPage({ user }: { user: { id: string; name: string; email: string } }) {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -47,6 +61,9 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   const videoRailRef = useRef<HTMLElement | null>(null);
   const videoMainRef = useRef<HTMLDivElement | null>(null);
   const [videoRailHeight, setVideoRailHeight] = useState<number | null>(null);
+  const [timeline, setTimeline] = useState({ position: 0, frontier: 0, duration: 0 });
+  const draggingRef = useRef(false);
+  const dragTargetRef = useRef(0);
   const lastSentRef = useRef(0);
   const lastAllowedRef = useRef(0);
   const observedRef = useRef(0);
@@ -80,6 +97,9 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
       window.clearTimeout(mediaStallTimerRef.current);
       mediaStallTimerRef.current = null;
     }
+    setTimeline({ position: 0, frontier: 0, duration: 0 });
+    draggingRef.current = false;
+    dragTargetRef.current = 0;
     lastSentRef.current = 0;
     lastAllowedRef.current = 0;
     observedRef.current = 0;
@@ -107,7 +127,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     const videoIndex = selectedVideo.videoIndex;
     const courseSlug = slug;
     const identity = `${packageId}:${videoIndex}`;
-    const duration = Math.floor(element.duration);
+    const duration = element.duration;
 
     const request = {
       videoIndex,
@@ -253,7 +273,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     if (initializedRef.current !== element) return;
     if (!Number.isFinite(element.duration)) return;
 
-    const duration = Math.floor(element.duration);
+    const duration = element.duration;
     const observed = Math.max(
       0, Math.min(duration, observedRef.current)
     );
@@ -263,7 +283,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     );
 
     while (observed - cursor > 0.001) {
-      const end = Math.min(observed, cursor + 2);
+      const end = Math.min(observed, cursor + 4);
 
       queueProgress(
         element, cursor, end, false,
@@ -288,7 +308,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
 
     const position = Math.max(
       0,
-      Math.min(Math.floor(element.duration), element.currentTime)
+      Math.min(element.duration, element.currentTime)
     );
 
     const now = performance.now();
@@ -296,16 +316,12 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
       0, (now - observedAtRef.current) / 1000
     );
 
-    const delta = position - observedRef.current;
-
-    if (delta >= 0 && delta <= elapsed + 0.5) {
+    if (playbackSampleAccepted(observedRef.current, position, elapsed, element.played)) {
       observedRef.current = position;
-      lastAllowedRef.current = Math.max(
-        lastAllowedRef.current, position
-      );
+      lastAllowedRef.current = Math.max(lastAllowedRef.current, position);
+      observedAtRef.current = now;
     }
-
-    observedAtRef.current = now;
+    if (!draggingRef.current) setTimeline({ position, frontier: lastAllowedRef.current, duration: element.duration });
   };
 
   const saveResume = (element: HTMLVideoElement) => {
@@ -318,7 +334,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
       Math.min(
         observedRef.current,
         lastAllowedRef.current,
-        Math.floor(element.duration)
+        element.duration
       )
     );
 
@@ -382,9 +398,19 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
 
     samplePlayback(element);
 
-    if (observedRef.current - lastSentRef.current >= 1) {
+    if (observedRef.current - lastSentRef.current >= 4) {
       flushObserved(element);
     }
+  };
+
+  const seekWatched = (requested: number) => {
+    const element = videoRef.current;
+    if (!element || initializedRef.current !== element || !Number.isFinite(element.duration)) return;
+    if (!element.paused && !element.seeking) samplePlayback(element);
+    flushObserved(element);
+    const position = Math.max(0, Math.min(requested, lastAllowedRef.current, element.duration));
+    setTimeline({ position, frontier: lastAllowedRef.current, duration: element.duration });
+    if (Math.abs(element.currentTime - position) > 0.001) element.currentTime = position;
   };
 
   // FIXOKU_VIDEO_RAIL_MEASURE_V17
@@ -508,6 +534,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
               observedRef.current = start;
               observedAtRef.current = performance.now();
               current.currentTime = start;
+              setTimeline({ position: start, frontier: lastAllowedRef.current, duration: current.duration });
               if (recovery?.resume) {
                 void current.play().catch(() => {
                   setMessage("Bağlantı yenilendi. Devam etmek için oynat düğmesine basın.");
@@ -548,6 +575,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
                 observedRef.current = position;
                 observedAtRef.current = performance.now();
 
+                if (!draggingRef.current) setTimeline({ position, frontier: lastAllowedRef.current, duration: current.duration });
                 saveResume(current);
               }}
               onPlay={() => {
@@ -556,6 +584,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
                 setIsPlaying(true);
               }}
               onPlaying={() => { clearMediaStall(); setMessage(""); }}
+              onRateChange={(event) => { if (event.currentTarget.playbackRate !== 1) event.currentTarget.playbackRate = 1; }}
               onWaiting={(event) => {
                 clearMediaStall();
                 const element = event.currentTarget;
@@ -595,6 +624,27 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   <span className="trainer-video-watermark-warning"><span aria-hidden="true">⛔</span> Videonun FİXOKU Web Sayfası dışında gösterilmesi kesinlikle yasaktır.</span>
 </div>
           </div>
+          {selectedVideo?.src && (
+            <div className="fixoku-watched-seekbar">
+              <input type="range" min={0} max={timeline.duration || 1} step={0.01}
+                value={Math.min(timeline.position, timeline.duration || 1)}
+                disabled={!timeline.duration}
+                aria-label="Video izlenen bolumlerde ileri ve geri sarma"
+                aria-valuetext={`${videoClock(timeline.position)} / ${videoClock(timeline.duration)}`}
+                style={{ "--fixoku-watched": `${timeline.duration ? Math.min(100, 100 * timeline.frontier / timeline.duration) : 0}%` } as React.CSSProperties}
+                onPointerDown={() => { draggingRef.current = true; dragTargetRef.current = timeline.position; }}
+                onChange={(event) => {
+                  const position = Math.max(0, Math.min(Number(event.currentTarget.value), lastAllowedRef.current));
+                  dragTargetRef.current = position;
+                  if (draggingRef.current) setTimeline(t => ({ ...t, position }));
+                  else seekWatched(position);
+                }}
+                onPointerUp={() => { draggingRef.current = false; seekWatched(dragTargetRef.current); }}
+                onBlur={() => { if (draggingRef.current) { draggingRef.current = false; seekWatched(dragTargetRef.current); } }}
+                onPointerCancel={() => { draggingRef.current = false; if (videoRef.current) setTimeline(t => ({ ...t, position: videoRef.current!.currentTime })); }} />
+              <div className="fixoku-watched-seekbar-labels"><span>{videoClock(timeline.position)} / {videoClock(timeline.duration)}</span><span>Izlenen: {videoClock(timeline.frontier)}</span></div>
+            </div>
+          )}
         </div>
         <aside ref={videoRailRef} className="trainer-video-list" style={videoRailHeight ? ({ "--fixoku-video-rail-height": `${videoRailHeight}px` } as React.CSSProperties) : undefined} aria-label="Video dersleri"><h3>Video dersleri</h3>{cardList.length === 0 && <p role="status" style={{ padding: "12px" }}>Gerçek ders videoları henüz eklenmedi.</p>}{cardList.map((item, index) => <button key={item.videoIndex} type="button" className={`trainer-video-item ${index === selected ? "is-selected" : ""} ${item.locked ? "is-locked" : ""}`} disabled={item.locked} onClick={() => {
         latestFlushRef.current?.();
@@ -606,7 +656,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
                 locked={item.locked}
                 index={item.videoIndex}
               />
-              <span className="trainer-video-number">{item.locked ? <TrainerIcon name="lock" size={16}/> : item.videoIndex}</span><span className="trainer-video-item-copy"><strong>{item.title}</strong><small className={item.progress?.completedAt ? "is-complete" : ""}>{item.locked ? "Önceki dersi tamamlayın" : item.progress?.completedAt ? "Tamamlandı" : item.progress ? `${pct(item.progress.coverageBps)} izlendi` : "İzlemeye hazır"}</small></span><span className="trainer-video-item-status" aria-hidden="true">{item.locked ? <TrainerIcon name="lock" size={15}/> : item.progress?.completedAt ? "✓" : "›"}</span></button>)}</aside>
+              <span className="trainer-video-number">{item.locked ? <TrainerIcon name="lock" size={16}/> : item.videoIndex}</span><span className="trainer-video-item-copy"><strong>{item.title}</strong><small className={item.progress?.completedAt ? "is-complete" : ""}>{item.locked ? "Önceki dersi tamamlayın" : item.progress?.completedAt ? `Tamamlandı · ${pct(item.progress.coverageBps)} izlendi` : item.progress ? `${pct(item.progress.coverageBps)} izlendi` : "İzlemeye hazır"}</small></span><span className="trainer-video-item-status" aria-hidden="true">{item.locked ? <TrainerIcon name="lock" size={15}/> : item.progress?.completedAt ? "✓" : "›"}</span></button>)}</aside>
       </section>
       </>}
 

@@ -61,7 +61,7 @@ export async function readTrainerVideoProgress(client, trainerUserId, packageId,
   return rowResult(row, videoIndex);
 }
 
-export async function recordTrainerVideoProgress(client, { trainerUserId, packageId, videoIndex, durationSeconds, startSeconds, endSeconds, ended, lessonsCount, resumeOnly = false, resumePositionSeconds }) {
+export async function recordTrainerVideoProgress(client, { trainerUserId, packageId, videoIndex, durationSeconds, startSeconds, endSeconds, ended, lessonsCount, resumeOnly = false, resumePositionSeconds, mediaDurationSeconds = durationSeconds }) {
   if (!Number.isInteger(videoIndex) || videoIndex < 1 || videoIndex > lessonsCount || !Number.isFinite(durationSeconds) || durationSeconds < 1 || !Number.isFinite(startSeconds) || !Number.isFinite(endSeconds) || startSeconds < 0 || (!resumeOnly && endSeconds <= startSeconds) || endSeconds > durationSeconds + 1 || endSeconds - startSeconds > 20) throw fail("VIDEO_HEARTBEAT_INVALID", 400);
   if (videoIndex > 1) {
     const previous = await readTrainerVideoProgress(client, trainerUserId, packageId, videoIndex - 1);
@@ -78,11 +78,13 @@ export async function recordTrainerVideoProgress(client, { trainerUserId, packag
   try { previousRanges = row ? JSON.parse(row.watched_ranges_json || "[]") : []; } catch { throw fail("VIDEO_PROGRESS_CORRUPTED", 409); }
   if (!Array.isArray(previousRanges) || previousRanges.some((range) => !Array.isArray(range) || range.length !== 2 || !range.every(Number.isFinite))) throw fail("VIDEO_PROGRESS_CORRUPTED", 409);
   const duration = Number(durationSeconds);
+  const mediaDuration = Number(mediaDurationSeconds);
+  if (!Number.isFinite(mediaDuration) || mediaDuration < 1 || Math.ceil(mediaDuration) !== duration) throw fail("VIDEO_DURATION_CONFLICT", 400);
   if (row && Math.abs(Number(row.duration_seconds) - duration) > 1) {
     throw fail("VIDEO_LEGACY_DURATION_REVIEW_REQUIRED");
   }
   if (!Number.isInteger(duration)) throw fail("VIDEO_DURATION_CONFLICT", 400);
-  const position = watchedFrontier(previousRanges, duration);
+  const position = watchedFrontier(previousRanges, mediaDuration);
 
   if (resumeOnly === true) {
     const requested = Number(resumePositionSeconds);
@@ -117,13 +119,14 @@ export async function recordTrainerVideoProgress(client, { trainerUserId, packag
   if (startSeconds > position + 0.05) throw fail("VIDEO_FORWARD_SEEK_REJECTED");
   const elapsedSeconds = Math.max(0, (now - updatedAt) / 1000);
   if (endSeconds > position + elapsedSeconds + 4 || endSeconds > (now - startedAt) / 1000 + 4) throw fail("VIDEO_FORWARD_SEEK_REJECTED");
-  const ranges = mergeRanges([...previousRanges, [Math.max(0, startSeconds), Math.min(duration, endSeconds)]]);
+  const ranges = mergeRanges([...previousRanges, [Math.max(0, startSeconds), Math.min(mediaDuration, endSeconds)]].map(([a,b]) => [Math.min(mediaDuration, a), Math.min(mediaDuration, b)]));
   const watched = ranges.reduce((total, [a, b]) => total + Math.max(0, b - a), 0);
-  const coverageBps = Math.min(10000, Math.floor((watched / duration) * 10000));
+  const coverageBps = (ended === true || row?.ended_seen) && watched >= mediaDuration - 0.05 && watchedFrontier(ranges, mediaDuration) >= mediaDuration - 0.05
+    ? 10000 : Math.min(10000, Math.floor((watched / mediaDuration) * 10000));
   const resume = Math.floor(
-    Math.max(0, Math.min(duration, endSeconds))
+    Math.max(0, Math.min(mediaDuration, endSeconds))
   );
-  const endedSeen = Boolean(row?.ended_seen || (ended === true && endSeconds >= duration - 2));
+  const endedSeen = Boolean(row?.ended_seen || (ended === true && endSeconds >= mediaDuration - 0.1));
   const completedAt = row?.completed_at || (coverageBps >= 9500 ? new Date(now) : null);
   await client.query(`insert into trainer_video_progress(trainer_user_id,package_id,video_index,duration_seconds,watched_ranges_json,coverage_bps,last_position_seconds,ended_seen,completed_at)
     values($1,$2,$3,$4,$5,$6,$7,$8,$9)

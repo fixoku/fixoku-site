@@ -86,11 +86,13 @@ export default async function handler(req, res) {
     const data = await readJson(req);
     const requestedLesson = lessons.findIndex((lesson) => Number(lesson.videoIndex) === Number(data.videoIndex));
     if (requestedLesson < 0) return respond(res, 400, { error: "VIDEO_INDEX_INVALID" });
-    const trustedDuration = resolveTrustedTrainerVideoDuration(
+    const trustedMediaDuration = resolveTrustedTrainerVideoDuration(
       pkg.slug,
       lessons[requestedLesson],
-      data.durationSeconds
+      data.durationSeconds,
+      true
     );
+    const trustedDuration = Math.ceil(trustedMediaDuration);
     const tx = await pool.connect(); try { await tx.query("begin");
     try {
       const result = await recordTrainerVideoProgress(tx, {
@@ -99,6 +101,7 @@ export default async function handler(req, res) {
           videoIndex: requestedLesson + 1,
           lessonsCount: lessons.length,
           durationSeconds: trustedDuration,
+          mediaDurationSeconds: trustedMediaDuration,
           startSeconds: data.startSeconds,
           endSeconds: data.endSeconds,
           ended: data.ended === true,

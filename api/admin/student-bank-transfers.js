@@ -1,6 +1,7 @@
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { UUID_PATTERN, fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
+import { recordStudentBankFollowUp } from "../../src/server/domain/student-bank-transfer-follow-up.js";
 
 const json = (res, status, body) => {
   res.statusCode = status;
@@ -74,7 +75,7 @@ export default async function handler(req, res) {
       const orderId = String(input.orderId || "");
       if (!UUID_PATTERN.test(orderId)) return json(res, 400, { error: "ORDER_ID_INVALID" });
       const action = String(input.action || "").trim().toUpperCase();
-      if (!["APPROVE", "REJECT"].includes(action)) return json(res, 400, { error: "BANK_TRANSFER_ACTION_INVALID" });
+      if (!["APPROVE", "REJECT", "FOLLOW_UP"].includes(action)) return json(res, 400, { error: "BANK_TRANSFER_ACTION_INVALID" });
 
       const client = await pool.connect();
       try {
@@ -84,6 +85,18 @@ export default async function handler(req, res) {
         if (!row || row.catalog_scope_snapshot !== "STUDENT_COMMERCE" || row.payment_method !== "BANK_TRANSFER") { await client.query("rollback"); return json(res, 404, { error: "STUDENT_BANK_TRANSFER_NOT_FOUND" }); }
         const payment = (await client.query("select * from payment_intents where order_id=$1 for update", [orderId])).rows[0];
         if (!payment) throw Object.assign(new Error("PAYMENT_INTENT_NOT_FOUND"), { status: 409 });
+        if (action === "FOLLOW_UP") {
+          const followUp = await recordStudentBankFollowUp(
+            client,
+            {
+              order: row,
+              ownerUserId: principal.user.id,
+              input
+            }
+          );
+          await client.query("commit");
+          return json(res, 200, followUp);
+        }
         if (row.status === "PAID") {
           if (action === "REJECT") { await client.query("rollback"); return json(res, 409, { error: "BANK_TRANSFER_ALREADY_APPROVED" }); }
           const result = await fulfillSuccessfulPayment(client, { orderId, actorUserId: principal.user.id, provider: "BANK_TRANSFER", providerEventId: `student-bank-transfer:${orderId}`, manageTransaction: false });

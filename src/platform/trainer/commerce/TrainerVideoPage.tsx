@@ -9,7 +9,7 @@ import "./trainer-shared-presentations.css";
 import "./trainer-commerce.css";
 import "./trainer-video-sequential-preview.css";
 
-type Progress = { videoIndex: number; durationSeconds?: number; coverageBps?: number; lastPositionSeconds?: number; endedSeen?: boolean; completedAt?: string | null };
+type Progress = { videoIndex: number; durationSeconds?: number; coverageBps?: number; lastPositionSeconds?: number; maxWatchedSeconds?: number; endedSeen?: boolean; completedAt?: string | null };
 type Video = { videoIndex: number; title: string; locked: boolean; src: string | null; posterSrc: string | null; progress: Progress | null };
 type Payload = { package: { id: string; slug: string; title: string }; videos: Video[]; watermark: { name: string; reference: string } };
 function TrainerVideoThumbnail({ posterSrc, locked, index }: { posterSrc: string | null; locked: boolean; index: number }) {
@@ -49,9 +49,12 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   const [videoRailHeight, setVideoRailHeight] = useState<number | null>(null);
   const lastSentRef = useRef(0);
   const lastAllowedRef = useRef(0);
-  const lastHeartbeatRef = useRef(0);
-  const sendingRef = useRef(false);
-  const pendingEndedRef = useRef(false);
+  const observedRef = useRef(0);
+  const observedAtRef = useRef(0);
+  const initializedRef = useRef<HTMLVideoElement | null>(null);
+  const requestQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const completionNotifiedRef = useRef(new Set<string>());
+  const latestFlushRef = useRef<(() => void) | null>(null);
   const selectedVideo = payload?.videos[selected] || null;
   const trainerFirstName = String(payload?.watermark?.name || user.name || "Eğitmenimiz").trim().split(/\s+/u)[0];
 
@@ -78,9 +81,10 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
       mediaStallTimerRef.current = null;
     }
     lastSentRef.current = 0;
-    lastAllowedRef.current = Number(selectedVideo?.progress?.lastPositionSeconds || 0);
-    lastHeartbeatRef.current = 0;
-    if (videoRef.current) videoRef.current.currentTime = lastAllowedRef.current;
+    lastAllowedRef.current = 0;
+    observedRef.current = 0;
+    observedAtRef.current = 0;
+    initializedRef.current = null;
     return () => {
       if (mediaStallTimerRef.current !== null) {
         window.clearTimeout(mediaStallTimerRef.current);
@@ -89,102 +93,266 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     };
   }, [selected, slug]);
 
-  const sendProgress = async (ended = false) => {
-    const element = videoRef.current;
-    if (!element || !selectedVideo || !Number.isFinite(element.duration) || element.duration <= 0) return;
+  const queueProgress = (
+    element: HTMLVideoElement,
+    start: number,
+    end: number,
+    resumeOnly: boolean,
+    ended = false
+  ) => {
+    if (!payload || !selectedVideo) return;
+    if (!Number.isFinite(element.duration) || element.duration < 1) return;
 
-    if (sendingRef.current) {
-      if (ended) pendingEndedRef.current = true;
-      return;
-    }
+    const packageId = payload.package.id;
+    const videoIndex = selectedVideo.videoIndex;
+    const courseSlug = slug;
+    const identity = `${packageId}:${videoIndex}`;
+    const duration = Math.floor(element.duration);
+
+    const request = {
+      videoIndex,
+      durationSeconds: duration,
+      startSeconds: start,
+      endSeconds: end,
+      resumeOnly,
+      resumePositionSeconds: end,
+      ended
+    };
+
+    requestQueueRef.current = requestQueueRef.current
+      .catch(() => {})
+      .then(async () => {
+        try {
+          const response = await fetch(
+            `/api/trainer/videos?packageId=${encodeURIComponent(packageId)}`,
+            {
+              method: "POST",
+              credentials: "same-origin",
+              keepalive: true,
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify(request)
+            }
+          );
+
+          const body = await response.json().catch(() => ({}));
+
+          if (!response.ok || !body.progress) {
+            if (videoRef.current === element) {
+              setMessage("Izleme konumu kaydedilemedi. Lutfen yeniden deneyin.");
+              element.pause();
+
+              const readback = await fetch(
+                `/api/trainer/videos?slug=${encodeURIComponent(courseSlug)}`,
+                { credentials: "same-origin", cache: "no-store" }
+              );
+
+              if (readback.ok && videoRef.current === element) {
+                const fresh = await readback.json() as Payload;
+
+                if (videoRef.current !== element) return;
+
+                const item = fresh.videos.find(
+                  video => video.videoIndex === videoIndex
+                );
+
+                if (item && fresh.package.id === packageId) {
+                  const saved = Number(
+                    item.progress?.lastPositionSeconds || 0
+                  );
+
+                  lastAllowedRef.current = Number(
+                    item.progress?.maxWatchedSeconds || 0
+                  );
+
+                  const position = Math.min(
+                    saved, lastAllowedRef.current
+                  );
+
+                  lastSentRef.current = position;
+                  observedRef.current = position;
+                  observedAtRef.current = performance.now();
+
+                  element.currentTime = position;
+
+                  setPayload(current =>
+                    current?.package.id === packageId
+                      ? fresh : current
+                  );
+                }
+              }
+            }
+            return;
+          }
+
+          const progress = body.progress as Progress;
+
+          setPayload(current =>
+            current?.package.id === packageId ? {
+              ...current,
+              videos: current.videos.map(item =>
+                item.videoIndex === videoIndex
+                  ? {
+                      ...item,
+                      progress: { ...item.progress, ...progress }
+                    }
+                  : item
+              )
+            } : current
+          );
+
+          if (videoRef.current === element) {
+            setMessage("");
+          }
+
+          if (
+            progress.completedAt &&
+            !completionNotifiedRef.current.has(identity) &&
+            !selectedVideo.progress?.completedAt
+          ) {
+            completionNotifiedRef.current.add(identity);
+
+            const refreshed = await fetch(
+              `/api/trainer/videos?slug=${encodeURIComponent(courseSlug)}`,
+              { credentials: "same-origin", cache: "no-store" }
+            );
+
+            if (refreshed.ok) {
+              const fresh = await refreshed.json() as Payload;
+
+              setPayload(current =>
+                current?.package.id === packageId &&
+                fresh.package.id === packageId
+                  ? fresh : current
+              );
+
+              if (videoRef.current === element) {
+                setCompletionHasNext(Boolean(body.nextUnlocked));
+                setCompletionToast(true);
+                window.setTimeout(
+                  () => setCompletionToast(false), 4050
+                );
+              }
+            } else {
+              completionNotifiedRef.current.delete(identity);
+
+              if (videoRef.current === element) {
+                setMessage("Ders kaydedildi; video listesi yenilenemedi.");
+              }
+            }
+          }
+        } catch {
+          if (videoRef.current === element) {
+            element.pause();
+            setMessage("Izleme konumu kaydedilemedi. Baglantinizi kontrol edin.");
+          }
+        }
+      });
+  };
+
+  const flushObserved = (element: HTMLVideoElement, ended = false) => {
+    if (initializedRef.current !== element) return;
+    if (!Number.isFinite(element.duration)) return;
 
     const duration = Math.floor(element.duration);
-    const observed = Math.min(duration, Math.max(0, element.currentTime));
-    const start = Math.max(0, Math.min(lastSentRef.current, duration));
-    const end = Math.min(observed, start + 2);
+    const observed = Math.max(
+      0, Math.min(duration, observedRef.current)
+    );
 
-    if (end <= start + 0.05) return;
+    let cursor = Math.max(
+      0, Math.min(duration, lastSentRef.current)
+    );
 
-    const finalHeartbeat = ended && end >= duration - 0.05;
-    sendingRef.current = true;
-    let accepted = false;
+    while (observed - cursor > 0.001) {
+      const end = Math.min(observed, cursor + 2);
 
-    try {
-      const response = await fetch(`/api/trainer/videos?packageId=${encodeURIComponent(payload?.package.id || "")}`, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          videoIndex: selectedVideo.videoIndex,
-          durationSeconds: duration,
-          startSeconds: start,
-          endSeconds: end,
-          ended: finalHeartbeat,
-        }),
-      });
+      queueProgress(
+        element, cursor, end, false,
+        ended && end >= duration - 0.001
+      );
 
-      const body = await response.json().catch(() => ({}));
+      cursor = end;
+    }
 
-      if (!response.ok) {
-        setMessage(
-          body.error === "VIDEO_FORWARD_SEEK_REJECTED"
-            ? "Izleme konumu dogrulanamadi. Lutfen videoyu normal hizda oynatin."
-            : "Gecici izleme durumu guncellenemedi."
-        );
-        return;
-      }
+    lastSentRef.current = cursor;
+  };
 
-      accepted = true;
-      lastSentRef.current = Math.max(lastSentRef.current, end);
-      lastAllowedRef.current = Math.max(lastAllowedRef.current, end);
-      setMessage("");
+  const samplePlayback = (
+    element: HTMLVideoElement,
+    stopped = false
+  ) => {
+    if (initializedRef.current !== element ||
+        element.seeking ||
+        (!stopped && element.paused) ||
+        !Number.isFinite(element.currentTime) ||
+        !Number.isFinite(element.duration)) return;
 
-      if (body.progress?.completedAt && payload) {
-        setPayload((current) => current ? {
-          ...current,
-          videos: current.videos.map((item) =>
-            item.videoIndex === selectedVideo.videoIndex
-              ? { ...item, locked: false, progress: { ...item.progress, ...body.progress } }
-              : item
-          ),
-        } : current);
-      }
+    const position = Math.max(
+      0,
+      Math.min(Math.floor(element.duration), element.currentTime)
+    );
 
-      if (finalHeartbeat && body.progress?.completedAt) {
-        const refreshResponse = await fetch(`/api/trainer/videos?slug=${encodeURIComponent(slug)}`, {
-          credentials: "same-origin",
-        });
+    const now = performance.now();
+    const elapsed = Math.max(
+      0, (now - observedAtRef.current) / 1000
+    );
 
-        if (refreshResponse.ok) {
-          setPayload(await refreshResponse.json() as Payload);
-          setCompletionToast(false);
-          window.setTimeout(() => {
-            setCompletionHasNext(Boolean(body.nextUnlocked));
-            setCompletionToast(true);
-          }, 50);
-          window.setTimeout(() => setCompletionToast(false), 4050);
-        } else {
-          setMessage("Video tamamlandi; ders listesi yenilenemedi.");
-        }
-      }
-    } catch {
-      setMessage("Gecici izleme durumu guncellenemedi.");
-    } finally {
-      sendingRef.current = false;
+    const delta = position - observedRef.current;
 
-      const needsEnd =
-        pendingEndedRef.current || (ended && end < duration - 0.05);
-      pendingEndedRef.current = false;
+    if (delta >= 0 && delta <= elapsed + 0.5) {
+      observedRef.current = position;
+      lastAllowedRef.current = Math.max(
+        lastAllowedRef.current, position
+      );
+    }
 
-      const behind = element.currentTime > lastSentRef.current + 0.25;
+    observedAtRef.current = now;
+  };
 
-      if (accepted && (needsEnd || (!element.paused && behind))) {
-        window.setTimeout(() => {
-          void sendProgress(needsEnd);
-        }, 150);
-      }
+  const saveResume = (element: HTMLVideoElement) => {
+    if (initializedRef.current !== element) return;
+
+    flushObserved(element);
+
+    const position = Math.max(
+      0,
+      Math.min(
+        observedRef.current,
+        lastAllowedRef.current,
+        Math.floor(element.duration)
+      )
+    );
+
+    if (lastAllowedRef.current > 0) {
+      queueProgress(element, position, position, true);
     }
   };
+
+  useEffect(() => {
+    latestFlushRef.current = () => {
+      const element = videoRef.current;
+      if (!element) return;
+      if (!element.paused && !element.seeking) {
+        samplePlayback(element);
+      }
+      saveResume(element);
+    };
+  });
+
+  useEffect(() => {
+    const flush = () => latestFlushRef.current?.();
+
+    const visibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", visibility);
+
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", visibility);
+    };
+  }, []);
 
   const clearMediaStall = () => {
     if (mediaStallTimerRef.current !== null) {
@@ -211,18 +379,14 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   const onTimeUpdate = () => {
     const element = videoRef.current;
     if (!element) return;
-    // Normal playback advances before the network heartbeat is acknowledged.
-    // Never rewind real playback based solely on a delayed server response.
-    // Explicit forward seeks are rejected in onSeeking, and the server
-    // independently validates coverage, wall-clock pace and lesson locks.
-    if (!element.seeking && !element.paused && Number.isFinite(element.currentTime)) {
-      lastAllowedRef.current = Math.max(lastAllowedRef.current, element.currentTime);
-    }
-    if (element.currentTime - lastHeartbeatRef.current >= 2) {
-      lastHeartbeatRef.current = element.currentTime;
-      void sendProgress();
+
+    samplePlayback(element);
+
+    if (observedRef.current - lastSentRef.current >= 1) {
+      flushObserved(element);
     }
   };
+
   // FIXOKU_VIDEO_RAIL_MEASURE_V17
   useEffect(() => {
     const frame = videoFrameRef.current;
@@ -282,7 +446,10 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
           role="tab"
           aria-selected={activeTab === "curriculum"}
           className={activeTab === "curriculum" ? "is-active" : ""}
-          onClick={() => setActiveTab("curriculum")}
+          onClick={() => {
+        latestFlushRef.current?.();
+        setActiveTab("curriculum");
+      }}
         >
           <TrainerCourseTabIcon kind="powerpoint" /> Müfredat
         </button>
@@ -291,7 +458,10 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
           role="tab"
           aria-selected={activeTab === "presentations"}
           className={activeTab === "presentations" ? "is-active" : ""}
-          onClick={() => setActiveTab("presentations")}
+          onClick={() => {
+        latestFlushRef.current?.();
+        setActiveTab("presentations");
+      }}
         >
           <TrainerCourseTabIcon kind="pdf" /> Sunumlarım
         </button>
@@ -300,7 +470,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
         className={activeTab === "videos" ? "trainer-tab-description" : "trainer-tab-description is-placeholder"}
         aria-hidden={activeTab !== "videos"}
       >
-        Dersler sırayla tamamlanır. Bir sonraki dersin açılması için mevcut dersin en az %95 izlenmesi ve sonuna ulaşılması gerekir.
+        Dersler sırayla tamamlanır. Bir sonraki dersin açılması için mevcut dersin en az %95 izlenmesi gerekir.
       </p></div>{activeTab === "videos" && <>
       {message && <p className={`trainer-commerce-message${message.startsWith("Video tamamlandı") ? " is-success" : ""}`} role="status">{message}</p>}
       <section className="trainer-video-layout">
@@ -310,13 +480,33 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
               const current = event.currentTarget;
               const recovery = playbackRecoveryRef.current;
               playbackRecoveryRef.current = null;
-              const completed = Boolean(selectedVideo.progress?.completedAt);
-              const stored = completed ? 0 : Number(selectedVideo.progress?.lastPositionSeconds || 0);
+              const stored = Number(
+                selectedVideo.progress?.lastPositionSeconds || 0
+              );
+
+              const frontier = Number(
+                selectedVideo.progress?.maxWatchedSeconds ??
+                selectedVideo.progress?.lastPositionSeconds ?? 0
+              );
+
               const position = recovery ? recovery.position : stored;
-              const start = Math.max(0, Math.min(position, Math.max(0, current.duration - 0.5)));
-              lastAllowedRef.current = Math.max(lastAllowedRef.current, start);
+
+              const start = Math.max(0, Math.min(
+                position,
+                recovery ? Math.max(frontier, lastAllowedRef.current) : frontier,
+                Math.max(0, current.duration - 0.5)
+              ));
+
+              lastAllowedRef.current = Math.max(
+                recovery ? lastAllowedRef.current : 0,
+                frontier,
+                start
+              );
+
+              initializedRef.current = current;
               lastSentRef.current = start;
-              lastHeartbeatRef.current = start;
+              observedRef.current = start;
+              observedAtRef.current = performance.now();
               current.currentTime = start;
               if (recovery?.resume) {
                 void current.play().catch(() => {
@@ -325,7 +515,46 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
               } else if (recovery) {
                 setMessage("");
               }
-            }} onTimeUpdate={() => onTimeUpdate()} onSeeking={(event) => { const current = event.currentTarget; if (current.currentTime > lastAllowedRef.current + 0.15) current.currentTime = lastAllowedRef.current; }} onSeeked={(event) => { const current = event.currentTarget; if (current.currentTime <= lastAllowedRef.current + 0.15) { lastHeartbeatRef.current = current.currentTime; } }} onPlay={() => { clearMediaStall(); setIsPlaying(true); }}
+            }} onTimeUpdate={() => onTimeUpdate()}
+              onSeeking={(event) => {
+                const current = event.currentTarget;
+
+                if (initializedRef.current !== current) return;
+
+                flushObserved(current);
+
+                if (current.currentTime > lastAllowedRef.current + 0.05) {
+                  current.currentTime = lastAllowedRef.current;
+                }
+              }}
+              onSeeked={(event) => {
+                const current = event.currentTarget;
+
+                if (initializedRef.current !== current) return;
+
+                if (current.currentTime > lastAllowedRef.current + 0.05) {
+                  current.currentTime = lastAllowedRef.current;
+                  return;
+                }
+
+                const position = Math.max(
+                  0, Math.min(
+                    current.currentTime,
+                    lastAllowedRef.current
+                  )
+                );
+
+                lastSentRef.current = position;
+                observedRef.current = position;
+                observedAtRef.current = performance.now();
+
+                saveResume(current);
+              }}
+              onPlay={() => {
+                clearMediaStall();
+                observedAtRef.current = performance.now();
+                setIsPlaying(true);
+              }}
               onPlaying={() => { clearMediaStall(); setMessage(""); }}
               onWaiting={(event) => {
                 clearMediaStall();
@@ -337,7 +566,21 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
                   }
                 }, 12000);
               }}
-              onError={(event) => recoverMedia(event.currentTarget)} onPause={() => { clearMediaStall(); setIsPlaying(false); }} onEnded={() => { setIsPlaying(false); void sendProgress(true); }} /> : <div className="trainer-video-locked"><TrainerIcon name="lock" size={40}/><strong>Video kilitli</strong><span>Önceki videoyu tamamladığınızda açılır.</span></div>}
+              onError={(event) => recoverMedia(event.currentTarget)} onPause={(event) => {
+        clearMediaStall();
+        setIsPlaying(false);
+        const current = event.currentTarget;
+        if (!current.seeking) {
+          samplePlayback(current, true);
+          saveResume(current);
+        }
+      }} onEnded={(event) => {
+        setIsPlaying(false);
+        const current = event.currentTarget;
+        samplePlayback(current, true);
+        flushObserved(current, true);
+        saveResume(current);
+      }} /> : <div className="trainer-video-locked"><TrainerIcon name="lock" size={40}/><strong>Video kilitli</strong><span>Önceki videoyu tamamladığınızda açılır.</span></div>}
             {isPlaying && <div className="trainer-video-playing-status" role="status"><span className="trainer-video-playing-dot" aria-hidden="true" />Video Oynatılıyor</div>}
             {completionToast && (
               <div className="trainer-video-completion-toast" role="status">
@@ -353,7 +596,12 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
 </div>
           </div>
         </div>
-        <aside ref={videoRailRef} className="trainer-video-list" style={videoRailHeight ? ({ "--fixoku-video-rail-height": `${videoRailHeight}px` } as React.CSSProperties) : undefined} aria-label="Video dersleri"><h3>Video dersleri</h3>{cardList.length === 0 && <p role="status" style={{ padding: "12px" }}>Gerçek ders videoları henüz eklenmedi.</p>}{cardList.map((item, index) => <button key={item.videoIndex} type="button" className={`trainer-video-item ${index === selected ? "is-selected" : ""} ${item.locked ? "is-locked" : ""}`} disabled={item.locked} onClick={() => { setMessage(""); setSelected(index); }}><TrainerVideoThumbnail
+        <aside ref={videoRailRef} className="trainer-video-list" style={videoRailHeight ? ({ "--fixoku-video-rail-height": `${videoRailHeight}px` } as React.CSSProperties) : undefined} aria-label="Video dersleri"><h3>Video dersleri</h3>{cardList.length === 0 && <p role="status" style={{ padding: "12px" }}>Gerçek ders videoları henüz eklenmedi.</p>}{cardList.map((item, index) => <button key={item.videoIndex} type="button" className={`trainer-video-item ${index === selected ? "is-selected" : ""} ${item.locked ? "is-locked" : ""}`} disabled={item.locked} onClick={() => {
+        latestFlushRef.current?.();
+        setMessage("");
+        setCompletionToast(false);
+        setSelected(index);
+      }}><TrainerVideoThumbnail
                 posterSrc={item.posterSrc}
                 locked={item.locked}
                 index={item.videoIndex}

@@ -7,6 +7,7 @@ import { getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../
 import { loadRealTrainerLessons } from "./video-config.js";
 import { previewProgress, previewRecord } from "./video-preview-progress.js";
 import { readTrainerVideoProgress, recordTrainerVideoProgress } from "../../src/server/domain/trainer-completion.js";
+import { resolveTrustedTrainerVideoDuration } from "../../src/server/domain/trainer-video-duration.js";
 // Local preview state remains a compatibility yedek only when a disposable
 // schema predates trainer_video_progress. Production always uses persisted rows.
 const respond = (res, status, body) => {
@@ -85,9 +86,25 @@ export default async function handler(req, res) {
     const data = await readJson(req);
     const requestedLesson = lessons.findIndex((lesson) => Number(lesson.videoIndex) === Number(data.videoIndex));
     if (requestedLesson < 0) return respond(res, 400, { error: "VIDEO_INDEX_INVALID" });
+    const trustedDuration = resolveTrustedTrainerVideoDuration(
+      pkg.slug,
+      lessons[requestedLesson],
+      data.durationSeconds
+    );
     const tx = await pool.connect(); try { await tx.query("begin");
     try {
-      const result = await recordTrainerVideoProgress(tx, { trainerUserId: user.id, packageId: pkg.id, ...data, videoIndex: requestedLesson + 1, lessonsCount: lessons.length });
+      const result = await recordTrainerVideoProgress(tx, {
+          trainerUserId: user.id,
+          packageId: pkg.id,
+          videoIndex: requestedLesson + 1,
+          lessonsCount: lessons.length,
+          durationSeconds: trustedDuration,
+          startSeconds: data.startSeconds,
+          endSeconds: data.endSeconds,
+          ended: data.ended === true,
+          resumeOnly: data.resumeOnly === true,
+          resumePositionSeconds: data.resumePositionSeconds
+        });
       await tx.query("commit");
       return respond(res, 200, { ...result, progressScope: "PERSISTED_TRAINER_VIDEO_PROGRESS" });
     } catch (error) {
@@ -95,8 +112,11 @@ export default async function handler(req, res) {
       // Keep an older local review runner usable when its disposable schema
       // predates trainer_video_progress. This response is explicitly marked as
       // a schema yedek and cannot be returned by production.
-      if (process.env.NODE_ENV !== "production" && error?.code === "42P01") {
-        const result = previewRecord(user.id, pkg.id, data, lessons.length);
+      if (process.env.NODE_ENV !== "production" && !process.env.VERCEL && data.resumeOnly !== true && error?.code === "42P01") {
+        const result = previewRecord(user.id, pkg.id, {
+          ...data,
+          durationSeconds: trustedDuration
+        }, lessons.length);
         return respond(res, 200, { ...result, progressScope: "LOCAL_SCHEMA_FALLBACK" });
       }
       throw error;

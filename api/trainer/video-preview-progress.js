@@ -65,6 +65,6 @@ export function previewRecord(userId, packageId, input, lessonsCount) {
   row.position = Math.max(row.position, Math.min(duration, end));
   row.lastAt = now;
   if (input.ended === true && end >= duration - 2) row.endedSeen = true;
-  if (!row.completedAt && row.coverageBps >= 9500 && row.endedSeen) row.completedAt = new Date(now).toISOString();
+  if (!row.completedAt && row.coverageBps >= 9500) row.completedAt = new Date(now).toISOString();
   return { progress: previewProgress(userId, packageId, videoIndex), nextUnlocked: Boolean(row.completedAt && videoIndex < lessonsCount) };
 }

@@ -15,7 +15,7 @@ const transactionStatusLabels:Record<string,string>={PENDING:"Bekliyor",SUCCEEDE
 const money=(amount:number,currency:string)=>new Intl.NumberFormat("tr-TR",{style:"currency",currency}).format(amount/100);
 async function loadPayments(params:URLSearchParams){const response=await fetch(`/api/admin/payments?${params}`,{credentials:"same-origin",cache:"no-store"});if(!response.ok)throw new Error("Ödemeler okunamadı.");return response.json() as Promise<Response>;}
 async function loadStudentTransfers(){const response=await fetch("/api/admin/student-bank-transfers",{credentials:"same-origin",cache:"no-store"});if(!response.ok)throw new Error("Öğrenci havale kuyruğu okunamadı.");return response.json() as Promise<{transfers:StudentTransfer[]}>;}
-async function reviewStudentTransfer(input:{orderId:string;action:"APPROVE"|"REJECT"}){const response=await fetch("/api/admin/student-bank-transfers",{method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify(input)});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body.error||"Ödeme incelemesi başarısız.");return body;}
+async function reviewStudentTransfer(input:{orderId:string;action:"APPROVE"|"REJECT";receivedAmountMinor?:number;bankTransactionReference?:string;bankVerified?:boolean}){const response=await fetch("/api/admin/student-bank-transfers",{method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify(input)});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body.error||"Ödeme incelemesi başarısız.");return body;}
 
 export function AdminPaymentsPage(){
   const [search,setSearch]=useState("");
@@ -59,7 +59,40 @@ export function AdminPaymentsPage(){
       <div className="admin-section-heading"><div><span className="admin-eyebrow">OWNER ONAYI</span><h2 id="student-bank-transfer-title">Öğrenci havale / EFT kuyruğu</h2></div><span className="admin-section-meta">Onaylanmadan eğitim hakkı açılmaz</span></div>
       {transferQuery.isError&&<div className="admin-callout is-danger" role="alert"><p>Öğrenci havale kuyruğu yüklenemedi.</p><button type="button" onClick={()=>void transferQuery.refetch()}>Yenile</button></div>}
       {!transferQuery.isError&&!transferQuery.isLoading&&!transferQuery.data?.transfers?.length&&<p className="admin-empty-state">Onay bekleyen öğrenci havalesi bulunmuyor.</p>}
-      {!!transferQuery.data?.transfers?.length&&<div className="admin-table-wrap"><table><thead><tr><th>Sipariş</th><th>Öğrenci / alıcı</th><th>Paket</th><th>Tutar</th><th>Referans</th><th>İşlem</th></tr></thead><tbody>{transferQuery.data.transfers.map((row)=><tr key={row.orderId}><td><strong>#{row.orderId.slice(0,8)}</strong><small>{new Intl.DateTimeFormat("tr-TR",{dateStyle:"medium",timeStyle:"short"}).format(new Date(row.createdAt))}</small></td><td><strong>{row.buyerName}</strong><small>{row.buyerEmail} · {row.beneficiaryName}</small></td><td>{row.items.map((item)=>`${item.title} × ${item.quantity}`).join(", ")}</td><td>{money(row.totalMinor,row.currency)}</td><td><code>{row.reference}</code></td><td><div className="admin-pro-header-actions"><button type="button" className="admin-secondary-button" disabled={reviewMutation.isPending} onClick={()=>void reviewMutation.mutate({orderId:row.orderId,action:"APPROVE"})}>Onayla</button><button type="button" className="admin-text-button" disabled={reviewMutation.isPending} onClick={()=>{if(window.confirm("Bu siparis kesin olarak iptal edilsin mi?"))void reviewMutation.mutate({orderId:row.orderId,action:"REJECT"})}}>Reddet</button></div><StudentBankTransferFollowUp orderId={row.orderId} totalMinor={row.totalMinor} currency={row.currency} onQueued={()=>void transferQuery.refetch()}/></td></tr>)}</tbody></table></div>}
+      {!!transferQuery.data?.transfers?.length&&<div className="admin-table-wrap"><table><thead><tr><th>Sipariş</th><th>Öğrenci / alıcı</th><th>Paket</th><th>Tutar</th><th>Referans</th><th>İşlem</th></tr></thead><tbody>{transferQuery.data.transfers.map((row)=><tr key={row.orderId}><td><strong>#{row.orderId.slice(0,8)}</strong><small>{new Intl.DateTimeFormat("tr-TR",{dateStyle:"medium",timeStyle:"short"}).format(new Date(row.createdAt))}</small></td><td><strong>{row.buyerName}</strong><small>{row.buyerEmail} · {row.beneficiaryName}</small></td><td>{row.items.map((item)=>`${item.title} × ${item.quantity}`).join(", ")}</td><td>{money(row.totalMinor,row.currency)}</td><td><code>{row.reference}</code></td><td><div className="admin-pro-header-actions"><button type="button" className="admin-secondary-button" disabled={reviewMutation.isPending} onClick={()=>{
+  const raw=window.prompt(
+    "Bankaya gercekten ulasan tutari TL olarak giriniz (orn. 11990,00).",
+    ""
+  );
+  if(raw===null)return;
+  const normalized=raw.trim().replace(",",".");
+  if(!/^\d+(\.\d{1,2})?$/.test(normalized)){
+    window.alert("Gecerli bir tutar giriniz.");
+    return;
+  }
+  const receivedAmountMinor=Math.round(Number(normalized)*100);
+  if(!Number.isSafeInteger(receivedAmountMinor)||
+     receivedAmountMinor!==row.totalMinor){
+    window.alert("Banka tutari siparis tutariyla ayni degil. Onaylanamaz.");
+    return;
+  }
+  const reference=window.prompt(
+    "Banka islem veya dekont referansini giriniz.",
+    ""
+  );
+  if(reference===null||reference.trim().length<3||
+     reference.trim().length>160)return;
+  if(!window.confirm(
+    "Banka hesabina ulasan odemeyi kontrol ettiniz mi? Siparis onaylanacak."
+  ))return;
+  void reviewMutation.mutate({
+    orderId:row.orderId,
+    action:"APPROVE",
+    receivedAmountMinor,
+    bankTransactionReference:reference.trim(),
+    bankVerified:true
+  });
+}}>Onayla</button><button type="button" className="admin-text-button" disabled={reviewMutation.isPending} onClick={()=>{if(window.confirm("Bu siparis kesin olarak iptal edilsin mi?"))void reviewMutation.mutate({orderId:row.orderId,action:"REJECT"})}}>Reddet</button></div><StudentBankTransferFollowUp orderId={row.orderId} totalMinor={row.totalMinor} currency={row.currency} onQueued={()=>void transferQuery.refetch()}/></td></tr>)}</tbody></table></div>}
       {reviewMutation.isError&&<p className="admin-callout is-danger" role="alert">{String((reviewMutation.error as Error)?.message||"Ödeme incelemesi başarısız.")}</p>}
       {reviewMutation.isSuccess&&<p className="admin-callout" role="status">Ödeme incelemesi kaydedildi; liste yenilendi.</p>}
     </section>

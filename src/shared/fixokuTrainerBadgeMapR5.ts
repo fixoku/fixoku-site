@@ -7,7 +7,7 @@ const BADGES: readonly BadgeEntry[] = [
   {
     id: 'ilkokul-akici',
     name: 'İlkokul Uzman Hızlı Okuma Eğitmeni',
-    src: 'https://media.fixoku.com/fixoku-trainer-badges/ilkokul-akici-okuma-egitmen-rozeti.png',
+    src: '/fixoku-trainer-badges/ilkokul-akici-okuma-egitmen-rozeti.png',
     aliases: [
       'İlkokul Uzman Hızlı Okuma Eğitmeni',
       'İlkokul Hızlı Okuma Eğitmeni',
@@ -20,7 +20,7 @@ const BADGES: readonly BadgeEntry[] = [
   {
     id: 'kidemli',
     name: 'Usta Eğitmen',
-    src: 'https://media.fixoku.com/fixoku-trainer-badges/kidemli-egitmen-rozeti.png',
+    src: '/fixoku-trainer-badges/kidemli-egitmen-rozeti.png',
     aliases: [
       'Usta Eğitmen',
       'Kıdemli Eğitmen',
@@ -31,31 +31,31 @@ const BADGES: readonly BadgeEntry[] = [
   {
     id: 'lise-hizli',
     name: 'Lise Uzman Hızlı Okuma Eğitmeni',
-    src: 'https://media.fixoku.com/fixoku-trainer-badges/lise-hizli-okuma-egitmen-rozeti.png',
+    src: '/fixoku-trainer-badges/lise-hizli-okuma-egitmen-rozeti.png',
     aliases: ['Lise Uzman Hızlı Okuma Eğitmeni', 'Lise Hızlı Okuma Eğitmeni'],
   },
   {
     id: 'lise-paragraf',
     name: 'Lise Uzman Paragraf Eğitmeni',
-    src: 'https://media.fixoku.com/fixoku-trainer-badges/lise-paragraf-egitmen-rozeti.png',
+    src: '/fixoku-trainer-badges/lise-paragraf-egitmen-rozeti.png',
     aliases: ['Lise Uzman Paragraf Eğitmeni', 'Lise Paragraf Eğitmeni'],
   },
   {
     id: 'ortaokul-hizli',
     name: 'Ortaokul Uzman Hızlı Okuma Eğitmeni',
-    src: 'https://media.fixoku.com/fixoku-trainer-badges/ortaokul-hizli-okuma-egitmen-rozeti.png',
+    src: '/fixoku-trainer-badges/ortaokul-hizli-okuma-egitmen-rozeti.png',
     aliases: ['Ortaokul Uzman Hızlı Okuma Eğitmeni', 'Ortaokul Hızlı Okuma Eğitmeni'],
   },
   {
     id: 'ortaokul-paragraf',
     name: 'Ortaokul Uzman Paragraf Eğitmeni',
-    src: 'https://media.fixoku.com/fixoku-trainer-badges/ortaokul-paragraf-egitmen-rozet.png',
+    src: '/fixoku-trainer-badges/ortaokul-paragraf-egitmen-rozet.png',
     aliases: ['Ortaokul Uzman Paragraf Eğitmeni', 'Ortaokul Paragraf Eğitmeni'],
   },
   {
     id: 'yetiskin-hizli',
     name: 'Yetişkin Uzman Hızlı Okuma Eğitmeni',
-    src: 'https://media.fixoku.com/fixoku-trainer-badges/yetiskin-hizli-okuma-egitmen-rozet.png',
+    src: '/fixoku-trainer-badges/yetiskin-hizli-okuma-egitmen-rozet.png',
     aliases: ['Yetişkin Uzman Hızlı Okuma Eğitmeni', 'Yetişkin Hızlı Okuma Eğitmeni'],
   },
 ];
@@ -74,6 +74,18 @@ for (const badge of BADGES) {
   for (const alias of badge.aliases) EXACT_BADGES.set(normalized(alias), badge);
 }
 
+const CODE_TO_BADGE: Record<string,string> = {
+  PRIMARY_FAST: "ilkokul-akici",
+  MIDDLE_FAST: "ortaokul-hizli",
+  HIGH_FAST: "lise-hizli",
+  ADULT_FAST: "yetiskin-hizli",
+  MIDDLE_PARAGRAPH: "ortaokul-paragraf",
+  HIGH_PARAGRAPH: "lise-paragraf",
+  FIX_OKU_KIDEMLI_UZMAN: "kidemli"
+};
 export function badgeForQualificationTitleR5(title: string): FixokuTrainerBadgeR5 | null {
+  const code = String(title || "").trim().toUpperCase();
+  const badgeId = CODE_TO_BADGE[code];
+  if (badgeId) return BADGES.find(item => item.id === badgeId) ?? null;
   return EXACT_BADGES.get(normalized(title || '')) ?? null;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { StudentPanelShell } from "./StudentPanelShell";
 import { studentDisplayName } from "./studentDisplayName";
-import { TrainerQualificationBadgeR5 } from "../../shared/FixokuTrainerBadgeR5";
+import { FixokuProfileBadges } from "../../shared/FixokuProfileBadges";
 import { resolveProfileImage } from "../panel/profileAvatar";
 import "./student-portal.css";
 import "./student-trainer-badges-r9.css";
@@ -284,13 +284,7 @@ export function StudentPortalPage({
                     <p>{[trainer.profession, trainer.city].filter(Boolean).join(" · ") || "FIXOKU Eğitmeni"}</p>
                   </div>
                 </div>
-                {trainer.badges.length > 0 && (
-                  <div className="student-trainer-card__badges" aria-label="Eğitmenin aktif uzmanlık rozetleri">
-                    {trainer.badges.map((badge) => (
-                      <TrainerQualificationBadgeR5 key={badge.id} title={badge.label} fallback={null} size={76} zoomSize={168} />
-                    ))}
-                  </div>
-                )}
+                <FixokuProfileBadges badges={trainer.badges} />
                 <div className="student-trainer-card__details">
                   {trainer.phone && (
                     <a href={`tel:${trainer.phone}`} className="student-trainer-card__detail">

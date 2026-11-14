@@ -691,11 +691,53 @@ export function AdminTrainerCommercePage() {
 
     if (action === "REJECT" && !noteValue.trim()) return;
 
-    const response = await fetch("/api/admin/trainer-bank-transfers", {
+    let verifiedPayment = {};
+    if (action === "APPROVE") {
+      const raw = window.prompt(
+        "Bankaya ulasan gercek tutari TL olarak giriniz.",
+        ""
+      );
+      if (raw === null) return;
+      const normalized = raw.trim().replace(",",".");
+      if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
+        window.alert("Gecerli bir tutar giriniz.");
+        return;
+      }
+
+      const receivedAmountMinor =
+        Math.round(Number(normalized)*100);
+
+      if (!Number.isSafeInteger(receivedAmountMinor) ||
+          receivedAmountMinor !== Number(purchase.totalMinor)) {
+        window.alert("Odeme tutari siparisle ayni degil.");
+        return;
+      }
+
+      const reference = window.prompt(
+        "Banka islem veya dekont referansi:",
+        ""
+      );
+
+      if (reference === null ||
+          reference.trim().length < 3 ||
+          reference.trim().length > 160) return;
+
+      if (!window.confirm(
+        "Banka hesabina ulasan odemeyi kontrol ettiniz mi?"
+      )) return;
+
+      verifiedPayment = {
+        receivedAmountMinor,
+        bankTransactionReference: reference.trim(),
+        bankVerified: true
+      };
+    }
+
+const response = await fetch("/api/admin/trainer-bank-transfers", {
       method: "POST",
       credentials: "same-origin",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify({ ...verifiedPayment,
         orderId: purchase.id,
         action,
         note: noteValue,

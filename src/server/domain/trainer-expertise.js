@@ -1,3 +1,5 @@
+import { loadCurrentCurriculumIdentity } from "./trainer-curriculum-progress.js";
+
 // Trainer education packages map to the existing R6 qualifications, but package
 // access alone never grants teaching authority. The mapping is used by the
 // explicit Owner authority path and by a future verified completion workflow.
@@ -133,6 +135,11 @@ export function effectiveTrainerQualificationPredicate(alias = "g") {
           select 1 from trainer_curriculum_progress cp
           where cp.trainer_user_id=${alias}.trainer_user_id
             and cp.package_id=${alias}.source_package_id
+            and (
+              split_part(${alias}.source_ref, ':', 4) = ''
+              or cp.manifest_sha256 =
+                split_part(${alias}.source_ref, ':', 4)
+            )
             and cp.completed_at is not null and cp.completed_items=cp.item_count
         )
         and exists (
@@ -142,6 +149,7 @@ export function effectiveTrainerQualificationPredicate(alias = "g") {
             and vp.package_id=${alias}.source_package_id
             and vp.video_index between 1001 and 1000 + split_part(${alias}.source_ref, ':', 3)::integer
             and vp.completed_at is not null
+            and vp.coverage_bps >= 9500
           group by vp.trainer_user_id,vp.package_id
           having count(distinct vp.video_index) >= split_part(${alias}.source_ref, ':', 3)::integer
         )
@@ -159,10 +167,49 @@ export function effectiveTrainerQualificationPredicate(alias = "g") {
 /** Grant completion evidence without coupling payment or entitlement to expertise. */
 export async function grantTrainerPackageCompletionExpertise(client, { trainerUserId, packageId, packageVersionId, lessonsCount }) {
   if (!Number.isInteger(lessonsCount) || lessonsCount < 1 || lessonsCount > 100) throw fail("TRAINER_COMPLETION_LESSONS_INVALID");
-  const ready = (await client.query(`select exists(select 1 from trainer_curriculum_progress where trainer_user_id=$1 and package_id=$2 and completed_at is not null and completed_items=item_count) and (select count(distinct video_index) from trainer_video_progress where trainer_user_id=$1 and package_id=$2 and video_index between 1001 and 1000+$3::int and completed_at is not null and coverage_bps>=9500)=$3::int as ready`,[trainerUserId,packageId,lessonsCount])).rows[0]?.ready;
+  if (!packageVersionId) return {created:0,definitions:[]};
+
+  const pkg = (await client.query(
+    "select slug from packages where id=$1 and audience='TRAINER' and status='PUBLISHED'",
+    [packageId]
+  )).rows[0];
+
+  if (!pkg?.slug)
+    return {created:0,definitions:[]};
+
+  const identity = await loadCurrentCurriculumIdentity(pkg.slug);
+
+  const ready = (await client.query(`
+    select exists(
+      select 1
+      from trainer_curriculum_progress
+      where trainer_user_id=$1
+        and package_id=$2
+        and manifest_sha256=$4
+        and item_count=$5
+        and completed_at is not null
+        and completed_items=item_count
+    )
+    and (
+      select count(distinct video_index)
+      from trainer_video_progress
+      where trainer_user_id=$1
+        and package_id=$2
+        and video_index between 1001 and 1000+$3::int
+        and completed_at is not null
+        and coverage_bps>=9500
+    )=$3::int as ready`,
+    [
+      trainerUserId,
+      packageId,
+      lessonsCount,
+      identity.manifestSha256,
+      identity.itemCount
+    ]
+  )).rows[0]?.ready;
   if (!ready || !packageVersionId) return {created:0,definitions:[]};
   const definitions = await mapTrainerPackageVersion(client, { packageId, packageVersionId });
-  const sourceRef = `COMPLETION:${packageId}:${lessonsCount}`;
+  const sourceRef = `COMPLETION:${packageId}:${lessonsCount}:${identity.manifestSha256}`;
   let created = 0;
   for (const definition of definitions) {
     const result = await client.query(`

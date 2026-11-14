@@ -118,8 +118,49 @@ export async function recordTrainerVideoProgress(client, { trainerUserId, packag
   const startedAt = row ? new Date(row.created_at).getTime() : now - 2500;
   const updatedAt = row ? new Date(row.updated_at).getTime() : now - 2500;
   if (startSeconds > position + 0.05) throw fail("VIDEO_FORWARD_SEEK_REJECTED");
-  const elapsedSeconds = Math.max(0, (now - updatedAt) / 1000);
-  if (endSeconds > position + elapsedSeconds + 4 || endSeconds > (now - startedAt) / 1000 + 4) throw fail("VIDEO_FORWARD_SEEK_REJECTED");
+  const elapsedSeconds = Math.max(
+    0,
+    (now - updatedAt) / 1000
+  );
+
+  const newCoverage = Math.max(
+    0,
+    Math.min(mediaDuration,endSeconds) - position
+  );
+
+  // Already watched portions may be replayed without
+  // creating additional completion credit.
+  if (newCoverage > 0) {
+    if (!Number.isFinite(updatedAt) ||
+        !Number.isFinite(startedAt)) {
+      throw fail("VIDEO_PROGRESS_CORRUPTED");
+    }
+
+    const totalElapsedSeconds = Math.max(
+      0,
+      (now - startedAt) / 1000
+    );
+
+    // Retain a small per-request tolerance for network
+    // timing while limiting immediate progress bursts.
+    const intervalBudget = Math.min(
+      20,
+      elapsedSeconds + 4
+    );
+
+    if (
+      newCoverage > intervalBudget + 0.05 ||
+      Math.min(mediaDuration,endSeconds) >
+        totalElapsedSeconds + 4
+    ) {
+      throw fail("VIDEO_FORWARD_SEEK_REJECTED");
+    }
+
+    if (row && elapsedSeconds < 1 &&
+        newCoverage > elapsedSeconds + 0.25) {
+      throw fail("VIDEO_PROGRESS_TOO_FAST",429);
+    }
+  }
   const ranges = mergeRanges([...previousRanges, [Math.max(0, startSeconds), Math.min(mediaDuration, endSeconds)]].map(([a,b]) => [Math.min(mediaDuration, a), Math.min(mediaDuration, b)]));
   const watched = ranges.reduce((total, [a, b]) => total + Math.max(0, b - a), 0);
   const coverageBps = (ended === true || row?.ended_seen) && watched >= mediaDuration - 0.05 && watchedFrontier(ranges, mediaDuration) >= mediaDuration - 0.05

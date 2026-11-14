@@ -1,3 +1,4 @@
+import { assertUniqueBankReference, normalizeBankReference } from "../../src/server/domain/bank-reference-guard.js";
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { UUID_PATTERN, fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
@@ -107,10 +108,41 @@ export default async function handler(req, res) {
         if (!["CREATED", "PENDING", "AUTHORIZED"].includes(payment.status)) throw Object.assign(new Error("PAYMENT_INTENT_NOT_REVIEWABLE"), { status: 409 });
         if (Number(payment.amount_minor) !== Number(row.total_minor) || payment.currency !== row.currency) throw Object.assign(new Error("PAYMENT_INTENT_MISMATCH"), { status: 409 });
         if (action === "APPROVE") {
+          const receivedAmountMinor = input.receivedAmountMinor;
+          const bankTransactionReference = normalizeBankReference(input.bankTransactionReference);
+
+          if (!Number.isSafeInteger(receivedAmountMinor) ||
+              receivedAmountMinor <= 0) {
+            throw Object.assign(
+              new Error("BANK_TRANSFER_RECEIVED_AMOUNT_REQUIRED"),
+              {status:400}
+            );
+          }
+
+          if (receivedAmountMinor !== Number(row.total_minor)) {
+            throw Object.assign(
+              new Error("BANK_TRANSFER_AMOUNT_MISMATCH"),
+              {status:409}
+            );
+          }
+
+          if (input.bankVerified !== true ||
+              bankTransactionReference.length < 3 ||
+              bankTransactionReference.length > 160) {
+            throw Object.assign(
+              new Error("BANK_TRANSFER_VERIFICATION_REQUIRED"),
+              {status:400}
+            );
+          }
+          await assertUniqueBankReference(client,{
+            orderId,
+            reference:bankTransactionReference
+          });
+
           const items = (await client.query(`select oi.package_id,oi.package_version_id,pv.package_id as version_package_id,p.audience,oi.currency from order_items oi join package_versions pv on pv.id=oi.package_version_id join packages p on p.id=oi.package_id where oi.order_id=$1`, [orderId])).rows;
           if (!items.length || items.some((item) => item.package_id !== item.version_package_id || item.audience !== "STUDENT" || item.currency !== row.currency)) throw Object.assign(new Error("ORDER_PACKAGE_MISMATCH"), { status: 409 });
-          const result = await fulfillSuccessfulPayment(client, { orderId, actorUserId: principal.user.id, provider: "BANK_TRANSFER", providerEventId: `student-bank-transfer:${orderId}`, amountMinor: Number(row.total_minor), currency: row.currency, manageTransaction: false });
-          if (!result.replay) await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'student.commerce.bank_transfer.review.approved','order',$2,'SUCCESS',gen_random_uuid(),$3)", [principal.user.id, orderId, JSON.stringify({ reference: bankReference(orderId), paymentMethod: "BANK_TRANSFER" })]);
+          const result = await fulfillSuccessfulPayment(client, { orderId, actorUserId: principal.user.id, provider: "BANK_TRANSFER", providerEventId: `student-bank-transfer:${orderId}`, amountMinor: receivedAmountMinor, currency: row.currency, manageTransaction: false });
+          if (!result.replay) await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'student.commerce.bank_transfer.review.approved','order',$2,'SUCCESS',gen_random_uuid(),$3)", [principal.user.id, orderId, JSON.stringify({ reference: bankReference(orderId), paymentMethod: "BANK_TRANSFER", receivedAmountMinor, bankTransactionReference, bankVerified: true })]);
           await client.query("commit");
           return json(res, 200, { ...result, status: "APPROVED", duplicateApproval: Boolean(result.replay), entitlementActivated: true });
         }

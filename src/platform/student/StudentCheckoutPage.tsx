@@ -42,6 +42,22 @@ type Cart = {
   requiresShipping: boolean;
 };
 
+type SavedOrderSummary = {
+  id: string;
+  status: string;
+  paymentMethod: PaymentMethod;
+  currency: string;
+  subtotalMinor: number;
+  shippingMinor: number;
+  totalMinor: number;
+  requiresShipping: boolean;
+  items: Array<{
+    title: string;
+    totalMinor: number;
+    quantity: number;
+    currency: string;
+  }>;
+};
 type StudentProfile = {
   firstName?: string;
   lastName?: string;
@@ -92,6 +108,9 @@ export function StudentCheckoutPage({
 
   const [orderId, setOrderId] =
     useState("");
+
+  const [savedOrder,setSavedOrder] =
+    useState<SavedOrderSummary|null>(null);
 
   const [legalAcceptance, setLegalAcceptance] = useState({ preInformation: false, distanceSales: false, privacy: false, marketing: false, commencement: false });
   const legalReady = legalAcceptance.preInformation && legalAcceptance.distanceSales && legalAcceptance.privacy;
@@ -306,6 +325,25 @@ export function StudentCheckoutPage({
     const nextOrderId =
       body.order?.id || "";
 
+    const summary=body.orderSummary as SavedOrderSummary;
+
+    if (
+      !nextOrderId ||
+      !summary ||
+      summary.id!==nextOrderId ||
+      !Array.isArray(summary.items) ||
+      !summary.items.length ||
+      !Number.isSafeInteger(summary.totalMinor) ||
+      summary.totalMinor<0 ||
+      !["PAYTR","BANK_TRANSFER"].includes(summary.paymentMethod)
+    ) {
+      setMessage(
+        "Sipari\u015f bilgileri do\u011frulanamad\u0131. \u00d6deme yapmadan yeniden deneyin."
+      );
+      return;
+    }
+
+    setSavedOrder(summary);
     setOrderId(nextOrderId);
 
     window.dispatchEvent(
@@ -418,7 +456,7 @@ export function StudentCheckoutPage({
               ← Sepete dön
             </Link>
 
-            <h2>Ödemeye Geçin</h2>
+            <h2>{orderId ? "Sipari\u015f Sonucu" : "\u00d6demeye Ge\u00e7in"}</h2>
 
             <p>
               Teslimat, fatura ve ödeme
@@ -435,9 +473,9 @@ export function StudentCheckoutPage({
             </p>
           )}
 
-          {orderId &&
-            paymentMethod ===
-              "PAYTR" && (
+          {orderId && savedOrder &&
+            savedOrder.paymentMethod ===
+              "PAYTR" && ["PENDING_PAYMENT","PAYMENT_REVIEW"].includes(savedOrder.status) && (
               <section className="trainer-checkout-step">
                 <h3>
                   Güvenli Kart Ödemesi
@@ -447,18 +485,18 @@ export function StudentCheckoutPage({
                   orderId={orderId}
                   summary={{
                     title:
-                      cart.items
+                      savedOrder.items
                         .map(
                           (item) =>
                             item.title,
                         )
                         .join(", "),
                     price: money(
-                      cart.totalMinor,
-                      cart.currency,
+                      savedOrder.totalMinor,
+                      savedOrder.currency,
                     ),
                     delivery:
-                      cart.requiresShipping
+                      savedOrder.requiresShipping
                         ? "Kargo"
                         : "Dijital / hizmet",
                   }}
@@ -469,36 +507,129 @@ export function StudentCheckoutPage({
               </section>
             )}
 
-          {orderId &&
-            paymentMethod ===
-              "BANK_TRANSFER" && (
-              <section className="trainer-checkout-step">
-                <BankTransferPayment
-                  reference={
-                    bankReference
-                  }
-                />
-              </section>
-            )}
 
-          {orderId && (
-            <section className="trainer-checkout-step" style={{padding:24,marginBottom:24}}>
-              <h2 style={{color:"#15803d"}}>{"Sipari\u015finiz al\u0131nd\u0131!"}</h2>
-              <p>{"Sipari\u015finiz ba\u015far\u0131yla olu\u015fturuldu."}</p>
-              <hr />
-              <p><strong>{"Sipari\u015f numaras\u0131: "}</strong>{orderId}</p>
-              <p><strong>{"Toplam tutar: "}</strong>{money(cart.totalMinor,cart.currency)}</p>
-              <p><strong>{"\u00d6deme durumu: "}</strong>{"Onay bekliyor"}</p>
-              {cart.requiresShipping && (
-                <div>
-                  <h3>Kargo ve teslimat</h3>
-                  <p>{"\u00d6deme onayland\u0131ktan sonra fiziksel \u00fcr\u00fcnleriniz haz\u0131rlanacakt\u0131r."}</p>
-                  <p>{"Kargo takip numaran\u0131z g\u00f6nderi olu\u015fturuldu\u011funda yay\u0131nlanacakt\u0131r."}</p>
-                  <Link className="trainer-commerce-primary" to="/panel/ogrenci/kargolar">{"Kargolar\u0131m"}</Link>
-                </div>
-              )}
-              <p><Link to="/panel/ogrenci">{"\u00d6\u011frenci paneline d\u00f6n"}</Link></p>
-            </section>
+
+          {orderId && savedOrder && (
+            <section
+  className="fixoku-order-success-r385"
+  aria-labelledby="fixoku-order-success-title"
+>
+  <header className="fixoku-order-success-head-r385">
+    <div className="fixoku-order-success-check-r385"
+         aria-hidden="true">
+      &#10003;
+    </div>
+
+    <h2 id="fixoku-order-success-title">
+      {"Sipari\u015finiz ba\u015far\u0131yla al\u0131nd\u0131!"}
+    </h2>
+
+    <p>{"Fixoku'yu tercih etti\u011finiz i\u00e7in te\u015fekk\u00fcr ederiz."}</p>
+
+    <span className="fixoku-order-success-status-r385">
+      {savedOrder.status === "PAID"
+        ? "\u00d6deme tamamland\u0131"
+        : ["CANCELLED","REJECTED","REFUNDED"].includes(savedOrder.status)
+          ? "Sipari\u015f i\u015flemi kapat\u0131ld\u0131"
+          : savedOrder.paymentMethod === "BANK_TRANSFER"
+            ? "Havale / EFT onay\u0131 bekleniyor"
+            : "\u00d6deme bekleniyor"}
+    </span>
+  </header>
+
+  <div className="fixoku-order-success-summary-r385">
+    <div>
+      <small>{"Sipari\u015f referans\u0131"}</small>
+      <strong>{bankReference || orderId}</strong>
+    </div>
+
+    <div>
+      <small>{"\u00d6denecek toplam tutar"}</small>
+      <strong className="fixoku-order-success-price-r385">
+        {money(savedOrder.totalMinor,savedOrder.currency)}
+      </strong>
+    </div>
+
+    <div className="fixoku-order-success-packages-r385">
+      <small>{"Sat\u0131n al\u0131nan paketler"}</small>
+      <strong>
+        {savedOrder.items.map(item=>item.title).join(", ")}
+      </strong>
+    </div>
+  </div>
+
+  {["PENDING_PAYMENT","PAYMENT_REVIEW"].includes(savedOrder.status) && <div className="fixoku-order-success-timeline-r385">
+    <h3>{"Sipari\u015finizin durumu"}</h3>
+
+    <ol>
+      <li className="is-done">
+        <span>&#10003;</span>
+        <div>
+          <strong>{"Sipari\u015f olu\u015fturuldu"}</strong>
+          <small>{"Sipari\u015finiz kay\u0131t alt\u0131na al\u0131nd\u0131."}</small>
+        </div>
+      </li>
+
+      <li className="is-current">
+        <span>2</span>
+        <div>
+          <strong>{"\u00d6deme onay\u0131 bekleniyor"}</strong>
+          <small>{"\u00d6deme do\u011frulanmas\u0131 gerekmektedir."}</small>
+        </div>
+      </li>
+
+      <li>
+        <span>3</span>
+        <div>
+          <strong>{"E\u011fitim eri\u015fiminin a\u00e7\u0131lmas\u0131"}</strong>
+        </div>
+      </li>
+
+      {savedOrder.requiresShipping && (
+        <>
+          <li>
+            <span>4</span>
+            <div>
+              <strong>{"Fiziksel \u00fcr\u00fcnlerin haz\u0131rlanmas\u0131"}</strong>
+            </div>
+          </li>
+          <li>
+            <span>5</span>
+            <div>
+              <strong>{"Kargoya teslim edilmesi"}</strong>
+            </div>
+          </li>
+          <li>
+            <span>6</span>
+            <div>
+              <strong>{"Teslim edilmesi"}</strong>
+            </div>
+          </li>
+        </>
+      )}
+    </ol>
+  </div>}
+
+  {savedOrder.paymentMethod === "BANK_TRANSFER" && ["PENDING_PAYMENT","PAYMENT_REVIEW"].includes(savedOrder.status) && (
+    <BankTransferPayment reference={bankReference} />
+  )}
+
+  <div className="fixoku-order-success-actions-r385">
+    <Link to={studentProfileId
+      ? `/panel/ogrenci?studentProfileId=${encodeURIComponent(studentProfileId)}`
+      : "/panel/ogrenci"}>
+      {"\u00d6\u011frenci paneline d\u00f6n"}
+    </Link>
+
+    {savedOrder.requiresShipping && (
+      <Link to={studentProfileId
+        ? `/panel/ogrenci/kargolar?studentProfileId=${encodeURIComponent(studentProfileId)}`
+        : "/panel/ogrenci/kargolar"}>
+        {"Kargolar\u0131m"}
+      </Link>
+    )}
+  </div>
+</section>
           )}
 
           {!orderId && <form

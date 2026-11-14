@@ -283,7 +283,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     );
 
     while (observed - cursor > 0.001) {
-      const end = Math.min(observed, cursor + 4);
+      const end = Math.min(observed, cursor + 12);
 
       queueProgress(
         element, cursor, end, false,
@@ -398,7 +398,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
 
     samplePlayback(element);
 
-    if (observedRef.current - lastSentRef.current >= 4) {
+    if (observedRef.current - lastSentRef.current >= 12) {
       flushObserved(element);
     }
   };

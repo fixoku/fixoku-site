@@ -18885,3 +18885,135 @@ main.fx40-catalog.commerce-package-page .r60c4-content-row {
     grid-template-columns: 36px minmax(0,1fr) 68px !important;
   }
 }
+
+/* FIXOKU_R385J_OWNER_BANK_APPROVAL */
+.fixoku-owner-bank-r385{
+  margin:20px 0;
+  padding:26px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  color:#172033;
+  border-radius:16px;
+  box-shadow:0 5px 22px rgba(15,23,42,.06);
+}
+.fixoku-owner-bank-r385 header{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding-bottom:18px;
+  border-bottom:1px solid #e2e8f0;
+}
+.fixoku-owner-bank-r385 h3{
+  margin:0;
+  font-size:22px;
+}
+.fixoku-owner-bank-status-r385{
+  border-radius:20px;
+  background:#fff7ed;
+  color:#9a3412;
+  padding:7px 13px;
+  font-weight:700;
+}
+.fixoku-owner-bank-summary-r385,
+.fixoku-owner-bank-fields-r385{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+  margin:20px 0;
+}
+.fixoku-owner-bank-summary-r385>div{
+  border:1px solid #e2e8f0;
+  padding:14px;
+  border-radius:10px;
+}
+.fixoku-owner-bank-summary-r385 small,
+.fixoku-owner-bank-fields-r385 label>span{
+  display:block;
+  margin-bottom:8px;
+  color:#64748b;
+}
+.fixoku-owner-bank-summary-r385 strong{
+  overflow-wrap:anywhere;
+}
+.fixoku-owner-bank-price-r385{
+  color:#ea580c;
+  font-size:23px;
+}
+.fixoku-owner-bank-fields-r385 input{
+  display:block;
+  min-height:46px;
+  width:100%;
+  box-sizing:border-box;
+  padding:10px 12px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  font-size:16px;
+  color:#172033;
+  background:#fff;
+}
+.fixoku-owner-bank-fields-r385 input:focus{
+  outline:2px solid #fdba74;
+  outline-offset:1px;
+}
+.fixoku-owner-bank-difference-r385{
+  display:flex;
+  justify-content:space-between;
+  padding:14px 0;
+  border-top:1px solid #e2e8f0;
+  border-bottom:1px solid #e2e8f0;
+}
+.fixoku-owner-bank-check-r385{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:18px 0;
+  cursor:pointer;
+}
+.fixoku-owner-bank-check-r385 input{
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+  accent-color:#15803d;
+}
+.fixoku-owner-bank-approve-r385{
+  display:block;
+  width:100%;
+  min-height:49px;
+  padding:12px;
+  border:0;
+  border-radius:9px;
+  background:#15803d;
+  color:white;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+}
+.fixoku-owner-bank-approve-r385:disabled{
+  background:#e2e8f0;
+  color:#64748b;
+  cursor:not-allowed;
+}
+.fixoku-owner-bank-error-r385{
+  padding:12px;
+  color:#b91c1c;
+  background:#fef2f2;
+  border-radius:8px;
+}
+.fixoku-owner-bank-success-r385{
+  padding:12px;
+  color:#15803d;
+  background:#f0fdf4;
+  border-radius:8px;
+}
+@media(max-width:640px){
+  .fixoku-owner-bank-r385{
+    padding:16px;
+  }
+  .fixoku-owner-bank-summary-r385,
+  .fixoku-owner-bank-fields-r385{
+    grid-template-columns:1fr;
+  }
+}
+/* FIXOKU_R385J_OWNER_BANK_APPROVAL_END */

@@ -268,10 +268,45 @@ export function TrainerCurriculumTab({
     savingRef.current = true;
     setSaveError(false);
     try {
-      const response = await fetch(`/api/trainer/curriculum?packageId=${encodeURIComponent(packageId)}`, {
-        method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({itemIndex:current.index,manifestSha256:payload.manifestSha256})
+      const endpoint =
+        `/api/trainer/curriculum?packageId=${encodeURIComponent(packageId)}`;
+
+      const requestBody = JSON.stringify({
+        itemIndex:current.index,
+        manifestSha256:payload.manifestSha256
       });
+
+      const sendProgress = () => fetch(endpoint,{
+        method:"POST",
+        credentials:"same-origin",
+        headers:{"Content-Type":"application/json"},
+        body:requestBody,
+        cache:"no-store"
+      });
+
+      let response = await sendProgress();
+
+      for (
+        let attempt=0;
+        response.status===429 && attempt<2;
+        attempt++
+      ) {
+        const errorBody = await response.json()
+          .catch(()=>({}));
+
+        if(
+          errorBody.error !== "CURRICULUM_PROGRESS_TOO_FAST"
+        ) {
+          throw new Error("SAVE_FAILED");
+        }
+
+        await new Promise<void>(resolve=>
+          window.setTimeout(resolve,650)
+        );
+
+        response=await sendProgress();
+      }
+
       if (!response.ok) throw new Error("SAVE_FAILED");
       const body = await response.json();
       const count = Number(body.progress.completedItems);

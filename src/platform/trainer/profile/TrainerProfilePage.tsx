@@ -3,7 +3,7 @@ import { TrainerIcon as PanelIcon } from "../components/TrainerIcon";
 import { PanelShell } from "../../panel/layout/PanelShell";
 import { TURKEY_LOCATIONS, getTurkeyDistricts } from "../../../data/turkeyLocations.js";
 import { resolveProfileImage } from "../../panel/profileAvatar";
-import { TrainerQualificationBadgeR5 } from "../../../shared/FixokuTrainerBadgeR5";
+import { FixokuProfileBadges } from "../../../shared/FixokuProfileBadges";
 import "./trainer-profile.css";
 import "./trainer-badges-r9.css";
 
@@ -754,22 +754,14 @@ export function TrainerProfilePage({
 
               <span className="trainer-role-pill">Fixoku Eğitmeni</span>
 
-              <div className="trainer-specialty-badges" aria-label="Uzmanlık rozetleri">
-                {badges.map((badge) => (
-                  <div className="trainer-specialty-badge" key={badge.id} title={badge.label} aria-label={badge.label}>
-                    <TrainerQualificationBadgeR5 title={badge.label} fallback={null} size={76} />
-                    <span>{badge.label}</span>
-                  </div>
-                ))}
+              <FixokuProfileBadges badges={badges} />
+              {!badges.length && (
+                <small className="trainer-specialty-empty">
+                  Hen{"\u00FC"}z uzmanl{"\u0131"}k rozeti bulunmuyor.
+                </small>
+              )}
 
-                {!badges.length && (
-                  <small className="trainer-specialty-empty">
-                    Henüz uzmanlık rozeti bulunmuyor.
-                  </small>
-                )}
-              </div>
-
-              {photoDataUrl && (
+{photoDataUrl && (
                 <button type="button" className="profile-button" disabled={photoSaving} onClick={() => void savePhoto()}>
                   <PanelIcon name="save" size={20} />{photoSaving ? "Fotoğraf kaydediliyor..." : "Fotoğrafı Kaydet"}
                 </button>

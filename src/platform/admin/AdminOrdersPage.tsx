@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import "./admin-panel.css";
+import { OrderBankApprovalR385 } from "./OrderBankApprovalR385";
 
 type Period = "DAILY" | "WEEKLY" | "MONTHLY";
 type SortKey = "createdAt" | "totalMinor" | "status";
@@ -355,6 +356,7 @@ export function AdminOrdersPage() {
   };
 
   const selectedRangeLabel = rangeLabel(range.from, range.to, allTime);
+  const approvalOrder = orders.find(row => row.id === expanded);
 
   return (
     <main className="platform-foundation-panel admin-panel admin-orders-v6">
@@ -491,7 +493,15 @@ export function AdminOrdersPage() {
         </div>
       </section>
 
-      <section className="orders-v6-content">
+      {approvalOrder && (
+  <OrderBankApprovalR385
+    key={approvalOrder.id}
+    order={approvalOrder}
+    onApproved={()=>{void query.refetch();}}
+  />
+)}
+
+<section className="orders-v6-content">
         <div className="orders-v6-left">
           <section className="orders-v6-filtercard">
             <div className="orders-v6-filter-top">

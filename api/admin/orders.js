@@ -142,7 +142,7 @@ async function readOverview(pool, range) {
       ) else 0 end),0)::int as units
     from orders o
     where o.status in ('PAID','PARTIALLY_REFUNDED','REFUNDED')
-      and o.created_at >= $1::date and o.created_at < ($2::date + interval '1 day')
+      and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
       and coalesce(o.idempotency_key,'') not ilike 'demo-%'
       and coalesce(o.idempotency_key,'') not ilike 'test-%'
       and not exists (
@@ -163,7 +163,7 @@ async function readOverview(pool, range) {
       ) else 0 end),0)::int as units
     from trainer_package_orders o
     where o.status in ('PAID','REFUNDED')
-      and o.created_at >= $1::date and o.created_at < ($2::date + interval '1 day')
+      and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
       and coalesce(o.idempotency_key,'') not ilike 'demo-%'
       and coalesce(o.idempotency_key,'') not ilike 'test-%'
       and not exists (
@@ -242,7 +242,7 @@ async function readOverview(pool, range) {
         ),0))::bigint as "netMinor"
       from orders o
       where o.status in ('PAID','PARTIALLY_REFUNDED','REFUNDED')
-        and o.created_at >= $1::date and o.created_at < ($2::date + interval '1 day')
+        and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
         and not exists (
         select 1 from order_items oi_demo
         where oi_demo.order_id=o.id
@@ -258,7 +258,7 @@ async function readOverview(pool, range) {
         (case when o.status='PAID' then o.total_minor else 0 end)::bigint as "netMinor"
       from trainer_package_orders o
       where o.status in ('PAID','REFUNDED')
-        and o.created_at >= $1::date and o.created_at < ($2::date + interval '1 day')
+        and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
         and not exists (
         select 1 from trainer_package_order_items i_demo
         where i_demo.order_id=o.id
@@ -288,7 +288,7 @@ async function readOverview(pool, range) {
       join orders o on o.id=oi.order_id
       join packages p on p.id=oi.package_id
       where o.status in ('PAID','PARTIALLY_REFUNDED','REFUNDED')
-        and o.created_at >= $1::date and o.created_at < ($2::date + interval '1 day')
+        and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
         and coalesce(oi.title_snapshot,'') not ilike 'demo-%'
         and coalesce(oi.title_snapshot,'') not ilike 'test-%'
         and coalesce(oi.title_snapshot,'') not ilike 'qa-%'
@@ -302,7 +302,7 @@ async function readOverview(pool, range) {
       from trainer_package_order_items i
       join trainer_package_orders o on o.id=i.order_id
       where o.status='PAID'
-        and o.created_at >= $1::date and o.created_at < ($2::date + interval '1 day')
+        and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
         and coalesce(i.title_snapshot,'') not ilike 'demo-%'
         and coalesce(i.title_snapshot,'') not ilike 'test-%'
         and coalesce(i.title_snapshot,'') not ilike 'qa-%'
@@ -516,8 +516,8 @@ const combinedSortColumns = Object.freeze({ createdAt: "c.created_at", totalMino
 function buildOrdersDashboardWhere(input, from, to, includeStatus = true, includeSearch = true) {
   const values = [from, to];
   const conditions = [
-    `c.created_at >= $1::date`,
-    `c.created_at < ($2::date + interval '1 day')`,
+    `c.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul')`,
+    `c.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')`,
   ];
   if (input.scope !== "ALL") {
     values.push(input.scope);
@@ -584,8 +584,8 @@ async function readOrdersDashboard(pool, input) {
     with combined as (${combinedOrdersSql})
     select
       count(*) filter (
-        where c.created_at >= (current_date at time zone 'Europe/Istanbul')
-          and c.created_at < ((current_date + interval '1 day') at time zone 'Europe/Istanbul')
+        where c.created_at >= (((now() at time zone 'Europe/Istanbul')::date)::timestamp at time zone 'Europe/Istanbul')
+          and c.created_at < (((now() at time zone 'Europe/Istanbul')::date + interval '1 day') at time zone 'Europe/Istanbul')
       )::int as "todayOrders",
       count(*) filter (
         where c.payment_method='BANK_TRANSFER'

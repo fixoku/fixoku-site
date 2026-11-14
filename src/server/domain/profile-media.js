@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
-import { createSignedReadUrl, getDigitalStorageConfig, resolvePrivateStoragePath } from "./digital-delivery.js";
+import { createSignedUploadUrl, createSignedReadUrl, getDigitalStorageConfig, resolvePrivateStoragePath } from "./digital-delivery.js";
 
 const MIME_EXTENSIONS = Object.freeze({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" });
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -37,10 +37,22 @@ export function parsePhotoDataUrl(value) {
 }
 
 export async function saveProfilePhoto(config, ownerId, dataUrl) {
-  if (!config?.enabled || config.provider !== "LOCAL") throw new Error("PROFILE_MEDIA_NOT_CONFIGURED");
+  if (!config?.enabled || !["LOCAL","S3","R2"].includes(config.provider)) throw new Error("PROFILE_MEDIA_NOT_CONFIGURED");
   const parsed = parsePhotoDataUrl(dataUrl);
   if (!parsed) throw new Error("PROFILE_PHOTO_INVALID");
   const key = `profiles/${String(ownerId).replace(/[^a-zA-Z0-9_-]/gu, "")}/${crypto.randomUUID()}.${MIME_EXTENSIONS[parsed.mime]}`;
+  if (["S3","R2"].includes(config.provider)) {
+    const uploadUrl = createSignedUploadUrl(config, key, { expiresIn: 300 });
+    const response = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {"Content-Type": parsed.mime},
+      body: parsed.buffer,
+      redirect: "error",
+      signal: AbortSignal.timeout(20000)
+    });
+    if (!response.ok) throw new Error("PROFILE_MEDIA_UPLOAD_FAILED");
+    return { key, mime: parsed.mime, size: parsed.buffer.length };
+  }
   const target = resolvePrivateStoragePath(config.root, key);
   if (!target) throw new Error("PROFILE_MEDIA_PATH_INVALID");
   await fs.mkdir(path.dirname(target), { recursive: true });
@@ -49,7 +61,37 @@ export async function saveProfilePhoto(config, ownerId, dataUrl) {
 }
 
 export async function readProfilePhoto(config, key) {
-  if (!config?.enabled || config.provider !== "LOCAL") return null;
+  if (!config?.enabled || !key) return null;
+  if (["S3","R2"].includes(config.provider)) {
+    if (!/^profiles\/[a-zA-Z0-9_-]+\/[a-f0-9-]+\.(jpg|png|webp)$/u.test(key)) return null;
+    const response = await fetch(createSignedReadUrl(config,key), {
+      redirect: "error",
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) return null;
+    const mime = String(response.headers.get("content-type") || "").split(";")[0];
+    if (!MIME_EXTENSIONS[mime]) return null;
+    const reader = response.body?.getReader();
+    if (!reader) return null;
+    const chunks = [];
+    let size = 0;
+    try {
+      while (true) {
+        const {done,value} = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > MAX_BYTES) {
+          await reader.cancel();
+          return null;
+        }
+        chunks.push(Buffer.from(value));
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    return {buffer:Buffer.concat(chunks),mime};
+  }
+  if (config.provider !== "LOCAL") return null;
   const target = resolvePrivateStoragePath(config.root, key);
   if (!target) return null;
   try {

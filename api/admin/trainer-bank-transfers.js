@@ -1,3 +1,4 @@
+import { assertUniqueBankReference, normalizeBankReference } from "../../src/server/domain/bank-reference-guard.js";
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { fulfillTrainerOrder, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
@@ -178,12 +179,43 @@ export default async function handler(req, res) {
         throw Object.assign(new Error("BANK_TRANSFER_AMOUNT_MISMATCH"), { status: 409 });
       }
 
+      const receivedAmountMinor = input.receivedAmountMinor;
+      const bankTransactionReference = normalizeBankReference(input.bankTransactionReference);
+
+      if (!Number.isSafeInteger(receivedAmountMinor) ||
+          receivedAmountMinor <= 0) {
+        throw Object.assign(
+          new Error("BANK_TRANSFER_RECEIVED_AMOUNT_REQUIRED"),
+          {status:400}
+        );
+      }
+
+      if (receivedAmountMinor !== Number(order.total_minor)) {
+        throw Object.assign(
+          new Error("BANK_TRANSFER_AMOUNT_MISMATCH"),
+          {status:409}
+        );
+      }
+
+      if (input.bankVerified !== true ||
+          bankTransactionReference.length < 3 ||
+          bankTransactionReference.length > 160) {
+        throw Object.assign(
+          new Error("BANK_TRANSFER_VERIFICATION_REQUIRED"),
+          {status:400}
+        );
+      }
+      await assertUniqueBankReference(client,{
+        orderId:input.orderId,
+        reference:bankTransactionReference
+      });
+
       const result = await fulfillTrainerOrder(client, {
         orderId: input.orderId,
         actorUserId: principal.user.id,
         provider: "BANK_TRANSFER",
         providerReference: row.reference,
-        amountMinor: row.reported_amount_minor,
+        amountMinor: receivedAmountMinor,
         currency: row.currency,
         manageTransaction: false,
       });
@@ -191,7 +223,7 @@ export default async function handler(req, res) {
       await client.query(
         "update trainer_bank_transfer_notifications set status='APPROVED',review_note=$1,reviewed_by=$2,reviewed_at=now(),updated_at=now() where order_id=$3",
         [
-          String(input.note || "").trim().slice(0, 500) || null,
+          (`[BANK_VERIFIED] AmountMinor=${receivedAmountMinor}; BankReference=${bankTransactionReference}; ${String(input.note || "").trim()}`).slice(0,500),
           principal.user.id,
           input.orderId,
         ],

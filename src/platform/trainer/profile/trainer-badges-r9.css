@@ -199,3 +199,62 @@
   object-fit: contain !important;
 }
 /* FIXOKU_TRAINER_BADGES_R16B_END */
+
+
+/* FIXOKU_R385D_PROFILE_BADGE_LAYOUT */
+.fixoku-profile-badge-group-r385 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    gap: 12px;
+    margin: 14px auto;
+}
+
+.fixoku-profile-badge-row-r385 {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: safe center;
+    align-items: center;
+    gap: clamp(4px, 0.6vw, 8px);
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    padding: 4px 0 8px;
+}
+
+.fixoku-profile-badge-row-r385 > * {
+    flex-shrink: 0;
+}
+
+.fixoku-profile-badge-senior-r385 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.fixoku-profile-badge-group-r385 .fixoku-trainer-badge-r5,
+.fixoku-profile-badge-group-r385 .fixoku-trainer-badge-r5 > img {
+    width: 76px !important;
+    min-width: 76px !important;
+    max-width: 76px !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    object-fit: contain !important;
+}
+
+@media (max-width: 640px) {
+    .fixoku-profile-badge-group-r385 .fixoku-trainer-badge-r5,
+    .fixoku-profile-badge-group-r385 .fixoku-trainer-badge-r5 > img {
+        width: 46px !important;
+        min-width: 46px !important;
+        max-width: 46px !important;
+        height: 46px !important;
+        min-height: 46px !important;
+        max-height: 46px !important;
+    }
+}

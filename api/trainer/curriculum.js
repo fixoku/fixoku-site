@@ -5,6 +5,10 @@ import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal } from "../../src/server/domain/trainer-commerce.js";
 import { fetchPrivateObject, getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
 
+import { curriculumIdentity, readCurriculumProgress, recordCurriculumItem } from "../../src/server/domain/trainer-curriculum-progress.js";
+import { grantTrainerPackageCompletionExpertise } from "../../src/server/domain/trainer-expertise.js";
+import { loadRealTrainerLessons } from "./video-config.js";
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
 const json = (res, status, body) => {
@@ -29,7 +33,7 @@ function validManifestItem(item) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
+  if (! ["GET", "POST"].includes(req.method)) {
     return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   }
 
@@ -60,7 +64,7 @@ export default async function handler(req, res) {
            on e.package_id = p.id
         where p.id = $1
           and e.trainer_user_id = $2
-          and e.status = 'ACTIVE'
+          and e.status = 'ACTIVE' and e.revoked_at is null
         limit 1`,
       [packageId, user.id]
     );
@@ -103,7 +107,37 @@ export default async function handler(req, res) {
             `&item=${encodeURIComponent(String(item.index))}&mode=thumb`,
         }));
 
+    const manifestSha256 = curriculumIdentity(rawItems);
+    if (req.method === "POST") {
+      let raw = "";
+      for await (const chunk of req) { raw += chunk; if (raw.length > 4096) return json(res, 400, {error:"BODY_TOO_LONG"}); }
+      let input;
+      try { input = JSON.parse(raw); } catch { return json(res,400,{error:"INVALID_JSON"}); }
+      if (!Number.isInteger(input?.itemIndex) || input.manifestSha256 !== manifestSha256) return json(res,409,{error:"CURRICULUM_MANIFEST_CHANGED"});
+      const tx = await pool.connect();
+      try {
+        await tx.query("begin");
+        await tx.query("select pg_advisory_xact_lock(hashtextextended($1,0))", [`qualification-completion:${user.id}:${packageId}`]);
+        const access = (await tx.query("select id from trainer_package_entitlements where trainer_user_id=$1 and package_id=$2 and status='ACTIVE' and revoked_at is null limit 1 for share",[user.id,packageId])).rows[0];
+        if (!access) throw Object.assign(new Error("ENTITLEMENT_REQUIRED"),{status:403});
+        const progress = await recordCurriculumItem(tx,{trainerUserId:user.id,packageId,items:rawItems,itemIndex:input.itemIndex});
+        let expertiseActivated = false;
+        if (progress.completedAt) {
+          const lessons = await loadRealTrainerLessons(pkg.slug);
+          const version = (await tx.query("select id from package_versions where package_id=$1 and status='PUBLISHED' order by version_number desc limit 1",[packageId])).rows[0];
+          if (lessons.state !== "UNAVAILABLE" && lessons.lessons.length && version) {
+            const grant = await grantTrainerPackageCompletionExpertise(tx,{trainerUserId:user.id,packageId,packageVersionId:version.id,lessonsCount:lessons.lessons.length});
+            expertiseActivated = grant.created > 0;
+          }
+        }
+        await tx.query("commit");
+        return json(res,200,{progress,expertiseActivated});
+      } catch(error) { await tx.query("rollback"); return json(res,error.status || 503,{error:error.code || "CURRICULUM_SAVE_FAILED"}); }
+      finally { tx.release(); }
+    }
+    const progress = await readCurriculumProgress(pool,{trainerUserId:user.id,packageId,manifestSha256});
     return json(res, 200, {
+      manifestSha256, progress,
       slideCount: Number(manifest.slideCount || 0),
       videoCount: Number(manifest.videoCount || 0),
       itemCount: items.length,

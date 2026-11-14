@@ -56,7 +56,7 @@ export default async function handler(req, res) {
           document.auditRecords = auditMap.get(String(document.id)) || [];
         }
         const vat = (await client.query(`select id,subject_kind as "subjectKind",subject_id as "subjectId",status,vat_rate_bps as "vatRateBps",component_rates_json as "componentRatesJson",currency,effective_from as "effectiveFrom",evidence_reference as "evidenceReference",accountant_name as "accountantName",accountant_reviewed_at as "accountantReviewedAt",owner_user_id as "ownerUserId",owner_decided_at as "ownerDecidedAt",decision_note as "decisionNote" from owner_vat_decisions order by created_at desc`)).rows;
-        return json(res, 200, { documents, events, auditRecords: audit, vatDecisions: vat, source: "DATABASE", localJsonApproval: "REJECTED", publication: "BLOCKED_P0" });
+        return json(res, 200, { documents, events, auditRecords: audit, vatDecisions: vat, source: "DATABASE", localJsonApproval: "REJECTED", publication: "OWNER_APPROVAL_REQUIRED" });
       } catch (error) { if (migrationRequired(error)) return blocked(res); throw error; }
     }
 
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
       const note = String(body.note || "").trim();
       const evidenceReference = body.evidenceReference == null ? null : String(body.evidenceReference).trim();
       if (!versionId || !nextStatus || !note) return json(res, 400, { error: "DOCUMENT_TRANSITION_FIELDS_REQUIRED" });
-      if (nextStatus === "PUBLISHED") return json(res, 409, { error: "LEGAL_PUBLICATION_BLOCKED_P0", published: false, publication: "BLOCKED_P0" });
+
       await client.query("begin");
       try {
         const current = (await client.query("select * from owner_legal_document_versions where id=$1 for update", [versionId])).rows[0];
@@ -118,11 +118,27 @@ export default async function handler(req, res) {
         const currentHash = crypto.createHash("sha256").update(String(current.markdown), "utf8").digest("hex");
         if (currentHash !== current.content_sha256) { await client.query("rollback"); return json(res, 409, { error: "LEGAL_CONTENT_HASH_MISMATCH" }); }
         if (!validTransitions.get(current.status)?.has(nextStatus)) { await client.query("rollback"); return json(res, 409, { error: "LEGAL_DOCUMENT_INVALID_STATE_TRANSITION", currentStatus: current.status, nextStatus }); }
-        if (nextStatus === "PUBLISHED" && current.scope !== "CUSTOMER") { await client.query("rollback"); return json(res, 409, { error: "INTERNAL_DOCUMENT_PUBLICATION_FORBIDDEN" }); }
+        if (nextStatus === "PUBLISHED") {
+  const approval = (await client.query(
+    "select 1 from owner_legal_document_decisions where document_version_id=$1 and decision_type='OWNER_APPROVAL' and evidence_reference is not null limit 1",
+    [versionId]
+  )).rows[0];
+
+  if (!approval) {
+    await client.query("rollback");
+    return json(res,409,{error:"OWNER_APPROVAL_REQUIRED"});
+  }
+}
+if (nextStatus === "PUBLISHED" && current.scope !== "CUSTOMER") { await client.query("rollback"); return json(res, 409, { error: "INTERNAL_DOCUMENT_PUBLICATION_FORBIDDEN" }); }
         if (["APPROVED", "PUBLISHED"].includes(nextStatus) && !evidenceReference) { await client.query("rollback"); return json(res, 409, { error: "LEGAL_EVIDENCE_REQUIRED" }); }
         if (nextStatus === "APPROVED") {
           const review = (await client.query("select 1 from owner_legal_document_decisions where document_version_id=$1 and decision_type='LEGAL_REVIEW' and evidence_reference is not null limit 1", [versionId])).rows[0];
-          if (!review) { await client.query("rollback"); return json(res, 409, { error: "LEGAL_REVIEW_EVIDENCE_REQUIRED" }); }
+          if (!review && body.ownerDirectApproval !== true) {
+  await client.query("rollback");
+  return json(res, 409, {
+    error: "LEGAL_REVIEW_OR_EXPLICIT_OWNER_APPROVAL_REQUIRED"
+  });
+}
         }
         await client.query("update owner_legal_document_versions set status=$1,updated_at=now() where id=$2", [nextStatus, versionId]);
         const decisionType = nextStatus === "APPROVED" ? "OWNER_APPROVAL" : nextStatus === "ARCHIVED" ? "REVOKED" : null;

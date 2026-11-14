@@ -67,6 +67,7 @@ export async function recordTrainerVideoProgress(client, { trainerUserId, packag
     const previous = await readTrainerVideoProgress(client, trainerUserId, packageId, videoIndex - 1);
     if (!previous?.completedAt) throw fail("VIDEO_LOCKED", 403);
   }
+  await client.query("select pg_advisory_xact_lock(hashtextextended($1,0))", [`qualification-completion:${trainerUserId}:${packageId}`]);
   const dbIndex = progressIndex(videoIndex);
   await client.query(
     "select pg_advisory_xact_lock(hashtextextended($1,0))",

@@ -11,6 +11,8 @@ type CurriculumItem = {
 };
 
 type CurriculumPayload = {
+  manifestSha256: string;
+  progress: {completedItems: number; completedAt: string | null};
   slideCount: number;
   videoCount: number;
   itemCount: number;
@@ -44,6 +46,9 @@ export function TrainerCurriculumTab({
   const [zoom, setZoom] = useState(1);
 
   const [maxUnlockedIndex, setMaxUnlockedIndex] = useState(0);
+  const [savedCount, setSavedCount] = useState(0);
+  const [saveError, setSaveError] = useState(false);
+  const savingRef = useRef(false);
 
   const [completedVideoItems, setCompletedVideoItems] =
     useState<Set<number>>(() => new Set());
@@ -93,37 +98,14 @@ export function TrainerCurriculumTab({
           throw new Error("EMPTY_CURRICULUM");
         }
 
-        let stored: StoredProgress | null = null;
-
-        try {
-          const raw = sessionStorage.getItem(storageKey);
-          stored = raw ? JSON.parse(raw) as StoredProgress : null;
-        }
-        catch {
-          stored = null;
-        }
-
-        const restoredMax = stored
-          ? Math.max(
-              0,
-              Math.min(
-                Number(stored.maxUnlockedIndex || 0),
-                body.items.length - 1
-              )
-            )
-          : 0;
-
-        const restoredCompleted = new Set<number>(
-          Array.isArray(stored?.completedVideoItems)
-            ? stored!.completedVideoItems
-                .map(Number)
-                .filter(Number.isFinite)
-            : []
-        );
-
+        const count = Math.max(0,Math.min(body.items.length,Number(body.progress.completedItems || 0)));
+        const restoredMax = Math.min(count,body.items.length-1);
+        const restoredCompleted = new Set(body.items.slice(0,count).filter(item=>item.type === "video").map(item=>item.index));
         if (!cancelled) {
           setPayload(body);
-          setSelected(0);
+          setSelected(restoredMax);
+          setSavedCount(count);
+          setSaveError(false);
           setMaxUnlockedIndex(restoredMax);
           setCompletedVideoItems(restoredCompleted);
           setIsPlaying(false);
@@ -143,32 +125,6 @@ export function TrainerCurriculumTab({
       cancelled = true;
     };
   }, [packageId, storageKey]);
-
-  useEffect(() => {
-    if (!payload) {
-      return;
-    }
-
-    try {
-      const stored: StoredProgress = {
-        maxUnlockedIndex,
-        completedVideoItems: Array.from(completedVideoItems),
-      };
-
-      sessionStorage.setItem(
-        storageKey,
-        JSON.stringify(stored)
-      );
-    }
-    catch {
-      // Session storage is only a convenience layer.
-    }
-  }, [
-    payload,
-    maxUnlockedIndex,
-    completedVideoItems,
-    storageKey,
-  ]);
 
   useEffect(() => {
     if (!isFullscreen) {
@@ -271,7 +227,7 @@ export function TrainerCurriculumTab({
 
   const canGoNext =
     selected < payload.items.length - 1 &&
-    currentVideoComplete;
+    currentVideoComplete && savedCount > selected;
 
   const selectItem = (index: number) => {
     if (index > maxUnlockedIndex) {
@@ -307,24 +263,27 @@ export function TrainerCurriculumTab({
 
   navigationRef.current = { previous, next };
 
+  const saveCurrentItem = async () => {
+    if (!isFullscreen || savedCount > selected || savingRef.current) return;
+    savingRef.current = true;
+    setSaveError(false);
+    try {
+      const response = await fetch(`/api/trainer/curriculum?packageId=${encodeURIComponent(packageId)}`, {
+        method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({itemIndex:current.index,manifestSha256:payload.manifestSha256})
+      });
+      if (!response.ok) throw new Error("SAVE_FAILED");
+      const body = await response.json();
+      const count = Number(body.progress.completedItems);
+      setSavedCount(value=>Math.max(value,count));
+      setMaxUnlockedIndex(value=>Math.max(value,Math.min(count,payload.items.length-1)));
+      setCompletedVideoItems(new Set(payload.items.slice(0,count).filter(item=>item.type==="video").map(item=>item.index)));
+    } catch { setSaveError(true); }
+    finally { savingRef.current=false; }
+  };
   const markCurrentVideoComplete = () => {
-    if (current.type !== "video") {
-      return;
-    }
-
     setIsPlaying(false);
-
-    setCompletedVideoItems((previousSet) => {
-      const nextSet = new Set(previousSet);
-      nextSet.add(current.index);
-      return nextSet;
-    });
-
-    if (selected < payload.items.length - 1) {
-      setMaxUnlockedIndex((value) =>
-        Math.max(value, selected + 1)
-      );
-    }
+    if(current.type === "video") void saveCurrentItem();
   };
 
   const openFullscreen = () => {
@@ -677,6 +636,7 @@ export function TrainerCurriculumTab({
                   <img
                     key={current.src}
                     src={current.src}
+                    onLoad={() => void saveCurrentItem()}
                     alt={`Müfredat slaytı ${current.slideNo}`}
                     draggable={false}
                   />
@@ -756,6 +716,8 @@ export function TrainerCurriculumTab({
               </div>
             </div>
 
+            {saveError && <p role="alert">Ilerleme kaydedilemedi. Icerigi kapatip yeniden acin ve tekrar deneyin.</p>}
+            {savedCount === payload.items.length && <p role="status">Mufredat tamamlandi.</p>}
             <footer className="trainer-curriculum-fullscreen-footer">
               <button
                 type="button"

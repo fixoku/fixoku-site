@@ -130,6 +130,12 @@ export function effectiveTrainerQualificationPredicate(alias = "g") {
         and ${alias}.source_ref like 'COMPLETION:%'
         and ${alias}.granted_by is null
         and exists (
+          select 1 from trainer_curriculum_progress cp
+          where cp.trainer_user_id=${alias}.trainer_user_id
+            and cp.package_id=${alias}.source_package_id
+            and cp.completed_at is not null and cp.completed_items=cp.item_count
+        )
+        and exists (
           select 1
           from trainer_video_progress vp
           where vp.trainer_user_id=${alias}.trainer_user_id
@@ -153,6 +159,8 @@ export function effectiveTrainerQualificationPredicate(alias = "g") {
 /** Grant completion evidence without coupling payment or entitlement to expertise. */
 export async function grantTrainerPackageCompletionExpertise(client, { trainerUserId, packageId, packageVersionId, lessonsCount }) {
   if (!Number.isInteger(lessonsCount) || lessonsCount < 1 || lessonsCount > 100) throw fail("TRAINER_COMPLETION_LESSONS_INVALID");
+  const ready = (await client.query(`select exists(select 1 from trainer_curriculum_progress where trainer_user_id=$1 and package_id=$2 and completed_at is not null and completed_items=item_count) and (select count(distinct video_index) from trainer_video_progress where trainer_user_id=$1 and package_id=$2 and video_index between 1001 and 1000+$3::int and completed_at is not null and coverage_bps>=9500)=$3::int as ready`,[trainerUserId,packageId,lessonsCount])).rows[0]?.ready;
+  if (!ready || !packageVersionId) return {created:0,definitions:[]};
   const definitions = await mapTrainerPackageVersion(client, { packageId, packageVersionId });
   const sourceRef = `COMPLETION:${packageId}:${lessonsCount}`;
   let created = 0;

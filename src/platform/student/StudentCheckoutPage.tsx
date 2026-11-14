@@ -481,7 +481,27 @@ export function StudentCheckoutPage({
               </section>
             )}
 
-          <form
+          {orderId && (
+            <section className="trainer-checkout-step" style={{padding:24,marginBottom:24}}>
+              <h2 style={{color:"#15803d"}}>{"Sipari\u015finiz al\u0131nd\u0131!"}</h2>
+              <p>{"Sipari\u015finiz ba\u015far\u0131yla olu\u015fturuldu."}</p>
+              <hr />
+              <p><strong>{"Sipari\u015f numaras\u0131: "}</strong>{orderId}</p>
+              <p><strong>{"Toplam tutar: "}</strong>{money(cart.totalMinor,cart.currency)}</p>
+              <p><strong>{"\u00d6deme durumu: "}</strong>{"Onay bekliyor"}</p>
+              {cart.requiresShipping && (
+                <div>
+                  <h3>Kargo ve teslimat</h3>
+                  <p>{"\u00d6deme onayland\u0131ktan sonra fiziksel \u00fcr\u00fcnleriniz haz\u0131rlanacakt\u0131r."}</p>
+                  <p>{"Kargo takip numaran\u0131z g\u00f6nderi olu\u015fturuldu\u011funda yay\u0131nlanacakt\u0131r."}</p>
+                  <Link className="trainer-commerce-primary" to="/panel/ogrenci/kargolar">{"Kargolar\u0131m"}</Link>
+                </div>
+              )}
+              <p><Link to="/panel/ogrenci">{"\u00d6\u011frenci paneline d\u00f6n"}</Link></p>
+            </section>
+          )}
+
+          {!orderId && <form
             className="trainer-checkout-layout"
             onSubmit={(event) =>
               void submit(event)
@@ -1043,7 +1063,7 @@ export function StudentCheckoutPage({
                 </div>
               </dl>
             </aside>
-          </form>
+          </form>}
         </main>
       </div>
     </StudentPanelShell>

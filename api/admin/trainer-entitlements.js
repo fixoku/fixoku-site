@@ -1,3 +1,4 @@
+import { TRAINER_PACKAGE_QUALIFICATIONS, effectiveTrainerQualificationPredicate } from "../../src/server/domain/trainer-expertise.js";
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
@@ -6,12 +7,24 @@ export default async function handler(req,res){const principal=await resolvePrin
           from r6_trainer_package_qualification_map m
           join r6_qualification_definitions qd on qd.id=m.qualification_id`)).rows;
         for(const item of packages){
-          item.qualifications=packageQualificationRows.filter((row)=>row.packageVersionId===item.packageVersionId);
+          const canonical = (await client.query(
+  "select p.slug from packages p where p.id=$1",
+  [item.packageId]
+)).rows[0];
+const codes = TRAINER_PACKAGE_QUALIFICATIONS[canonical?.slug];
+item.qualifications = codes
+  ? (await client.query(
+      'select id as "qualificationId",code,title from r6_qualification_definitions where code=any($1::text[])',
+      [codes]
+    )).rows
+  : packageQualificationRows.filter(
+      row=>row.packageVersionId===item.packageVersionId
+    );
         }
         const expertise=(await client.query(`select g.trainer_user_id as "trainerUserId",g.qualification_id as "qualificationId",g.status,g.source,g.source_ref as "sourceRef",qd.code,qd.title
           from r6_trainer_qualification_grants g
           join r6_qualification_definitions qd on qd.id=g.qualification_id
-          where g.status='ACTIVE' and (g.valid_until is null or g.valid_until>now())`)).rows;
+          where ${effectiveTrainerQualificationPredicate("g")}`)).rows;
         /* V29_PACKAGE_QUALIFICATION_PROJECTION */
         return json(res,200,{entitlements:rows,trainers,packages,expertise});}if(!["POST","DELETE"].includes(req.method))return json(res,405,{error:"METHOD_NOT_ALLOWED"});const input=await body(req);await client.query("begin");if(req.method==="DELETE"){if(!TRAINER_COMMERCE_UUID.test(String(input.entitlementId||""))||!String(input.reason||"").trim())throw Object.assign(new Error("REVOKE_FIELDS_REQUIRED"),{status:400});const row=(await client.query("update trainer_package_entitlements set status='REVOKED',revoked_at=now(),revoked_by=$1,revoke_reason=$2,updated_at=now() where id=$3 and status='ACTIVE' and source='MANUAL_GIFT' returning *",[principal.user.id,String(input.reason).trim().slice(0,500),input.entitlementId])).rows[0];if(!row)throw Object.assign(new Error("ENTITLEMENT_NOT_ACTIVE"),{status:409});
         if(row.source==="MANUAL_GIFT"){

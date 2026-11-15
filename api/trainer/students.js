@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { createDb } from "../../src/server/db/client.js";
 import { enrollments, memberships, studentProfiles, trainerAssignments, trainingPrograms, users } from "../../src/server/db/schema.js";
@@ -40,8 +40,8 @@ export default async function handler(req, res) {
         .innerJoin(users, eq(users.id, enrollments.studentUserId))
         .leftJoin(studentProfiles, eq(studentProfiles.userId, users.id))
         .innerJoin(memberships, and(eq(memberships.userId, users.id), eq(memberships.role, "STUDENT"), eq(memberships.scopeType, "STUDENT"), eq(memberships.status, "ACTIVE")))
-        .where(and(eq(trainerAssignments.trainerUserId, trainer), eq(trainerAssignments.status, "ACTIVE"), eq(enrollments.status, "ACTIVE")));
-      const students = rows.map(({ user, profile, assignment, enrollment, program }) => ({ id: user.id, name: user.displayName, email: user.email, grade: profile?.grade ?? null, school: profile?.school ?? null, status: enrollment.status, linkedAt: assignment.createdAt, enrollments: [{ id: enrollment.id, status: enrollment.status, programTitle: program.title, progressPercent: enrollment.progressPercent, completedAt: enrollment.completedAt }] }));
+        .where(and(eq(trainerAssignments.trainerUserId, trainer), eq(trainerAssignments.status, "ACTIVE"), inArray(enrollments.status, ["ACTIVE","PAUSED","COMPLETED"])));
+      const students = rows.map(({ user, profile, assignment, enrollment, program }) => ({ id: user.id, name: user.displayName, email: user.email, phone: profile?.phone || profile?.guardianPhone || null, grade: profile?.grade ?? null, school: profile?.school ?? null, status: enrollment.status, linkedAt: assignment.createdAt, enrollments: [{ id: enrollment.id, status: enrollment.status, programTitle: program.title, progressPercent: enrollment.progressPercent, completedAt: enrollment.completedAt }] }));
       return json(res, 200, { students, count: students.length });
     } finally { await pool.end(); }
   } catch { return json(res, 503, { error: "STUDENTS_UNAVAILABLE" }); }

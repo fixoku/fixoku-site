@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { queueOwnerManagementEmail } from "../../src/server/domain/owner-management-notifications-r390.js";
 import pg from "pg";
 import { resolvePrincipal, requireMembership } from "../../src/server/auth/authorization.js";
 
@@ -78,8 +79,13 @@ async function materializePrograms(client, { entitlementId, studentUserId, child
     await client.query(`insert into package_entitlement_enrollments(package_entitlement_id,enrollment_id,training_program_id,source_order_item_id)
       values($1,$2,$3,null) on conflict(package_entitlement_id,training_program_id) do nothing`, [entitlementId, enrollment.id, definition.trainingProgramId]);
     if (["TRAINER_LED", "HYBRID"].includes(definition.deliveryMode)) {
-      const request = (await client.query(`insert into trainer_assignment_requests(enrollment_id,status) values($1,'PENDING') on conflict do nothing returning id`, [enrollment.id])).rows[0]
-        || (await client.query("select id from trainer_assignment_requests where enrollment_id=$1 and status='PENDING' order by created_at desc limit 1", [enrollment.id])).rows[0];
+      const createdRequest = (await client.query(`insert into trainer_assignment_requests(enrollment_id,status) values($1,'PENDING') on conflict do nothing returning id`, [enrollment.id])).rows[0];
+      if (createdRequest && process.env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED === "1") {
+        const row = (await client.query(`select case when e.beneficiary_child_profile_id is not null then concat_ws(' ',c.first_name,c.last_name) else u.display_name end as student_name,p.title as program_name from enrollments e join platform_users u on u.id=e.student_user_id join training_programs p on p.id=e.training_program_id left join r6_student_child_profiles c on c.id=e.beneficiary_child_profile_id where e.id=$1`, [enrollment.id])).rows[0];
+        if (!row?.student_name?.trim()) throw fail("OWNER_ASSIGNMENT_STUDENT_NAME_MISSING",409);
+        await queueOwnerManagementEmail(client,{templateKey:"owner-assignment",eventId:createdRequest.id,metadata:{reference:createdRequest.id,studentName:row.student_name,programName:row.program_name,date:new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'short',timeStyle:'short'}).format(new Date()),status:"Atama bekliyor"}});
+      }
+      const request = createdRequest || (await client.query("select id from trainer_assignment_requests where enrollment_id=$1 and status='PENDING' order by created_at desc limit 1", [enrollment.id])).rows[0];
       if (request) assignmentRequestIds.push(request.id);
     }
   }

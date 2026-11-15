@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { queueAcceptedPublicOwnerEmail } from "../src/server/domain/owner-public-notifications-r391.js";
 import { SITE_ORIGIN } from "../src/config/site.js";
 import {
   INSTITUTION_READING_LANDING_PATH,
@@ -295,7 +296,10 @@ export function createInstitutionApplicationHandler({
 
       try {
         const transport = transportFactory(smtp.transport);
-        await transport.sendMail(buildMail(payload, smtp.from));
+        const mailInfo = await transport.sendMail(buildMail(payload, smtp.from));
+        if (Array.isArray(mailInfo?.accepted) && mailInfo.accepted.some(value=>String(value).toLowerCase()===INSTITUTION_APPLICATION_RECIPIENT) && !mailInfo.rejected?.some(value=>String(value).toLowerCase()===INSTITUTION_APPLICATION_RECIPIENT)) {
+          await queueAcceptedPublicOwnerEmail("owner-institution",{institution:payload.institutionName,personName:payload.fullName,email:payload.email,phone:payload.phone,city:[payload.city,payload.district].join(" / ")},mailInfo.messageId,env,logger);
+        }
       } catch {
         logger.error?.("Institution application delivery failed.");
         sendJson(response, 502, { ok: false, error: "Başvuru şu anda iletilemedi." });

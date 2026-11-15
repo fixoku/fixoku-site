@@ -1,5 +1,7 @@
 /* global process */
 import crypto from "node:crypto";
+import { queueOwnerOrderEvent } from "./owner-order-notifications-r390.js";
+import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 import { queuePanelNotification, queueRolePanelNotifications } from "./panel-notifications.js";
 
 export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -248,6 +250,8 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
     const entitlementIds = [];
     const enrollmentIds = [];
     const assignmentRequestIds = [];
+    const newAssignmentRequestIds = [];
+    const newShipmentIds = new Set();
     for (const item of items) {
       // Custom offers can allocate different order lines to different child
       // profiles. Resolve that beneficiary from the immutable order-item
@@ -285,6 +289,7 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
           if (!addressSnapshot) throw error("SHIPPING_ADDRESS_REQUIRED", 409);
           const existingShipment = (await client.query("select id from shipments where order_id=$1 limit 1", [order.id])).rows[0];
           const shipmentId = existingShipment?.id || (await client.query("insert into shipments(order_id,beneficiary_student_user_id,address_snapshot_json,shipping_charge_minor,status,provider_enabled) values($1,$2,$3,$4,'WAITING',false) returning id", [order.id, itemBeneficiary.studentUserId, addressSnapshot, order.shipping_minor])).rows[0].id;
+          if (!existingShipment) newShipmentIds.add(shipmentId);
           for (const component of physicalComponents) {
             await client.query("insert into shipment_items(shipment_id,physical_product_id,quantity,title_snapshot) values($1,$2,$3,$4) on conflict do nothing", [shipmentId, component.productId, component.quantity, component.title]);
           }
@@ -337,6 +342,7 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
             if (resolved) {
               assignmentRequestIds.push(resolved.id);
               if (requestRow) {
+                newAssignmentRequestIds.push(requestRow.id);
                 await client.query(
                   `insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'education.assignment_request.created','trainer_assignment_request',$2,'SUCCESS',$3,$4)`,
                   [actorUserId, resolved.id, crypto.randomUUID(), JSON.stringify({ enrollmentId: enrollment.id, entitlementId: entitlement.id })],
@@ -379,6 +385,21 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
         metadata: { path: "/panel/ogrenci/paketler", orderId: order.id },
         dedupeKey: `education-entitlement-activated:${order.id}`,
       });
+    }
+    // R390F: notifications are tied to authoritative, newly committed events.
+    if (process.env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED === "1" && ["BANK_TRANSFER", "PAYTR"].includes(provider)) {
+      await queueOwnerOrderEvent(client,{kind:"student",orderId:order.id,event:"sale"});
+      const date = new Intl.DateTimeFormat("tr-TR",{timeZone:"Europe/Istanbul",dateStyle:"short",timeStyle:"short"}).format(new Date());
+      for (const shipmentId of newShipmentIds) {
+        const shipment = (await client.query("select id,status,shipping_charge_minor,address_snapshot_json from shipments where id=$1",[shipmentId])).rows[0];
+        const address = typeof shipment.address_snapshot_json === "string" ? JSON.parse(shipment.address_snapshot_json) : shipment.address_snapshot_json;
+        const products = (await client.query("select title_snapshot,quantity from shipment_items where shipment_id=$1 order by id",[shipmentId])).rows;
+        await queueOwnerManagementEmail(client,{templateKey:"owner-shipment",eventId:`student:${shipmentId}`,metadata:{reference:order.id,personName:[address?.firstName,address?.lastName].filter(Boolean).join(" "),city:[address?.city,address?.district].filter(Boolean).join(" / "),phone:address?.phone,date,shipping:new Intl.NumberFormat("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(shipment.shipping_charge_minor)/100)+" ₺",status:"Hazırlanmayı bekliyor",items:products.map(p=>({name:p.title_snapshot,quantity:Number(p.quantity),amount:""}))}});
+      }
+      for (const requestId of newAssignmentRequestIds) {
+        const row=(await client.query(`select coalesce(nullif(concat_ws(' ',cp.first_name,cp.last_name),''),u.display_name) as student_name,tp.title as program_name from trainer_assignment_requests r join enrollments e on e.id=r.enrollment_id join platform_users u on u.id=e.student_user_id join training_programs tp on tp.id=e.training_program_id left join r6_student_child_profiles cp on cp.id=e.beneficiary_child_profile_id where r.id=$1 and r.status='PENDING'`,[requestId])).rows[0];
+        if(row) await queueOwnerManagementEmail(client,{templateKey:"owner-assignment",eventId:requestId,metadata:{reference:requestId,studentName:row.student_name,programName:row.program_name,date,status:"Atama bekliyor"}});
+      }
     }
     await client.query("update payment_webhook_events set status='APPLIED',processed_at=now(),error_code=null where id=$1", [webhook.id]);
     if (manageTransaction) await client.query("commit");

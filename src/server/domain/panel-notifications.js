@@ -72,7 +72,7 @@ export async function queueRolePanelNotifications(client, {
   for (const row of rows) {
     await queuePanelNotification(client, {
       recipientUserId: row.id,
-      recipientEmail: row.email,
+      recipientEmail: role === "OWNER" && ["STUDENT_REGISTRATION_RECEIVED", "TRAINER_APPLICATION_RECEIVED", "OWNER_TRAINER_PAYMENT_APPROVED", "STUDENT_BANK_TRANSFER_ORDER", "TRAINER_BANK_TRANSFER_ORDER"].includes(eventType) ? null : row.email,
       eventType,
       title,
       body,

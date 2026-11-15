@@ -6,6 +6,7 @@ import { createDb } from "../db/client.js";
 import { users } from "../db/schema.js";
 import { captureLifecycleMail } from "../domain/test-email-capture.js";
 import { sendTransactionalEmail } from "../domain/email-outbox.js";
+import { queueVerifiedOwnerRegistration } from "../domain/owner-management-notifications-r390.js";
 import { requireApplicationOrigin, resolveTrustedOrigins } from "./origin.js";
 
 const { db, pool: authDbPool } = createDb();
@@ -105,6 +106,10 @@ const authOptions = {
                 )`,
             [verifiedUser.id],
           );
+        }
+        if (verifiedUser.emailVerified === true) {
+          try { await queueVerifiedOwnerRegistration(syncPool, verifiedUser.id); }
+          catch { console.warn("OWNER_VERIFIED_REGISTRATION_QUEUE_FAILED"); }
         }
       } finally {
         await syncPool.end();

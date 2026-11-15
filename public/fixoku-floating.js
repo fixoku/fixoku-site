@@ -15,7 +15,7 @@
     {id:'other',label:'Diğer Konular',icon:'help',groups:[
       {label:'Ürün ve siparişler',options:['Kitap ve yazılım ürünleri','Sipariş, ödeme ve fatura','Kargo ve teslimat','İade ve iptal']},
       {label:'Destek',options:['Teknik destek','Diğer talepler']}]}];
-  const levels=[{name:'İlkokul',grades:['1. Sınıf','2. Sınıf','3. Sınıf','4. Sınıf']},{name:'Ortaokul',grades:['5. Sınıf','6. Sınıf','7. Sınıf','8. Sınıf']},{name:'Lise',grades:['9. Sınıf','10. Sınıf','11. Sınıf','12. Sınıf']},{name:'Yetişkin',grades:[]}];
+  const levels=[{name:'İlkokul',grades:['3. Sınıf','4. Sınıf']},{name:'Ortaokul',grades:['5. Sınıf','6. Sınıf','7. Sınıf','8. Sınıf']},{name:'Lise',grades:['9. Sınıf','10. Sınıf','11. Sınıf','12. Sınıf']},{name:'Yetişkin',grades:[]}];
   const studentTopics=['Öğrenci eğitim paketleri','Öğrenci kaydı ve giriş','Veli hesabı ve öğrenci takibi','Eğitime erişim ve ilerleme','Eğitmen desteği'];
   const paths={users:'<circle cx="9" cy="8" r="3"/><path d="M2 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6m1 3a5 5 0 0 1 4 5v1"/>',cap:'<path d="m2 9 10-5 10 5-10 5zM6 11v6c4 3 8 3 12 0v-6m4-2v8"/>',building:'<rect x="4" y="3" width="11" height="18" rx="1"/><path d="M15 9h5v12H2m5-14h2m2 0h1m-5 4h2m2 0h1m-5 4h2m2 0h1"/>',help:'<circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4v1"/><path d="M12 18h.01"/>',whatsapp:'<path d="M20.2 11.8a8.3 8.3 0 0 1-12.6 7.1L3 20l1.2-4.3a8.4 8.4 0 1 1 16-3.9Z"/><path d="M9 8.4c-.6-.6-1 .3-1 1 0 2.5 3 5.4 5.5 5.7.7.1 2-.6 1.5-1.3l-1.5-1-1.1 1c-1.4-.6-2.1-1.4-2.7-2.7l.9-1.1Z"/>'};
   const svg=(name)=>`<span class="fxw-svg" aria-hidden="true"><svg viewBox="0 0 24 24">${paths[name]||paths.help}</svg></span>`;

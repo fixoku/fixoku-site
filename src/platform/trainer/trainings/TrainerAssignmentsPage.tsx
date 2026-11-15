@@ -8,7 +8,7 @@ type Group = { id: string; trainingType?: string; educationStage?: string; mode?
 type Enrollment = { id: string; programTitle?: string; progressPercent?: number; status?: string };
 type Student = { id: string; name?: string; email?: string; phone?: string | null; profilePhotoUrl?: string | null; enrollments?: Enrollment[] };
 type Mark = { plannedAt: string };
-type Followup = { marks: Record<string, Mark>; eligibility: { ready: boolean; reason: string; daysLeft: number | null }; status: string; memberIds: string[] };
+type Followup = { marks: Record<string, Mark>; eligibility: { ready: boolean; reason: string; daysLeft: number | null }; status: string; memberIds: string[]; freeReason?: string | null };
 type Profile = { name?: string; email?: string; phone?: string | null; photoUrl?: string | null };
 type FollowupResponse = { assignments: Record<string, Followup>; profiles: Record<string, Profile>; scope: string; completionDays: number };
 type Assignment = { key: string; type: 'group' | 'individual'; title: string; stage: string; status: string; people: Person[]; maxStudents: number; followup?: Followup };
@@ -139,6 +139,7 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
       {!loading&&!error&&current&&<section className="ta4-block ta4-detail" aria-labelledby="ta4-detail-title">
         <div className="ta4-detail-head"><div className="ta4-detail-id"><span className="ta4-big-icon" aria-hidden="true">{current.type==='group'?'♧':'♙'}</span><div><span className="ta4-overline">{current.type==='group'?'GRUP EĞİTİMİ':'BİREBİR EĞİTİMİ'} · {current.stage}</span><h2 id="ta4-detail-title">{current.title}</h2></div></div><span className={`ta4-pill ${trStatus(current.status,planned(current),current.people.length,!!current.followup?.eligibility?.ready).tone}`}>{trStatus(current.status,planned(current),current.people.length,!!current.followup?.eligibility?.ready).label}</span></div>
         <div className="ta4-divider"/>
+        {current.followup?.freeReason && <div className="ta4-message" style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}><strong>Ücretsiz atama · 0 ₺</strong><p>{current.followup.freeReason}</p></div>}
         <div className="ta4-students-head"><h3>{current.type==='group'?'Grup öğrencileri':'Atanan öğrenci'}</h3><span>{planned(current)}/{current.people.length} eğitim planlandı</span></div>
         <div className="ta4-students">{current.people.map((p,i)=>{
           const id=p.studentUserId||'',isPlanned=!!current.followup?.marks?.[id]?.plannedAt;

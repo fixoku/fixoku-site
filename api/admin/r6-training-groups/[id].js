@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { ownerEducationCompletion, ownerEducationEarning } from "../../../src/server/domain/owner-education-r390g.js";
 import pg from "pg";
 import { queueEmailOutbox } from "../../../src/server/domain/panel-notifications.js";
 import { resolvePrincipal, requirePermission } from "../../../src/server/auth/authorization.js";
@@ -85,15 +86,17 @@ export default async function handler(req, res) {
     for (const participant of active) {
       if (!participant.enrollment_id) continue;
       const completionKey = `R6_GROUP_COMPLETION:${id}:${participant.enrollment_id}`;
-      await client.query(
-        "insert into enrollment_completions(enrollment_id,assignment_id,completed_by,idempotency_key,metadata_json) values($1,null,$2,$3,$4) on conflict(enrollment_id) do nothing",
+      const newCompletion = (await client.query(
+        "insert into enrollment_completions(enrollment_id,assignment_id,completed_by,idempotency_key,metadata_json) values($1,null,$2,$3,$4) on conflict(enrollment_id) do nothing returning id",
         [participant.enrollment_id, principal.user.id, completionKey, JSON.stringify({ source: "R6_TRAINING_GROUP_COMPLETION", trainingGroupId: id, participantId: participant.id })],
-      );
+      )).rows[0];
+      if (newCompletion?.id) await ownerEducationCompletion(client,{completionId:newCompletion.id,enrollmentId:participant.enrollment_id,trainerUserId:group.trainer_user_id,completedAt});
       await client.query(
         "update enrollments set status='COMPLETED',progress_percent=100,completed_at=coalesce(completed_at,$2),updated_at=now() where id=$1 and status<>'CANCELLED'",
         [participant.enrollment_id, completedAt],
       );
     }
+    if (earning?.id && amountMinor > 0) await ownerEducationEarning(client,{earningId:earning.id,amountMinor,currency:"TRY",completedAt,trainerUserId:group.trainer_user_id,programName:`Grup eğitimi (${active.length} öğrenci)`});
     const recipients = (await client.query(`select distinct u.id,u.email,sp.guardian_email as "guardianEmail" from r6_training_group_participants p join platform_users u on u.id=p.student_user_id left join student_profiles sp on sp.id=p.student_profile_id where p.training_group_id=$1 and p.status='ACTIVE'`, [id])).rows;
     for (const recipient of recipients) {
       const emails = new Set([recipient.email, recipient.guardianEmail].filter(Boolean).map((value) => String(value).trim().toLowerCase()));

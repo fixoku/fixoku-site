@@ -18,12 +18,12 @@ async function authoritativeAssignments(pool, trainerId) {
   const [groups, participants, singles] = await Promise.all([
     pool.query(`select id::text as id, status::text as status from r6_training_groups where trainer_user_id=$1`,[trainerId]),
     pool.query(`select p.training_group_id::text as "assignmentId", p.student_user_id::text as "studentId", p.planned_at as "plannedAt" from r6_training_group_participants p join r6_training_groups g on g.id=p.training_group_id where g.trainer_user_id=$1 and p.status='ACTIVE'`,[trainerId]),
-    pool.query(`select e.id::text as id, e.student_user_id::text as "studentId", e.status::text as status, a.planned_at as "plannedAt" from trainer_assignments a join enrollments e on e.id=a.enrollment_id where a.trainer_user_id=$1 and a.status='ACTIVE'`,[trainerId]),
+    pool.query(`select e.id::text as id, e.student_user_id::text as "studentId", e.status::text as status, a.id::text as "assignmentId", a.planned_at as "plannedAt", cs.calculation_base as "calculationBase", cs.rate_minor as "rateMinor" from trainer_assignments a join enrollments e on e.id=a.enrollment_id left join trainer_compensation_snapshots cs on cs.assignment_id=a.id where a.trainer_user_id=$1 and a.status='ACTIVE'`,[trainerId]),
   ]);
   const result={};
   for(const g of groups.rows) result[`r6-${g.id}`]={kind:'r6',id:g.id,status:g.status,memberIds:[]};
   for(const p of participants.rows) { const a=result[`r6-${p.assignmentId}`]; if(a && validUuid(p.studentId) && !a.memberIds.includes(p.studentId)) a.memberIds.push(p.studentId); }
-  for(const row of singles.rows) if(validUuid(row.studentId)) result[`legacy-${row.id}`]={kind:'legacy',id:row.id,status:row.status,memberIds:[row.studentId]};
+  for(const row of singles.rows) if(validUuid(row.studentId)) result[`legacy-${row.id}`]={kind:'legacy',id:row.id,status:row.status,memberIds:[row.studentId],assignmentId:row.assignmentId,isFree:row.calculationBase==='OWNER_FREE' && row.rateMinor===0};
   return result;
 }
 async function readProfiles(pool, assignments) {
@@ -78,7 +78,9 @@ async function databaseMarks(pool,trainerId,a){
     const out={};
     for(const [key,a] of Object.entries(assignments)){
       const marks=await databaseMarks(pool,trainerId,a);
+      const freeReason=a.kind==='legacy' && a.isFree ? (await pool.query(`select metadata_json::jsonb->>'freeReason' as reason from platform_audit_events where action in ('trainer.assignment.assign','trainer.assignment.reassigned') and result='SUCCESS' and metadata_json::jsonb->>'trainerAssignmentId'=$1 and metadata_json::jsonb->>'trainerUserId'=$2 and metadata_json::jsonb->>'freeAssignment'='true' order by occurred_at desc limit 1`,[a.assignmentId,trainerId])).rows[0]?.reason||null : null;
       out[key]={
+        freeReason,
         marks,
         eligibility:eligibleToComplete(a.memberIds,marks),
         status:a.status,

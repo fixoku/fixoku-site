@@ -1,5 +1,7 @@
+import { OWNER_EMAIL_EDITORIAL } from "./owner-email-editorial-r390.js";
 // Fixoku kurumsal mesaj içerikleri. Bu dosya tek başına e-posta göndermez.
 export const EMAIL_EDITORIAL_V1 = Object.freeze({
+  ...OWNER_EMAIL_EDITORIAL,
   "welcome": {
     "subject": "Fixoku | Eğitim yolculuğunuza hoş geldiniz",
     "title": "Fixoku ailesine hoş geldiniz",

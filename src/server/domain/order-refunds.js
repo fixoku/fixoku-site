@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 import { verifyRefundEvidence } from "../payments/refund-adapter.js";
 import { queuePanelNotification, queueRolePanelNotifications } from "./panel-notifications.js";
 
@@ -170,6 +171,9 @@ async function process(client, { orderId, actorUserId, action, reason, idempoten
     `, [order.id, actorUserId, order.total_minor, order.currency, reason, idempotencyKey, requestHash])).rows[0];
     await event(client, { requestId: request.id, actorUserId, eventType: "REQUESTED", nextStatus: "REQUESTED", metadata: { orderId: order.id, amountMinor: order.total_minor } });
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'order.refund.requested','order_refund_request',$2,'SUCCESS',gen_random_uuid(),$3)", [actorUserId, request.id, JSON.stringify({ orderId: order.id, amountMinor: order.total_minor, reason })]);
+    if (process.env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED === "1") {
+      await queueOwnerManagementEmail(client, {templateKey:"owner-refund",eventId:request.id,metadata:{reference:order.id,amount:new Intl.NumberFormat("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(request.amount_minor)/100)+" "+(request.currency==="TRY"?"₺":request.currency),reason:request.reason,date:new Intl.DateTimeFormat("tr-TR",{timeZone:"Europe/Istanbul",dateStyle:"short",timeStyle:"short"}).format(new Date(request.created_at)),status:"İnceleme bekliyor"}});
+    }
     return { request, replay: false };
   }
 

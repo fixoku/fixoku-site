@@ -4,6 +4,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { createDb } from "../db/client";
 import { captureLifecycleMail } from "../domain/test-email-capture.js";
 import { sendTransactionalEmail } from "../domain/email-outbox.js";
+import { queueVerifiedOwnerRegistration } from "../domain/owner-management-notifications-r390.js";
 import { requireApplicationOrigin, resolveTrustedOrigins } from "./origin.js";
 
 const { db } = createDb();
@@ -64,6 +65,10 @@ export const auth = betterAuth({
            where auth_user_id=$3`,
           [verifiedUser.email, Boolean(verifiedUser.emailVerified), verifiedUser.id],
         );
+        if (verifiedUser.emailVerified === true) {
+          try { await queueVerifiedOwnerRegistration(syncPool, verifiedUser.id); }
+          catch { console.warn("OWNER_VERIFIED_REGISTRATION_QUEUE_FAILED"); }
+        }
       } finally {
         await syncPool.end();
       }

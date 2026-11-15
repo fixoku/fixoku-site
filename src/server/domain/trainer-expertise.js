@@ -1,3 +1,4 @@
+import { ownerQualificationCreated } from "./owner-education-r390g.js";
 import { loadCurrentCurriculumIdentity } from "./trainer-curriculum-progress.js";
 
 // Trainer education packages map to the existing R6 qualifications, but package
@@ -218,6 +219,7 @@ export async function grantTrainerPackageCompletionExpertise(client, { trainerUs
       values($1,$2,'OWNER_MANUAL','ACTIVE',$3,$4,null)
       on conflict(trainer_user_id,qualification_id,source,source_ref) do nothing
       returning id`, [trainerUserId, definition.id, sourceRef, packageId]);
+    for (const row of result.rows) await ownerQualificationCreated(client,{grantId:row.id,trainerUserId,qualificationId:definition.id});
     created += result.rows.length;
   }
   return { created, sourceRef, definitions };

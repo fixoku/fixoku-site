@@ -7,18 +7,35 @@ const KEY_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const MAX_SUBJECT = 240;
 const MAX_BODY = 20_000;
 const CRITICAL_KEYS = new Set(["email-verification", "password-reset"]);
-const ALLOWED_VARIABLES = Object.freeze([
+const ALLOWED_VARIABLES = Object.freeze([...new Set([
+  "personName","studentName","trainerName","email","phone","city","grade","school","profession","institution","guardianName","date","reference","packageName","amount","paymentMethod","discount","shipping","vat","status","reportedAmount","payerName","programName","qualificationName","earningPeriod","reason","productName","stock","threshold","errorCode","messageSummary","studentSales","trainerSales","cardReceipts","bankReceipts","pendingBank","refunds","earnings","newTrainers","newStudents","newGuardians","orderCount","pendingAssignments","pendingShipments","pendingRefunds","completedTrainings",
   "recipientName", "packageName", "orderNumber", "reference", "amount", "paymentMethod",
   "programName", "trainerName", "studentName", "date", "completionDate", "earningPeriod",
   "dueDate", "paymentDate", "sessionDate", "applicationField", "qualificationName",
   "qualificationStatus", "carrierName", "trackingNumber", "deliveryDate", "shipmentStatus",
   "campaignTitle", "actionUrl", "ctaPath", "supportEmail",
-]);
+])]);
 const VARIABLE_SET = new Set(ALLOWED_VARIABLES);
 
 // Event names are domain contracts. Several operational events intentionally
 // share an existing canonical template so the renderer remains one catalog.
 export const EMAIL_EVENT_TEMPLATE_MAP = Object.freeze({
+  OWNER_TRAINER_REGISTRATION: "owner-trainer-registration",
+  OWNER_STUDENT_REGISTRATION: "owner-student-registration",
+  OWNER_STUDENT_SALE: "owner-student-sale",
+  OWNER_TRAINER_SALE: "owner-trainer-sale",
+  OWNER_BANK_REVIEW: "owner-bank-review",
+  OWNER_SHIPMENT: "owner-shipment",
+  OWNER_GUARDIAN_REGISTRATION: "owner-guardian-registration",
+  OWNER_QUALIFICATION: "owner-qualification",
+  OWNER_ASSIGNMENT: "owner-assignment",
+  OWNER_COMPLETION: "owner-completion",
+  OWNER_EARNING: "owner-earning",
+  OWNER_REFUND: "owner-refund",
+  OWNER_CONTACT: "owner-contact",
+  OWNER_INSTITUTION: "owner-institution",
+  OWNER_PAYMENT_ERROR: "owner-payment-error",
+  OWNER_DAILY_SUMMARY: "owner-daily-summary",
   ACCOUNT_EMAIL_VERIFICATION: "email-verification",
   ACCOUNT_PASSWORD_RESET: "password-reset",
   ACCOUNT_ACTIVATION: "welcome",
@@ -195,6 +212,7 @@ export async function listEmailTemplates(client, { templateKey = null, includeHi
   )).rows;
   const result = [];
   for (const row of rows) {
+    if (!catalogById.has(row.templateKey)) continue;
     const draft = (await client.query(
       `select id as "revisionId",revision_number as "revisionNumber",status,display_name as "displayName",subject,html_body as "htmlBody",text_body as "textBody",variable_allowlist as "variableAllowlist"
          from email_template_revisions where template_id=(select id from email_templates where template_key=$1) and status='DRAFT' order by revision_number desc limit 1`, [row.templateKey],
@@ -249,6 +267,18 @@ export function buildEmailSnapshot({ eventType, record, metadata = {}, body = ""
     dueDate: String(metadata.dueDate || metadata.date || "—"),
     paymentMethod: String(metadata.paymentMethod || "Havale/EFT"),
   };
+  if (templateKey.startsWith("owner-")) {
+    const definition = EMAIL_EDITORIAL_V1[templateKey];
+    for (const key of Object.keys(data)) delete data[key];
+    data.recipientName = "Ersin Bey";
+    data.actionUrl = "/panel/owner";
+    data.ctaPath = "/panel/owner";
+    for (const { key } of definition.fields) data[key] = metadata[key] == null ? "" : String(metadata[key]);
+    for (const key of definition.required || []) if (!data[key].trim()) throw new Error("OWNER_EMAIL_REQUIRED_FIELD_" + key);
+    if (["owner-student-sale", "owner-trainer-sale", "owner-bank-review", "owner-shipment"].includes(templateKey) && Array.isArray(metadata.items)) {
+      data.items = metadata.items.slice(0, 100).map(item => ({name:String(item.name ?? ""),quantity:String(item.quantity ?? ""),amount:String(item.amount ?? "")}));
+    }
+  }
   const rendered = renderEmail(templateKey, data, { baseUrl: process.env.APP_ORIGIN || "https://fixoku.com", templateOverride: templateRevisionOverride(record) });
   return { templateKey, revisionId: record?.revisionId || null, revisionNumber: record?.revisionNumber || null, subject: rendered.subject, text: rendered.text, html: rendered.html, contentSha256: createHash("sha256").update(`${rendered.subject}\n${rendered.text}\n${rendered.html}`).digest("hex") };
 }

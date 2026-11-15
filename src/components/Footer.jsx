@@ -144,21 +144,20 @@ function Footer({ showCta = true }) {
                 </svg>
               </a>
             </div>
+            <div className="footer-brand-extras">
+
+              <div className="footer-etbis">
+  <a href="https://etbis.ticaret.gov.tr/tr/SiteSorgulamaSonuc?siteId=2dce6d96-f0b8-4644-a7a2-73c51682be64" target="_blank" rel="noopener noreferrer" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px"}}>
+    <img src="/logo-etbis.png" alt="ETBİS" />
+    <span style={{fontSize:"12px",color:"#333333",textDecoration:"underline",textAlign:"center"}}>ETBİS Kaydımızı Sorgulayın</span>
+  </a>
+</div>
+            </div>
           </div>
 
-          {footerColumns.map((column) => (
-            <div className="footer-links-group" key={column.title}>
-              <h3>{column.title}</h3>
-              <ul>
-                {column.links.map((link) => (
-                  <li key={`${column.title}-${link.to}-${link.label}`}>
-                    <Link to={link.to}>{link.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
+          {[[0, 3], [1, 4], [2]].map((indices) => (
+            <div className="footer-column-stack" key={indices[0]}>
+              {indices[0] === 2 && (
           <div className="footer-contact">
             <h3>İletişim</h3>
 
@@ -174,17 +173,13 @@ function Footer({ showCta = true }) {
 
             <div className="footer-contact-item">
               <span className="footer-contact-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 2h4l2 5-2 2a14 14 0 006 6l2-2 5 2v4c0 1-1 2-2 2C10 21 3 14 3 6c0-1 1-2 2-2Z"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
-                </svg>
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M20.52 3.48A11.94 11.94 0 0 0 12.01 0C5.39 0 0 5.39 0 12.01c0 2.12.55 4.19 1.61 6.02L0 24l6.13-1.61A11.99 11.99 0 0 0 12 24h.01C18.63 24 24 18.62 24 12c0-3.2-1.25-6.21-3.48-8.52ZM12 21.97a9.96 9.96 0 0 1-5.08-1.39l-.36-.21-3.77.99 1.01-3.67-.23-.38A9.97 9.97 0 0 1 2.03 12C2.03 6.51 6.51 2.03 12 2.03c2.67 0 5.18 1.04 7.06 2.93A9.9 9.9 0 0 1 21.97 12c0 5.5-4.47 9.97-9.97 9.97Zm5.47-7.47c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61l.45-.52c.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z" />
+    </svg>
               </span>
               <div className="footer-contact-details">
                 <span className="footer-contact-label">{contactPhones.mobile.label}</span>
-                <a href={contactPhones.mobile.telUri} aria-label="Fixoku cep telefonunu ara" data-analytics-placement="footer" data-cta-id="footer-mobile-phone">
+                <a href={`${contactPhones.mobile.whatsappUrl}?text=${encodeURIComponent("Merhaba Fixoku, internet siteniz üzerinden size ulaşıyorum. Eğitimleriniz ve hizmetleriniz hakkında bilgi ve destek almak istiyorum. Yardımcı olabilir misiniz?")}`} target="_blank" rel="noopener noreferrer" aria-label="Fixoku WhatsApp destek hattını aç" data-analytics-placement="footer" data-cta-id="footer-whatsapp">
                   {contactPhones.mobile.display}
                 </a>
               </div>
@@ -222,11 +217,27 @@ function Footer({ showCta = true }) {
               <span>Yenişehir, Konak / İzmir</span>
             </div>
 
-            <div className="footer-contact-note">
-              Pazartesi–Cuma 08:30–19:00, Cumartesi 08:30–13:00 saatleri arasında
-              destek alabilirsiniz.
-            </div>
+            <div className="footer-contact-consent"><button type="button" className="footer-consent-link" onClick={() => window.dispatchEvent(new CustomEvent("fixoku:consent-open"))}>Çerez Tercihleri</button></div>
           </div>
+              )}
+              {indices.map((index) => {
+                const column = footerColumns[index];
+                return (
+                  <div className="footer-links-group" key={column.title}>
+                    <h3>{column.title}</h3>
+                    <ul>
+                      {column.links.map((link) => (
+                        <li key={`${column.title}-${link.to}-${link.label}`}>
+                          <Link to={link.to}>{link.label}</Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+
+            </div>
+          ))}
         </div>
       </div>
 
@@ -241,7 +252,6 @@ function Footer({ showCta = true }) {
           </div>
 
           <div className="footer-bottom-links">
-            <button type="button" className="footer-consent-link" onClick={() => window.dispatchEvent(new CustomEvent("fixoku:consent-open"))}>Çerez Tercihleri</button>
             <Link to="/kvkk-aydinlatma-metni">KVKK</Link>
             <Link to="/satici-bilgileri">Satıcı Bilgileri</Link>
             <Link to="/gizlilik-politikasi">Gizlilik</Link>
@@ -253,7 +263,6 @@ function Footer({ showCta = true }) {
             <Link to="/kullanim-kosullari">Kullanım Koşulları</Link>
             <Link to="/uyelik-sozlesmesi">Üyelik Sözleşmesi</Link>
             <Link to="/musteri-sikayetleri-ve-uyusmazlik">Şikâyet ve Uyuşmazlık</Link>
-            <Link to="/iletisim">İletişim</Link>
           </div>
         </div>
       </div>

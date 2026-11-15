@@ -1,4 +1,15 @@
 import pg from "../../src/server/db/guarded-pg.js";
+import { queueOwnerManagementEmail } from "../../src/server/domain/owner-management-notifications-r390.js";
+async function reportMismatch(pool, orderId, errorCode) {
+  if (process.env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED !== "1") return;
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    await queueOwnerManagementEmail(client,{templateKey:"owner-payment-error",eventId:`${orderId}:${errorCode}`,metadata:{reference:orderId,errorCode,date:new Intl.DateTimeFormat("tr-TR",{timeZone:"Europe/Istanbul",dateStyle:"short",timeStyle:"short"}).format(new Date()),status:"İnceleme gerekiyor"}});
+    await client.query("commit");
+  } catch { await client.query("rollback").catch(()=>{}); console.error("OWNER_PAYMENT_ALERT_QUEUE_FAILED"); }
+  finally {client.release();}
+}
 import { paytrRuntime, verifyPaytrCallback } from "../../src/server/payments/paytr.js";
 import { fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
 import { fulfillTrainerOrder } from "../../src/server/domain/trainer-commerce.js";
@@ -20,8 +31,8 @@ export default async function handler(req, res) {
     if (!order) {
       const trainerOrder = (await pool.query("select total_minor,currency from trainer_package_orders where id=$1 and payment_method='PAYTR'", [payload.merchant_oid])).rows[0];
       if (!trainerOrder) return text(res, 404, "ORDER_NOT_FOUND");
-      if (Number(payload.total_amount) !== Number(trainerOrder.total_minor)) return text(res, 409, "PAYMENT_AMOUNT_MISMATCH");
-      if (String(payload.currency || trainerOrder.currency || "").toUpperCase() !== String(trainerOrder.currency || "").toUpperCase()) return text(res, 409, "PAYMENT_CURRENCY_MISMATCH");
+      if (Number(payload.total_amount) !== Number(trainerOrder.total_minor)) { await reportMismatch(pool,payload.merchant_oid,"PAYMENT_AMOUNT_MISMATCH"); return text(res, 409, "PAYMENT_AMOUNT_MISMATCH"); }
+      if (String(payload.currency || trainerOrder.currency || "").toUpperCase() !== String(trainerOrder.currency || "").toUpperCase()) { await reportMismatch(pool,payload.merchant_oid,"PAYMENT_CURRENCY_MISMATCH"); return text(res, 409, "PAYMENT_CURRENCY_MISMATCH"); }
       const client = await pool.connect();
       try { await fulfillTrainerOrder(client, { orderId: payload.merchant_oid, actorUserId: null, provider: "PAYTR", providerReference: `paytr:${payload.merchant_oid}`, amountMinor: Number(payload.total_amount), currency: payload.currency || trainerOrder.currency, manageTransaction: true }); }
       finally { client.release(); }
@@ -31,7 +42,7 @@ export default async function handler(req, res) {
     // currency field, it must agree with the immutable checkout snapshot;
     // silently ignoring it would allow a signed callback for another
     // currency to reach entitlement fulfilment.
-    if (payload.currency && String(payload.currency).toUpperCase() !== String(order.currency || "").toUpperCase()) return text(res, 409, "PAYMENT_CURRENCY_MISMATCH");
+    if (payload.currency && String(payload.currency).toUpperCase() !== String(order.currency || "").toUpperCase()) { await reportMismatch(pool,payload.merchant_oid,"PAYMENT_CURRENCY_MISMATCH"); return text(res, 409, "PAYMENT_CURRENCY_MISMATCH"); }
     const result = await fulfillSuccessfulPayment(pool, { orderId: payload.merchant_oid, provider: "PAYTR", providerEventId: `paytr:${payload.merchant_oid}`, amountMinor: Number(payload.total_amount), currency: order.currency });
     return text(res, 200, result.replay ? "OK" : "OK");
   } catch (error) { return text(res, error.status || 409, error.code || "CALLBACK_FAILED"); } finally { await pool.end(); }

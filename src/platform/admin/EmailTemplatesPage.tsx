@@ -11,7 +11,7 @@ type Revision = { revisionId?: string; revisionNumber?: number; status?: string;
 type TemplateRecord = { templateKey: string; displayName: string; category: string; active: boolean; revisionId?: string; revisionNumber?: number; revisionStatus?: string; subject: string; htmlBody: string; textBody: string; variableAllowlist?: string[]; draft?: Revision | null; history?: Revision[] };
 
 function categoryLabel(value: string) {
-  const labels: Record<string, string> = { ACCOUNT: "Hesap", COMMERCE: "Ticaret", TRAINER: "Eğitmen", SHIPPING: "Kargo", APPLICATION: "Başvuru", MARKETING: "Pazarlama", SUPPORT: "Destek" };
+  const labels: Record<string, string> = { OWNER: "Owner Yönetim Bildirimleri", ACCOUNT: "Hesap", COMMERCE: "Ticaret", TRAINER: "Eğitmen", SHIPPING: "Kargo", APPLICATION: "Başvuru", MARKETING: "Pazarlama", SUPPORT: "Destek" };
   return labels[value] || value;
 }
 function fallbackRecords(): TemplateRecord[] {

@@ -373,7 +373,7 @@ check(
     homeFooterText.includes(contactPhones.mobile.display) &&
     homeFooterText.includes(contactPhones.office.label) &&
     homeFooterText.includes(contactPhones.office.display) &&
-    homeFooterHrefs.filter((href) => href === contactPhones.mobile.telUri).length === 1 &&
+    homeFooterHrefs.filter((href) => href.startsWith(contactPhones.mobile.whatsappUrl + "?text=")).length === 1 &&
     homeFooterHrefs.filter((href) => href === contactPhones.office.telUri).length === 1 &&
     !homeFooterHrefs.some((href) => href.includes("wa.me/902324620743")),
   "Rendered footer cep/WhatsApp ve ofis telefonlarını doğru tel URI'leriyle ayırt ediyor.",

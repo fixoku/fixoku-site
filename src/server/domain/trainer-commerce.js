@@ -1,3 +1,5 @@
+import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
+import { queueOwnerOrderEvent } from "./owner-order-notifications-r390.js";
 /* global process */
 import { legalSnapshotRows, readPublishedLegalDocuments, trainerLegalAcceptance } from "./trainer-legal-documents.js";
 import crypto from "node:crypto";
@@ -297,6 +299,11 @@ export async function fulfillTrainerOrder(client, { orderId, actorUserId, provid
       dedupeKey: `owner-trainer-payment-approved:${order.id}`,
       emailSubject: "Eğitmen ödemesi onaylandı",
     });
+    await queueOwnerOrderEvent(client,{kind:"trainer",orderId:order.id,event:"sale"});
+    if (process.env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED === "1" && physicalItems.length && shipment?.id && ["PAYTR","BANK_TRANSFER"].includes(provider)) {
+      const address = typeof order.shipping_address_snapshot_json === "string" ? JSON.parse(order.shipping_address_snapshot_json) : order.shipping_address_snapshot_json;
+      await queueOwnerManagementEmail(client,{templateKey:"owner-shipment",eventId:`trainer:${shipment.id}`,metadata:{reference:order.id,personName:[address?.firstName,address?.lastName].filter(Boolean).join(" "),city:[address?.city,address?.district].filter(Boolean).join(" / "),phone:address?.phone,date:new Intl.DateTimeFormat("tr-TR",{timeZone:"Europe/Istanbul",dateStyle:"short",timeStyle:"short"}).format(new Date()),shipping:new Intl.NumberFormat("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(order.shipping_minor)/100)+" ₺",status:"Hazırlanmayı bekliyor",items:physicalItems.map(p=>({name:p.title_snapshot,quantity:Number(p.quantity),amount:""}))}});
+    }
     if (manageTransaction) await client.query("commit"); return { replay: false, orderStatus: "PAID" };
   } catch (error) { if (manageTransaction) await client.query("rollback"); throw error; }
 }

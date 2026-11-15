@@ -1,5 +1,6 @@
 /* Fixoku public contact email endpoint. Disabled until server SMTP and Turnstile are configured. */
 import nodemailer from "nodemailer";
+import { queueAcceptedPublicOwnerEmail } from "../../src/server/domain/owner-public-notifications-r391.js";
 import { getSmtpConfig } from "../../src/server/domain/email-outbox.js";
 import { cleanPreviewGateResponse } from "../../src/server/auth/preview-contract.js";
 
@@ -111,6 +112,7 @@ export default async function handler(req, res) {
     const accepted = Array.isArray(mailInfo?.accepted) && mailInfo.accepted.some((v) => String(v).toLowerCase() === RECIPIENT);
     const rejected = Array.isArray(mailInfo?.rejected) && mailInfo.rejected.some((v) => String(v).toLowerCase() === RECIPIENT);
     if (!accepted || rejected) return json(res, 502, { ok: false, error: "MAIL_NOT_CONFIRMED" });
+    await queueAcceptedPublicOwnerEmail("owner-contact",{personName:safeText(fullName),email:safeText(email),phone,messageSummary:safeText(message).slice(0,500)},mailInfo?.messageId);
     return json(res, 200, { ok: true, status: "SMTP_ACCEPTED" });
   } catch {
     return json(res, 502, { ok: false, error: "SMTP_OUTCOME_UNKNOWN" });

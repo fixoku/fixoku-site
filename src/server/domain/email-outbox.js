@@ -86,7 +86,7 @@ export async function processOutboxBatch({ client, env = process.env, transportF
   const transport = transportFactory(smtp.transport);
   let processed = 0;
   for (let index = 0; index < limit; index += 1) {
-    const claimed = (await client.query(`update notification_email_outbox set status='PROCESSING',attempt_count=attempt_count+1,processing_started_at=$1,last_error=null where id=(select id from notification_email_outbox where ${ownerOnly ? ownerScope : "(dedupe_key is null or dedupe_key not like 'owner-management:%') and "}(status in ('QUEUED','RETRYABLE') and (next_attempt_at is null or next_attempt_at<= $1) ${ownerOnly ? "" : "or status='PROCESSING' and processing_started_at < $1 - interval '15 minutes'"}) order by created_at for update skip locked limit 1) returning *`, [now()])).rows[0];
+    const claimed = (await client.query(`update notification_email_outbox set status='PROCESSING',attempt_count=attempt_count+1,processing_started_at=$1,last_error=null where id=(select id from notification_email_outbox where ${ownerOnly ? ownerScope : "(dedupe_key is null or dedupe_key not like 'owner-management:%') and "}(status in ('QUEUED','RETRYABLE') and (next_attempt_at is null or next_attempt_at<= $1) ${ownerOnly ? "" : "or status='PROCESSING' and processing_started_at < $1::timestamptz - interval '15 minutes'"}) order by created_at for update skip locked limit 1) returning *`, [now()])).rows[0];
     if (!claimed) break;
     processed += 1;
     try {

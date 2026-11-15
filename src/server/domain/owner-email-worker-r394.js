@@ -129,7 +129,7 @@ export async function runOwnerEmailWorker({
     and lower(recipient_email)='ersinusta@fixoku.com'
     and (
       (status='PROCESSING'
-        and processing_started_at < $1 - interval '15 minutes')
+        and processing_started_at < $1::timestamptz - interval '15 minutes')
       or (
         status='FAILED'
         and last_error like 'OWNER_DELIVERY_REVIEW_REQUIRED:%'

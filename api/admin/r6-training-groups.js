@@ -79,11 +79,19 @@ async function assertParticipantEntitlements(client, input) {
     const owned = (await client.query(`
       select 1
       from package_entitlements pe
+      left join student_profiles sp
+        on sp.id=$5::uuid
+        and sp.user_id=pe.beneficiary_student_user_id
+        and sp.status='ACTIVE'
+      left join r6_student_child_profiles c
+        on c.id=$2::uuid
+        and c.owner_user_id=pe.beneficiary_student_user_id
+        and c.status='ACTIVE'
       join package_components pc on pc.package_version_id=pe.package_version_id and pc.is_active=true
       join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id)
         and ($3::uuid is null or pp.id=$3) and pp.r6_product_type='TRAINING_SERVICE' and pp.service_mode='GROUP'
       and pe.revoked_at is null
-      and exists (select 1 from r6_product_stage_scopes r395s where r395s.physical_product_id=pp.id and r395s.education_stage=coalesce(c.education_stage,sp.education_stage)) and pp.service_type=$6
+      and exists (select 1 from r6_product_stage_scopes r395s where r395s.physical_product_id=pp.id and r395s.education_stage=$7 and r395s.education_stage=coalesce(c.education_stage,sp.education_stage)) and pp.service_type=$6
       where pe.package_version_id=$4
         and pe.beneficiary_student_user_id=$1
         and pe.status='ACTIVE' and pe.revoked_at is null
@@ -94,7 +102,7 @@ async function assertParticipantEntitlements(client, input) {
             and (pe.beneficiary_student_profile_id is null or pe.beneficiary_student_profile_id=$5))
         )
       limit 1
-    `, [participant.studentUserId, participant.childProfileId || null, input.trainingProductId || null, input.packageVersionId, participant.studentProfileId || null, input.trainingType])).rows[0];
+    `, [participant.studentUserId, participant.childProfileId || null, input.trainingProductId || null, input.packageVersionId, participant.studentProfileId || null, input.trainingType, input.educationStage])).rows[0];
     if (!owned) throw Object.assign(new Error("R6_PARTICIPANT_ENTITLEMENT_REQUIRED"), { status: 409 });
   }
 }

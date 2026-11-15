@@ -24,3 +24,122 @@
 .admin-panel.assignment-center .assignment-candidate-copy {min-width:0;overflow-wrap:anywhere;}
 .admin-panel.assignment-center .assignment-pay-r389 {padding:16px!important;border:1px solid #e2e8f0;border-radius:14px;}
 @media(max-width:760px){.admin-panel.training-groups-center .group-assignment-builder-v20{padding:14px!important;}.admin-panel.training-groups-center .group-assignment-context-grid{grid-template-columns:minmax(0,1fr)!important;}.admin-panel.assignment-center .assignment-workspace{display:grid!important;grid-template-columns:minmax(0,1fr)!important;}.admin-panel.assignment-center .assignment-pay-row-r389{flex-wrap:wrap;}.admin-panel.training-groups-center .group-trainer-card{grid-template-columns:20px 64px minmax(0,1fr)!important;}}
+
+
+/* R395K compact assignment controls */
+
+.admin-panel.training-groups-center .group-assignment-builder-v20 {
+    gap:14px!important;
+    padding:20px!important;
+}
+
+.admin-panel.training-groups-center .group-assignment-context-grid {
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:10px!important;
+}
+
+.admin-panel.training-groups-center .group-assignment-context-card {
+    min-height:84px!important;
+    height:auto!important;
+    padding:12px!important;
+}
+
+.admin-panel.training-groups-center .r395-pay {
+    display:grid!important;
+    grid-template-columns:180px 190px!important;
+    justify-content:start!important;
+    align-items:end!important;
+    gap:8px 12px!important;
+    padding:14px!important;
+    margin:0!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+}
+
+.admin-panel.training-groups-center .r395-pay h3 {
+    grid-column:1/-1!important;
+    margin:0!important;
+    font-size:15px!important;
+}
+
+.admin-panel.training-groups-center .r395-pay .assignment-compensation-field {
+    width:180px!important;
+    max-width:100%!important;
+    padding:0!important;
+    margin:0!important;
+}
+
+.admin-panel.training-groups-center .r395-money {
+    display:flex!important;
+    align-items:center!important;
+    width:180px!important;
+    max-width:100%!important;
+    height:42px!important;
+    box-sizing:border-box!important;
+}
+
+.admin-panel.training-groups-center .r395-money input {
+    flex:1 1 0!important;
+    min-width:0!important;
+    width:0!important;
+    height:40px!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:8px 10px!important;
+    box-sizing:border-box!important;
+}
+
+.admin-panel.training-groups-center .r395-money span {
+    flex:0 0 24px!important;
+    text-align:center!important;
+}
+
+.admin-panel.training-groups-center .r395-pay .group-assignment-submit {
+    width:190px!important;
+    max-width:100%!important;
+    height:42px!important;
+    min-height:42px!important;
+    margin:0!important;
+    padding:0 12px!important;
+    position:static!important;
+    transform:none!important;
+    font-size:13px!important;
+    box-sizing:border-box!important;
+}
+
+.admin-panel.assignment-center .assignment-pay-row-r389 {
+    display:flex!important;
+    align-items:center!important;
+    flex-wrap:wrap!important;
+    gap:10px!important;
+}
+
+.admin-panel.assignment-center .assignment-money-r389 {
+    width:160px!important;
+    flex:0 1 160px!important;
+    max-width:100%!important;
+}
+
+.admin-panel.assignment-center .assignment-pay-row-r389 button {
+    width:auto!important;
+    min-height:42px!important;
+    height:42px!important;
+    flex:0 0 auto!important;
+    margin:0!important;
+}
+
+@media(max-width:1100px) {
+    .admin-panel.training-groups-center .group-assignment-context-grid {
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    }
+}
+
+@media(max-width:600px) {
+    .admin-panel.training-groups-center .group-assignment-context-grid {
+        grid-template-columns:minmax(0,1fr)!important;
+    }
+
+    .admin-panel.training-groups-center .r395-pay {
+        grid-template-columns:minmax(0,1fr)!important;
+    }
+}

@@ -384,6 +384,63 @@ export function createStagingRuntimeDiagnosticHandler({
     if (pooled.branchId !== direct.branchId) return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH" });
     if (pooled.database !== direct.database) return json(res, 503, { error: "RUNTIME_DATABASE_MISMATCH" });
 
+    // SMTP_RUNTIME_R391V
+    if (
+      env.VERCEL_GIT_COMMIT_REF === "codex/fixoku-staging-acceptance-20261113" &&
+      header(req, "x-fixoku-smtp-check") === "1"
+    ) {
+      const { getSmtpConfig, getEmailTransportStatus } =
+        await import("../../src/server/domain/email-outbox.js");
+
+      const current = getEmailTransportStatus(env);
+      const smtp = getSmtpConfig({
+        ...env,
+        EMAIL_PROVIDER: "SMTP",
+        EMAIL_TEST_MODE: "0"
+      });
+
+      const result = {
+        mode: current.mode,
+        configured: Boolean(smtp),
+        connected: false,
+        passwordPresent: Boolean(env.SMTP_PASS || env.SMTP_PASSWORD),
+        mailFromPresent: Boolean(env.MAIL_FROM),
+        smtpFromPresent: Boolean(env.SMTP_FROM),
+        ownerRecipientCorrect:
+          env.FIXOKU_OWNER_NOTIFICATION_EMAIL === "ersinusta@fixoku.com",
+        ownerNotificationsEnabled:
+          env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED === "1",
+        dailySummaryEnabled:
+          env.FIXOKU_OWNER_DAILY_SUMMARY_ENABLED === "1",
+        emailSent: false
+      };
+
+      if (smtp) {
+        let transport;
+        try {
+          const { default: nodemailer } = await import("nodemailer");
+          transport = nodemailer.createTransport({
+            ...smtp.transport,
+            connectionTimeout: 8000,
+            greetingTimeout: 8000,
+            socketTimeout: 10000
+          });
+          result.connected = await transport.verify() === true;
+        } catch {
+          result.error = "SMTP_VERIFY_FAILED";
+        } finally {
+          transport?.close();
+        }
+      }
+
+      return json(res, 200, {
+        ok: result.connected,
+        environment: "preview",
+        smtp: result
+      });
+    }
+
+
     return json(res, 200, {
       ok: true,
       environment: "preview",

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { EMAIL_TEMPLATE_COUNT, renderEmail, renderEmailForEvent } from "../src/server/domain/email-renderer.js";
 import { getSmtpConfig, processOutboxBatch } from "../src/server/domain/email-outbox.js";
 
-assert.equal(EMAIL_TEMPLATE_COUNT, 28);
+assert.equal(EMAIL_TEMPLATE_COUNT, 44);
 const marketing = renderEmail("marketing-permission-aware", { recipientName: "<em>Demo</em>", body: "İzinli içerik", reference: "R-1", unsubscribePath: "/tercihler" });
 assert.equal(marketing.from, "kampanya@fixoku.com");
 assert.equal(marketing.replyTo, "destek@fixoku.com");

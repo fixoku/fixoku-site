@@ -384,6 +384,84 @@ export function createStagingRuntimeDiagnosticHandler({
     if (pooled.branchId !== direct.branchId) return json(res, 503, { error: "RUNTIME_NEON_BRANCH_MISMATCH" });
     if (pooled.database !== direct.database) return json(res, 503, { error: "RUNTIME_DATABASE_MISMATCH" });
 
+    // OWNER_WORKER_R394C
+    if (header(req, "x-fixoku-owner-worker") === "1") {
+      if (
+        env.VERCEL_ENV !== "preview" ||
+        env.VERCEL_GIT_COMMIT_REF !== "codex/fixoku-staging-acceptance-20261113" ||
+        !tokenAuthorized ||
+        header(req, "x-fixoku-smtp-check") === "1"
+      ) {
+        return json(res, 404, { error: "OWNER_WORKER_NOT_FOUND" });
+      }
+
+      if (
+        env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED !== "1" ||
+        env.FIXOKU_OWNER_EMAIL_WORKER_ENABLED !== "1"
+      ) {
+        return json(res, 503, { error: "OWNER_WORKER_DISABLED" });
+      }
+
+      if (
+        pooled.branchId !== "br-fragrant-grass-b14anzbn" ||
+        direct.branchId !== "br-fragrant-grass-b14anzbn" ||
+        direct.database !== "neondb"
+      ) {
+        return json(res, 503, { error: "OWNER_WORKER_TARGET_BLOCKED" });
+      }
+
+      let workerPool;
+      let workerClient;
+
+      try {
+        const { runOwnerEmailWorker } =
+          await import("../../src/server/domain/owner-email-worker-r394.js");
+
+        const workerUrl = new URL(env.DATABASE_URL_UNPOOLED);
+        workerUrl.searchParams.set("sslmode", "verify-full");
+
+        workerPool = new pg.Pool({
+          connectionString: workerUrl.toString(),
+          max: 1,
+          connectionTimeoutMillis: 5000,
+          statement_timeout: 10000
+        });
+
+        workerClient = await workerPool.connect();
+
+        const target = (await workerClient.query(`
+          select current_database() as db,
+                 current_setting('neon.branch_id', true) as branch
+        `)).rows[0];
+
+        if (
+          target?.db !== "neondb" ||
+          target?.branch !== "br-fragrant-grass-b14anzbn"
+        ) {
+          return json(res, 503, { error: "OWNER_WORKER_DB_BLOCKED" });
+        }
+
+        const result = await runOwnerEmailWorker({
+          client: workerClient,
+          env
+        });
+
+        console.info("FIXOKU_OWNER_WORKER", JSON.stringify(result));
+
+        return json(res, 200, {
+          ok: result.status === "PROCESSED",
+          environment: "preview",
+          ownerWorker: result
+        });
+
+      } catch {
+        return json(res, 503, { error: "OWNER_WORKER_EXECUTION_FAILED" });
+      } finally {
+        workerClient?.release();
+        if (workerPool) await workerPool.end();
+      }
+    }
+
     // SMTP_RUNTIME_R391V
     if (
       env.VERCEL_GIT_COMMIT_REF === "codex/fixoku-staging-acceptance-20261113" &&

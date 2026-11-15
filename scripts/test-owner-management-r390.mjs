@@ -6,7 +6,7 @@ console.log('R390C_OFFLINE_CONTRACT_PASS');
 
 const enabled={FIXOKU_OWNER_NOTIFICATIONS_ENABLED:'1',FIXOKU_OWNER_NOTIFICATION_EMAIL:'ersinusta@fixoku.com'};
 let queries=0;
-const probe={async query(sql,params){queries++;assert.equal(params[0],'ersinusta@fixoku.com');return {rows:[]};}};
+const probe={async query(sql,params){queries++;assert.equal(params[0],'ersin@fixoku.com');return {rows:[]};}};
 await assert.rejects(queueOwnerManagementEmail(probe,{templateKey:'owner-student-registration',eventId:'test-id',metadata:{personName:'Test'}},enabled),/NOT_UNIQUE_VERIFIED_OWNER/);
 assert.equal(queries,1);
 await assert.rejects(queueOwnerManagementEmail(noDb,{}, {...enabled,FIXOKU_OWNER_NOTIFICATION_EMAIL:'ersin@fixoku.com'}),/NOT_APPROVED/);

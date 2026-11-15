@@ -426,8 +426,11 @@ export function createStagingRuntimeDiagnosticHandler({
             socketTimeout: 10000
           });
           result.connected = await transport.verify() === true;
-        } catch {
+        } catch (error) {
           result.error = "SMTP_VERIFY_FAILED";
+          result.errorCode = /^[A-Z0-9_]+$/.test(String(error?.code || ""))
+            ? String(error.code) : "UNKNOWN";
+          result.responseCode = Number(error?.responseCode) || null;
         } finally {
           transport?.close();
         }

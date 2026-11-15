@@ -1,3 +1,4 @@
+import { getProfileMediaConfig, readProfilePhoto } from "../../src/server/domain/profile-media.js";
 import crypto from "node:crypto";
 import pg from "pg";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
@@ -80,7 +81,9 @@ async function assertParticipantEntitlements(client, input) {
       from package_entitlements pe
       join package_components pc on pc.package_version_id=pe.package_version_id and pc.is_active=true
       join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id)
-        and ($3::uuid is null or pp.id=$3) and pp.r6_product_type='TRAINING_SERVICE' and pp.service_mode='GROUP' and pp.service_type=$6
+        and ($3::uuid is null or pp.id=$3) and pp.r6_product_type='TRAINING_SERVICE' and pp.service_mode='GROUP'
+      and pe.revoked_at is null
+      and exists (select 1 from r6_product_stage_scopes r395s where r395s.physical_product_id=pp.id and r395s.education_stage=coalesce(c.education_stage,sp.education_stage)) and pp.service_type=$6
       where pe.package_version_id=$4
         and pe.beneficiary_student_user_id=$1
         and pe.status='ACTIVE' and pe.revoked_at is null
@@ -214,6 +217,17 @@ export default async function handler(req, res) {
   try {
     if (req.method === "GET") {
       const parsed = new URL(req.url || "http://local", "http://local");
+      if (parsed.searchParams.has("trainerPhoto")) {
+        if (manageDenied) return json(res, manageDenied.status, manageDenied.body);
+        if (!principal.memberships?.some(m=>m.role==="OWNER" && m.status==="ACTIVE" && m.scopeType==="GLOBAL" && m.scopeId==null && String(m.userId)===String(principal.user.id))) return json(res,403,{error:"OWNER_ONLY"});
+        const id=parsed.searchParams.get("trainerPhoto");
+        if (!isUuid(id)) return json(res,400,{error:"INVALID_TRAINER_ID"});
+        const row=(await client.query(`select tp.photo_storage_key as key from trainer_profiles tp where tp.user_id=$1 and exists(select 1 from platform_memberships m where m.user_id=tp.user_id and m.role='TRAINER' and m.status='ACTIVE' and m.scope_type='TRAINER' and m.scope_id=m.user_id)`,[id])).rows[0];
+        if (!row?.key) return json(res,404,{error:"PHOTO_NOT_FOUND"});
+        const media=await readProfilePhoto(getProfileMediaConfig(),row.key);
+        if (!media || !["image/jpeg","image/png","image/webp","image/gif"].includes(media.mime)) return json(res,404,{error:"PHOTO_NOT_FOUND"});
+        res.statusCode=200;res.setHeader("Content-Type",media.mime);res.setHeader("Cache-Control","private, no-store");res.setHeader("X-Content-Type-Options","nosniff");res.end(media.buffer);return;
+      }
       const requestedTrainer = parsed.searchParams.get("trainerUserId") || null;
       if (manageDenied && requestedTrainer && String(requestedTrainer) !== String(principal.user.id)) return json(res, 403, { error: "R6_GROUP_SCOPE_DENIED" });
       return json(res, 200, { groups: await readGroups(client, { trainerUserId: manageDenied ? principal.user.id : requestedTrainer }), candidates: manageDenied ? [] : await readGroupAssignmentCandidatesV22(client) });

@@ -80,7 +80,11 @@ export default async function handler(req,res){
          or ($1::uuid is null and exists(select 1 from trainer_qualifications q where q.trainer_user_id=u.id and q.training_program_id=$2 and q.status='ACTIVE' and q.valid_from<=now() and (q.valid_until is null or q.valid_until>now()))))
          and (not $3::boolean or exists(select 1 from availability_slots s where s.trainer_user_id=u.id and s.status='OPEN' and s.starts_at>now())) order by u.display_name`,[required?.id||null,requestRow.trainingProgramId,availabilityOnly,required?.title||"Aktif uzmanlık"])).rows;
       if(parsed.searchParams.has("trainerPhoto")) {
-        const candidate=candidates.find(x=>x.id===parsed.searchParams.get("trainerPhoto"));
+        const requestedPhotoId=parsed.searchParams.get("trainerPhoto");
+        let candidate=candidates.find(x=>x.id===requestedPhotoId);
+        if (!candidate && currentAssignment?.trainerUserId===requestedPhotoId) {
+          candidate=(await c.query('select photo_storage_key as "photoStorageKey" from trainer_profiles where user_id=$1',[requestedPhotoId])).rows[0];
+        }
         if(!candidate?.photoStorageKey)return json(res,404,{error:"PHOTO_NOT_FOUND"});
         const media=await readProfilePhoto(getProfileMediaConfig(),candidate.photoStorageKey);
         if(!media || !["image/jpeg","image/png","image/webp","image/gif"].includes(media.mime))return json(res,404,{error:"PHOTO_NOT_FOUND"});

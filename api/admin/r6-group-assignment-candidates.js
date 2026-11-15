@@ -86,6 +86,8 @@ export default async function handler(req, res) {
             and (pe.source_type='OWNER_MANUAL' or exists (select 1 from orders o where o.id=pe.source_order_id and o.status in ('PAID','PARTIALLY_REFUNDED')))
             and pp.r6_product_type = 'TRAINING_SERVICE'
             and pp.service_mode = 'GROUP'
+      and pe.revoked_at is null
+      and exists (select 1 from r6_product_stage_scopes r395s where r395s.physical_product_id=pp.id and r395s.education_stage=coalesce(c.education_stage,sp.education_stage))
             and not exists (
               select 1
               from r6_training_group_participants rgp

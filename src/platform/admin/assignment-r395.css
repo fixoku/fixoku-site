@@ -1,0 +1,26 @@
+/* R395: scoped assignment layouts */
+.admin-panel.training-groups-center .group-assignment-builder-v20 {display:flex!important;flex-direction:column!important;gap:20px!important;padding:24px!important;min-width:0;}
+.admin-panel.training-groups-center .group-assignment-step {display:grid!important;grid-template-columns:32px minmax(0,1fr)!important;gap:12px!important;align-items:start!important;}
+.admin-panel.training-groups-center .group-assignment-step-body {min-width:0;width:100%;}
+.admin-panel.training-groups-center .group-assignment-student-select {display:flex!important;flex-direction:column;gap:8px;width:100%!important;}
+.admin-panel.training-groups-center .group-assignment-student-select select {width:100%!important;min-width:0;min-height:48px;}
+.admin-panel.training-groups-center .group-assignment-context-grid {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;}
+.admin-panel.training-groups-center .group-assignment-context-card {min-width:0!important;height:100%;padding:14px!important;overflow-wrap:anywhere;}
+.admin-panel.training-groups-center .group-trainer-card-grid {display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;width:100%!important;}
+.admin-panel.training-groups-center .group-trainer-card {display:grid!important;grid-template-columns:24px 64px minmax(0,1fr)!important;align-items:center!important;gap:12px!important;width:100%!important;min-width:0!important;padding:14px!important;min-height:92px!important;cursor:pointer;}
+.admin-panel.training-groups-center .group-trainer-card.is-selected {border-color:#e96b17!important;box-shadow:0 0 0 1px #e96b17!important;}
+.admin-panel.training-groups-center .group-trainer-copy {min-width:0;overflow-wrap:anywhere;}
+.admin-panel .r395-avatar {display:inline-flex!important;align-items:center;justify-content:center;flex-shrink:0;width:64px!important;height:64px!important;overflow:hidden;border-radius:50%;background:#fff3e8;color:#a74608;}
+.admin-panel .r395-avatar img {display:block;width:100%!important;height:100%!important;object-fit:cover!important;}
+.admin-panel .r395-pay {display:grid;gap:12px;padding:18px;border:1px solid #e2e8f0;border-radius:14px;}
+.admin-panel .r395-pay h3 {margin:0;font-size:17px;}
+.admin-panel .r395-pay .assignment-compensation-field {display:grid!important;gap:8px;width:100%!important;}
+.admin-panel .r395-money {display:flex;align-items:center;border:1px solid #cbd5e1;border-radius:10px;padding-right:14px;overflow:hidden;}
+.admin-panel .r395-money input {width:100%!important;min-width:0;border:0!important;min-height:48px;}
+.admin-panel .r395-pay .group-assignment-submit {width:100%!important;min-height:48px;}
+.admin-panel.training-groups-center .active-group-card-grid {display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))!important;gap:16px!important;}
+.admin-panel.assignment-center .assignment-candidate-list {display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px;}
+.admin-panel.assignment-center .assignment-candidate-main {min-width:0;display:flex!important;align-items:center;gap:12px;}
+.admin-panel.assignment-center .assignment-candidate-copy {min-width:0;overflow-wrap:anywhere;}
+.admin-panel.assignment-center .assignment-pay-r389 {padding:16px!important;border:1px solid #e2e8f0;border-radius:14px;}
+@media(max-width:760px){.admin-panel.training-groups-center .group-assignment-builder-v20{padding:14px!important;}.admin-panel.training-groups-center .group-assignment-context-grid{grid-template-columns:minmax(0,1fr)!important;}.admin-panel.assignment-center .assignment-workspace{display:grid!important;grid-template-columns:minmax(0,1fr)!important;}.admin-panel.assignment-center .assignment-pay-row-r389{flex-wrap:wrap;}.admin-panel.training-groups-center .group-trainer-card{grid-template-columns:20px 64px minmax(0,1fr)!important;}}

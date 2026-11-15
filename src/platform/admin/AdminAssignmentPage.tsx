@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./admin-panel.css";
+import "./assignment-r395.css";
+import { AssignmentAvatar, assignmentError } from "./AssignmentAvatarR395";
 
 type RequestRow = { id: string; studentName: string; programTitle: string; status: string; trainerName?: string | null; trainerUserId?: string | null };
 type Candidate = { id: string; name: string; email?: string; city: string | null; qualification: string; workload: number; hasFutureAvailability: boolean; photoUrl?: string | null; photoStorageKey?: string | null };
-const assignmentTrainerAvatar = (candidate: Candidate) => {
-  if (candidate.photoUrl) return candidate.photoUrl;
-  const key = candidate.name.normalize("NFD").replace(/\p{M}/gu, "").replace(/ı/gu, "i").toLocaleLowerCase("tr-TR").replace(/[^a-z0-9 ]/gu, " ").replace(/\s+/gu, " ").trim();
-  return ({ "elif usta": "/images/profiles/elif.jpg", "ozlem kaplan": "/images/profiles/ozlem.jpg" } as Record<string, string>)[key] || null;
-};
 const statusLabel = (status: string) => ({ PENDING: "Bekliyor", ASSIGNED: "Atandı", CANCELLED: "İptal edildi" }[status] || "Durum bilinmiyor");
 const historyLabel = (eventType: string) => ({ ASSIGNED: "Atandı", REASSIGNED_IN: "Yeni eğitmen atandı", REASSIGNED_OUT: "Önceki eğitmen çıkarıldı" }[eventType] || "Atama geçmişi");
 
@@ -36,7 +33,7 @@ export function AdminAssignmentPage() {
 
   const load = async () => { const r = await fetch("/api/admin/assignment-requests?includeAssigned=true", { credentials: "same-origin" }); const b = await r.json(); setRows(b.requests || []); };
   useEffect(() => { void load(); }, []);
-  const open = async (row: RequestRow) => { setSelected(row); setAmount(""); setFree(false); setFreeReason(""); setCandidates([]); setCurrent(null); setHistory([]); setMessage(""); setTrainerId(""); setShowReassignPicker(false); setReason(""); setCompensationDecision("PRESERVE"); const r = await fetch(`/api/admin/assignment-requests/${row.id}`, { credentials: "same-origin" }); const b = await r.json(); if(!r.ok){setMessage(b.error||"Eğitmen listesi yüklenemedi.");return;} setCandidates(b.candidates || []); setCurrent(b.currentAssignment || null); setHistory(b.history || []); };
+  const open = async (row: RequestRow) => { setSelected(row); setAmount(""); setFree(false); setFreeReason(""); setCandidates([]); setCurrent(null); setHistory([]); setMessage(""); setTrainerId(""); setShowReassignPicker(false); setReason(""); setCompensationDecision("PRESERVE"); const r = await fetch(`/api/admin/assignment-requests/${row.id}`, { credentials: "same-origin" }); const b = await r.json(); if(!r.ok){setMessage(assignmentError(b.error,"Eğitmen listesi yüklenemedi."));return;} setCandidates(b.candidates || []); setCurrent(b.currentAssignment || null); setHistory(b.history || []); };
   const filtered = useMemo(() => candidates, [candidates]);
   const currentTrainerCandidate = useMemo(
     () => current ? candidates.find((candidate) => candidate.id === current.trainerUserId) || null : null,
@@ -47,7 +44,7 @@ export function AdminAssignmentPage() {
     const searchOk = !term || `${row.studentName} ${row.programTitle} ${row.trainerName || ""}`.toLocaleLowerCase("tr-TR").includes(term);
     return searchOk && row.status === queueTab;
   }), [rows, search, queueTab]);
-  const assign = async () => { if (!selected || !trainerId || (free ? !freeReason.trim() : !amountValid)) return; const isReassign = Boolean(current); if (isReassign && !reason.trim()) { setMessage("Değişiklik gerekçesi zorunludur."); return; } const r = await fetch(`/api/admin/assignment-requests/${selected.id}`, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ trainerId, compensationMinor:free?0:Math.round(Number(amount)*100), freeAssignment:free, ...(free?{freeReason:freeReason.trim()}:{}), ...(isReassign ? { reassign: true, reassignmentReason: reason.trim(), compensationDecision } : {}) }) }); const b = await r.json(); if (!r.ok) { setMessage(b.error || "Atama yapılamadı"); return; } setMessage(isReassign ? "Eğitmen değişikliği kaydedildi." : "Eğitmen ataması kaydedildi."); await load(); setSelected(null); setTrainerId(""); };
+  const assign = async () => { if (!selected || !trainerId || (free ? !freeReason.trim() : !amountValid)) return; const isReassign = Boolean(current); if (isReassign && !reason.trim()) { setMessage("Değişiklik gerekçesi zorunludur."); return; } const r = await fetch(`/api/admin/assignment-requests/${selected.id}`, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ trainerId, compensationMinor:free?0:Math.round(Number(amount)*100), freeAssignment:free, ...(free?{freeReason:freeReason.trim()}:{}), ...(isReassign ? { reassign: true, reassignmentReason: reason.trim(), compensationDecision } : {}) }) }); const b = await r.json(); if (!r.ok) { setMessage(assignmentError(b.error,"Atama yapılamadı. Bilgileri kontrol edin.")); return; } setMessage(isReassign ? "Eğitmen değişikliği kaydedildi." : "Eğitmen ataması kaydedildi."); await load(); setSelected(null); setTrainerId(""); };
 
   const pendingCount = rows.filter((row) => row.status === "PENDING").length;
   const assignedCount = rows.filter((row) => row.status === "ASSIGNED").length;
@@ -158,15 +155,7 @@ export function AdminAssignmentPage() {
             </div>{history.length > 0 && <details className="assignment-history"><summary>Atama geçmişini göster ({history.length})</summary><ul>{history.map((item) => <li key={item.id}>{historyLabel(item.eventType)} · {item.trainerName}{item.reason ? ` · ${item.reason}` : ""}{item.occurredAt ? ` · ${new Date(item.occurredAt).toLocaleString("tr-TR")}` : ""}</li>)}</ul></details>}{current && !showReassignPicker ? (
   <section className="assignment-current-trainer-card assignment-current-trainer-card-v23">
               <div className="assignment-current-trainer-layout">
-                <span className="assignment-current-avatar" aria-hidden="true">
-                  {current.trainerName?.toLocaleLowerCase("tr-TR") === "elif usta" ? (
-                    <img src="/images/profiles/elif.jpg" alt="" />
-                  ) : current.trainerName?.toLocaleLowerCase("tr-TR") === "özlem kaplan" ? (
-                    <img src="/images/profiles/ozlem.jpg" alt="" />
-                  ) : (
-                    <b>{(current.trainerName || "E").split(/\s+/u).map((part: string) => part[0]).join("").slice(0, 2)}</b>
-                  )}
-                </span>
+                <AssignmentAvatar className="assignment-current-avatar" name={current.trainerName || "Eğitmen"} src={`/api/admin/assignment-requests/${selected.id}?trainerPhoto=${encodeURIComponent(current.trainerUserId)}`}/>
 
                 <div className="assignment-current-trainer-copy-v23">
                   <span className="assignment-current-eyebrow">MEVCUT EĞİTMEN</span>
@@ -216,7 +205,7 @@ export function AdminAssignmentPage() {
       <div><h3>{givenName(selected.studentName)} için Eğitmen seçin</h3></div>
       {current && <button type="button" className="assignment-cancel-change" onClick={() => { setShowReassignPicker(false); setTrainerId(""); setReason(""); }}>Vazgeç</button>}
     </div>
-    <div className="assignment-candidate-list">{filtered.filter((candidate) => candidate.id !== current?.trainerUserId).map((candidate) => <label className={trainerId === candidate.id ? "is-selected" : ""} key={candidate.id}><input type="radio" name="trainer" value={candidate.id} checked={trainerId === candidate.id} onChange={(e) => {setTrainerId(e.target.value);setFree(false);setFreeReason("");setAmount("");}} /><div className="assignment-candidate-main"><span className="assignment-candidate-avatar" aria-hidden="true">{(candidate.photoStorageKey || assignmentTrainerAvatar(candidate)) ? <img src={candidate.photoStorageKey ? `/api/admin/assignment-requests/${selected.id}?trainerPhoto=${encodeURIComponent(candidate.id)}` : assignmentTrainerAvatar(candidate)!} alt="" loading="lazy" /> : <b>{candidate.name.split(/\s+/u).map((part) => part[0]).join("").slice(0, 2).toLocaleUpperCase("tr-TR")}</b>}</span><div className="assignment-candidate-copy"><strong>{candidate.name}</strong><span>{candidate.city ? `${candidate.city} · ` : ""}{candidate.qualification || "Yetkinlik kaydı"}</span><small>Aktif eğitim: {candidate.workload}</small></div></div></label>)}</div>
+    <div className="assignment-candidate-list">{filtered.filter((candidate) => candidate.id !== current?.trainerUserId).map((candidate) => <label className={trainerId === candidate.id ? "is-selected" : ""} key={candidate.id}><input type="radio" name="trainer" value={candidate.id} checked={trainerId === candidate.id} onChange={(e) => {setTrainerId(e.target.value);setFree(false);setFreeReason("");setAmount("");}} /><div className="assignment-candidate-main"><AssignmentAvatar className="assignment-candidate-avatar" name={candidate.name} src={candidate.photoStorageKey ? `/api/admin/assignment-requests/${selected.id}?trainerPhoto=${encodeURIComponent(candidate.id)}` : ""}/><div className="assignment-candidate-copy"><strong>{candidate.name}</strong><span>{candidate.city ? `${candidate.city} · ` : ""}{candidate.qualification || "Yetkinlik kaydı"}</span><small>Aktif eğitim: {candidate.workload}</small></div></div></label>)}</div>
     {current && <div className="assignment-reassign-box"><h3>Eğitmen değişikliği</h3><p className="assignment-reassign-helper-v32">Seçtiğiniz eğitmeni atamak için aşağıdaki bilgileri tamamlayın.</p><label>Değişiklik gerekçesi<textarea required maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Değişikliğin nedenini yazın..." /><small className="assignment-reason-counter-v32">{reason.length}/500</small></label><label>Hakediş kararı<select value={compensationDecision} onChange={(e) => setCompensationDecision(e.target.value)}><option value="PRESERVE">Mevcut hakedişi koru</option><option value="ADJUST_PENDING">Düzeltme kararı beklesin</option></select></label></div>}
     <div className="assignment-pay-r389">
       <label htmlFor="assignment-amount-r389">{chosen ? `${givenName(chosen.name)} Öğretmenin hakedişi` : "Eğitmen hakedişi"}</label>

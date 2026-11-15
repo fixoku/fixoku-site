@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./admin-panel.css";
+import "./assignment-r395.css";
+import { AssignmentAvatar, assignmentError } from "./AssignmentAvatarR395";
 const money = (minor: number) => new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format((minor || 0) / 100);
 type Group = any;
 const stageLabel: Record<string, string> = { PRIMARY: "İlkokul", MIDDLE: "Ortaokul", HIGH: "Lise", ADULT: "Yetişkin" };
@@ -27,20 +29,7 @@ export function R6TrainingGroupsPage() {
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
 
-  const trainerAvatar = (trainer: any) => {
-    const name = String(trainer?.displayName || trainer?.name || "")
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "")
-      .replace(/ı/gu, "i")
-      .toLocaleLowerCase("tr-TR")
-      .replace(/[^a-z0-9 ]/gu, " ")
-      .replace(/\s+/gu, " ")
-      .trim();
-
-    if (name === "elif usta") return "/images/profiles/elif.jpg";
-    if (name === "ozlem kaplan") return "/images/profiles/ozlem.jpg";
-    return null;
-  };
+  const trainerAvatar = (trainer: any) => trainer?.id ? `/api/admin/r6-training-groups?trainerPhoto=${encodeURIComponent(trainer.id)}` : "";
 
   const stageLabel = (value: string) =>
     ({ PRIMARY: "İlkokul", MIDDLE: "Ortaokul", HIGH: "Lise", ADULT: "Yetişkin" } as Record<string, string>)[value] || value;
@@ -63,7 +52,7 @@ export function R6TrainingGroupsPage() {
     const gj = await g.json().catch(() => ({}));
     const qj = await q.json().catch(() => ({}));
 
-    if (!g.ok || !q.ok) setMessage(gj.error || qj.error || "Atama verileri yüklenemedi.");
+    if (!g.ok || !q.ok) setMessage(assignmentError(gj.error || qj.error,"Atama verileri yüklenemedi."));
     setGroups(gj.groups || []);
     setTrainers(qj.trainers || []);
     setCandidates(gj.candidates || []);
@@ -188,7 +177,7 @@ export function R6TrainingGroupsPage() {
         R6_TRAINER_QUALIFICATION_REQUIRED: "Seçilen eğitmenin bu eğitim için aktif yetkinliği yok.",
         R6_QUALIFICATION_MISMATCH: "Öğrencinin eğitim paketi ile eğitmen yetkinliği eşleşmiyor.",
       };
-      setMessage(errors[result.error] || result.error || "Grup ataması yapılamadı.");
+      setMessage(errors[result.error] || assignmentError(result.error,"Grup ataması yapılamadı. Bilgileri kontrol edip tekrar deneyin."));
       return;
     }
 
@@ -370,12 +359,6 @@ export function R6TrainingGroupsPage() {
                     const avatar = trainerAvatar(trainer);
                     const capacity = trainerCapacity(trainer.id);
                     const name = trainer.displayName || trainer.name || "Eğitmen";
-                    const initials = String(name)
-                      .split(/\s+/u)
-                      .map((part) => part[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toLocaleUpperCase("tr-TR");
 
                     return (
                       <label className={`group-trainer-card ${trainerId === trainer.id ? "is-selected" : ""}`} key={trainer.id}>
@@ -386,9 +369,7 @@ export function R6TrainingGroupsPage() {
                           checked={trainerId === trainer.id}
                           onChange={(event) => setTrainerId(event.target.value)}
                         />
-                        <span className="group-trainer-avatar" aria-hidden="true">
-                          {avatar ? <img src={avatar} alt="" loading="lazy" /> : <b>{initials}</b>}
-                        </span>
+                        <AssignmentAvatar src={avatar} name={name} className="group-trainer-avatar"/>
                         <span className="group-trainer-copy">
                           <strong>{name}</strong>
                           <small>{selected.requiredQualificationTitle}</small>
@@ -405,15 +386,15 @@ export function R6TrainingGroupsPage() {
               </div>
             </div>
 
-            <label className="assignment-compensation-field">Bu öğrenci için hakediş tutarı (TL)<input type="number" min="0.01" max="21474836.47" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="Tutarı giriniz" /></label>
+            <div className="r395-pay"><h3>3. Hakediş ve atama</h3><label className="assignment-compensation-field">Öğrenci başına hakediş<div className="r395-money"><input type="number" min="0.01" max="21474836.47" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="Tutarı giriniz" /><span>₺</span></div></label>
             <button
               className="assignment-primary-action group-assignment-submit"
               type="button"
               disabled={!trainerId || !amountValid}
               onClick={() => void assign()}
             >
-              Gruba ata
-            </button>
+              Öğrenciyi gruba ata
+            </button></div>
           </>
         )}
       </section>
@@ -443,17 +424,7 @@ export function R6TrainingGroupsPage() {
                   (group.participants || []).filter((participant: any) => participant.status === "ACTIVE").length,
               );
               const max = Number(group.maxStudents || 5);
-              const trainerRecord = trainers.find((trainer: any) => trainer.id === group.trainerUserId);
-              const trainerPhoto =
-                trainerRecord?.photoUrl ||
-                trainerRecord?.avatarUrl ||
-                trainerRecord?.profilePhotoUrl ||
-                trainerRecord?.imageUrl ||
-                (String(group.trainerName || "").toLocaleLowerCase("tr-TR") === "özlem kaplan"
-                  ? "/images/profiles/ozlem.jpg"
-                  : String(group.trainerName || "").toLocaleLowerCase("tr-TR") === "elif usta"
-                    ? "/images/profiles/elif.jpg"
-                    : "");
+              const trainerPhoto = trainerAvatar({id:group.trainerUserId});
               const activeParticipants = (group.participants || []).filter(
                 (participant: any) => participant.status === "ACTIVE",
               );
@@ -472,17 +443,7 @@ export function R6TrainingGroupsPage() {
                   <div className="active-group-meta active-group-trainer-meta">
                     <span>Eğitmen</span>
                     <div className="fixoku-group-trainer-media">
-                      {trainerPhoto ? (
-                        <img
-                          src={trainerPhoto}
-                          alt={group.trainerName || "Eğitmen"}
-                          className="fixoku-group-trainer-avatar"
-                        />
-                      ) : (
-                        <div className="fixoku-group-trainer-avatar is-fallback" aria-hidden="true">
-                          {(group.trainerName || "E").split(/\s+/).slice(0, 2).map((part: string) => part[0] || "").join("").toUpperCase()}
-                        </div>
-                      )}
+                      <AssignmentAvatar src={trainerPhoto} name={group.trainerName || "Eğitmen"} className="fixoku-group-trainer-avatar"/>
                       <div className="fixoku-group-trainer-copy">
                         <strong>{group.trainerName || "Atanmadı"}</strong>
                         <small>{group.requiredQualificationTitle || "Yetkin eğitmen"}</small>

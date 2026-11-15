@@ -59,13 +59,25 @@ export default async function handler(req, res) {
       return json(res, 200, { status: "COMPLETED", replay: true, group, earning: existing });
     }
     if (!["ASSIGNED", "IN_PROGRESS"].includes(group.status)) throw Object.assign(new Error("R6_GROUP_NOT_COMPLETEABLE"), { status: 409 });
-    const participants = (await client.query("select id,status,billable,student_user_id,enrollment_id from r6_training_group_participants where training_group_id=$1 for update", [id])).rows;
+    const participants = (await client.query("select id,status,billable,student_user_id,enrollment_id,compensation_minor,planned_at from r6_training_group_participants where training_group_id=$1 for update", [id])).rows;
     const active = participants.filter((participant) => participant.status === "ACTIVE");
+    if(active.some(p=>
+      !p.planned_at ||
+      !Number.isFinite(Date.parse(p.planned_at)) ||
+      Date.now()-Date.parse(p.planned_at)<21*86400000
+    )){
+      throw Object.assign(
+        new Error("TRAINING_21_DAY_REQUIREMENT"),
+        {status:409}
+      );
+    }
     if (active.length < Number(group.min_students)) throw Object.assign(new Error("R6_GROUP_MINIMUM_NOT_MET"), { status: 409 });
     const billableCount = active.filter((participant) => participant.billable).length;
     if (!group.trainer_user_id) throw Object.assign(new Error("R6_GROUP_TRAINER_REQUIRED"), { status: 409 });
-    const matrix = (await client.query("select training_type,student_count,amount_minor from r6_training_payout_matrix where training_type=$1", [group.training_type])).rows;
-    const amountMinor = billableCount > 0 ? calculateR6PayoutFromMatrix(matrix, group.training_type, billableCount) : 0;
+    const payable=active.filter(p=>p.billable);
+    if(payable.some(p=>!Number.isInteger(p.compensation_minor)||p.compensation_minor<=0)) throw Object.assign(new Error('GROUP_COMPENSATION_MISSING'),{status:409});
+    const amountMinor=payable.reduce((sum,p)=>sum+p.compensation_minor,0);
+    if(amountMinor>2147483647) throw Object.assign(new Error('COMPENSATION_TOTAL_INVALID'),{status:400});
     const completedAt = new Date();
     const bounds = completionMonthBounds(completedAt);
     const earningKey = `R6_GROUP_COMPLETION:${id}`;

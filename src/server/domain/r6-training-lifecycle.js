@@ -33,14 +33,13 @@ export async function refundR6GroupParticipant(client, { groupId, participantId,
     [groupId],
   )).rows[0];
   const billableStudentCount = Number(countRow?.count || 0);
-  const matrix = (await client.query(
-    "select training_type,student_count,amount_minor from r6_training_payout_matrix where training_type=$1",
-    [group.training_type],
-  )).rows;
-  const recalculatedAmountMinor = billableStudentCount > 0
-    ? calculateR6PayoutFromMatrix(matrix, group.training_type, billableStudentCount)
-    : 0;
-
+  const totals=(await client.query("select sum(compensation_minor)::bigint as amount,count(*) filter(where compensation_minor is null)::int as missing from r6_training_group_participants where training_group_id=$1 and status in ('ACTIVE','COMPLETED') and billable=true",[groupId])).rows[0];
+  if(totals.missing) fail('GROUP_COMPENSATION_MISSING',409);
+  const recalculatedAmountMinor=Number(totals.amount||0);
+  if(group.status!=='COMPLETED') {
+    await client.query("update r6_training_groups set projected_payout_minor=$1,updated_at=now() where id=$2",[recalculatedAmountMinor,groupId]);
+    return {participantId:participant.id,groupId,billableStudentCount,recalculatedAmountMinor};
+  }
   const earning = (await client.query(
     "select * from trainer_earning_ledger where source_type='R6_TRAINING_GROUP_COMPLETION' and source_id=$1 order by created_at desc limit 1 for update",
     [groupId],
@@ -50,7 +49,7 @@ export async function refundR6GroupParticipant(client, { groupId, participantId,
   const originalAmountMinor = Number(earning.amount_minor || 0);
   let adjustment = null;
   if (String(earning.status) === "PAID") {
-    const delta = recalculatedAmountMinor - originalAmountMinor;
+    const delta = recalculatedAmountMinor - Number(group.projected_payout_minor);
     if (delta !== 0) {
       const adjustmentKey = `R6_REFUND_ADJUSTMENT:${participant.id}`;
       adjustment = (await client.query(

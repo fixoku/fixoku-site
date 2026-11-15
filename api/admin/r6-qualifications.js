@@ -41,7 +41,7 @@ async function readQualificationProjection(client, trainerUserId = null) {
       coalesce(json_agg(json_build_object(
         'id',g.id,'qualificationId',qd.id,'code',qd.code,'title',qd.title,'serviceType',qd.service_type,
         'educationStage',qd.education_stage,'source',g.source,'sourceRef',g.source_ref,'status',g.status,
-        'validUntil',g.valid_until,'grantedAt',g.granted_at,'revokedAt',g.revoked_at
+        'effective',(${activeGrantPredicate("g")}), 'validUntil',g.valid_until,'grantedAt',g.granted_at,'revokedAt',g.revoked_at
       ) order by qd.code,g.source,g.source_ref) filter (where g.id is not null),'[]'::json) as grants,
       count(distinct g.qualification_id) filter (where qd.code = any($2::text[]) and ${activeGrantPredicate("g")})::int as "activeQualificationCount"
     from platform_users u

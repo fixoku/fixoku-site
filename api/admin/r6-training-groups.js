@@ -216,12 +216,14 @@ export default async function handler(req, res) {
       const parsed = new URL(req.url || "http://local", "http://local");
       const requestedTrainer = parsed.searchParams.get("trainerUserId") || null;
       if (manageDenied && requestedTrainer && String(requestedTrainer) !== String(principal.user.id)) return json(res, 403, { error: "R6_GROUP_SCOPE_DENIED" });
-      return json(res, 200, { groups: await readGroups(client, { trainerUserId: manageDenied ? principal.user.id : requestedTrainer }), candidates: await readGroupAssignmentCandidatesV22(client) });
+      return json(res, 200, { groups: await readGroups(client, { trainerUserId: manageDenied ? principal.user.id : requestedTrainer }), candidates: manageDenied ? [] : await readGroupAssignmentCandidatesV22(client) });
     }
     if (manageDenied) return json(res, manageDenied.status, manageDenied.body);
     let body;
     try { body = await readBody(req); } catch { return json(res, 400, { error: "INVALID_JSON" }); }
+    if(!(principal.memberships?.some(m=>m.role==="OWNER" && m.status==="ACTIVE" && m.scopeType==="GLOBAL" && m.scopeId==null && String(m.userId)===String(principal.user.id)))) return json(res,403,{error:"OWNER_ONLY"});
     const input = normalizeR6GroupInput(body);
+    if(input.participants.some(p=>!Number.isInteger(p.compensationMinor)||p.compensationMinor<=0||p.compensationMinor>2147483647)) return json(res,400,{error:"COMPENSATION_AMOUNT_REQUIRED"});
     if (input.trainerUserId && !isUuid(input.trainerUserId)) return json(res, 400, { error: "R6_TRAINER_ID_INVALID" });
     if (input.packageVersionId && !isUuid(input.packageVersionId)) return json(res, 400, { error: "R6_PACKAGE_ID_INVALID" });
     if (input.trainingProductId && !isUuid(input.trainingProductId)) return json(res, 400, { error: "R6_TRAINING_PRODUCT_ID_INVALID" });
@@ -238,15 +240,9 @@ export default async function handler(req, res) {
     if (input.trainerUserId) await assertTrainerEligible(client, input.trainerUserId, qualification.id);
     await assertParticipantTargets(client, input.participants);
     await assertParticipantEntitlements(client, input);
-    const matrixRows = (await client.query("select training_type,student_count,amount_minor from r6_training_payout_matrix where training_type=$1", [input.trainingType])).rows;
-    const billableCount = input.participants.length;
-    const initialPayoutRow = matrixRows.find((candidate) =>
-      String(candidate.training_type || candidate.trainingType).toUpperCase() === String(input.trainingType).toUpperCase() &&
-      Number(candidate.student_count ?? candidate.studentCount) === billableCount
-    );
-    const projectedPayoutMinor = billableCount && initialPayoutRow
-      ? calculateR6PayoutFromMatrix(matrixRows, input.trainingType, billableCount)
-      : 0;
+    const billableCount=input.participants.length;
+    const projectedPayoutMinor=input.participants.reduce((sum,p)=>sum+p.compensationMinor,0);
+    if(projectedPayoutMinor>2147483647) throw Object.assign(new Error('COMPENSATION_TOTAL_INVALID'),{status:400});
     const status = r6GroupStatus({ trainerUserId: input.trainerUserId, participantCount: input.participants.length, minStudents: input.minStudents });
     /* AUTO_GROUP_REUSE_V21 */
 let group = null;
@@ -258,6 +254,7 @@ const automaticGroupAssignment =
 
 if (automaticGroupAssignment) {
   const participant = input.participants[0];
+  await client.query("select pg_advisory_xact_lock(hashtext($1))", [`r386-group:${input.educationStage}:${input.trainingType}`]);
 
   const duplicate = (await client.query(
     `select rg.id
@@ -308,7 +305,7 @@ if (!group) {
   group = (await client.query(`insert into r6_training_groups(package_version_id,training_product_id,required_qualification_id,trainer_user_id,education_stage,training_type,mode,min_students,max_students,status,projected_payout_minor,created_by) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning *`, [input.packageVersionId || null, input.trainingProductId || null, qualification.id, input.trainerUserId || null, input.educationStage, input.trainingType, input.mode, input.minStudents, input.maxStudents, status, projectedPayoutMinor, principal.user.id])).rows[0];
 }
     for (const participant of input.participants) {
-      await client.query("insert into r6_training_group_participants(training_group_id,child_profile_id,student_profile_id,student_user_id,enrollment_id,status,billable) values($1,$2,$3,$4,$5,'ACTIVE',true)", [group.id, participant.childProfileId || null, participant.studentProfileId || null, participant.studentUserId, participant.enrollmentId || null]);
+      await client.query("insert into r6_training_group_participants(training_group_id,child_profile_id,student_profile_id,student_user_id,enrollment_id,status,billable,compensation_minor) values($1,$2,$3,$4,$5,'ACTIVE',true,$6)", [group.id, participant.childProfileId || null, participant.studentProfileId || null, participant.studentUserId, participant.enrollmentId || null,participant.compensationMinor]);
     }
     const refreshedGroupState = (await client.query(
       `select
@@ -323,13 +320,10 @@ if (!group) {
     )).rows[0];
 
     const totalParticipantCount = Number(refreshedGroupState?.activeParticipantCount || 0);
-    const totalPayoutRow = matrixRows.find((candidate) =>
-      String(candidate.training_type || candidate.trainingType).toUpperCase() === String(input.trainingType).toUpperCase() &&
-      Number(candidate.student_count ?? candidate.studentCount) === totalParticipantCount
-    );
-    const totalProjectedPayoutMinor = totalParticipantCount && totalPayoutRow
-      ? calculateR6PayoutFromMatrix(matrixRows, input.trainingType, totalParticipantCount)
-      : 0;
+    const total=(await client.query("select sum(compensation_minor)::bigint as amount,count(*) filter(where compensation_minor is null)::int as missing from r6_training_group_participants where training_group_id=$1 and status='ACTIVE' and billable=true",[group.id])).rows[0];
+    if(total.missing) throw Object.assign(new Error('GROUP_COMPENSATION_MISSING'),{status:409});
+    const totalProjectedPayoutMinor=Number(total.amount||0);
+    if(totalProjectedPayoutMinor>2147483647) throw Object.assign(new Error('COMPENSATION_TOTAL_INVALID'),{status:400});
     const totalStatus = r6GroupStatus({
       trainerUserId: input.trainerUserId,
       participantCount: totalParticipantCount,
@@ -342,7 +336,7 @@ if (!group) {
     )).rows[0];
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'r6.training_group.created','r6_training_group',$2,'SUCCESS',$3,$4)", [principal.user.id, group.id, crypto.randomUUID(), JSON.stringify({ status, trainingType: input.trainingType, mode: input.mode, participantCount: billableCount, projectedPayoutMinor })]);
     await client.query("commit");
-    return json(res, 201, { group: { ...group, projectedPayoutMinor }, requiredQualification: qualification, status, projectedPayoutMinor });
+    return json(res, 201, { group: { ...group, projectedPayoutMinor: totalProjectedPayoutMinor }, requiredQualification: qualification, status: totalStatus, projectedPayoutMinor: totalProjectedPayoutMinor });
   } catch (error) {
     try { await client.query("rollback"); } catch { /* preserve original error */ }
     return json(res, error.status || (error.code === "23505" ? 409 : 503), { error: error.code === "23505" ? "R6_GROUP_CONFLICT" : error.code || error.message || "R6_GROUP_UNAVAILABLE" });

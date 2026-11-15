@@ -21,12 +21,20 @@ export default async function handler(req, res) {
     if (!assignment) { const e = Object.assign(new Error("TRAINER_ASSIGNMENT_NOT_FOUND"), { status: 404 }); throw e; }
     const existing = (await client.query("select * from enrollment_completions where enrollment_id=$1 for update", [enrollmentId])).rows[0];
     if (existing) { await client.query("commit"); return json(res, existing.idempotency_key === idempotencyKey ? 200 : 409, { status: "COMPLETED", completionId: existing.id, earningCreated: false, replay: existing.idempotency_key === idempotencyKey }); }
+    if (!assignment.planned_at ||
+        !Number.isFinite(Date.parse(assignment.planned_at)) ||
+        Date.now()-Date.parse(assignment.planned_at)<21*86400000)
+      throw Object.assign(
+        new Error("TRAINING_21_DAY_REQUIREMENT"),
+        {status:409}
+      );
     const completedAt = new Date();
     const bounds = completionMonthBounds(completedAt);
     const completion = (await client.query("insert into enrollment_completions(enrollment_id,assignment_id,completed_by,idempotency_key,metadata_json) values($1,$2,$3,$4,$5) returning *", [enrollmentId, assignment.id, principal.user.id, idempotencyKey, JSON.stringify({ source: "TRAINER_COMPLETION" })])).rows[0];
     await client.query("update enrollments set status='COMPLETED',progress_percent=100,completed_at=coalesce(completed_at,$2),updated_at=now() where id=$1", [enrollmentId, completedAt]);
     const snapshot = (await client.query("select * from trainer_compensation_snapshots where assignment_id=$1", [assignment.id])).rows[0];
     const baseRow = snapshot?.type === 'PERCENTAGE' ? (await client.query("select oi.total_minor from package_entitlement_enrollments pee join order_items oi on oi.id=pee.source_order_item_id where pee.enrollment_id=$1 order by oi.created_at desc limit 1", [enrollmentId])).rows[0] : null; const baseMinor = Number(baseRow?.total_minor || 0); const amountMinor = snapshot?.type === 'PERCENTAGE' ? Math.floor(baseMinor * Number(snapshot.percentage_bps || 0) / 10000) : (Number.isSafeInteger(snapshot?.rate_minor) ? snapshot.rate_minor : 0); const currency = snapshot?.currency || "TRY";
+    if (!snapshot || !Number.isSafeInteger(amountMinor) || amountMinor <= 0) throw Object.assign(new Error("COMPENSATION_AMOUNT_REQUIRED"), { status: 409 });
     const earningKey = `COMPLETION:${enrollmentId}`;
     const earning = (await client.query("insert into trainer_earning_ledger(trainer_user_id,student_user_id,training_program_id,assignment_id,enrollment_id,compensation_snapshot_id,entry_type,status,amount_minor,currency,description,source_type,source_id,idempotency_key,occurred_at,payable_at,payable_period_start,payable_period_end) values($1,$2,$3,$4,$5,$6,'SESSION','EARNED',$7,$8,'Eğitim tamamlanması','EDUCATION_COMPLETION',$9,$10,$11,$12,$13,$14) on conflict(idempotency_key) do nothing returning id,payable_at as \"payableAt\"", [principal.user.id, assignment.student_user_id, assignment.training_program_id, assignment.id, enrollmentId, snapshot?.id || null, amountMinor, currency, completion.id, earningKey, completedAt, bounds.payableAt, bounds.payablePeriodStart, bounds.payablePeriodEnd])).rows[0];
 

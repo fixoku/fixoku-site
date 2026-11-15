@@ -19,6 +19,8 @@ export function AdminAssignmentPage() {
   const [history, setHistory] = useState<any[]>([]);
 
   const [trainerId, setTrainerId] = useState("");
+  const [amount,setAmount]=useState("");
+  const amountValid=(/^[0-9]+(?:\.[0-9]{1,2})?$/.test(amount) && Number(amount)>0 && Math.round(Number(amount)*100)<=2147483647);
   const [queueTab, setQueueTab] = useState<"PENDING" | "ASSIGNED">("PENDING");
   const [showReassignPicker, setShowReassignPicker] = useState(false);
   const [reason, setReason] = useState("");
@@ -30,7 +32,7 @@ export function AdminAssignmentPage() {
 
   const load = async () => { const r = await fetch("/api/admin/assignment-requests?includeAssigned=true", { credentials: "same-origin" }); const b = await r.json(); setRows(b.requests || []); };
   useEffect(() => { void load(); }, []);
-  const open = async (row: RequestRow) => { setSelected(row); setMessage(""); setTrainerId(""); setShowReassignPicker(false); setReason(""); setCompensationDecision("PRESERVE"); const r = await fetch(`/api/admin/assignment-requests/${row.id}`, { credentials: "same-origin" }); const b = await r.json(); setCandidates(b.candidates || []); setCurrent(b.currentAssignment || null); setHistory(b.history || []); };
+  const open = async (row: RequestRow) => { setSelected(row); setAmount(""); setCandidates([]); setCurrent(null); setHistory([]); setMessage(""); setTrainerId(""); setShowReassignPicker(false); setReason(""); setCompensationDecision("PRESERVE"); const r = await fetch(`/api/admin/assignment-requests/${row.id}`, { credentials: "same-origin" }); const b = await r.json(); if(!r.ok){setMessage(b.error||"Eğitmen listesi yüklenemedi.");return;} setCandidates(b.candidates || []); setCurrent(b.currentAssignment || null); setHistory(b.history || []); };
   const filtered = useMemo(() => candidates, [candidates]);
   const currentTrainerCandidate = useMemo(
     () => current ? candidates.find((candidate) => candidate.id === current.trainerUserId) || null : null,
@@ -41,7 +43,7 @@ export function AdminAssignmentPage() {
     const searchOk = !term || `${row.studentName} ${row.programTitle} ${row.trainerName || ""}`.toLocaleLowerCase("tr-TR").includes(term);
     return searchOk && row.status === queueTab;
   }), [rows, search, queueTab]);
-  const assign = async () => { if (!selected || !trainerId) return; const isReassign = Boolean(current); if (isReassign && !reason.trim()) { setMessage("Değişiklik gerekçesi zorunludur."); return; } const r = await fetch(`/api/admin/assignment-requests/${selected.id}`, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ trainerId, ...(isReassign ? { reassign: true, reassignmentReason: reason.trim(), compensationDecision } : {}) }) }); const b = await r.json(); if (!r.ok) { setMessage(b.error || "Atama yapılamadı"); return; } setMessage(isReassign ? "Eğitmen değişikliği kaydedildi." : "Eğitmen ataması kaydedildi."); await load(); setSelected(null); setTrainerId(""); };
+  const assign = async () => { if (!selected || !trainerId || !amountValid) return; const isReassign = Boolean(current); if (isReassign && !reason.trim()) { setMessage("Değişiklik gerekçesi zorunludur."); return; } const r = await fetch(`/api/admin/assignment-requests/${selected.id}`, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ trainerId, compensationMinor:Math.round(Number(amount)*100), ...(isReassign ? { reassign: true, reassignmentReason: reason.trim(), compensationDecision } : {}) }) }); const b = await r.json(); if (!r.ok) { setMessage(b.error || "Atama yapılamadı"); return; } setMessage(isReassign ? "Eğitmen değişikliği kaydedildi." : "Eğitmen ataması kaydedildi."); await load(); setSelected(null); setTrainerId(""); };
 
   const pendingCount = rows.filter((row) => row.status === "PENDING").length;
   const assignedCount = rows.filter((row) => row.status === "ASSIGNED").length;
@@ -211,7 +213,8 @@ export function AdminAssignmentPage() {
     </div>
     <div className="assignment-candidate-list">{filtered.filter((candidate) => candidate.id !== current?.trainerUserId).map((candidate) => <label className={trainerId === candidate.id ? "is-selected" : ""} key={candidate.id}><input type="radio" name="trainer" value={candidate.id} checked={trainerId === candidate.id} onChange={(e) => setTrainerId(e.target.value)} /><div className="assignment-candidate-main"><span className="assignment-candidate-avatar" aria-hidden="true">{assignmentTrainerAvatar(candidate) ? <img src={assignmentTrainerAvatar(candidate)!} alt="" loading="lazy" /> : <b>{candidate.name.split(/\s+/u).map((part) => part[0]).join("").slice(0, 2).toLocaleUpperCase("tr-TR")}</b>}</span><div className="assignment-candidate-copy"><strong>{candidate.name}</strong><span>{candidate.city ? `${candidate.city} · ` : ""}{candidate.qualification || "Yetkinlik kaydı"}</span><small>Aktif eğitim: {candidate.workload}</small></div></div></label>)}</div>
     {current && <div className="assignment-reassign-box"><h3>Eğitmen değişikliği</h3><p className="assignment-reassign-helper-v32">Seçtiğiniz eğitmeni atamak için aşağıdaki bilgileri tamamlayın.</p><label>Değişiklik gerekçesi<textarea required maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Değişikliğin nedenini yazın..." /><small className="assignment-reason-counter-v32">{reason.length}/500</small></label><label>Hakediş kararı<select value={compensationDecision} onChange={(e) => setCompensationDecision(e.target.value)}><option value="PRESERVE">Mevcut hakedişi koru</option><option value="ADJUST_PENDING">Düzeltme kararı beklesin</option></select></label></div>}
-    <button className="assignment-primary-action" type="button" disabled={!trainerId || Boolean(current && !reason.trim())} onClick={() => void assign()}>{current ? "Eğitmeni değiştir" : "Eğitmeni ata"}</button></div>
+    <label className="assignment-compensation-field">Hakediş tutarı (TL)<input type="number" min="0.01" max="21474836.47" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="Tutarı giriniz" /></label>
+    <button className="assignment-primary-action" type="button" disabled={!amountValid || !trainerId || Boolean(current && !reason.trim())} onClick={() => void assign()}>{current ? "Eğitmeni değiştir" : "Eğitmeni ata"}</button></div>
   </>
 )}</>}</section>
     </div>

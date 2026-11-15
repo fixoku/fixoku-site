@@ -40,7 +40,7 @@ export function normalizeR6GroupInput(input = {}) {
     const participantKey = childProfileId ? `child:${childProfileId}` : `student:${studentProfileId}`;
     if (seen.has(participantKey)) throw fail("R6_DUPLICATE_PARTICIPANT");
     seen.add(participantKey);
-    return { studentUserId, childProfileId, studentProfileId, enrollmentId };
+    return { studentUserId, childProfileId, studentProfileId, enrollmentId, compensationMinor: participant.compensationMinor };
   });
 
   return {

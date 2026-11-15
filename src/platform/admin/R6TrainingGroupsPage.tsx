@@ -22,6 +22,8 @@ export function R6TrainingGroupsPage() {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
   const [trainerId, setTrainerId] = useState("");
+  const [amount,setAmount]=useState("");
+  const amountValid=(/^[0-9]+(?:\.[0-9]{1,2})?$/.test(amount) && Number(amount)>0 && Math.round(Number(amount)*100)<=2147483647);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
 
@@ -50,7 +52,7 @@ export function R6TrainingGroupsPage() {
     ({ DRAFT: "Oluşuyor", ASSIGNED: "Atandı", IN_PROGRESS: "Devam Ediyor", COMPLETED: "Tamamlandı", CANCELLED: "İptal" } as Record<string, string>)[value] || value;
 
   const candidateKey = (candidate: any) =>
-    `${candidate.studentUserId}:${candidate.packageVersionId}:${candidate.trainingProductId}`;
+    `${candidate.studentUserId}:${candidate.childProfileId || candidate.studentProfileId}:${candidate.packageVersionId}:${candidate.trainingProductId}`;
 
   const load = async () => {
     const [g, q] = await Promise.all([
@@ -61,6 +63,7 @@ export function R6TrainingGroupsPage() {
     const gj = await g.json().catch(() => ({}));
     const qj = await q.json().catch(() => ({}));
 
+    if (!g.ok || !q.ok) setMessage(gj.error || qj.error || "Atama verileri yüklenemedi.");
     setGroups(gj.groups || []);
     setTrainers(qj.trainers || []);
     setCandidates(gj.candidates || []);
@@ -84,7 +87,7 @@ export function R6TrainingGroupsPage() {
           (grant.serviceType === selected.trainingType &&
             grant.educationStage === selected.educationStage),
       );
-      return matchingGrant?.status === "ACTIVE" || Number(trainer.activeQualificationCount) >= 6;
+      return matchingGrant?.effective === true;
     });
   }, [trainers, selected]);
 
@@ -145,7 +148,7 @@ export function R6TrainingGroupsPage() {
   };
 
   const assign = async () => {
-    if (!selected || !trainerId) return;
+    if (!selected || !trainerId || !amountValid) return;
 
     setMessage("");
 
@@ -162,7 +165,9 @@ export function R6TrainingGroupsPage() {
       participants: [
         {
           studentUserId: selected.studentUserId,
-          studentProfileId: selected.studentProfileId || null,
+          childProfileId: selected.childProfileId || null,
+          studentProfileId: selected.childProfileId ? null : selected.studentProfileId || null,
+          compensationMinor: Math.round(Number(amount)*100),
         },
       ],
     };
@@ -189,7 +194,7 @@ export function R6TrainingGroupsPage() {
 
     setMessage("Öğrenci gruba atandı.");
     setSelectedKey("");
-    setTrainerId("");
+    setTrainerId(""); setAmount("");
     await load();
   };
 
@@ -258,7 +263,7 @@ export function R6TrainingGroupsPage() {
                 value={selectedKey}
                 onChange={(event) => {
                   setSelectedKey(event.target.value);
-                  setTrainerId("");
+                  setTrainerId(""); setAmount("");
                 }}
               >
                 <option value="">Grup eğitimi hakkı olan öğrenciyi seçin</option>
@@ -400,10 +405,11 @@ export function R6TrainingGroupsPage() {
               </div>
             </div>
 
+            <label className="assignment-compensation-field">Bu öğrenci için hakediş tutarı (TL)<input type="number" min="0.01" max="21474836.47" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="Tutarı giriniz" /></label>
             <button
               className="assignment-primary-action group-assignment-submit"
               type="button"
-              disabled={!trainerId}
+              disabled={!trainerId || !amountValid}
               onClick={() => void assign()}
             >
               Gruba ata

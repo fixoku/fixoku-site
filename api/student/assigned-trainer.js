@@ -39,29 +39,28 @@ async function assignedTrainer(client, beneficiary) {
          tp.bio,
          tp.specialties,
          tp.photo_storage_key as "photoStorageKey"
-       from trainer_assignments ta
-       join enrollments e
-         on e.id=ta.enrollment_id
-       join platform_users u
-         on u.id=ta.trainer_user_id
-       left join trainer_profiles tp
-         on tp.user_id=ta.trainer_user_id
-       where e.student_user_id=$1
-         and ta.status='ACTIVE'
-         and (
-           $2::uuid is null
-           or exists (
-             select 1
-             from package_entitlement_enrollments pee
-             join package_entitlements pe on pe.id=pee.package_entitlement_id
-             where pee.enrollment_id=e.id
-               and pe.beneficiary_child_profile_id=$2
-               and pe.status='ACTIVE'
-           )
-         )
-       order by ta.created_at desc
+       from (
+         select a.trainer_user_id,a.enrollment_id,a.created_at
+         from trainer_assignments a
+         join enrollments e on e.id=a.enrollment_id
+         where e.student_user_id=$1 and a.status='ACTIVE'
+           and e.status in ('ACTIVE','PAUSED','COMPLETED')
+           and e.beneficiary_child_profile_id is not distinct from $2::uuid
+         union all
+         select g.trainer_user_id,p.enrollment_id,p.created_at
+         from r6_training_group_participants p
+         join r6_training_groups g on g.id=p.training_group_id
+         where p.student_user_id=$1 and p.status='ACTIVE'
+           and g.status in ('DRAFT','ASSIGNED','IN_PROGRESS')
+           and g.trainer_user_id is not null
+           and p.child_profile_id is not distinct from $2::uuid
+           and ($2::uuid is not null or p.student_profile_id=$3::uuid)
+       ) ta
+       join platform_users u on u.id=ta.trainer_user_id
+       left join trainer_profiles tp on tp.user_id=ta.trainer_user_id
+       order by ta.created_at desc,ta.trainer_user_id
        limit 1`,
-      [beneficiary.studentUserId, beneficiary.childProfileId || null],
+      [beneficiary.studentUserId, beneficiary.childProfileId || null, beneficiary.studentProfileId || null],
     )
   ).rows[0] || null;
 }

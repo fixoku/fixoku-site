@@ -3,7 +3,7 @@ import { PanelShell } from '../../panel/layout/PanelShell';
 import './trainer-assignments-v4.css';
 
 type User = { id: string; name: string; email?: string };
-type Person = { id?: string; studentUserId?: string; studentName?: string; studentEmail?: string; studentPhone?: string | null; phone?: string | null; photoUrl?: string | null };
+type Person = { id?: string; studentUserId?: string; studentName?: string; studentEmail?: string; studentPhone?: string | null; phone?: string | null; photoUrl?: string | null; status?: string };
 type Group = { id: string; trainingType?: string; educationStage?: string; mode?: string; status?: string; maxStudents?: number; activeParticipantCount?: number; participants?: Person[] };
 type Enrollment = { id: string; programTitle?: string; progressPercent?: number; status?: string };
 type Student = { id: string; name?: string; email?: string; phone?: string | null; profilePhotoUrl?: string | null; enrollments?: Enrollment[] };
@@ -53,8 +53,8 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
         fetch('/api/trainer/students',{credentials:'same-origin',cache:'no-store'}),
         fetch('/api/trainer/assignment-followup',{credentials:'same-origin',cache:'no-store'}),
       ]);
-      if(!a.ok || !b.ok || !c.ok) throw new Error('Atama ve takip verileri yüklenemedi. Oturumu ve sunucuyu kontrol edin.');
-      const [aj,bj,cj]=await Promise.all([a.json(),b.json(),c.json()]);
+      if(!a.ok || !b.ok) throw new Error('Atama ve takip verileri yüklenemedi. Oturumu ve sunucuyu kontrol edin.');
+      const [aj,bj,cj]=await Promise.all([a.json(),b.json(),c.ok ? c.json() : Promise.resolve({assignments:{},profiles:{}})]);
       setGroups(Array.isArray(aj.groups)?aj.groups:[]);
       setLegacy(Array.isArray(bj.students)?bj.students:[]);
       setFollow(cj as FollowupResponse);
@@ -64,9 +64,9 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
 
   const assignments=useMemo<Assignment[]>(()=>{
     const profiles=follow?.profiles||{};
-    const a:Assignment[]=groups.filter(g=>Boolean(follow?.assignments?.[`r6-${g.id}`])).map(g=>{
+    const a:Assignment[]=groups.map(g=>{
       const key=`r6-${g.id}`,info=follow?.assignments?.[key];
-      const source=(Array.isArray(g.participants)?g.participants:[]);
+      const source=(Array.isArray(g.participants)?g.participants:[]).filter(p=>["ACTIVE","COMPLETED"].includes(String(p.status||"ACTIVE")));
       const byId=new Map<string,Person>(); for(const p of source){const id=p.studentUserId||p.id;if(id)byId.set(id,p);}
       const memberIds=info?.memberIds||source.map(p=>p.studentUserId||'').filter(Boolean);
       const people=memberIds.map(id=>{

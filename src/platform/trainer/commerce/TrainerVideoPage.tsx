@@ -52,6 +52,10 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   const [bufferPercent, setBufferPercent] = useState(0);
   const [bufferTrack, setBufferTrack] = useState("#475569");
   const [mediaLoading, setMediaLoading] = useState(false);
+  const [initialReady, setInitialReady] = useState(false);
+  const [lessonStarted, setLessonStarted] = useState(false);
+  const [initialMediaError, setInitialMediaError] = useState(false);
+  const lessonStartedRef = useRef(false);
 
   const updateBuffer = (video: HTMLVideoElement) => {
     if (!Number.isFinite(video.duration) || video.duration <= 0) return;
@@ -90,6 +94,16 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   const observedAtRef = useRef(0);
   const initializedRef = useRef<HTMLVideoElement | null>(null);
   const requestQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const progressEpochRef = useRef(new WeakMap<HTMLVideoElement, number>());
+  const progressBlockedRef = useRef(new WeakSet<HTMLVideoElement>());
+
+  const invalidateProgressQueue = (element: HTMLVideoElement) => {
+    progressBlockedRef.current.add(element);
+    progressEpochRef.current.set(
+      element,
+      (progressEpochRef.current.get(element) || 0) + 1
+    );
+  };
   const completionNotifiedRef = useRef(new Set<string>());
   const latestFlushRef = useRef<(() => void) | null>(null);
   const selectedVideo = payload?.videos[selected] || null;
@@ -114,6 +128,10 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     setBufferPercent(0);
     setBufferTrack("#475569");
     setMediaLoading(false);
+    setInitialReady(false);
+    setLessonStarted(false);
+    setInitialMediaError(false);
+    lessonStartedRef.current = false;
     mediaRetriesRef.current = 0;
     playbackRecoveryRef.current = null;
     if (mediaStallTimerRef.current !== null) {
@@ -134,7 +152,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
         mediaStallTimerRef.current = null;
       }
     };
-  }, [selected, slug]);
+  }, [selected, slug, activeTab]);
 
   const queueProgress = (
     element: HTMLVideoElement,
@@ -144,6 +162,10 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     ended = false
   ) => {
     if (!payload || !selectedVideo) return;
+    if (progressBlockedRef.current.has(element)) return;
+
+    const progressEpoch =
+      progressEpochRef.current.get(element) || 0;
     if (!Number.isFinite(element.duration) || element.duration < 1) return;
 
     const packageId = payload.package.id;
@@ -165,8 +187,13 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
     requestQueueRef.current = requestQueueRef.current
       .catch(() => {})
       .then(async () => {
+        if (
+          progressBlockedRef.current.has(element) ||
+          (progressEpochRef.current.get(element) || 0) !== progressEpoch
+        ) return;
+
         try {
-          const response = await fetch(
+          const sendProgress = () => fetch(
             `/api/trainer/videos?packageId=${encodeURIComponent(packageId)}`,
             {
               method: "POST",
@@ -177,11 +204,44 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
             }
           );
 
-          const body = await response.json().catch(() => ({}));
+          let response = await sendProgress();
+          let body = await response.json().catch(() => ({}));
+
+          for (
+            let attempt = 0;
+            response.status === 429 &&
+            body.error === "VIDEO_PROGRESS_TOO_FAST" &&
+            attempt < 3;
+            attempt++
+          ) {
+            await new Promise<void>(
+              resolve => window.setTimeout(resolve, 1250)
+            );
+
+            if (
+              progressBlockedRef.current.has(element) ||
+              (progressEpochRef.current.get(element) || 0) !== progressEpoch
+            ) return;
+
+            response = await sendProgress();
+            body = await response.json().catch(() => ({}));
+          }
 
           if (!response.ok || !body.progress) {
+            invalidateProgressQueue(element);
+
+            const errorCode =
+              typeof body.error === "string" &&
+              /^[A-Z0-9_]{1,80}$/.test(body.error)
+                ? body.error : "UNKNOWN_PROGRESS_ERROR";
+
+            console.warn("[FIXOKU_VIDEO_PROGRESS]", {
+              status: response.status,
+              code: errorCode
+            });
+
             if (videoRef.current === element) {
-              setMessage("Izleme konumu kaydedilemedi. Lutfen yeniden deneyin.");
+              setMessage("İzleme konumu kaydedilemedi. Lütfen yeniden deneyin.");
               element.pause();
 
               const readback = await fetch(
@@ -216,6 +276,14 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
                   observedAtRef.current = performance.now();
 
                   element.currentTime = position;
+
+                  setTimeline({
+                    position,
+                    frontier: lastAllowedRef.current,
+                    duration: element.duration
+                  });
+
+                  progressBlockedRef.current.delete(element);
 
                   setPayload(current =>
                     current?.package.id === packageId
@@ -284,9 +352,15 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
             }
           }
         } catch {
+          invalidateProgressQueue(element);
+
+          console.warn("[FIXOKU_VIDEO_PROGRESS]", {
+            code: "PROGRESS_REQUEST_FAILED"
+          });
+
           if (videoRef.current === element) {
             element.pause();
-            setMessage("Izleme konumu kaydedilemedi. Baglantinizi kontrol edin.");
+            setMessage("İzleme konumu kaydedilemedi. Bağlantınızı kontrol edip sayfayı yenileyin.");
           }
         }
       });
@@ -369,7 +443,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   useEffect(() => {
     latestFlushRef.current = () => {
       const element = videoRef.current;
-      if (!element) return;
+      if (!element || progressBlockedRef.current.has(element)) return;
       if (!element.paused && !element.seeking) {
         samplePlayback(element);
       }
@@ -486,6 +560,158 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
   return <PanelShell user={user}>
     <main className="trainer-commerce-page trainer-video-page">
       <style>{`
+        .trainer-video-page .fixoku-r397-course-progress {
+          padding:5px 24px!important;
+          margin:0 0 16px;
+          border:0;
+          background:#fff;
+          border-radius:20px;
+        }
+        .trainer-video-page .fixoku-r397-lessons {
+          display:grid!important;
+          grid-template-columns:repeat(10,minmax(0,1fr));
+          gap:8px;
+          max-width:980px;
+        }
+        .trainer-video-page .fixoku-r397-lesson {
+          position:relative;
+          background:transparent!important;
+          border:0!important;
+          box-shadow:none!important;
+          padding:5px 0!important;
+          gap:6px;
+          color:#64748b;
+        }
+        .trainer-video-page .fixoku-r397-lesson.is-current {
+          color:#c2410c;
+        }
+        .trainer-video-page .fixoku-r397-lesson.is-done {
+          color:#15803d;
+        }
+        .trainer-video-page .fixoku-r397-lesson strong {
+          font-size:13px;
+          white-space:nowrap;
+        }
+        .trainer-video-page .fixoku-r397-lesson small {
+          font-size:10px;
+          font-weight:400;
+          white-space:nowrap;
+        }
+        .trainer-video-page .fixoku-r397-lesson.is-done small {
+          color:#15803d;
+        }
+        .trainer-video-page .fixoku-r397-lesson.is-locked small {
+          color:#8490a0;
+        }
+        .trainer-video-page .fixoku-r397-lesson:not(:last-child)::after {
+          content:"→";
+          position:absolute;
+          right:-10px;
+          top:19px;
+          color:#aab8c8;
+          font-size:15px;
+          pointer-events:none;
+        }
+        .trainer-video-page .fixoku-r397-lesson.is-done::after {
+          color:#169b50;
+        }
+        .trainer-video-page .fixoku-r397-lesson:nth-child(10n)::after {
+          display:none;
+        }
+        .trainer-video-page .fixoku-r398-overlay {
+          position:absolute;
+          inset:0;
+          z-index:9;
+          display:grid;
+          place-items:center;
+          overflow:hidden;
+        }
+        .trainer-video-page .fixoku-r398-poster {
+          position:absolute;
+          inset:0;
+          width:100%;
+          height:100%;
+          object-fit:contain;
+          background:#121212;
+          pointer-events:none;
+        }
+        .trainer-video-page .fixoku-r398-glass {
+          position:relative;
+          width:min(80%,350px);
+          padding:22px;
+          border-radius:18px;
+          background:rgba(255,255,255,.65);
+          border:1px solid rgba(255,255,255,.55);
+          backdrop-filter:blur(2px);
+          text-align:center;
+          color:#172c43;
+        }
+        .trainer-video-page .fixoku-r398-glass strong {
+          display:block;
+          font-size:18px;
+          font-weight:750;
+        }
+        .trainer-video-page .fixoku-r398-ready {
+          color:#087b3c;
+        }
+        .trainer-video-page .fixoku-r398-buffer {
+          height:9px;
+          background:rgba(218,225,231,.9);
+          border-radius:99px;
+          overflow:hidden;
+          margin:14px 0;
+        }
+        .trainer-video-page .fixoku-r398-buffer span {
+          display:block;
+          height:100%;
+          background:#f47b21;
+          border-radius:99px;
+          transition:width .2s;
+        }
+        .trainer-video-page .fixoku-r398-start {
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:10px;
+          width:100%;
+          padding:12px;
+          margin-top:14px;
+          border:0;
+          border-radius:12px;
+          background:#b83b04;
+          color:white;
+          font:inherit;
+          font-size:14px;
+          font-weight:800;
+          cursor:pointer;
+        }
+        .trainer-video-page .fixoku-r398-play {
+          width:32px;height:32px;
+          border-radius:50%;
+          background:#fff;
+          display:grid;
+          place-items:center;
+          flex-shrink:0;
+        }
+        @media(max-width:900px) {
+          .trainer-video-page .fixoku-r397-lessons {
+            grid-template-columns:repeat(5,minmax(0,1fr));
+          }
+          .trainer-video-page .fixoku-r397-lesson:nth-child(5n)::after {
+            display:none;
+          }
+        }
+        @media(max-width:480px) {
+          .trainer-video-page .fixoku-r397-course-progress {
+            padding:5px 8px!important;
+          }
+          .trainer-video-page .fixoku-r397-lesson strong {
+            font-size:11px;
+          }
+          .trainer-video-page .fixoku-r397-lesson small {
+            font-size:8px;
+          }
+        }
         .fixoku-r397-navigation{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
         .fixoku-r397-navigation .trainer-course-tabs{margin:0!important}
         .fixoku-r397-back{display:inline-flex;align-items:center;gap:8px;padding:13px 17px;border:1px solid #fed7aa;border-radius:12px;background:#fff7ed;color:#b45309;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap}
@@ -567,13 +793,6 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
       </div>
       {activeTab === "videos" && cardList.length > 0 && (
         <div className="fixoku-r397-course-progress">
-          <div className="fixoku-r397-summary">
-            <strong>Eğitim İlerlemeniz</strong>
-            <span>{completedCount} / {cardList.length} ders tamamlandı</span>
-          </div>
-          <div className="fixoku-r397-total" role="progressbar" aria-label="Tamamlanan dersler" aria-valuemin={0} aria-valuemax={cardList.length} aria-valuenow={completedCount}>
-            <span style={{width:`${completedCount/cardList.length*100}%`}}/>
-          </div>
           <div className="fixoku-r397-lessons">
             {cardList.map((item,index) => {
               const done = Boolean(item.progress?.completedAt);
@@ -592,15 +811,15 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
                     setReviewCompleted(true);
                     setSelected(index);
                   }}>
-                  <strong>{index+1}. Ders</strong>
-                  <svg viewBox="0 0 60 60" width="52" height="52" aria-hidden="true">
-                    <circle cx="30" cy="30" r="25" fill="none" stroke="currentColor" strokeOpacity=".14" strokeWidth="4"/>
+                  <svg viewBox="0 0 60 60" width="48" height="48" aria-hidden="true">
+                    <circle cx="30" cy="30" r="25" fill={done ? "#eaf8ef" : "#fff"} stroke={done ? "#169b50" : "#dfe4eb"} strokeWidth="3"/>
                     {!item.locked && <circle cx="30" cy="30" r="25" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${(done ? 100 : percent)*1.5708} 157.08`} transform="rotate(-90 30 30)"/>}
                     {done ? <path d="M19 30l8 8 15-17" fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/> :
-                     item.locked ? <g fill="#eab308"><rect x="20" y="28" width="20" height="15" rx="3"/><path d="M24 28v-5a6 6 0 0 1 12 0v5" fill="none" stroke="#ca8a04" strokeWidth="3"/><circle cx="30" cy="35" r="2" fill="#854d0e"/></g> :
+                     item.locked ? <g fill="none" stroke="#ca9200" strokeWidth="1.8"><rect x="24" y="28" width="12" height="11" rx="2"/><path d="M26 28v-4a4 4 0 0 1 8 0v4M30 32v3"/></g> :
                      <text x="30" y="35" textAnchor="middle" fontSize="13" fontWeight="700" fill="currentColor">%{percent}</text>}
                   </svg>
-                  <small>{done ? `%${percent} Tamamlandı` : item.locked ? "Kilitli" : active && isPlaying && !mediaLoading ? "İzleniyor" : active ? "Seçili ders" : "İzlemeye hazır"}</small>
+                  <strong>{index+1}. Ders</strong>
+                  <small>{done ? "Tamamlandı" : item.locked ? "Kilitli" : active && isPlaying ? "İzleniyor" : "İzlemeye hazır"}</small>
                 </button>
               );
             })}
@@ -629,7 +848,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
           </svg>
           <h3>Tebrikler {String(payload.watermark.name || user.name || "").trim().split(/\s+/u)[0]} Hocam</h3>
           <h4>{formatTrainerCourseTitle(payload.package.title).replace(/Eğitimi$/u,"Eğitiminizi")} {formatTrainerCourseTitle(payload.package.title).endsWith("Eğitimi") ? "" : "eğitiminizi"} Tamamladınız.</h4>
-          <p>Tüm video derslerini başarıyla tamamladınız.</p>
+
           <div className="fixoku-r397-actions">
             <Link to="/panel/egitmen/egitimlerim" onClick={() => latestFlushRef.current?.()}>← Eğitimlere Dön</Link>
             <button type="button" onClick={() => {
@@ -646,10 +865,12 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
       <section className="trainer-video-layout">
         <div ref={videoMainRef} className="trainer-video-main">
           <div ref={videoFrameRef} className="trainer-video-frame">
-            {cardList.length === 0 ? <div className="trainer-video-locked"><TrainerIcon name="book" size={40}/><strong>Video dersleri hazırlanıyor</strong><span>Bu eğitime ait gerçek ders videoları henüz eklenmedi. Müfredat ve Sunumlarım sekmelerini inceleyebilirsiniz.</span></div> : selectedVideo?.src ? <video ref={videoRef} key={`${selectedVideo.src}-${mediaRefresh}`} controls controlsList="nodownload noplaybackrate noremoteplayback" disablePictureInPicture disableRemotePlayback playsInline preload="metadata"
+            {cardList.length === 0 ? <div className="trainer-video-locked"><TrainerIcon name="book" size={40}/><strong>Video dersleri hazırlanıyor</strong><span>Bu eğitime ait gerçek ders videoları henüz eklenmedi. Müfredat ve Sunumlarım sekmelerini inceleyebilirsiniz.</span></div> : selectedVideo?.src ? <video ref={videoRef} key={`${selectedVideo.src}-${mediaRefresh}`} controls={lessonStarted} controlsList="nodownload noplaybackrate noremoteplayback" disablePictureInPicture disableRemotePlayback playsInline preload="auto"
               onProgress={event => updateBuffer(event.currentTarget)}
               onCanPlay={event => {
                 updateBuffer(event.currentTarget);
+                setInitialReady(true);
+                setInitialMediaError(false);
                 setMediaLoading(false);
               }} onContextMenu={(event) => event.preventDefault()} src={`${selectedVideo.src}&renew=${mediaRefresh}`} poster={selectedVideo.posterSrc ?? undefined} onLoadedMetadata={(event) => {
               const current = event.currentTarget;
@@ -684,7 +905,7 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
               observedAtRef.current = performance.now();
               current.currentTime = start;
               setTimeline({ position: start, frontier: lastAllowedRef.current, duration: current.duration });
-              if (recovery?.resume) {
+              if (recovery?.resume && lessonStartedRef.current) {
                 void current.play().catch(() => {
                   setMessage("Bağlantı yenilendi. Devam etmek için oynat düğmesine basın.");
                 });
@@ -730,7 +951,17 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
                 if (!draggingRef.current) setTimeline({ position, frontier: lastAllowedRef.current, duration: current.duration });
                 saveResume(current);
               }}
-              onPlay={() => {
+              onPlay={(event) => {
+                if (progressBlockedRef.current.has(event.currentTarget)) {
+                  event.currentTarget.pause();
+                  setMessage("İzleme kaydı doğrulanamadı. Lütfen sayfayı yenileyin.");
+                  return;
+                }
+
+                if (!lessonStartedRef.current) {
+                  event.currentTarget.pause();
+                  return;
+                }
                 setMediaLoading(true);
                 clearMediaStall();
                 observedAtRef.current = performance.now();
@@ -754,7 +985,14 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
                   }
                 }, 12000);
               }}
-              onError={(event) => recoverMedia(event.currentTarget)} onPause={(event) => {
+              onError={(event) => {
+                if (!lessonStartedRef.current) {
+                  setInitialReady(false);
+                  setInitialMediaError(true);
+                } else {
+                  recoverMedia(event.currentTarget);
+                }
+              }} onPause={(event) => {
         setMediaLoading(false);
         clearMediaStall();
         setIsPlaying(false);
@@ -770,37 +1008,65 @@ export function TrainerVideoPage({ user }: { user: { id: string; name: string; e
         flushObserved(current, true);
         saveResume(current);
       }} /> : <div className="trainer-video-locked"><TrainerIcon name="lock" size={40}/><strong>Video kilitli</strong><span>Önceki videoyu tamamladığınızda açılır.</span></div>}
-            {mediaLoading && selectedVideo?.src && (
-              <div role="status" style={{
-                position:"absolute", inset:0, zIndex:9,
-                display:"grid", placeItems:"center", pointerEvents:"none",
-                background:"rgba(0,0,0,.16)", color:"#fff"
-              }}>
-                <div style={{
-                  width:"min(76%,420px)", padding:"22px",
-                  borderRadius:14, background:"rgba(15,23,42,.42)",
-                  textAlign:"center", boxShadow:"0 8px 32px #0002"
-                }}>
-                  <strong style={{color:"#fff",fontSize:18}}>
-                    Video y&#252;kleniyor... %{bufferPercent}
-                  </strong>
-                  <div style={{
-                    height:8, borderRadius:8, marginTop:14,
-                    background:"rgba(255,255,255,.32)",overflow:"hidden"
-                  }}>
-                    <div style={{
-                      width:`${bufferPercent}%`,height:"100%",
-                      background:"#fff",borderRadius:8,
-                      transition:"width .25s ease"
-                    }}/>
-                  </div>
-                  <small style={{color:"#fff",display:"block",marginTop:10}}>
-                    Video oynat&#305;lmaya haz&#305;rlan&#305;yor
-                  </small>
-                </div>
-              </div>
-            )}
-            {isPlaying && !mediaLoading && <div className="trainer-video-playing-status" role="status"><span className="trainer-video-playing-dot" aria-hidden="true" />Video Oynatılıyor</div>}
+            {selectedVideo?.src && (!lessonStarted || mediaLoading) && (
+  <div className="fixoku-r398-overlay">
+    {!lessonStarted && selectedVideo.posterSrc && (
+      <img className="fixoku-r398-poster"
+        src={selectedVideo.posterSrc} alt="" draggable={false}/>
+    )}
+
+    <div className="fixoku-r398-glass">
+      {initialMediaError && !lessonStarted ? (
+        <>
+          <strong role="alert">Video yüklenemedi.</strong>
+          <button type="button" className="fixoku-r398-start"
+            onClick={() => {
+              setInitialMediaError(false);
+              setInitialReady(false);
+              setBufferPercent(0);
+              setMediaRefresh(value => value + 1);
+            }}>Tekrar Dene</button>
+        </>
+      ) : !initialReady || mediaLoading ? (
+        <div role="status">
+          <strong>Video yükleniyor...</strong>
+          <div className="fixoku-r398-buffer">
+            <span style={{width:`${bufferPercent}%`}}/>
+          </div>
+          <small>%{bufferPercent}</small>
+        </div>
+      ) : (
+        <>
+          <strong className="fixoku-r398-ready">Video hazır &#10003;</strong>
+          <button type="button" className="fixoku-r398-start"
+            onClick={() => {
+              const element = videoRef.current;
+              if (!element || element.readyState < 3) {
+                setInitialReady(false);
+                return;
+              }
+              lessonStartedRef.current = true;
+              setLessonStarted(true);
+              void element.play().catch(() => {
+                lessonStartedRef.current = false;
+                setLessonStarted(false);
+                setMediaLoading(false);
+                setMessage("Video başlatılamadı. Tekrar deneyin.");
+              });
+            }}>
+            <span className="fixoku-r398-play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path d="M8 5L19 12L8 19Z" fill="#dc2626"/>
+              </svg>
+            </span>
+            {selected+1}. Derse Başlayın
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+)}
+{isPlaying && !mediaLoading && <div className="trainer-video-playing-status" role="status"><span className="trainer-video-playing-dot" aria-hidden="true" />Video Oynatılıyor</div>}
             {completionToast && (
               <div className="trainer-video-completion-toast" role="status">
                 <span aria-hidden="true">✓</span>

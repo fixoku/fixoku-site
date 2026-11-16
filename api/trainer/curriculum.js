@@ -28,11 +28,7 @@ function validManifestItem(item) {
   if (item && item.thumbFile != null) {
     if (
       typeof item.thumbFile !== "string" ||
-      !/^(?:r396-)?thumb-\d{3}\.jpg$/u.test(item.thumbFile) ||
-      item.thumbFile !== (
-        (item.thumbFile.startsWith("r396-") ? "r396-" : "") +
-        "thumb-" + String(Number(item.slideNo)).padStart(3,"0") + ".jpg"
-      )
+      !/^(?:(?:r396|r397)-)?thumb-\d{3}\.jpg$/u.test(item.thumbFile)
     ) return false;
   }
 

@@ -221,6 +221,22 @@ export function TrainerCurriculumTab({
 
   const current = payload.items[selected];
 
+  // R397: independent, sequential labels for every curriculum.
+  const curriculumTitles = new Map<number, string>();
+  let slideNumber = 0;
+  let videoNumber = 0;
+
+  for (const item of payload.items) {
+    const label = item.type === "slide"
+      ? `Slayt ${++slideNumber}`
+      : `Video ${++videoNumber}`;
+
+    curriculumTitles.set(item.index, label);
+  }
+
+  const curriculumTitle = (item: CurriculumItem) =>
+    curriculumTitles.get(item.index) || "";
+
   const currentVideoComplete =
     current.type !== "video" ||
     completedVideoItems.has(current.index);
@@ -559,7 +575,7 @@ export function TrainerCurriculumTab({
               </span>
 
               <span className="trainer-curriculum-list-copy">
-                <strong>{item.title}</strong>
+                <strong>{curriculumTitle(item)}</strong>
 
                 <small>
                   {locked
@@ -751,8 +767,8 @@ export function TrainerCurriculumTab({
               </div>
             </div>
 
-            {saveError && <p role="alert">Ilerleme kaydedilemedi. Icerigi kapatip yeniden acin ve tekrar deneyin.</p>}
-            {savedCount === payload.items.length && <p role="status">Mufredat tamamlandi.</p>}
+            {saveError && <p role="alert">İlerleme kaydedilemedi. İçeriği kapatıp yeniden açın ve tekrar deneyin.</p>}
+            {savedCount === payload.items.length && <p role="status">Müfredat tamamlandı.</p>}
             <footer className="trainer-curriculum-fullscreen-footer">
               <button
                 type="button"
@@ -763,7 +779,7 @@ export function TrainerCurriculumTab({
               </button>
 
               <div>
-                <strong>{current.title}</strong>
+                <strong>{curriculumTitle(current)}</strong>
 
                 <span>
                   {selected + 1} / {payload.items.length}
@@ -816,7 +832,7 @@ export function TrainerCurriculumTab({
                     ? current.src
                     : current.thumbSrc
                 }
-                alt={`${current.title} önizlemesi`}
+                alt={`${curriculumTitle(current)} önizlemesi`}
                 draggable={false}
               />
 
@@ -834,7 +850,7 @@ export function TrainerCurriculumTab({
             </div>
 
             <div className="trainer-curriculum-preview-caption">
-              <strong>{current.title}</strong>
+              <strong>{curriculumTitle(current)}</strong>
 
               <span>
                 {selected + 1} / {payload.items.length}

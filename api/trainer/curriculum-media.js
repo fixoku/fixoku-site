@@ -111,11 +111,7 @@ export default async function handler(req, res) {
 
       if (
         typeof thumbFile !== "string" ||
-        !/^(?:r396-)?thumb-\d{3}\.jpg$/u.test(thumbFile) ||
-        thumbFile !== (
-          (thumbFile.startsWith("r396-") ? "r396-" : "") +
-          "thumb-" + String(Number(item.slideNo)).padStart(3,"0") + ".jpg"
-        )
+        !/^(?:(?:r396|r397)-)?thumb-\d{3}\.jpg$/u.test(thumbFile)
       ) {
         return stop(res,404);
       }

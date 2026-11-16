@@ -105,6 +105,21 @@ export default async function handler(req, res) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
 
     if (mode === "thumb") {
+      const thumbFile = item.thumbFile == null
+        ? "thumb-"+String(Number(item.slideNo)).padStart(3,"0")+".jpg"
+        : item.thumbFile;
+
+      if (
+        typeof thumbFile !== "string" ||
+        !/^(?:r396-)?thumb-\d{3}\.jpg$/u.test(thumbFile) ||
+        thumbFile !== (
+          (thumbFile.startsWith("r396-") ? "r396-" : "") +
+          "thumb-" + String(Number(item.slideNo)).padStart(3,"0") + ".jpg"
+        )
+      ) {
+        return stop(res,404);
+      }
+
       const slideNo = Number(item.slideNo);
 
       if (!Number.isInteger(slideNo) || slideNo < 1 || slideNo > Number(manifest.slideCount || 0)) {
@@ -113,7 +128,7 @@ export default async function handler(req, res) {
 
       if (remote) {
         res.statusCode = 302;
-        res.setHeader("Location", createSignedReadUrl(storage, `trainer-curriculum/${pkg.slug}/thumbs/thumb-${String(slideNo).padStart(3, "0")}.jpg`));
+        res.setHeader("Location", createSignedReadUrl(storage, `trainer-curriculum/${pkg.slug}/thumbs/${thumbFile}`));
         res.setHeader("Referrer-Policy", "no-referrer");
         return res.end();
       }
@@ -121,7 +136,7 @@ export default async function handler(req, res) {
       const thumb = path.join(
         folder,
         "thumbs",
-        `thumb-${String(slideNo).padStart(3, "0")}.jpg`
+        thumbFile
       );
 
       if (!fs.existsSync(thumb)) {

@@ -95,6 +95,13 @@ export default async function handler(req,res){
     if(req.method==='GET'){
       const parsed=new URL(req.url,"http://local");const availabilityOnly=parsed.searchParams.get("availabilityOnly")==="true";
       const currentAssignment=(await c.query("select a.id,a.trainer_user_id as \"trainerUserId\",tu.display_name as \"trainerName\",a.status,a.created_at as \"createdAt\",a.ended_at as \"endedAt\",a.ended_reason as \"endedReason\" from trainer_assignments a join platform_users tu on tu.id=a.trainer_user_id where a.enrollment_id=$1 and a.status='ACTIVE' order by a.created_at desc limit 1",[requestRow.enrollmentId])).rows[0]||null;
+      if(currentAssignment) {
+        const state=(await c.query("select a.planned_at as \"plannedAt\", a.contact_status as \"contactStatus\", a.agreed_start_at as \"agreedStartAt\", e.status as \"enrollmentStatus\", e.completed_at as \"completedAt\" from trainer_assignments a join enrollments e on e.id=a.enrollment_id where a.id=$1",[currentAssignment.id])).rows[0];
+        currentAssignment.plannedAt=state?.plannedAt||null;
+        currentAssignment.contactStatus=state?.contactStatus||"PENDING";
+        currentAssignment.agreedStartAt=state?.agreedStartAt||null;
+        currentAssignment.canRemove=Boolean(state && !state.plannedAt && !state.completedAt && ['ACTIVE','PAUSED'].includes(state.enrollmentStatus));
+      }
       const history=(await c.query("select h.id,h.assignment_id as \"assignmentId\",h.trainer_user_id as \"trainerUserId\",u.display_name as \"trainerName\",h.event_type as \"eventType\",h.reason,h.changed_by as \"changedBy\",h.occurred_at as \"occurredAt\" from trainer_assignment_history h join platform_users u on u.id=h.trainer_user_id where h.enrollment_id=$1 order by h.occurred_at desc",[requestRow.enrollmentId])).rows;
       const required = await readEnrollmentQualification(c,requestRow.enrollmentId);
       const candidates=(await c.query(`select u.id,u.display_name as name,u.email,tp.city,
@@ -139,6 +146,7 @@ export default async function handler(req,res){
       if(!enrollment || !['ACTIVE','PAUSED'].includes(enrollment.status) || enrollment.completed_at) throw Object.assign(new Error('ENROLLMENT_NOT_REMOVABLE'),{status:409});
       const assignment=(await c.query("select * from trainer_assignments where id=$1 and enrollment_id=$2 and status='ACTIVE' for update",[input.assignmentId,enrollment.id])).rows[0];
       if(!assignment) throw Object.assign(new Error('ASSIGNMENT_CHANGED'),{status:409});
+      if(assignment.planned_at) throw Object.assign(new Error('ASSIGNMENT_ALREADY_PLANNED'),{status:409});
       const valid=(await c.query(`select exists(select 1 from package_entitlement_enrollments pee join package_entitlements pe on pe.id=pee.package_entitlement_id left join orders o on o.id=pe.source_order_id where pee.enrollment_id=$1 and pe.status='ACTIVE' and pe.revoked_at is null and pe.effective_at<=now() and (pe.expires_at is null or pe.expires_at>now()) and (pe.source_type='OWNER_MANUAL' or o.status in ('PAID','PARTIALLY_REFUNDED'))) as valid`,[enrollment.id])).rows[0].valid;
       await c.query("update trainer_assignments set status='ARCHIVED',ended_at=now(),ended_reason=$2,updated_at=now() where id=$1",[assignment.id,reason]);
       await c.query("insert into trainer_assignment_history(assignment_id,enrollment_id,trainer_user_id,event_type,reason,changed_by) values($1,$2,$3,'REMOVED',$4,$5)",[assignment.id,enrollment.id,assignment.trainer_user_id,reason,principal.user.id]);

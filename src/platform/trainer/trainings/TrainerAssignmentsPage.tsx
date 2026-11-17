@@ -120,7 +120,7 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
       // Some enrolled legacy students are also represented by R6 groups; keep genuine distinct enrollments.
       const profile:Profile=profiles[key]?.[0]||{};
       a.push({key,type:'individual',title:e.programTitle||'Birebir eğitim',stage:'Birebir eğitim',status:String(e.status||'').toUpperCase(),maxStudents:1,followup:info,
-        people:profile.targetId?[{contact:profile.contact,packageTitle:profile.packageTitle,targetId:profile.targetId,studentUserId:profile.studentUserId,studentName:profile.name||'Öğrenci',studentEmail:profile.email||'',studentPhone:profile.phone||null,photoUrl:profile.photoUrl||null,stage:profile.stage,grade:profile.grade,school:profile.school}]:[]});
+        people:profile.targetId?[{contact:profile.contact,packageTitle:profile.packageTitle,targetId:profile.targetId,contactStatus:profile.contactStatus,agreedStartAt:profile.agreedStartAt,studentUserId:profile.studentUserId,studentName:profile.name||'Öğrenci',studentEmail:profile.email||'',studentPhone:profile.phone||null,photoUrl:profile.photoUrl||null,stage:profile.stage,grade:profile.grade,school:profile.school}]:[]});
     }
     return a;
   },[groups,legacy,follow,user.name]);
@@ -144,17 +144,9 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
     if(!response.ok)throw new Error(({WAIT_21_DAYS:'21 günlük süre henüz dolmadı.',STUDENTS_NOT_ALL_PLANNED:'Önce bütün öğrenciler planlanmalı.',ASSIGNMENT_NOT_ACTIVE:'Bu eğitim artık aktif değil.',NOT_ASSIGNED_TO_TRAINER:'Bu öğrenci size atanmış değil.'} as Record<string,string>)[data.error]||data.error||'İşlem başarısız.');
     return data;
   }
-  async function togglePlan(a:Assignment,p:Person) {
-    const studentId=memberId(a,p);if(!studentId||!a.followup||ambiguous(a))return;
-    const old=a.followup.marks?.[studentId];
-    if(old&&!window.confirm(`${p.studentName||'Öğrenci'} için planlandı işaretini kaldırmak istiyor musunuz? 21 günlük süre yeniden hesaplanır.`))return;
-    setBusy(`${a.key}:${studentId}`);setMessage('');
-    try{await post({assignmentKey:a.key,studentId,action:old?'unplan':'plan'});await load();setMessage(old?'Planlandı işareti kaldırıldı.':'Eğitim planlandı olarak işaretlendi.');}
-    catch(e){setMessage(getError(e));}finally{setBusy('');}
-  }
   const istanbulDate=(value?:string|null)=>value ? new Date(new Date(value).getTime()+3*3600000).toISOString().slice(0,16):'';
   const proposal=(a:Assignment)=>proposedDates[a.key]??istanbulDate(a.followup?.scheduledStartAt);
-  const classOpen=(a:Assignment)=>a.type==='group' && ['ASSIGNED','IN_PROGRESS'].includes(a.status) && !!a.followup && (!a.followup.scheduledStartAt || Date.parse(a.followup.scheduledStartAt)>Date.now());
+  const classOpen=(a:Assignment)=>(a.key.startsWith('r6-') ? ['ASSIGNED','IN_PROGRESS'].includes(a.status) : ['ACTIVE','PAUSED'].includes(a.status)) && !!a.followup && (!a.followup.scheduledStartAt || Date.parse(a.followup.scheduledStartAt)>Date.now());
   async function classAction(a:Assignment,action:string,p?:Person,status?:string){
     if(!classOpen(a)||busy||ambiguous(a))return;
     const startAt=proposal(a)?proposal(a)+':00+03:00':'';
@@ -162,9 +154,13 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
     if(action==='contact'&&!p?.targetId)return;
     setBusy(a.key);setMessage('');
     try{
+      if(a.key.startsWith('legacy-')){
+        const studentId=memberId(a,p||a.people[0]);if(!studentId)throw new Error('Öğrenci doğrulanamadı.');
+        await post({assignmentKey:a.key,studentId,action,contactStatus:status||'',startAt});
+      }else{
       const response=await fetch('/api/admin/r6-training-groups/'+encodeURIComponent(a.key.slice(3)),{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({action,participantId:p?.targetId,contactStatus:status,startAt})});
-      const data=await response.json();if(!response.ok)throw new Error(data.error||'İşlem başarısız.');
-      await load();setMessage(action==='schedule'?'Sınıf başlangıç tarihi kaydedildi.':'Görüşme durumu kaydedildi.');
+      const data=await response.json();if(!response.ok)throw new Error(data.error||'İşlem başarısız.');}
+      await load();setMessage(action==='schedule'?'Eğitim başlangıç tarihi kaydedildi.':'Görüşme durumu kaydedildi.');
     }catch(e){setMessage(getError(e));}finally{setBusy('');}
   }
   async function finish(a:Assignment) {
@@ -199,10 +195,10 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
         {current.followup?.freeReason && <div className="ta4-message" style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}><strong>Ücretsiz atama · 0 ₺</strong><p>{current.followup.freeReason}</p></div>}
         <div className="ta4-students-head"><h3>{current.type==='group'?'Sınıf öğrencileri':'Atanan öğrenci'}</h3><span>{planned(current)}/{current.people.length} eğitim planlandı</span></div>
         {ambiguous(current)&&<p role="status">Öğrenci atama kimlikleri doğrulanamadı. Planlama güvenlik nedeniyle kapalı.</p>}
-        {current.type==='group'&&<div style={{display:'grid',gap:8,marginBottom:12}}>
-          <strong>Ortak sınıf başlangıcı: {current.followup?.scheduledStartAt?new Date(current.followup.scheduledStartAt).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Belirlenmedi'}</strong>
+        {<div style={{display:'grid',gap:8,marginBottom:12}}>
+          <strong>{current.type==='group'?'Ortak sınıf başlangıcı':'Birebir eğitim başlangıcı'}: {current.followup?.scheduledStartAt?new Date(current.followup.scheduledStartAt).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Belirlenmedi'}</strong>
           {classOpen(current)&&<><label>Önerilen başlangıç (Türkiye saati) <input type="datetime-local" value={proposal(current)} onChange={e=>setProposedDates(prev=>({...prev,[current.key]:e.target.value}))}/></label>
-          <button type="button" className="ta4-btn" disabled={!!busy||ambiguous(current)||!current.people.length||!proposal(current)||!current.people.every(p=>p.contactStatus==='AGREED'&&p.agreedStartAt&&Date.parse(p.agreedStartAt)===Date.parse(proposal(current)+':00+03:00'))} onClick={()=>void classAction(current,'schedule')}>Ortak başlangıç tarihini kaydet</button></>}
+          <button type="button" className="ta4-btn" disabled={!!busy||ambiguous(current)||!current.people.length||!proposal(current)||!current.people.every(p=>p.contactStatus==='AGREED'&&p.agreedStartAt&&Date.parse(p.agreedStartAt)===Date.parse(proposal(current)+':00+03:00'))} onClick={()=>void classAction(current,'schedule')}>Başlangıç tarihini kaydet</button></>}
         </div>}
         <div className="ta4-students">{current.people.map((p,i)=>{
           const id=memberId(current,p)||'',isPlanned=!!current.followup?.marks?.[id]?.plannedAt;
@@ -210,15 +206,15 @@ export function TrainerAssignmentsPage({ user }: { user: User }) {
           const displayName=p.studentName||'Öğrenci';
           return <article className={`ta4-student ${isPlanned?'is-planned':''}`} key={`${current.key}:${p.targetId||id||i}`}>
             <div className="ta4-person"><ProfilePortrait image={image} name={displayName} stage={p.stage} index={i}/>
-              <div className="ta4-contact"><strong>{displayName}</strong><span>{p.stage?tr(p.stage,stages):"Kademe belirtilmedi"}{p.grade?` · ${p.grade}. sınıf`:""}</span>{p.school&&<span>{p.school}</span>}<ContactActions person={p} teacher={user.name} training={current.title} active={!disabledStatus(current.status)} contactLocked={current.type==='group'&&(!classOpen(current)||!!busy)} onUnreachable={current.type==='group'?(checked)=>{if(classOpen(current))void classAction(current,'contact',p,checked?'UNREACHABLE':'PENDING');}:undefined}/></div></div>
+              <div className="ta4-contact"><strong>{displayName}</strong><span>{p.stage?tr(p.stage,stages):"Kademe belirtilmedi"}{p.grade?` · ${p.grade}. sınıf`:""}</span>{p.school&&<span>{p.school}</span>}<ContactActions person={p} teacher={user.name} training={current.title} active={!disabledStatus(current.status)} contactLocked={!classOpen(current)||!!busy} onUnreachable={(checked)=>{if(classOpen(current))void classAction(current,'contact',p,checked?'UNREACHABLE':'PENDING');}}/></div></div>
             <div className="ta4-actions">
               
-              {current.type==='group'?<div style={{display:'grid',gap:6}}>
+              {<div style={{display:'grid',gap:6}}>
                 <span>{({PENDING:'Görüşme bekliyor',UNREACHABLE:'Ulaşılamadı',CONTACTED:'Görüşüldü',AGREED:'Mutabakat sağlandı'} as Record<string,string>)[p.contactStatus||'PENDING']||'Görüşme bekliyor'}</span>
                 {p.agreedStartAt&&<span>{new Date(p.agreedStartAt).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})}</span>}
                 {classOpen(current)&&<><button type="button" disabled={!!busy||!id} onClick={()=>void classAction(current,'contact',p,'CONTACTED')}>Görüşüldü</button>
                   <label><input type="checkbox" checked={p.contactStatus==='AGREED'&&!!p.agreedStartAt&&Date.parse(p.agreedStartAt)===Date.parse(proposal(current)+':00+03:00')} disabled={!!busy||!id||!proposal(current)} onChange={e=>void classAction(current,'contact',p,e.target.checked?'AGREED':'CONTACTED')}/>{p.contact?.kind==='GUARDIAN'?'Veli':'Öğrenci'} ile görüşüldü, Eğitime Başlama tarihi konusunda mutabık kalındı.</label></>}
-              </div>:done(current.status)?<span className="ta4-pill done">✓ Tamamlandı</span>:<button type="button" className={`ta4-btn ${isPlanned?'planned':'plan'}`} disabled={!id||!!busy||!current.followup||ambiguous(current)||disabledStatus(current.status)} aria-pressed={isPlanned} onClick={()=>void togglePlan(current,p)}>{isPlanned?'✓ Planlandı':'▣ Eğitim Planlandı'}</button>}
+              </div>}
             </div>
           </article>;
         })}</div>

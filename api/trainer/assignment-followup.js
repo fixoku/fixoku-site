@@ -4,6 +4,7 @@
 
 import { Readable } from 'node:stream';
 import pg from 'pg';
+import crypto from 'node:crypto';
 import { createProfilePhotoUrl, getProfileMediaConfig, readProfilePhoto } from '../../src/server/domain/profile-media.js';
 import { resolvePrincipal } from '../../src/server/auth/authorization.js';
 import { assertTrainerPrincipal } from '../../src/server/domain/trainer-commerce.js';
@@ -24,7 +25,7 @@ async function authoritativeAssignments(pool, trainerId) {
   const result={};
   for(const g of groups.rows) result[`r6-${g.id}`]={kind:'r6',id:g.id,status:g.status,mode:g.mode,classNumber:g.classNumber,scheduledStartAt:g.scheduledStartAt,memberIds:[]};
   for(const p of participants.rows) { const a=result[`r6-${p.assignmentId}`]; if(a && validUuid(p.studentId) && !a.memberIds.includes(p.studentId)) a.memberIds.push(p.studentId); }
-  for(const row of singles.rows) if(validUuid(row.studentId)) result[`legacy-${row.id}`]={kind:'legacy',id:row.id,status:row.status,memberIds:[row.studentId],assignmentId:row.assignmentId,isFree:row.calculationBase==='OWNER_FREE' && row.rateMinor===0};
+  for(const row of singles.rows) if(validUuid(row.studentId)) result[`legacy-${row.id}`]={kind:'legacy',id:row.id,status:row.status,memberIds:[row.studentId],assignmentId:row.assignmentId,scheduledStartAt:row.plannedAt,isFree:row.calculationBase==='OWNER_FREE' && row.rateMinor===0};
   return result;
 }
 // R399: authorized, assignment-scoped profile identity. Never use a sibling's photo.
@@ -37,7 +38,7 @@ async function readProfiles(pool, trainerId) {
       where g.trainer_user_id=$1 and g.status in ('ASSIGNED','IN_PROGRESS','COMPLETED')
         and p.status in ('ACTIVE','COMPLETED')
       union all
-      select 'legacy-'||e.id::text,a.id,e.student_user_id,e.beneficiary_child_profile_id,null::uuid,e.id,null::text,null::timestamptz
+      select 'legacy-'||e.id::text,a.id,e.student_user_id,e.beneficiary_child_profile_id,null::uuid,e.id,a.contact_status,a.agreed_start_at
       from trainer_assignments a join enrollments e on e.id=a.enrollment_id
       where a.trainer_user_id=$1 and a.status='ACTIVE' and e.status in ('ACTIVE','PAUSED','COMPLETED')
     )
@@ -162,70 +163,36 @@ async function databaseMarks(pool,trainerId,a){
     return out;
   }
 
-  async function persistPlan(pool,trainerId,a,body){
+  // R400: one locked assignment owns communication and the agreed start date.
+  async function persistIndividual(pool,trainerId,a,body){
     const client=await pool.connect();
+    const fail=(code,status=409)=>{throw Object.assign(new Error(code),{status});};
     try{
       await client.query('begin');
-      const planning=body.action==='plan';
-
-      if(a.kind==='r6'){
-        const g=await client.query(
-          `select id from r6_training_groups
-            where id=$1 and trainer_user_id=$2
-            and status in ('DRAFT','ASSIGNED','IN_PROGRESS')
-            for update`,[a.id,trainerId]);
-        if(g.rowCount!==1)
-          throw Object.assign(
-            new Error('GROUP_NOT_ACTIVE'),{status:409});
-
-        const q=await client.query(
-          `update r6_training_group_participants
-            set planned_at=case when $3::boolean
-              then coalesce(planned_at,now())
-              else null end
-            where training_group_id=$1
-              and id=$2
-              and status='ACTIVE'
-            returning id`,
-          [a.id,body.studentId,planning]);
-
-        if(q.rowCount!==1)
-          throw Object.assign(
-            new Error('PARTICIPANT_MISMATCH'),{status:409});
-      }else{
-        const q=await client.query(
-          `update trainer_assignments x
-            set planned_at=case when $4::boolean
-              then coalesce(x.planned_at,now())
-              else null end
-            from enrollments e
-            where x.enrollment_id=e.id
-              and e.id=$1 and x.trainer_user_id=$2
-              and e.student_user_id=$3
-              and x.status='ACTIVE'
-              and e.status not in ('COMPLETED','CANCELLED')
-            returning x.id`,
-          [a.id,trainerId,body.studentId,planning]);
-
-        if(q.rowCount!==1)
-          throw Object.assign(
-            new Error('ASSIGNMENT_MISMATCH'),{status:409});
-      }
-
-      const marks=await databaseMarks(client,trainerId,a);
-      await client.query('commit');
-
-      return {
-        marks,
-        eligibility:eligibleToComplete(a.memberIds,marks)
+      const enrollment=(await client.query("select id from enrollments where id=$1 and student_user_id=$2 and status in ('ACTIVE','PAUSED') for update",[a.id,body.studentId])).rows[0];
+      if(!enrollment) fail('ENROLLMENT_NOT_ACTIVE');
+      const row=(await client.query("select * from trainer_assignments where id=$1 and enrollment_id=$2 and trainer_user_id=$3 and status='ACTIVE' for update",[a.assignmentId,a.id,trainerId])).rows[0];
+      if(!row) fail('ASSIGNMENT_MISMATCH');
+      const now=(await client.query('select clock_timestamp() as at')).rows[0].at;
+      if(row.planned_at && new Date(row.planned_at)<=now) fail('TRAINING_ALREADY_STARTED');
+      const futureDate=()=>{
+        if(typeof body.startAt!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(body.startAt)) fail('START_DATE_INVALID',400);
+        const d=new Date(body.startAt);if(!Number.isFinite(d.getTime())||d<=now)fail('START_DATE_MUST_BE_FUTURE',400);return d;
       };
-
-    }catch(error){
-      await client.query('rollback').catch(()=>{});
-      throw error;
-    }finally{
-      client.release();
-    }
+      if(body.action==='contact'){
+        const status=body.contactStatus;
+        if(!['PENDING','UNREACHABLE','CONTACTED','AGREED'].includes(status))fail('CONTACT_STATUS_INVALID',400);
+        const date=status==='AGREED'?futureDate():null;
+        await client.query('update trainer_assignments set contact_status=$2,contact_updated_at=clock_timestamp(),agreed_start_at=$3,updated_at=now() where id=$1',[row.id,status,date]);
+      }else if(body.action==='schedule'){
+        const date=futureDate();
+        if(row.contact_status!=='AGREED'||!row.agreed_start_at||new Date(row.agreed_start_at).getTime()!==date.getTime())fail('START_DATE_AGREEMENT_REQUIRED');
+        await client.query('update trainer_assignments set planned_at=$2,updated_at=now() where id=$1',[row.id,date]);
+      }else fail('INVALID_STUDENT_OR_ACTION',400);
+      await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,$2,'trainer_assignment',$3,'SUCCESS',$4,$5)",[trainerId,'trainer.assignment.'+body.action,row.id,crypto.randomUUID(),JSON.stringify({previousStart:row.planned_at,previousContact:row.contact_status,contactStatus:body.contactStatus||null,startAt:body.startAt||null})]);
+      const marks=await databaseMarks(client,trainerId,a);
+      await client.query('commit');return {marks,eligibility:eligibleToComplete(a.memberIds,marks)};
+    }catch(error){await client.query('rollback').catch(()=>{});throw error;}finally{client.release();}
   }
 async function delegateCompletion(originalReq,res,a) {
   const payload=a.kind==='r6' ? {action:'complete'} : {enrollmentId:a.id,idempotencyKey:`R6E:${a.id}`};
@@ -267,9 +234,9 @@ export default async function handler(req,res) {
       // We do not make direct earnings/finance writes or forge completion flags.
       return await delegateCompletion(req,res,a);
     }
-    if(a.kind==='r6' && a.mode==='GROUP') return respond(res,409,{error:'R399_USE_CLASS_AGREEMENT'});
-    if(!['plan','unplan'].includes(body.action) || !validUuid(body.studentId) || !a.memberIds.includes(body.studentId))return respond(res,400,{error:'INVALID_STUDENT_OR_ACTION'});
-    const result=await persistPlan(pool,user.id,a,body);
+    if(a.kind==='r6') return respond(res,409,{error:'R399_USE_CLASS_AGREEMENT'});
+    if(!['contact','schedule'].includes(body.action) || !validUuid(body.studentId) || !a.memberIds.includes(body.studentId))return respond(res,400,{error:'INVALID_STUDENT_OR_ACTION'});
+    const result=await persistIndividual(pool,user.id,a,body);
     return respond(res,200,{ok:true,...result,scope:'DATABASE'});
   } catch(error) {
     const code=error.status && error.status>=400 && error.status<=499 ? error.status : 503;

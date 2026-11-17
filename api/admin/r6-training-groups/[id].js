@@ -68,7 +68,7 @@ export default async function handler(req, res) {
       const assignedTrainer = trainerAllowed && String(group.trainer_user_id)===String(principal.user.id);
       const fail=(code,status=409)=>{throw Object.assign(new Error(code),{status});};
       if (action==="remove" ? !globalOwner : !assignedTrainer) fail("R399_CLASS_ACTION_SCOPE_DENIED",403);
-      if (group.mode!=="GROUP" || !["DRAFT","ASSIGNED","IN_PROGRESS"].includes(group.status)) fail("R399_CLASS_NOT_ACTIVE");
+      if ((group.mode!=="GROUP" && (group.mode!=="INDIVIDUAL" || action==="remove")) || !["DRAFT","ASSIGNED","IN_PROGRESS"].includes(group.status)) fail("R399_CLASS_NOT_ACTIVE");
       const audit=async (event,metadata)=>client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,$2,'r6_training_group',$3,'SUCCESS',$4,$5)",[principal.user.id,event,id,crypto.randomUUID(),JSON.stringify(metadata)]);
       const now=(await client.query("select clock_timestamp() as at")).rows[0].at;
       const futureDate=(value)=>{

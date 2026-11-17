@@ -7,7 +7,7 @@ import { AssignmentAvatar, assignmentError } from "./AssignmentAvatarR395";
 type RequestRow = { id: string; studentName: string; programTitle: string; status: string; trainerName?: string | null; trainerUserId?: string | null };
 type Candidate = { id: string; name: string; email?: string; city: string | null; qualification: string; workload: number; completedWorkload?: number; hasFutureAvailability: boolean; photoUrl?: string | null; photoStorageKey?: string | null };
 const statusLabel = (status: string) => ({ PENDING: "Bekliyor", ASSIGNED: "Atandı", CANCELLED: "İptal edildi" }[status] || "Durum bilinmiyor");
-const historyLabel = (eventType: string) => ({ ASSIGNED: "Atandı", REASSIGNED_IN: "Yeni eğitmen atandı", REASSIGNED_OUT: "Önceki eğitmen çıkarıldı" }[eventType] || "Atama geçmişi");
+const historyLabel = (eventType: string) => ({ ASSIGNED: "Atandı", REASSIGNED_IN: "Yeni eğitmen atandı", REASSIGNED_OUT: "Önceki eğitmen çıkarıldı", REMOVED: "Atama kaldırıldı" }[eventType] || "Atama geçmişi");
 
 export function AdminAssignmentPage() {
   const [rows, setRows] = useState<RequestRow[]>([]);
@@ -27,13 +27,16 @@ export function AdminAssignmentPage() {
   const [reason, setReason] = useState("");
   const [compensationDecision, setCompensationDecision] = useState("PRESERVE");
   const [message, setMessage] = useState("");
+  const [removing,setRemoving]=useState(false);
+  const [removeReason,setRemoveReason]=useState("");
+  const [mutationBusy,setMutationBusy]=useState(false);
   const [current, setCurrent] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
 
   const load = async () => { const r = await fetch("/api/admin/assignment-requests?includeAssigned=true", { credentials: "same-origin" }); const b = await r.json(); setRows(b.requests || []); };
   useEffect(() => { void load(); }, []);
-  const open = async (row: RequestRow) => { setSelected(row); setAmount(""); setFree(false); setFreeReason(""); setCandidates([]); setCurrent(null); setHistory([]); setMessage(""); setTrainerId(""); setShowReassignPicker(false); setReason(""); setCompensationDecision("PRESERVE"); const r = await fetch(`/api/admin/assignment-requests/${row.id}`, { credentials: "same-origin" }); const b = await r.json(); if(!r.ok){setMessage(assignmentError(b.error,"Eğitmen listesi yüklenemedi."));return;} setCandidates(b.candidates || []); setCurrent(b.currentAssignment || null); setHistory(b.history || []); };
+  const open = async (row: RequestRow) => { setSelected(row); setRemoving(false); setRemoveReason(""); setAmount(""); setFree(false); setFreeReason(""); setCandidates([]); setCurrent(null); setHistory([]); setMessage(""); setTrainerId(""); setShowReassignPicker(false); setReason(""); setCompensationDecision("PRESERVE"); const r = await fetch(`/api/admin/assignment-requests/${row.id}`, { credentials: "same-origin" }); const b = await r.json(); if(!r.ok){setMessage(assignmentError(b.error,"Eğitmen listesi yüklenemedi."));return;} setCandidates(b.candidates || []); setCurrent(b.currentAssignment || null); setHistory(b.history || []); };
   const filtered = useMemo(() => candidates, [candidates]);
   const currentTrainerCandidate = useMemo(
     () => current ? candidates.find((candidate) => candidate.id === current.trainerUserId) || null : null,
@@ -46,6 +49,20 @@ export function AdminAssignmentPage() {
   }), [rows, search, queueTab]);
   const assign = async () => { if (!selected || !trainerId || (free ? !freeReason.trim() : !amountValid)) return; const isReassign = Boolean(current); if (isReassign && !reason.trim()) { setMessage("Değişiklik gerekçesi zorunludur."); return; } const r = await fetch(`/api/admin/assignment-requests/${selected.id}`, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ trainerId, compensationMinor:free?0:Math.round(Number(amount)*100), freeAssignment:free, ...(free?{freeReason:freeReason.trim()}:{}), ...(isReassign ? { reassign: true, reassignmentReason: reason.trim(), compensationDecision } : {}) }) }); const b = await r.json(); if (!r.ok) { setMessage(assignmentError(b.error,"Atama yapılamadı. Bilgileri kontrol edin.")); return; } setMessage(isReassign ? "Eğitmen değişikliği kaydedildi." : "Eğitmen ataması kaydedildi."); await load(); setSelected(null); setTrainerId(""); };
 
+  const removeAssignment=async()=>{
+    if(!selected || !current?.canRemove || mutationBusy || !removeReason.trim()) return;
+    if(!window.confirm("Atama kaldırılsın mı? Öğrencinin eğitim hakkı ve geçmişi korunur."))return;
+    setMutationBusy(true);
+    try {
+      const r=await fetch(`/api/admin/assignment-requests/${selected.id}`,{method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify({action:"remove",assignmentId:current.id,reason:removeReason.trim()})});
+      const b=await r.json();
+      if(!r.ok){setMessage(assignmentError(b.error,"Atama kaldırılamadı."));return;}
+      setSelected(null);setCurrent(null);setRemoving(false);setRemoveReason("");setQueueTab("PENDING");
+      setMessage(b.pendingRequestId?"Atama kaldırıldı. Öğrenci yeniden atama bekliyor.":"Atama kaldırıldı. Aktif eğitim hakkını kontrol edin.");
+      await load();
+    } catch {setMessage("İşlem sonucu doğrulanamadı. Listeyi yenileyip kontrol edin.");}
+    finally {setMutationBusy(false);}
+  };
   const pendingCount = rows.filter((row) => row.status === "PENDING").length;
   const assignedCount = rows.filter((row) => row.status === "ASSIGNED").length;
 
@@ -198,6 +215,14 @@ export function AdminAssignmentPage() {
               >
                 Eğitmeni Değiştir
               </button>
+              <div className="r400-individual-actions">
+                <p><strong>İletişim:</strong> {({PENDING:"Görüşme bekliyor",UNREACHABLE:"Ulaşılamadı",CONTACTED:"Görüşüldü",AGREED:"Mutabakat sağlandı"} as Record<string,string>)[current.contactStatus||"PENDING"]}</p>
+                <p><strong>Mutabakat tarihi:</strong> {current.agreedStartAt ? new Date(current.agreedStartAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}) : "Belirlenmedi"}</p>
+                <p><strong>Eğitim başlangıcı / eski planlama kaydı:</strong> {current.plannedAt ? new Date(current.plannedAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}) : "Henüz planlanmadı"}</p>
+                <button type="button" className="r400-danger-button" disabled={!current.canRemove||mutationBusy} onClick={()=>{setRemoving(true);setRemoveReason("");}}>Atamayı kaldır</button>
+                {!current.canRemove && <small>Planlama kaydı olan veya artık aktif olmayan eğitimlerde atama kaldırılamaz.</small>}
+                {removing && current.canRemove && <div className="r400-remove-form"><label>Kaldırma gerekçesi<textarea maxLength={500} value={removeReason} onChange={e=>setRemoveReason(e.target.value)}/></label><button type="button" disabled={mutationBusy||!removeReason.trim()} className="r400-danger-button" onClick={()=>void removeAssignment()}>Kaldırmayı onayla</button><button type="button" disabled={mutationBusy} onClick={()=>setRemoving(false)}>Vazgeç</button></div>}
+              </div>
             </section>
 ) : (
   <>

@@ -2,6 +2,7 @@
 // Planning dates are stored on authoritative assignment rows.
 
 
+import { permittedStart } from '../../src/server/domain/assignment-calendar-r402.js';
 import { Readable } from 'node:stream';
 import pg from 'pg';
 import crypto from 'node:crypto';
@@ -54,17 +55,20 @@ async function readProfiles(pool, trainerId) {
       sp.phone, sp.guardian_phone as "guardianPhone", sp.guardian_name as "guardianName",
       sp.guardian_email as "guardianEmail", sp.guardian_relation as "guardianRelation",
       case when t.child_profile_id is not null then cp.date_of_birth else sp.date_of_birth end as birth_date,
-      pkg.title as "packageTitle",t.contact_status as "contactStatus",t.agreed_start_at as "agreedStartAt"
+      pkg.title as "packageTitle",pkg.slug as "packageSlug",pkg.cover as "packageCover",t.contact_status as "contactStatus",t.agreed_start_at as "agreedStartAt"
     from targets t join platform_users pu on pu.id=t.student_user_id
     left join r6_student_child_profiles cp on cp.id=t.child_profile_id and cp.owner_user_id=t.student_user_id and cp.status='ACTIVE'
     left join student_profiles sp on sp.user_id=t.student_user_id and sp.status='ACTIVE' and
       (case when t.child_profile_id is not null then sp.id=cp.legacy_student_profile_id
             when t.student_profile_id is not null then sp.id=t.student_profile_id else true end)
     left join lateral (
-      select case when count(distinct pe.package_version_id)=1 then min(pv.title) else null end as title
+      select case when count(distinct pe.package_version_id)=1 then min(pv.title) else null end as title,
+             case when count(distinct pe.package_version_id)=1 then min(pk.slug) else null end as slug,
+             case when count(distinct pe.package_version_id)=1 then min(pk.icon_reference) else null end as cover
       from package_entitlement_enrollments pee
       join package_entitlements pe on pe.id=pee.package_entitlement_id
       join package_versions pv on pv.id=pe.package_version_id
+      join packages pk on pk.id=pv.package_id
       where pee.enrollment_id=t.enrollment_id and pe.beneficiary_student_user_id=t.student_user_id
         and pe.beneficiary_child_profile_id is not distinct from t.child_profile_id
         and (pe.beneficiary_student_profile_id is null or pe.beneficiary_student_profile_id=sp.id)
@@ -177,7 +181,7 @@ async function databaseMarks(pool,trainerId,a){
       if(row.planned_at && new Date(row.planned_at)<=now) fail('TRAINING_ALREADY_STARTED');
       const futureDate=()=>{
         if(typeof body.startAt!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(body.startAt)) fail('START_DATE_INVALID',400);
-        const d=new Date(body.startAt);if(!Number.isFinite(d.getTime())||d<=now)fail('START_DATE_MUST_BE_FUTURE',400);return d;
+        const d=permittedStart(body.startAt,now);if(!d)fail('START_DATE_OUTSIDE_ALLOWED_WINDOW',400);return d;
       };
       if(body.action==='contact'){
         const status=body.contactStatus;

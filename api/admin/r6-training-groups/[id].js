@@ -1,3 +1,4 @@
+import { permittedStart } from "../../../src/server/domain/assignment-calendar-r402.js";
 import { queueOwnerManagementEmail } from "../../../src/server/domain/owner-management-notifications-r390.js";
 import crypto from "node:crypto";
 import { assertTrainerEligible, queueR399ClassTrainerNotice, queueR399ClassLearnerNotice } from "../r6-training-groups.js";
@@ -73,8 +74,8 @@ export default async function handler(req, res) {
       const now=(await client.query("select clock_timestamp() as at")).rows[0].at;
       const futureDate=(value)=>{
         if(typeof value!=="string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) fail("R399_START_DATE_INVALID",400);
-        const date=new Date(value);
-        if(!Number.isFinite(date.getTime()) || date<=now) fail("R399_START_DATE_MUST_BE_FUTURE",400);
+        const date=permittedStart(value,now);
+        if(!date) fail("R399_START_DATE_OUTSIDE_ALLOWED_WINDOW",400);
         return date;
       };
       if(action==="schedule"){

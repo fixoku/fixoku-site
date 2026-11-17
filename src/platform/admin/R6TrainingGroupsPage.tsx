@@ -470,8 +470,8 @@ export function R6TrainingGroupsPage() {
           <div>
             <span>AKTİF KAYITLAR</span>
             <h2>Eğitim Sınıfları</h2>
-            <small role="status">{refreshError ? "Güncelleme yapılamadı; önceki bilgiler gösteriliyor." : lastRefresh ? `Son güncelleme: ${new Date(lastRefresh).toLocaleTimeString("tr-TR",{timeZone:"Europe/Istanbul"})}` : "Bilgiler yükleniyor…"}</small>
-            <button type="button" disabled={busy} onClick={()=>void load()}>Listeyi yenile</button>
+            <div className="r402-refresh"><small role="status">{refreshError ? "Güncelleme yapılamadı; önceki bilgiler gösteriliyor." : lastRefresh ? `Son güncelleme: ${new Date(lastRefresh).toLocaleTimeString("tr-TR",{timeZone:"Europe/Istanbul"})}` : "Bilgiler yükleniyor…"}</small>
+            <button type="button" disabled={busy} onClick={()=>void load()}>Listeyi yenile</button></div>
           </div>
           <label className="group-list-search">
             <span>Ara</span>

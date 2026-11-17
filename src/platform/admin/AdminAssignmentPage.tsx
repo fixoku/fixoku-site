@@ -26,7 +26,7 @@ export function AdminAssignmentPage() {
   const chosen=candidates.find(c=>c.id===trainerId);
   const givenName=(name:string)=>name.trim().split(/\s+/u).slice(0,-1).join(" ") || name;
   const amountValid=(/^[0-9]+(?:\.[0-9]{1,2})?$/.test(amount) && Number(amount)>0 && Math.round(Number(amount)*100)<=2147483647);
-  const [queueTab, setQueueTab] = useState<"PENDING" | "ASSIGNED">("PENDING");
+
   const [showReassignPicker, setShowReassignPicker] = useState(false);
   const [reason, setReason] = useState("");
   const [compensationDecision, setCompensationDecision] = useState("PRESERVE");
@@ -46,11 +46,6 @@ export function AdminAssignmentPage() {
     () => current ? candidates.find((candidate) => candidate.id === current.trainerUserId) || null : null,
     [candidates, current],
   );
-  const queueRows = useMemo(() => rows.filter((row) => {
-    const term = search.trim().toLocaleLowerCase("tr-TR");
-    const searchOk = !term || `${row.studentName} ${row.programTitle} ${row.trainerName || ""}`.toLocaleLowerCase("tr-TR").includes(term);
-    return searchOk && row.status === queueTab;
-  }), [rows, search, queueTab]);
   const assign = async () => { if (!selected || !trainerId || (free ? !freeReason.trim() : !amountValid)) return; const isReassign = Boolean(current); if (isReassign && !reason.trim()) { setMessage("Değişiklik gerekçesi zorunludur."); return; } const r = await fetch(`/api/admin/assignment-requests/${selected.id}`, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ trainerId, compensationMinor:free?0:Math.round(Number(amount)*100), freeAssignment:free, ...(free?{freeReason:freeReason.trim()}:{}), ...(isReassign ? { reassign: true, reassignmentReason: reason.trim(), compensationDecision } : {}) }) }); const b = await r.json(); if (!r.ok) { setMessage(assignmentError(b.error,"Atama yapılamadı. Bilgileri kontrol edin.")); return; } setMessage(isReassign ? "Eğitmen değişikliği kaydedildi." : "Eğitmen ataması kaydedildi."); await load(); setSelected(null); setTrainerId(""); };
 
   const removeAssignment=async()=>{
@@ -61,7 +56,7 @@ export function AdminAssignmentPage() {
       const r=await fetch(`/api/admin/assignment-requests/${selected.id}`,{method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify({action:"remove",assignmentId:current.id,reason:removeReason.trim()})});
       const b=await r.json();
       if(!r.ok){setMessage(assignmentError(b.error,"Atama kaldırılamadı."));return;}
-      setSelected(null);setCurrent(null);setRemoving(false);setRemoveReason("");setQueueTab("PENDING");
+      setSelected(null);setCurrent(null);setRemoving(false);setRemoveReason("");
       setMessage(b.pendingRequestId?"Atama kaldırıldı. Öğrenci yeniden atama bekliyor.":"Atama kaldırıldı. Aktif eğitim hakkını kontrol edin.");
       await load();
     } catch {setMessage("İşlem sonucu doğrulanamadı. Listeyi yenileyip kontrol edin.");}
@@ -103,30 +98,9 @@ export function AdminAssignmentPage() {
     {message && <p className="admin-inline-status" role="status">{message}</p>}
     <section className="r401-stats"><div><span>Bekleyen</span><strong>{pendingCount}</strong></div><div><span>Atanmış</span><strong>{assignedCount}</strong></div><div><span>Toplam kayıt</span><strong>{rows.length}</strong></div><div><span>Başlangıç tarihi bekleyen</span><strong>{rows.filter(r=>r.status==="ASSIGNED"&&!r.plannedAt).length}</strong></div></section>
     <section className="assignment-filterbar"><label>Öğrenci veya eğitim ara<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ara…" /></label></section>
-    <div className="assignment-workspace">
-      <section className="panel-card assignment-request-list">
-  <div className="admin-section-heading">
-    <div><span>ATAMA KUYRUĞU</span><h2>Öğrenci eğitimleri</h2></div>
-    <strong>{queueRows.length}</strong>
-  </div>
-  <div className="assignment-queue-tabs" role="tablist" aria-label="Atama kuyruğu">
-    <button type="button" role="tab" aria-selected={queueTab === "PENDING"} className={queueTab === "PENDING" ? "is-active" : ""} onClick={() => { setQueueTab("PENDING"); setSelected(null); setTrainerId(""); setShowReassignPicker(false); }}>
-      <span>Atama Bekleyenler</span><b>{pendingCount}</b>
-    </button>
-    <button type="button" role="tab" aria-selected={queueTab === "ASSIGNED"} className={queueTab === "ASSIGNED" ? "is-active" : ""} onClick={() => { setQueueTab("ASSIGNED"); setSelected(null); setTrainerId(""); setShowReassignPicker(false); }}>
-      <span>Atananlar</span><b>{assignedCount}</b>
-    </button>
-  </div>
-  {!queueRows.length ? <div className="admin-empty-state assignment-queue-empty">
-    <strong>{queueTab === "PENDING" ? "Atama bekleyen kayıt yok" : "Atanmış kayıt yok"}</strong>
-    <span>Bu sekmede gösterilecek öğrenci eğitimi bulunmuyor.</span>
-  </div> : <div className="assignment-request-stack">{queueRows.map((row) => <button type="button" className={selected?.id === row.id ? "is-selected" : ""} key={row.id} onClick={() => void open(row)}><AssignmentAvatar src={photo(row)} name={row.studentName}/><div className="assignment-request-copy-v28">
-  <strong>{row.studentName}</strong>
-  <span>{(row as any).grade ? `${(row as any).grade}. Sınıf${(row as any).classBranch ? ` / ${(row as any).classBranch}` : ""}` : ((row as any).classBranch || "Sınıf bilgisi yok")}</span>
-  <small>{row.programTitle}</small>
-</div><span className={`assignment-row-status is-${row.status.toLowerCase()}`}><i aria-hidden="true" />{statusLabel(row.status)}</span></button>)}</div>}
-</section>
-      <section className="panel-card assignment-detail-panel">{!selected ? <div className="admin-empty-state"><strong>Bir atama kaydı seçin</strong><span>Öğrenci, eğitim, mevcut eğitmen ve uygun adaylar burada gösterilecek.</span></div> : <><div className="admin-section-heading assignment-detail-heading-v27">
+    <div className="assignment-workspace r402-owner-workspace">
+      <section className="panel-card r402-owner-picker"><div className="r401-heading"><div><span>YENİ BİREBİR ATAMA</span><h2>Öğrenciyi yetkin eğitmene ata</h2><p>Eğitim hakkına uygun eğitmeni seç ve hakedişi belirle.</p></div></div><label>1 · Öğrenci ve eğitim bilgileri<select value={selected?.status==='PENDING'?selected.id:''} onChange={e=>{const row=rows.find(r=>r.id===e.target.value);if(row)void open(row);else {setSelected(null);setCurrent(null);}}}><option value="">Atama bekleyen öğrenci seçin</option>{rows.filter(r=>r.status==='PENDING'&&`${r.studentName} ${r.programTitle}`.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR'))).map(r=><option key={r.id} value={r.id}>{r.studentName} · {r.programTitle}</option>)}</select></label></section>
+      <section className="panel-card assignment-detail-panel" hidden={!selected}>{!selected ? <div className="admin-empty-state"><strong>Bir atama kaydı seçin</strong><span>Öğrenci, eğitim, mevcut eğitmen ve uygun adaylar burada gösterilecek.</span></div> : <><div className="admin-section-heading assignment-detail-heading-v27">
               <div className="assignment-detail-heading-main-v27">
                 <span className="assignment-detail-heading-icon-v27" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none">
@@ -238,6 +212,6 @@ export function AdminAssignmentPage() {
   </>
 )}</>}</section>
     </div>
-    <section className="panel-card r401-assigned"><div className="r401-heading"><div><h2>Atanmış birebir eğitimler</h2><p>İletişim, mutabakat ve başlangıç durumları</p></div><label>Durum<select value={status} onChange={e=>setStatus(e.target.value)}><option value="ALL">Tüm durumlar</option><option value="WAIT">Tarih bekleyen</option><option value="DATE">Tarihi belirlenen</option></select></label></div>{rows.filter(r=>r.status==="ASSIGNED"&&(status==="ALL"||(status==="WAIT"?!r.plannedAt:!!r.plannedAt))&&(`${r.studentName} ${r.programTitle} ${r.trainerName||""}`).toLocaleLowerCase("tr-TR").includes(search.trim().toLocaleLowerCase("tr-TR"))).map(r=><article className="r401-classcard" key={r.id}><div className="r401-classhead"><div className="r401-person"><AssignmentAvatar src={photo(r)} name={r.studentName}/><div><h3>{r.studentName}</h3><small>Öğrenci</small></div></div><span className="r401-cover"><FixokuPhotoV41F src={r.packageCover} fallbackSrc={r.packageSlug?packageImageDefaultV41F(r.packageSlug):undefined} alt={r.packageTitle||r.programTitle}><span>{r.packageTitle||r.programTitle}</span></FixokuPhotoV41F></span><div><b>{r.programTitle}</b><p>{r.packageTitle}</p></div><div className="r401-person"><AssignmentAvatar src={r.trainerUserId?`/api/admin/assignment-requests/${r.id}?trainerPhoto=${encodeURIComponent(r.trainerUserId)}`:""} name={r.trainerName||"Eğitmen"}/><b>{r.trainerName||"Atanmadı"}</b></div></div><div className="r401-meta">{[["İletişim",({PENDING:"Görüşme bekliyor",UNREACHABLE:"Ulaşılamadı",CONTACTED:"Görüşüldü",AGREED:"Mutabakat sağlandı"} as Record<string,string>)[r.contactStatus||"PENDING"]],["Mutabakat",r.agreedStartAt?new Date(r.agreedStartAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}):"Belirlenmedi"],["Başlangıç / planlama",r.plannedAt?new Date(r.plannedAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}):"Belirlenmedi"],["Durum","Atandı"]].map(([l,v])=><div key={l}><small>{l}</small><b>{v}</b></div>)}</div><div className="r401-actions r401-classbody"><button type="button" onClick={()=>{setQueueTab("ASSIGNED");void open(r);window.scrollTo({top:0,behavior:"smooth"});}}>Eğitim detayları / atamayı yönet</button></div></article>)}</section>
+    <section className="panel-card r401-assigned"><div className="r401-heading"><div><h2>Atanmış birebir eğitimler</h2><p>İletişim, mutabakat ve başlangıç durumları</p></div><label>Durum<select value={status} onChange={e=>setStatus(e.target.value)}><option value="ALL">Tüm durumlar</option><option value="WAIT">Tarih bekleyen</option><option value="DATE">Tarihi belirlenen</option></select></label></div>{rows.filter(r=>r.status==="ASSIGNED"&&(status==="ALL"||(status==="WAIT"?!r.plannedAt:!!r.plannedAt))&&(`${r.studentName} ${r.programTitle} ${r.trainerName||""}`).toLocaleLowerCase("tr-TR").includes(search.trim().toLocaleLowerCase("tr-TR"))).map(r=><article className="r401-classcard" key={r.id}><div className="r401-classhead"><div className="r401-person"><AssignmentAvatar src={photo(r)} name={r.studentName}/><div><h3>{r.studentName}</h3><small>Öğrenci</small></div></div><span className="r401-cover"><FixokuPhotoV41F src={r.packageCover} fallbackSrc={r.packageSlug?packageImageDefaultV41F(r.packageSlug):undefined} alt={r.packageTitle||r.programTitle}><span>{r.packageTitle||r.programTitle}</span></FixokuPhotoV41F></span><div><b>{r.programTitle}</b><p>{r.packageTitle}</p></div><div className="r401-person"><AssignmentAvatar src={r.trainerUserId?`/api/admin/assignment-requests/${r.id}?trainerPhoto=${encodeURIComponent(r.trainerUserId)}`:""} name={r.trainerName||"Eğitmen"}/><b>{r.trainerName||"Atanmadı"}</b></div></div><div className="r401-meta">{[["İletişim",({PENDING:"Görüşme bekliyor",UNREACHABLE:"Ulaşılamadı",CONTACTED:"Görüşüldü",AGREED:"Mutabakat sağlandı"} as Record<string,string>)[r.contactStatus||"PENDING"]],["Mutabakat",r.agreedStartAt?new Date(r.agreedStartAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}):"Belirlenmedi"],["Başlangıç / planlama",r.plannedAt?new Date(r.plannedAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}):"Belirlenmedi"],["Durum","Atandı"]].map(([l,v])=><div key={l}><small>{l}</small><b>{v}</b></div>)}</div><div className="r401-actions r401-classbody"><button type="button" onClick={()=>{void open(r);window.scrollTo({top:0,behavior:"smooth"});}}>Eğitim detayları / atamayı yönet</button></div></article>)}</section>
   </main>;
 }

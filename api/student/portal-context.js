@@ -68,7 +68,7 @@ export default async function handler(request, response) {
       const childRows = (await pool.query(`
         select c.id as "childProfileId",c.legacy_student_profile_id as "studentProfileId",
           c.owner_user_id as "studentUserId",concat_ws(' ',c.first_name,c.last_name) as "studentName",
-          c.education_stage as "educationStage",c.grade,sp.school,sp.status as "profileStatus"
+          c.education_stage as "educationStage",c.grade,coalesce(c.school,sp.school) as school,sp.status as "profileStatus"
         from r6_student_child_profiles c
         left join student_profiles sp on sp.id=c.legacy_student_profile_id
         where c.owner_user_id=$1 and c.status='ACTIVE'
@@ -137,7 +137,7 @@ export default async function handler(request, response) {
       return json(response, 200, {
         role,
         context: {
-          ...(role === "GUARDIAN" ? { studentProfileId: selected.childProfileId || selected.studentProfileId, childProfileId: selected.childProfileId || null } : {}),
+          studentProfileId: selected.childProfileId || selected.studentProfileId, childProfileId: selected.childProfileId || null,
           student: { name: selected.student.displayName, grade: selected.profile.grade, school: selected.profile.school, status: selected.profile.status },
         },
         students: role === "GUARDIAN" ? targets.map((target) => ({ studentProfileId: target.childProfileId || target.studentProfileId, childProfileId: target.childProfileId || null, name: target.student.displayName, grade: target.profile.grade })) : [],

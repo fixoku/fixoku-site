@@ -2,7 +2,25 @@ import assert from "node:assert/strict";
 import { EMAIL_TEMPLATE_COUNT, renderEmail, renderEmailForEvent } from "../src/server/domain/email-renderer.js";
 import { getSmtpConfig, processOutboxBatch } from "../src/server/domain/email-outbox.js";
 
-assert.equal(EMAIL_TEMPLATE_COUNT, 44);
+assert.equal(EMAIL_TEMPLATE_COUNT, 56);
+const { EMAIL_EVENT_TEMPLATE_MAP } = await import("../src/server/domain/email-templates.js");
+const r399Expected = {
+  OWNER_REASSIGNMENT_PENDING: "owner-reassignment-pending",
+  OWNER_CLASS_SCHEDULED: "owner-class-scheduled",
+  OWNER_CLASS_RESCHEDULED: "owner-class-rescheduled",
+  R399_CLASS_LEARNER_ASSIGNED: "class-learner-assigned",
+  R399_CLASS_LEARNER_SCHEDULED: "class-learner-scheduled",
+  R399_LEARNER_REMOVED: "r399-learner-removed",
+  R399_TRAINER_REMOVED: "r399-trainer-removed",
+  R399_LEARNER_ASSIGNMENT: "r399-learner-assignment",
+  R399_CLASS_LEARNER_RESCHEDULED: "class-learner-rescheduled",
+  R399_CLASS_ASSIGNED: "class-assigned",
+  R399_CLASS_STUDENT_ADDED: "class-student-added",
+  R399_CLASS_STUDENT_REMOVED: "class-student-removed"
+};
+for (const [event, template] of Object.entries(r399Expected)) {
+  assert.equal(EMAIL_EVENT_TEMPLATE_MAP[event], template);
+}
 const marketing = renderEmail("marketing-permission-aware", { recipientName: "<em>Demo</em>", body: "İzinli içerik", reference: "R-1", unsubscribePath: "/tercihler" });
 assert.equal(marketing.from, "kampanya@fixoku.com");
 assert.equal(marketing.replyTo, "destek@fixoku.com");
@@ -34,6 +52,9 @@ const result = await processOutboxBatch({ client, env: { EMAIL_PROVIDER: "TEST",
 assert.equal(result.processed, 1);
 assert.equal(sent.from, "local@invalid.test");
 assert.ok(sent.html.includes("<!doctype html>"));
+assert.ok(sent.html.includes("Merhaba Demo,"));
+assert.ok(sent.text.includes("Merhaba Demo,"));
+assert.ok(!sent.html.includes("Fixoku müşterisi"));
 assert.ok(sent.text.includes("Gövde"));
 assert.equal(getSmtpConfig({ EMAIL_PROVIDER: "DISABLED" }), null);
 console.log(JSON.stringify({ emailTemplateCount: EMAIL_TEMPLATE_COUNT, html: "PASS", plainText: "PASS", escaping: "PASS", testTransport: "PASS", marketingHeaders: "PASS" }));

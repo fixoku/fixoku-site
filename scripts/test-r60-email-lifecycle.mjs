@@ -9,8 +9,8 @@ const rewriteSources = new Set((vercel.rewrites || []).map((entry) => entry.sour
 assert.equal(rewriteSources.has("/sifre-sifirla"), true);
 assert.equal(rewriteSources.has("/e-posta-dogrula"), true);
 assert.equal(rewriteSources.has("/ogretmen-aday-aktivasyon"), true);
-assert.equal((vercel.rewrites || []).find((entry) => entry.source === "/sifre-sifirla")?.destination, "/index.html");
-assert.equal((vercel.rewrites || []).find((entry) => entry.source === "/e-posta-dogrula")?.destination, "/index.html");
+assert.equal((vercel.rewrites || []).find((entry) => entry.source === "/sifre-sifirla")?.destination, "/auth-shell");
+assert.equal((vercel.rewrites || []).find((entry) => entry.source === "/e-posta-dogrula")?.destination, "/auth-shell");
 
 const routesSource = await readFile(new URL("../src/AppRoutes.jsx", import.meta.url), "utf8");
 const lifecycleSource = await readFile(new URL("../src/pages/AuthLifecycle.jsx", import.meta.url), "utf8");
@@ -51,46 +51,82 @@ const invitationSource = await readFile(new URL("../src/server/auth/invitations.
 assert.match(candidateApiSource, /ogretmen-aday-aktivasyon\?token=/u);
 assert.match(invitationSource, /requireApplicationOrigin/u);
 
+const r399PreviewIdentity = Object.freeze({
+  VERCEL: "1",
+  VERCEL_GIT_COMMIT_REF: "codex/fixoku-staging-acceptance-20261113",
+  VERCEL_PROJECT_ID: "prj_yWvXfOndJ6se89FdCiPbvKIZoGwR",
+  VERCEL_GIT_COMMIT_SHA: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  FIXOKU_STAGING_ACCEPTANCE_RUNTIME_EXPECTED_COMMIT_SHA: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  FIXOKU_STAGING_ACCEPTANCE_RUNTIME_PROBE_ENABLED: "1",
+  FIXOKU_STAGING_ACCEPTANCE_ENDPOINT_METADATA_ATTESTED: "1",
+  FIXOKU_STAGING_ACCEPTANCE_NEON_PROJECT_ID: "tiny-fire-86403197",
+  FIXOKU_STAGING_ACCEPTANCE_NEON_BRANCH_ID: "br-fragrant-grass-b14anzbn",
+  FIXOKU_STAGING_ACCEPTANCE_DATABASE: "neondb",
+  FIXOKU_STAGING_ACCEPTANCE_POOLED_HOST: "ep-red-bonus-b1ioer0k-pooler.c-5.eu-central-1.aws.neon.tech",
+  FIXOKU_STAGING_ACCEPTANCE_DIRECT_HOST: "ep-red-bonus-b1ioer0k.c-5.eu-central-1.aws.neon.tech"
+});
+
 const previewOrigin = resolveApplicationOrigin({
   NODE_ENV: "production",
-  VERCEL_ENV: "preview",
-  VERCEL_URL: "fixoku-site-r60-preview.vercel.app",
+  ...r399PreviewIdentity, VERCEL_ENV: "preview",
+  VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app",
 });
-assert.equal(previewOrigin, "https://fixoku-site-r60-preview.vercel.app");
+assert.equal(previewOrigin, "https://fixoku-site-r399test123-fixoku.vercel.app");
 assert.equal(resolveApplicationOrigin({
   NODE_ENV: "production",
-  VERCEL_ENV: "preview",
-  VERCEL_URL: "fixoku-site-r60-preview.vercel.app",
+  ...r399PreviewIdentity, VERCEL_ENV: "preview",
+  VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app",
   APP_ORIGIN: "https://fixoku.com",
 }), null);
 assert.equal(resolveApplicationOrigin({
   NODE_ENV: "production",
-  VERCEL_ENV: "preview",
-  VERCEL_URL: "fixoku-site-r60-preview.vercel.app",
-}), "https://fixoku-site-r60-preview.vercel.app");
+  ...r399PreviewIdentity, VERCEL_ENV: "preview",
+  VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app",
+}), "https://fixoku-site-r399test123-fixoku.vercel.app");
 assert.equal(resolveApplicationOrigin({
   NODE_ENV: "production",
-  VERCEL_ENV: "preview",
-  VERCEL_URL: "fixoku-site-r60-preview.vercel.app",
+  ...r399PreviewIdentity, VERCEL_ENV: "preview",
+  VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app",
   APP_ORIGIN: "https://staging.fixoku.com",
 }), "https://staging.fixoku.com");
 assert.deepEqual(resolveTrustedOrigins({
   NODE_ENV: "production",
-  VERCEL_ENV: "preview",
-  VERCEL_URL: "fixoku-site-r60-preview.vercel.app",
+  ...r399PreviewIdentity, VERCEL_ENV: "preview",
+  VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app",
   APP_ORIGIN: "https://staging.fixoku.com",
-}), ["https://staging.fixoku.com", "https://fixoku-site-r60-preview.vercel.app"]);
+}), ["https://staging.fixoku.com", "https://fixoku-site-r399test123-fixoku.vercel.app"]);
 for (const unsafe of [
-  { VERCEL_ENV: "preview", VERCEL_URL: "https://random.example.test" },
-  { VERCEL_ENV: "preview", VERCEL_URL: "http://fixoku-site-r60-preview.vercel.app" },
-  { VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r60-preview.vercel.app:8443" },
-  { VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r60-preview.vercel.app", APP_ORIGIN: "https://random.example.test" },
-  { VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r60-preview.vercel.app", APP_ORIGIN: "https://fixoku.com" },
-  { VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r60-preview.vercel.app", APP_ORIGIN: "https://user:pass@staging.fixoku.com" },
-  { VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r60-preview.vercel.app", APP_ORIGIN: "http://10.0.0.4" },
-  { VERCEL_ENV: "preview", APP_ORIGIN: "https://staging.fixoku.com", BETTER_AUTH_URL: "https://random.example.test" },
+  { ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "https://random.example.test" },
+  { ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "http://fixoku-site-r399test123-fixoku.vercel.app" },
+  { ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app:8443" },
+  { ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app", APP_ORIGIN: "https://random.example.test" },
+  { ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app", APP_ORIGIN: "https://fixoku.com" },
+  { ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app", APP_ORIGIN: "https://user:pass@staging.fixoku.com" },
+  { ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app", APP_ORIGIN: "http://10.0.0.4" },
+  { ...r399PreviewIdentity, VERCEL_ENV: "preview", APP_ORIGIN: "https://staging.fixoku.com", BETTER_AUTH_URL: "https://random.example.test" },
 ]) assert.equal(resolveApplicationOrigin(unsafe), null);
-assert.throws(() => requireApplicationOrigin({ VERCEL_ENV: "preview", VERCEL_URL: "random.example.test" }), /PUBLIC_ORIGIN_NOT_CONFIGURED/u);
+assert.throws(() => requireApplicationOrigin({ ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "random.example.test" }), /PUBLIC_ORIGIN_NOT_CONFIGURED/u);
+
+assert.equal(resolveApplicationOrigin({
+  ...r399PreviewIdentity,
+  VERCEL_ENV: "preview",
+  VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app",
+  VERCEL_GIT_COMMIT_SHA: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}), null);
+
+assert.equal(resolveApplicationOrigin({
+  ...r399PreviewIdentity,
+  VERCEL_ENV: "preview",
+  VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app",
+  VERCEL_GIT_COMMIT_REF: "unknown-branch"
+}), null);
+
+assert.equal(resolveApplicationOrigin({
+  ...r399PreviewIdentity,
+  VERCEL_ENV: "preview",
+  VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app",
+  VERCEL_PROJECT_ID: "wrong-project"
+}), null);
 
 const tokenUrl = previewOrigin + "/api/auth/reset-password/one-time-token?callbackURL=%2Fsifre-sifirla";
 const rendered = renderLifecycleEmail("reset", { url: tokenUrl, recipientName: "Yusuf Selek" }, { baseUrl: previewOrigin });
@@ -115,7 +151,7 @@ await sendTransactionalEmail({
   to: "yusuf@example.invalid",
   url: tokenUrl,
   recipientName: "Yusuf Selek",
-  env: { EMAIL_PROVIDER: "TEST", SMTP_FROM: "bildirim@fixoku.com", VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r60-preview.vercel.app" },
+  env: { EMAIL_PROVIDER: "TEST", SMTP_FROM: "bildirim@fixoku.com", ...r399PreviewIdentity, VERCEL_ENV: "preview", VERCEL_URL: "fixoku-site-r399test123-fixoku.vercel.app" },
   transportFactory: () => ({ sendMail: async (message) => { sent = message; return { messageId: "r60-test" }; } }),
   logger: { info() {} },
 });
@@ -128,10 +164,11 @@ assert.equal(getSmtpConfig({ SMTP_HOST: "smtp.test", SMTP_PORT: "587", SMTP_USER
 
 let deliveryAttempts = 0;
 const outboxUpdates = [];
+let missingNameClaims = 0;
 const missingNameClient = {
   query: async (sql, params) => {
     if (sql.startsWith("update notification_email_outbox set status='PROCESSING'")) {
-      return { rows: outboxUpdates.length ? [] : [{
+      return { rows: missingNameClaims++ ? [] : [{
         id: "r60-missing-name",
         event_type: "PROFILE_COMPLETION",
         recipient_email: "missing-name@example.invalid",
@@ -156,6 +193,25 @@ const missingNameResult = await processOutboxBatch({
 assert.equal(missingNameResult.processed, 1);
 assert.equal(deliveryAttempts, 0);
 assert.equal(outboxUpdates[0]?.params?.[0], "FAILED");
+assert.equal(outboxUpdates[0]?.params?.[1], "EMAIL_RECIPIENT_NAME_REQUIRED");
+assert.equal(outboxUpdates[0]?.params?.[2], null);
+for (const recipientName of ["", "   ", "Fixoku müşterisi", "Fixoku kullanıcısı"]) {
+  let claims = 0;
+  let attempts = 0;
+  const updates = [];
+  const client = { query: async (sql, params) => {
+    if (sql.startsWith("update notification_email_outbox set status='PROCESSING'")) {
+      return { rows: claims++ ? [] : [{ id: "r60-placeholder", event_type: "PROFILE_COMPLETION", recipient_email: "demo@example.invalid", recipient_name: recipientName, body: "Gövde", attempt_count: 1 }] };
+    }
+    if (sql.startsWith("update notification_email_outbox set status=$1")) updates.push(params);
+    return { rows: [] };
+  } };
+  const result = await processOutboxBatch({ client, env: { EMAIL_PROVIDER: "TEST" }, transportFactory: () => ({ sendMail: async () => { attempts++; } }), logger: { error() {} } });
+  assert.equal(result.processed, 1);
+  assert.equal(attempts, 0);
+  assert.equal(updates.length, 1);
+  assert.deepEqual(updates[0].slice(0, 3), ["FAILED", "EMAIL_RECIPIENT_NAME_REQUIRED", null]);
+}
 
 console.log(JSON.stringify({
   PREVIEW_ORIGIN: "PASS",

@@ -134,7 +134,7 @@ const ownerGroups: NavGroup[] = [
     items: [
       ["users", "Öğrenciler", "/panel/admin/ogrenciler"],
       ["flow", "Birebir Atamalar", "/panel/admin/atamalar"],
-      ["graduation", "Grup Atamaları", "/panel/owner/egitim-gruplari"],
+      ["graduation", "Sınıf Atamaları", "/panel/owner/egitim-gruplari"],
     ],
   },
   {

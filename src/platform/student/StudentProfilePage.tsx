@@ -8,6 +8,8 @@ import "../trainer/profile/trainer-profile.css";
 import "./student-portal.css";
 
 type Profile = {
+  id?: string;
+  childProfileId?: string;
   firstName: string;
   lastName: string;
   dateOfBirth: string;
@@ -18,6 +20,7 @@ type Profile = {
   educationStage: string;
   grade: string;
   school: string;
+  classBranch: string;
   city: string;
   district: string;
   email: string;
@@ -41,6 +44,7 @@ const empty: Profile = {
   educationStage: "",
   grade: "",
   school: "",
+  classBranch: "",
   city: "",
   district: "",
   email: "",
@@ -101,16 +105,36 @@ export function StudentProfilePage({
   // FIXOKU_R23_PHOTO_SAVE
   const [photoSaving, setPhotoSaving] = useState(false);
   const [photoNotice, setPhotoNotice] = useState("");
-  const savePhoto = async () => {
-    if (!photoDataUrl || photoSaving) return;
+  const [photoError, setPhotoError] = useState(false);
+  const targetQuery = profile.childProfileId ? `?childProfileId=${encodeURIComponent(profile.childProfileId)}` : guardian && profile.id ? `?studentProfileId=${encodeURIComponent(profile.id)}` : "";
+  const [educationSaving, setEducationSaving] = useState(false);
+  const [educationNotice, setEducationNotice] = useState("");
+  const saveChildEducation = async () => {
+    const id = profile.childProfileId;
+    if (!id || educationSaving || photoSaving) return;
+    if (!profile.grade || String(profile.school || "").trim().length < 2) { setEducationNotice("Okul adını ve sınıfı kontrol edin."); return; }
+    setEducationSaving(true); setEducationNotice("");
+    try {
+      const response = await fetch(`/api/student/profile?childProfileId=${encodeURIComponent(id)}`, { method: "PATCH", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ childEducationOnly: true, school: profile.school, grade: profile.grade, classBranch: profile.classBranch }) });
+      const result = await response.json();
+      if (!response.ok || result.childProfileId !== id) throw new Error("CHILD_EDUCATION_SAVE_FAILED");
+      setProfile(current => current.childProfileId === id ? { ...current, school: result.school || "", grade: String(result.grade || ""), classBranch: result.classBranch || "" } : current);
+      setEducationNotice("Çocuğun eğitim bilgileri kaydedildi.");
+    } catch { setEducationNotice("Eğitim bilgileri kaydedilemedi. Okul, sınıf ve şubeyi kontrol edin."); }
+    finally { setEducationSaving(false); }
+  };
+  const canManagePhoto = Boolean(profile.id) && (!guardian || Boolean(targetQuery));
+  useEffect(() => setPhotoError(false), [profile.photoUrl, photoDataUrl]);
+  const savePhoto = async (remove = false) => {
+    if ((!remove && !photoDataUrl) || photoSaving || !canManagePhoto) return;
     setPhotoSaving(true); setPhotoNotice("");
     try {
-      const response = await fetch("/api/student/profile", { method: "PATCH", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ photoOnly: true, photoDataUrl }) });
+      const response = await fetch(`/api/student/profile${targetQuery}`, { method: "PATCH", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(remove ? { photoOnly: true, removePhoto: true } : { photoOnly: true, photoDataUrl }) });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.photoStorageKey) throw new Error("PHOTO_SAVE_FAILED");
+      if (!response.ok || (remove ? result.photoStorageKey !== null : !result.photoStorageKey)) throw new Error("PHOTO_SAVE_FAILED");
       setProfile((current) => ({ ...current, photoStorageKey: result.photoStorageKey, photoUrl: result.photoUrl }));
       setPhotoDataUrl(null); setRemovePhoto(false);
-      setPhotoNotice("Profil fotoğrafınız kaydedildi.");
+      setPhotoNotice(remove ? "Profil fotoğrafı kaldırıldı." : "Profil fotoğrafınız kaydedildi.");
       window.dispatchEvent(new Event("fixoku:profile-photo-updated"));
     } catch { setPhotoNotice("Fotoğraf kaydedilemedi. Tekrar deneyin."); }
     finally { setPhotoSaving(false); }
@@ -119,9 +143,10 @@ export function StudentProfilePage({
 
   const load = () => {
     setState("loading");
-    const query = guardian
-      ? `?studentProfileId=${encodeURIComponent(new URLSearchParams(window.location.search).get("studentProfileId") || "")}`
-      : "";
+    const params = new URLSearchParams(window.location.search);
+    const child = params.get("childProfileId");
+    const legacy = params.get("studentProfileId");
+    const query = child ? `?childProfileId=${encodeURIComponent(child)}` : legacy ? `?studentProfileId=${encodeURIComponent(legacy)}` : "";
 
     fetch(`/api/student/profile${query}`, {
       credentials: "same-origin",
@@ -130,6 +155,7 @@ export function StudentProfilePage({
       .then(async (response) => {
         if (!response.ok) throw new Error("PROFILE_LOAD_FAILED");
         const body = await response.json();
+        if (!body.profile) throw new Error("PROFILE_NOT_FOUND");
         const loaded = { ...empty, ...body.profile };
         setProfile(loaded);
         setOriginalEmail(loaded.email || user.email || "");
@@ -164,7 +190,7 @@ export function StudentProfilePage({
   const avatarSrc =
     photoDataUrl ||
     (profile.photoUrl
-      ? `${profile.photoUrl}?v=${encodeURIComponent(profile.photoStorageKey || "")}`
+      ? `${profile.photoUrl}${profile.photoUrl.includes("?") ? "&" : "?"}v=${encodeURIComponent(profile.photoStorageKey || "")}`
       : null);
 
   const update = (key: keyof Profile, value: string) => {
@@ -235,7 +261,7 @@ export function StudentProfilePage({
   const save = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (guardian || !validate()) return;
+    if (guardian || profile.childProfileId || !validate()) return;
 
     setState("saving");
     setMessage("");
@@ -386,7 +412,20 @@ export function StudentProfilePage({
 
           <form onSubmit={(event) => void save(event)}>
             <div className="trainer-profile-layout">
-              <section className="trainer-profile-card student-profile-single-card">
+              {profile.childProfileId && <section className="trainer-profile-card student-profile-single-card">
+                <div className="trainer-profile-form">
+                  <h3>Çocuğun eğitim bilgileri</h3>
+                  <p>{profile.firstName} {profile.lastName} · {stage?.label || "Eğitim kademesi belirtilmedi"}</p>
+                  {stage && stage.value !== "ADULT" ? <>
+                    <label>Okul adı<input value={profile.school || ""} maxLength={160} disabled={educationSaving} onChange={e => setProfile(p => ({ ...p, school: e.target.value }))}/></label>
+                    <label>Sınıf<select value={profile.grade || ""} disabled={educationSaving} onChange={e => setProfile(p => ({ ...p, grade: e.target.value }))}><option value="">Seçin</option>{stage.grades.map(g => <option key={g} value={g}>{g}. Sınıf</option>)}</select></label>
+                    <label>Şube (isteğe bağlı)<input value={profile.classBranch || ""} maxLength={12} disabled={educationSaving} onChange={e => setProfile(p => ({ ...p, classBranch: e.target.value }))}/></label>
+                    <button type="button" className="profile-button" disabled={educationSaving || photoSaving} onClick={() => void saveChildEducation()}>{educationSaving ? "Kaydediliyor..." : "Eğitim bilgilerini kaydet"}</button>
+                    {educationNotice && <p role="status">{educationNotice}</p>}
+                  </> : <p>Eğitim kademesi değişikliği için yönetimle iletişime geçin.</p>}
+                </div>
+              </section>}
+              {!profile.childProfileId && <section className="trainer-profile-card student-profile-single-card">
                 <div className="trainer-profile-form">
                   <div className="student-profile-section-heading">
                     <div className="student-profile-section-icon">
@@ -721,16 +760,17 @@ export function StudentProfilePage({
                     )}
                   </div>
                 </div>
-              </section>
+              </section>}
 
               <aside className="trainer-profile-rail student-profile-rail">
                 <div className="trainer-profile-identity student-profile-identity">
                   <div className="profile-photo-control">
-                    {avatarSrc ? (
+                    {avatarSrc && !photoError ? (
                       <img
                         className="trainer-profile-avatar trainer-profile-avatar-image student-profile-avatar"
                         src={avatarSrc}
                         alt="Profil fotoğrafı"
+                        onError={() => setPhotoError(true)}
                       />
                     ) : (
                       <div
@@ -741,12 +781,13 @@ export function StudentProfilePage({
                       </div>
                     )}
 
-                    {!guardian && (
+                    {canManagePhoto && (
                       <label className="profile-photo-button">
                         <PanelIcon name="camera" size={25} />
                         <input
                           aria-label="Profil fotoğrafı seç"
                           type="file"
+                          disabled={photoSaving || state === "saving"}
                           accept="image/jpeg,image/png,image/webp"
                           onChange={(event) =>
                             choosePhoto(event.target.files?.[0])
@@ -765,27 +806,21 @@ export function StudentProfilePage({
                   <h3>{studentDisplayName(profile.firstName, profile.lastName, user.name)}</h3>
 
                   <p className="student-profile-role-text">Öğrenci</p>
+                  {profile.childProfileId && <p>Seçili çocuk profili · {[profile.grade, profile.school].filter(Boolean).join(" · ")}</p>}
 
-                  {!guardian && photoDataUrl && (
+                  {canManagePhoto && photoDataUrl && (
                     <button type="button" className="profile-button" disabled={photoSaving} onClick={() => void savePhoto()}>
                       <PanelIcon name="save" size={20} />{photoSaving ? "Fotoğraf kaydediliyor..." : "Fotoğrafı Kaydet"}
                     </button>
                   )}
                   {photoNotice && <small role="status" aria-live="polite" className="fixoku-r23-photo-notice">{photoNotice}</small>}
-                  {!guardian &&
+                  {canManagePhoto &&
                     Boolean(profile.photoStorageKey) && !photoDataUrl && (
                       <button
                         type="button"
                         className="profile-button profile-button-secondary trainer-photo-remove"
-                        onClick={() => {
-                          setRemovePhoto(true);
-                          setPhotoDataUrl(null);
-                          setProfile((current) => ({
-                            ...current,
-                            photoStorageKey: null,
-                            photoUrl: null,
-                          }));
-                        }}
+                        disabled={photoSaving || state === "saving"}
+                        onClick={() => { if (window.confirm("Profil fotoğrafı kaldırılsın mı?")) void savePhoto(true); }}
                       >
                         Fotoğrafı kaldır
                       </button>

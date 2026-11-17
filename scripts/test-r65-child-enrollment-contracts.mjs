@@ -46,7 +46,14 @@ const portal = fs.readFileSync(new URL("../api/student/portal-context.js", impor
 assert.match(portal, /childProfileId/u);
 assert.match(portal, /package_entitlement_enrollments/u);
 const assignedTrainer = fs.readFileSync(new URL("../api/student/assigned-trainer.js", import.meta.url), "utf8");
-assert.match(assignedTrainer, /pe\.beneficiary_child_profile_id=\$2/u);
+assert.match(assignedTrainer, /e\.beneficiary_child_profile_id\s+is not distinct from\s+\$2::uuid/u);
+assert.match(assignedTrainer, /p\.child_profile_id\s+is not distinct from\s+\$2::uuid/u);
+assert.match(assignedTrainer, /e\.student_user_id=\$1/u);
+assert.match(assignedTrainer, /p\.student_user_id=\$1/u);
+assert.match(assignedTrainer, /EXPLICIT_PROFILE_REQUIRED/u);
+assert.match(assignedTrainer, /resolveBeneficiary\(/u);
+assert.match(assignedTrainer, /requestedProfileId\.toLowerCase\(\)/u);
+assert.ok(assignedTrainer.includes('parsed.searchParams.get("trainerUserId") !== trainer.trainerUserId'));
 const groups = fs.readFileSync(new URL("../api/admin/r6-training-groups.js", import.meta.url), "utf8");
 assert.match(groups, /R6_ENROLLMENT_SCOPE_DENIED/u);
 assert.match(groups, /pe\.beneficiary_child_profile_id=\$3/u);

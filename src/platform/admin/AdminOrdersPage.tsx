@@ -619,7 +619,7 @@ export function AdminOrdersPage() {
                               <span><b>{row.kind === "STUDENT" ? "Eğitimi alacak öğrenci" : "Yararlanıcı"}:</b> {row.beneficiaryName || "—"}</span>
                               {row.kind === "STUDENT" && <span><b>Eğitim seviyesi:</b> {stageLabels[row.educationStage || ""] || row.educationStage || "Belirtilmemiş"}</span>}
                               {row.kind === "STUDENT" && row.paymentMethod === "BANK_TRANSFER" && row.status === "PENDING_PAYMENT" && <span role="status"><b>Havale bekleniyor:</b> Ödeme henüz onaylanmadı. Eğitim hakkı ve eğitmen ataması bu ekrandan doğrulanamaz.</span>}
-                              {row.kind === "STUDENT" && row.status === "PAID" && <span role="note"><b>Atama kontrolü:</b> Ödeme tamamlanmış görünüyor. Eğitim hakkı ve birebir/grup eğitmen ataması için ilgili operasyon kayıtları ayrıca kontrol edilmelidir.</span>}
+                              {row.kind === "STUDENT" && row.status === "PAID" && <span role="note"><b>Atama kontrolü:</b> Ödeme tamamlanmış görünüyor. Eğitim hakkı ve birebir/sınıf eğitmen ataması için ilgili operasyon kayıtları ayrıca kontrol edilmelidir.</span>}
                               <span><b>Ödeme durumu:</b> {paymentStatusLabels[row.paymentStatus || ""] || label}</span>
                               <span><b>Net tutar:</b> {money(row.netMinor, row.currency)}</span>
                               <span><b>İade:</b> {money(row.refundMinor, row.currency)}</span>

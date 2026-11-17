@@ -1,0 +1,19 @@
+{
+    "release":  "R399",
+    "mode":  "CONTROLLED_MANUAL",
+    "automaticExecution":  false,
+    "productionApproved":  false,
+    "stagingApproved":  false,
+    "legacyJournalCount":  51,
+    "legacyJournalSha256":  "FB0990B0CAAF4B98A0EA07992321758F51FB722CCC80FB90DB2523E63485B80D",
+    "executionOrder":  [
+                           "R399_01_CLASS_SCHEMA.sql",
+                           "R399_02_INDIVIDUAL_HISTORY.sql",
+                           "R399_03_PARTICIPANT_HISTORY.sql"
+                       ],
+    "sha256":  {
+                   "R399_01_CLASS_SCHEMA.sql":  "57D256CDE14769A127743E4EDFAFF6155519C651CF16DBD4774DB9FE78B28405",
+                   "R399_02_INDIVIDUAL_HISTORY.sql":  "6B6DD787B240C45D345F5297CD5CAF41F9FFED5B696D487A081F43BDF8C1454B",
+                   "R399_03_PARTICIPANT_HISTORY.sql":  "35DB48EC40B669B50BEDCB16916C33220D9D5BE420369926830DD4C515F7E47F"
+               }
+}

@@ -17,7 +17,7 @@ export function normalizeR6GroupInput(input = {}) {
   if (!TYPES.has(trainingType)) throw fail("R6_TRAINING_TYPE_INVALID");
   if (!MODES.has(mode)) throw fail("R6_TRAINING_MODE_INVALID");
 
-  const expectedMin = mode === "GROUP" ? 2 : 1;
+  const expectedMin = 1;
   const expectedMax = mode === "GROUP" ? 5 : 1;
   const minStudents = input.minStudents == null || input.minStudents === "" ? expectedMin : Number(input.minStudents);
   const maxStudents = input.maxStudents == null || input.maxStudents === "" ? expectedMax : Number(input.maxStudents);

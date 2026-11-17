@@ -82,7 +82,7 @@ export function PanelTopbar({
     "/panel/owner/egitmen-egitim-paketleri": "Eğitmen Paketleri",
     "/panel/owner/ozel-teklifler": "Özel Teklifler",
     "/panel/owner/hakedisler": "Öğretmen Hakedişleri",
-    "/panel/owner/egitim-gruplari": "Grup Atamaları",
+    "/panel/owner/egitim-gruplari": "Sınıf Atamaları",
     "/panel/owner/saglayicilar": "Entegrasyon Durumu",
     "/panel/owner/olcumleme": "Ölçümleme",
     "/panel/owner/e-posta-sablonlari": "E-posta Şablonları",
@@ -127,11 +127,16 @@ export function PanelTopbar({
       return;
     }
     let active = true;
-    const endpoint = role === "STUDENT" ? "/api/student/profile" : "/api/trainer/profile";
+    const selected = new URLSearchParams(location.search);
+    const child = selected.get("childProfileId");
+    const legacy = selected.get("studentProfileId");
+    const suffix = child ? `?childProfileId=${encodeURIComponent(child)}` : legacy ? `?studentProfileId=${encodeURIComponent(legacy)}` : "";
+    const endpoint = role === "STUDENT" ? `/api/student/profile${suffix}` : "/api/trainer/profile";
+    setProfilePhotoUrl(null);
     const refreshPhoto = () => fetch(endpoint, { credentials: "same-origin", cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
-        if (active) setProfilePhotoUrl(data?.profile?.photoUrl ? `${data.profile.photoUrl}?photoVersion=${encodeURIComponent(data.profile.photoStorageKey || "")}` : null);
+        if (active) setProfilePhotoUrl(data?.profile?.photoUrl ? `${data.profile.photoUrl}${data.profile.photoUrl.includes("?") ? "&" : "?"}photoVersion=${encodeURIComponent(data.profile.photoStorageKey || "")}` : null);
       })
       .catch(() => {
         if (active) setProfilePhotoUrl(null);
@@ -139,7 +144,7 @@ export function PanelTopbar({
     void refreshPhoto();
     window.addEventListener("fixoku:profile-photo-updated", refreshPhoto);
     return () => { active = false; window.removeEventListener("fixoku:profile-photo-updated", refreshPhoto); };
-  }, [role]);
+  }, [role, location.search]);
 
   const profileImage = resolveProfileImage({ name: user.name, email: user.email, photoUrl: profilePhotoUrl });
   const initials = user.name

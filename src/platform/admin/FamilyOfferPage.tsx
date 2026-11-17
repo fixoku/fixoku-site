@@ -17,7 +17,7 @@ const familyErrorMessages: Record<string, string> = {
   FAMILY_CHILD_GRADE_INVALID: "Seçilen sınıf geçerli değil.",
   FAMILY_CHILD_STAGE_GRADE_MISMATCH: "Eğitim kademesi ile sınıf birbiriyle uyuşmuyor.",
   FAMILY_SELECTION_DUPLICATE: "Aynı ürün aynı çocuk için birden fazla kez seçilemez.",
-  FAMILY_EDUCATION_MODE_CONFLICT: "Aynı eğitim için grup ve birebir seçenekleri birlikte seçilemez.",
+  FAMILY_EDUCATION_MODE_CONFLICT: "Aynı eğitim için sınıf ve birebir seçenekleri birlikte seçilemez.",
   FAMILY_SELECTION_INVALID: "Seçilen ürün bu öğrenci için uygun değil.",
   FAMILY_CATALOG_SELECTION_NOT_FOUND: "Seçilen katalog kaydı artık kullanılamıyor.",
   FAMILY_PRICING_METHOD_INVALID: "Fiyatlandırma yöntemi geçerli değil.",

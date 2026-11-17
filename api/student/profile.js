@@ -41,35 +41,104 @@ export default async function handler(req, res) {
   if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
   const role = principal.memberships.some((m) => m.role === "GUARDIAN") && !principal.memberships.some((m) => m.role === "STUDENT") ? "GUARDIAN" : principal.memberships.some((m) => m.role === "STUDENT") ? "STUDENT" : null;
   if (!role || !principal.user) return json(res, 403, { error: "FORBIDDEN" });
-  const requested = new URL(req.url, "http://local").searchParams.get("studentProfileId");
-  if (requested && !UUID.test(requested)) return json(res, 400, { error: "INVALID_STUDENT_PROFILE_ID" });
+  const query = new URL(req.url || "", "http://local").searchParams;
+  const profileIds = query.getAll("studentProfileId").filter(Boolean);
+  const childIds = query.getAll("childProfileId");
+  if (profileIds.length > 1 || childIds.length > 1 || (profileIds.length && childIds.length) || [...profileIds, ...childIds].some(id => !UUID.test(id))) return json(res, 400, { error: "INVALID_STUDENT_PROFILE_ID" });
+  const requested = profileIds[0] || childIds[0] || null;
+  const explicitChild = childIds.length === 1;
+  // R399: a selected identity must never fall through to another sibling.
+  const photoPath = (id, child) => `/api/student/profile/photo${id ? `?${child ? "childProfileId" : "studentProfileId"}=${encodeURIComponent(id)}` : ""}`;
+  let b;
+  try { b = req.method === "PATCH" ? await body(req) : null; } catch { return json(res, 400, { error: "INVALID_BODY" }); }
+  if (req.method === "PATCH" && (!b || typeof b !== "object" || Array.isArray(b))) return json(res, 400, { error: "INVALID_BODY" });
+  const photoOnly = b?.photoOnly === true;
+  const educationOnly = b?.childEducationOnly === true;
+  if (educationOnly && (!explicitChild || photoOnly || Object.keys(b).some(k => !["childEducationOnly", "school", "grade", "classBranch"].includes(k)))) return json(res, 400, { error: "INVALID_CHILD_EDUCATION_REQUEST" });
+  if (role === "GUARDIAN" && req.method === "PATCH" && (!requested || (!photoOnly && !educationOnly))) return json(res, 403, { error: "FORBIDDEN" });
   const readDenied = requirePermission(principal, "student.profile.read", { role });
   if (readDenied) return json(res, readDenied.status, readDenied.body);
-  if (req.method === "PATCH") {
+  if (req.method === "PATCH" && role === "STUDENT") {
     const writeDenied = requirePermission(principal, "student.profile.update", { role: "STUDENT" });
     if (writeDenied) return json(res, writeDenied.status, writeDenied.body);
-    if (requested) return json(res, 403, { error: "FORBIDDEN" });
+    if (requested && !photoOnly && !educationOnly) return json(res, 403, { error: "FORBIDDEN" });
   }
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
     const c = await pool.connect();
     try {
       let profile;
-      if (role === "STUDENT") profile = (await c.query("select sp.*,u.display_name as user_name,u.email from student_profiles sp join platform_users u on u.id=sp.user_id where sp.user_id=$1 and sp.status='ACTIVE' limit 1", [principal.user.id])).rows[0];
+      let child = null;
+      if (role === "GUARDIAN") {
+        const activeGuardian = (await c.query("select 1 from guardian_profiles where user_id=$1 and status='ACTIVE' limit 1", [principal.user.id])).rows[0];
+        if (!activeGuardian) return json(res, 403, { error: "FORBIDDEN" });
+      }
+      if (requested) {
+        child = (await c.query(`select cp.* from r6_student_child_profiles cp
+          where cp.id=$2 and cp.status='ACTIVE' and (cp.owner_user_id=$1 or ($3='GUARDIAN' and exists (
+            select 1 from guardian_student_relationships g join student_profiles sp on sp.id=g.student_profile_id
+            where g.guardian_user_id=$1 and g.status='ACTIVE' and sp.status='ACTIVE' and sp.id=cp.legacy_student_profile_id and sp.user_id=cp.owner_user_id)))`, [principal.user.id, requested, role])).rows[0];
+        if (explicitChild && !child) return json(res, 403, { error: "FORBIDDEN" });
+      }
+      if (child) {
+        const path = photoPath(child.id, true);
+        if (req.method === "PATCH") {
+          if (educationOnly) {
+            let segment, school, branch;
+            try {
+              if (child.education_stage === "ADULT") return json(res, 400, { error: "INVALID_EDUCATION_STAGE" });
+              segment = validateEducationSegment(child.education_stage, b.grade);
+              school = normalizeStudentSchool(segment, b.school);
+              branch = String(b.classBranch ?? "").trim().toLocaleUpperCase("tr-TR");
+              if (branch.length > 12 || (branch && !/^[\p{L}\p{N} -]+$/u.test(branch))) throw new Error("INVALID_CLASS_BRANCH");
+            } catch { return json(res, 400, { error: "VALIDATION_ERROR" }); }
+            const saved = (await c.query(`update r6_student_child_profiles cp set school=$1,grade=$2,class_branch=$3,updated_at=now()
+              where cp.id=$4 and cp.status='ACTIVE' and cp.education_stage=$5 and (cp.owner_user_id=$6 or ($7='GUARDIAN' and exists (
+                select 1 from guardian_student_relationships g join student_profiles sp on sp.id=g.student_profile_id
+                where g.guardian_user_id=$6 and g.status='ACTIVE' and sp.status='ACTIVE' and sp.id=cp.legacy_student_profile_id and sp.user_id=cp.owner_user_id)))
+              returning id,school,grade,class_branch`, [school, segment.grade, branch || null, child.id, child.education_stage, principal.user.id, role])).rows[0];
+            if (!saved) return json(res, 403, { error: "FORBIDDEN" });
+            return json(res, 200, { childProfileId: saved.id, school: saved.school, grade: saved.grade, classBranch: saved.class_branch });
+          }
+          if (!photoOnly) return json(res, 403, { error: "FORBIDDEN" });
+          if (b.removePhoto === true && b.photoDataUrl) return json(res, 400, { error: "PHOTO_INVALID" });
+          const mediaConfig = getProfileMediaConfig();
+          let key = null;
+          if (b.removePhoto !== true) {
+            if (typeof b.photoDataUrl !== "string" || !b.photoDataUrl) return json(res, 400, { error: "PHOTO_REQUIRED" });
+            key = (await saveProfilePhoto(mediaConfig, `child-${child.id}`, b.photoDataUrl)).key;
+          }
+          // Recheck identity at write time. Never touch the account's legacy photo.
+          const updated = (await c.query(`update r6_student_child_profiles cp set photo_storage_key=$1,updated_at=now()
+            where cp.id=$2 and cp.status='ACTIVE' and (cp.owner_user_id=$3 or ($4='GUARDIAN' and exists (
+              select 1 from guardian_student_relationships g join student_profiles sp on sp.id=g.student_profile_id
+              where g.guardian_user_id=$3 and g.status='ACTIVE' and sp.status='ACTIVE' and sp.id=cp.legacy_student_profile_id and sp.user_id=cp.owner_user_id))) returning photo_storage_key`, [key, child.id, principal.user.id, role])).rows[0];
+          if (!updated) return json(res, 403, { error: "FORBIDDEN" });
+          // Do not delete old objects here: legacy or other records can still reference them.
+          return json(res, 200, { photoStorageKey: updated.photo_storage_key, photoUrl: updated.photo_storage_key ? path : null });
+        }
+        if (isPhoto) {
+          const media = await (await import("../../src/server/domain/profile-media.js")).readProfilePhoto(getProfileMediaConfig(), child.photo_storage_key);
+          if (!media) return json(res, 404, { error: "PHOTO_NOT_FOUND" });
+          res.statusCode=200; res.setHeader("Content-Type", media.mime); res.setHeader("Cache-Control", "private, no-store"); res.setHeader("X-Content-Type-Options", "nosniff"); res.end(media.buffer); return;
+        }
+        return json(res, 200, { profile: { id: child.id, childProfileId: child.id, firstName: child.first_name, lastName: child.last_name, educationStage: child.education_stage, grade: child.grade, school: child.school, classBranch: child.class_branch, photoStorageKey: child.photo_storage_key || null, photoUrl: child.photo_storage_key ? path : null } });
+      }
+      if (role === "STUDENT") profile = (await c.query("select sp.*,u.display_name as user_name,u.email from student_profiles sp join platform_users u on u.id=sp.user_id where sp.user_id=$1 and sp.status='ACTIVE' and ($2::uuid is null or sp.id=$2) limit 1", [principal.user.id, requested])).rows[0];
       else if (requested) profile = (await c.query("select sp.*,u.display_name as user_name,u.email from student_profiles sp join platform_users u on u.id=sp.user_id join guardian_student_relationships gsr on gsr.student_profile_id=sp.id and gsr.guardian_user_id=$1 and gsr.status='ACTIVE' where sp.id=$2 and sp.status='ACTIVE'", [principal.user.id, requested])).rows[0];
       else profile = (await c.query("select sp.*,u.display_name as user_name,u.email from student_profiles sp join platform_users u on u.id=sp.user_id join guardian_student_relationships gsr on gsr.student_profile_id=sp.id and gsr.guardian_user_id=$1 and gsr.status='ACTIVE' where sp.status='ACTIVE' order by sp.id limit 1", [principal.user.id])).rows[0];
       if (!profile) return json(res, requested ? 403 : 200, requested ? { error: "FORBIDDEN" } : { profile: null });
        if (isPhoto) { const mediaConfig = getProfileMediaConfig(); if (profile.photo_storage_key && (mediaConfig.provider === "S3" || mediaConfig.provider === "R2")) { res.statusCode = 302; res.setHeader("Location", createProfilePhotoUrl(mediaConfig, profile.photo_storage_key)); res.setHeader("Cache-Control", "private, no-store"); res.setHeader("Referrer-Policy", "no-referrer"); res.end(); return; } const media = await (await import("../../src/server/domain/profile-media.js")).readProfilePhoto(mediaConfig, profile.photo_storage_key); if (!media) return json(res, 404, { error: "PHOTO_NOT_FOUND" }); res.statusCode = 200; res.setHeader("Content-Type", media.mime); res.setHeader("Cache-Control", "private, no-store"); res.setHeader("X-Content-Type-Options", "nosniff"); res.end(media.buffer); return; }
-      if (req.method === "GET") { const dob = profile.date_of_birth instanceof Date ? profile.date_of_birth.toISOString().slice(0, 10) : String(profile.date_of_birth || "").slice(0, 10); return json(res, 200, { profile: { id: profile.id, userId: profile.user_id, firstName: profile.first_name || profile.user_name?.split(/\s+/u)[0] || "", lastName: profile.last_name || profile.user_name?.split(/\s+/u).slice(1).join(" ") || "", photoStorageKey: profile.photo_storage_key || null, photoUrl: profile.photo_storage_key ? "/api/student/profile/photo" : null, dateOfBirth: dob, educationStage: profile.education_stage, grade: profile.grade, classBranch: profile.class_branch, school: profile.school, schoolType: profile.school_type, city: profile.city, district: profile.district, email: profile.email, phone: profile.phone, guardianRelation: profile.guardian_relation, guardianName: profile.guardian_name, guardianPhone: profile.guardian_phone, guardianEmail: profile.guardian_email, addressLine: profile.address_line, postalCode: profile.postal_code, marketingConsent: Boolean(profile.marketing_consent) } }); }
-      const b = await body(req);
+      if (req.method === "GET") { const dob = profile.date_of_birth instanceof Date ? profile.date_of_birth.toISOString().slice(0, 10) : String(profile.date_of_birth || "").slice(0, 10); return json(res, 200, { profile: { id: profile.id, userId: profile.user_id, firstName: profile.first_name || profile.user_name?.split(/\s+/u)[0] || "", lastName: profile.last_name || profile.user_name?.split(/\s+/u).slice(1).join(" ") || "", photoStorageKey: profile.photo_storage_key || null, photoUrl: profile.photo_storage_key ? photoPath(profile.id, false) : null, dateOfBirth: dob, educationStage: profile.education_stage, grade: profile.grade, classBranch: profile.class_branch, school: profile.school, schoolType: profile.school_type, city: profile.city, district: profile.district, email: profile.email, phone: profile.phone, guardianRelation: profile.guardian_relation, guardianName: profile.guardian_name, guardianPhone: profile.guardian_phone, guardianEmail: profile.guardian_email, addressLine: profile.address_line, postalCode: profile.postal_code, marketingConsent: Boolean(profile.marketing_consent) } }); }
       // FIXOKU_R23_PHOTO_SAVE: photo-only update, avoids unrelated form validation.
       if (b.photoOnly === true) {
-        if (typeof b.photoDataUrl !== "string" || !b.photoDataUrl) return json(res, 400, { error: "PHOTO_REQUIRED" });
+        if (b.removePhoto === true && b.photoDataUrl) return json(res, 400, { error: "PHOTO_INVALID" });
+        if (b.removePhoto !== true && (typeof b.photoDataUrl !== "string" || !b.photoDataUrl)) return json(res, 400, { error: "PHOTO_REQUIRED" });
         const mediaConfig = getProfileMediaConfig();
-        const media = await saveProfilePhoto(mediaConfig, profile.user_id, b.photoDataUrl);
-        const updated = (await c.query("update student_profiles set photo_storage_key=$1,updated_at=now() where id=$2 returning photo_storage_key", [media.key, profile.id])).rows[0];
-        if (!updated) return json(res, 404, { error: "STUDENT_PROFILE_NOT_FOUND" });
-        return json(res, 200, { photoStorageKey: updated.photo_storage_key, photoUrl: "/api/student/profile/photo" });
+        const key = b.removePhoto === true ? null : (await saveProfilePhoto(mediaConfig, profile.user_id, b.photoDataUrl)).key;
+        const updated = (await c.query(`update student_profiles sp set photo_storage_key=$1,updated_at=now() where sp.id=$2 and sp.status='ACTIVE' and (sp.user_id=$3 or ($4='GUARDIAN' and exists (select 1 from guardian_student_relationships g where g.guardian_user_id=$3 and g.student_profile_id=sp.id and g.status='ACTIVE'))) returning photo_storage_key`, [key, profile.id, principal.user.id, role])).rows[0];
+        if (!updated) return json(res, 403, { error: "FORBIDDEN" });
+        return json(res, 200, { photoStorageKey: updated.photo_storage_key, photoUrl: updated.photo_storage_key ? photoPath(profile.id, false) : null });
       }
       let segment;
       let phone;

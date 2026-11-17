@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "./admin-panel.css";
 import "./assignment-r395.css";
@@ -7,7 +7,7 @@ const money = (minor: number) => new Intl.NumberFormat("tr-TR", { style: "curren
 type Group = any;
 const stageLabel: Record<string, string> = { PRIMARY: "İlkokul", MIDDLE: "Ortaokul", HIGH: "Lise", ADULT: "Yetişkin" };
 const trainingLabel: Record<string, string> = { FAST_READING: "Hızlı okuma", PARAGRAPH: "Paragraf" };
-const modeLabel: Record<string, string> = { INDIVIDUAL: "Birebir", GROUP: "Grup" };
+const modeLabel: Record<string, string> = { INDIVIDUAL: "Birebir", GROUP: "Sınıf" };
 
 const trainingGroupStatusLabel = (value: string) => ({
   COMPLETED: "Tamamlandı",
@@ -18,17 +18,35 @@ const trainingGroupStatusLabel = (value: string) => ({
   ASSIGNED: "Atandı",
   UNASSIGNED: "Atanmadı",
 }[value] ?? value);
+function ClassPackageCover({src,title}:{src:unknown;title?:string}) {
+  const value=typeof src==="string" ? src.trim() : "";
+  const safe=/^\/(?![\/\\])[^\\\s]+$/.test(value) || /^https:\/\/[^\s]+$/i.test(value);
+  const [failed,setFailed]=useState(false);
+  useEffect(()=>setFailed(false),[value]);
+  return safe && !failed ? <img src={value} alt={title || "Eğitim paketi"} onError={()=>setFailed(true)} referrerPolicy="no-referrer" style={{width:56,height:56,objectFit:"contain",borderRadius:8,flexShrink:0}}/> : <span style={{width:56,minHeight:56,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10,textAlign:"center",flexShrink:0}}>Kapak yok</span>;
+}
 export function R6TrainingGroupsPage() {
   const [groups, setGroups] = useState<any[]>([]);
   const [trainers, setTrainers] = useState<any[]>([]);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
   const [trainerId, setTrainerId] = useState("");
+  const [existingClassId, setExistingClassId] = useState("");
+  const [busy, setBusy] = useState(false);
   const [amount,setAmount]=useState("");
   const amountValid=(/^[0-9]+(?:\.[0-9]{1,2})?$/.test(amount) && Number(amount)>0 && Math.round(Number(amount)*100)<=2147483647);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
 
+  const studentAvatar = (student: any) => {
+    if (student?.childProfileId) return `/api/admin/r6-training-groups?studentChildPhoto=${encodeURIComponent(student.childProfileId)}`;
+    if (student?.studentProfileId) return `/api/admin/r6-training-groups?studentProfilePhoto=${encodeURIComponent(student.studentProfileId)}`;
+    return "";
+  };
+  const classCounts = (id: string) => {
+    const list=groups.filter(g=>g.mode==="GROUP" && g.trainerUserId===id);
+    return {active:list.filter(g=>["DRAFT","ASSIGNED","IN_PROGRESS"].includes(g.status)).length,completed:list.filter(g=>g.status==="COMPLETED").length};
+  };
   const trainerAvatar = (trainer: any) => trainer?.id ? `/api/admin/r6-training-groups?trainerPhoto=${encodeURIComponent(trainer.id)}` : "";
 
   const stageLabel = (value: string) =>
@@ -43,7 +61,12 @@ export function R6TrainingGroupsPage() {
   const candidateKey = (candidate: any) =>
     `${candidate.studentUserId}:${candidate.childProfileId || candidate.studentProfileId}:${candidate.packageVersionId}:${candidate.trainingProductId}`;
 
+  const loadSequence = useRef(0);
+  const [lastRefresh,setLastRefresh] = useState(0);
+  const [refreshError,setRefreshError] = useState(false);
   const load = async () => {
+    const sequence = ++loadSequence.current;
+    try {
     const [g, q] = await Promise.all([
       fetch("/api/admin/r6-training-groups", { credentials: "same-origin" }),
       fetch("/api/admin/r6-qualifications", { credentials: "same-origin" }),
@@ -52,15 +75,25 @@ export function R6TrainingGroupsPage() {
     const gj = await g.json().catch(() => ({}));
     const qj = await q.json().catch(() => ({}));
 
-    if (!g.ok || !q.ok) setMessage(assignmentError(gj.error || qj.error,"Atama verileri yüklenemedi."));
+    if (sequence !== loadSequence.current) return;
+    if (!g.ok || !q.ok || !Array.isArray(gj.groups) || !Array.isArray(qj.trainers)) { setRefreshError(true); return; }
     setGroups(gj.groups || []);
     setTrainers(qj.trainers || []);
     setCandidates(gj.candidates || []);
+    setLastRefresh(Date.now()); setRefreshError(false);
+    } catch { if(sequence === loadSequence.current) setRefreshError(true); }
   };
 
   useEffect(() => {
-    void load();
-  }, []);
+    if (busy) { ++loadSequence.current; return; }
+    let running = false;
+    const refresh = async () => { if (running || document.visibilityState === "hidden") return; running=true; try { await load(); } finally { running=false; } };
+    void refresh();
+    const timer = window.setInterval(() => { void refresh(); }, 15000);
+    const onVisibility = () => { if(document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange",onVisibility);
+    return () => { ++loadSequence.current; window.clearInterval(timer); document.removeEventListener("visibilitychange",onVisibility); };
+  }, [busy]);
 
   const selected = useMemo(
     () => candidates.find((candidate) => candidateKey(candidate) === selectedKey) || null,
@@ -90,7 +123,8 @@ export function R6TrainingGroupsPage() {
           group.requiredQualificationId === selected.requiredQualificationId &&
           group.educationStage === selected.educationStage &&
           group.trainingType === selected.trainingType &&
-          ["DRAFT", "ASSIGNED", "IN_PROGRESS"].includes(group.status),
+          ["DRAFT", "ASSIGNED"].includes(group.status) &&
+          (!group.scheduledStartAt || Date.parse(group.scheduledStartAt) > Date.now()),
       )
       .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
   };
@@ -115,7 +149,7 @@ export function R6TrainingGroupsPage() {
           (open.participants || []).filter((participant: any) => participant.status === "ACTIVE").length,
       );
       const max = Number(open.maxStudents || maxDefault);
-      return { text: `Açık grup: ${count}/${max}`, open: true, count, max };
+      return { text: `Açık sınıf: ${count}/${max}`, open: true, count, max };
     }
 
     const full = all
@@ -129,15 +163,39 @@ export function R6TrainingGroupsPage() {
       .find((item) => item.count >= item.max);
 
     return {
-      text: full ? `Mevcut grup ${full.count}/${full.max} · Yeni grup 1/${maxDefault} açılacak` : `Yeni grup 1/${maxDefault} açılacak`,
+      text: full ? `Mevcut sınıf ${full.count}/${full.max} · Yeni sınıf 1/${maxDefault} açılacak` : `Yeni sınıf 1/${maxDefault} açılacak`,
       open: false,
       count: 0,
       max: maxDefault,
     };
   };
 
+  const openClasses = selected ? groups.filter((g) => g.mode === "GROUP" &&
+    g.educationStage === selected.educationStage && g.trainingType === selected.trainingType &&
+    g.requiredQualificationId === selected.requiredQualificationId &&
+    g.trainingProductId === selected.trainingProductId && (g.packageVersionId === selected.packageVersionId || Boolean(selected.trainingProductId)) &&
+    ["DRAFT", "ASSIGNED"].includes(g.status) && (!g.scheduledStartAt || Date.parse(g.scheduledStartAt) > Date.now()) &&
+    Number(g.activeParticipantCount || 0) < Number(g.maxStudents || 5)) : [];
+  const classTitle = (g: any) => g.trainerName && g.classNumber ? `${g.trainerName} · Sınıf ${g.classNumber}` : "Eğitmen bekleyen sınıf";
+  const startLabel = (g: any) => g.scheduledStartAt ? new Date(g.scheduledStartAt).toLocaleString("tr-TR", {timeZone:"Europe/Istanbul"}) : "Belirlenmedi";
+  const agreementMatches = (p:any,g:any) => p.contactStatus === "AGREED" && Boolean(p.agreedStartAt) && (!g.scheduledStartAt || Date.parse(p.agreedStartAt) === Date.parse(g.scheduledStartAt));
+  const contactLabel = (p:any,g:any) => p.contactStatus === "AGREED" ? (agreementMatches(p,g) ? "Mutabakat sağlandı" : "Yeni tarih için mutabakat bekleniyor") : ({PENDING:"Görüşme bekleniyor",UNREACHABLE:"Telefonla ulaşılamadı",CONTACTED:"Görüşüldü, mutabakat bekleniyor"} as Record<string,string>)[p.contactStatus] || "Durum bilinmiyor";
+  const classAction = async (g: any, body: any) => {
+    if (busy) return;
+    setBusy(true); setMessage("");
+    try {
+      const r = await fetch(`/api/admin/r6-training-groups/${encodeURIComponent(g.id)}`, {method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+      const j = await r.json().catch(()=>({}));
+      if (!r.ok) { setMessage(assignmentError(j.error,"Sınıf işlemi yapılamadı.")); return; }
+      setMessage("Sınıf işlemi kaydedildi."); await load();
+    } catch { setMessage("Bağlantı hatası. İşlem sonucunu yenileyerek kontrol edin."); }
+    finally { setBusy(false); }
+  };
   const assign = async () => {
-    if (!selected || !trainerId || !amountValid) return;
+    if (!selected || !trainerId || !amountValid || busy) return;
+    if (existingClassId && !openClasses.some(g=>g.id===existingClassId)) {setMessage("Sınıf artık uygun değil. Listeyi yenileyin."); return;}
+    setBusy(true);
+    try {
 
     setMessage("");
 
@@ -147,9 +205,10 @@ export function R6TrainingGroupsPage() {
       educationStage: selected.educationStage,
       trainingType: selected.trainingType,
       mode: "GROUP",
-      minStudents: Number(selected.configuredMinStudents || 1),
+      minStudents: 1,
       maxStudents: Number(selected.maxStudents || 5),
-      trainerUserId: trainerId,
+      trainerUserId: trainerId === "UNASSIGNED" ? null : trainerId,
+      existingClassId: existingClassId || null,
       requiredQualificationId: selected.requiredQualificationId,
       participants: [
         {
@@ -172,19 +231,20 @@ export function R6TrainingGroupsPage() {
 
     if (!response.ok) {
       const errors: Record<string, string> = {
-        R6_CAPACITY_INVALID: "Bu öğrenci sayısı için grup ücret matrisi henüz tanımlı değil.",
-        R6_PARTICIPANT_ALREADY_GROUPED: "Bu öğrenci aynı grup eğitiminde zaten aktif bir gruba atanmış.",
+        R6_CAPACITY_INVALID: "Bu öğrenci sayısı için sınıf ücret matrisi henüz tanımlı değil.",
+        R6_PARTICIPANT_ALREADY_GROUPED: "Bu öğrenci aynı sınıf eğitiminde zaten aktif bir sınıfa atanmış.",
         R6_TRAINER_QUALIFICATION_REQUIRED: "Seçilen eğitmenin bu eğitim için aktif yetkinliği yok.",
         R6_QUALIFICATION_MISMATCH: "Öğrencinin eğitim paketi ile eğitmen yetkinliği eşleşmiyor.",
       };
-      setMessage(errors[result.error] || assignmentError(result.error,"Grup ataması yapılamadı. Bilgileri kontrol edip tekrar deneyin."));
+      setMessage(errors[result.error] || assignmentError(result.error,"Sınıf ataması yapılamadı. Bilgileri kontrol edip tekrar deneyin."));
       return;
     }
 
-    setMessage("Öğrenci gruba atandı.");
+    setMessage("Öğrenci sınıfa eklendi.");
     setSelectedKey("");
-    setTrainerId(""); setAmount("");
+    setTrainerId(""); setExistingClassId(""); setAmount("");
     await load();
+    } catch { setMessage("Bağlantı hatası. İşlem sonucunu yenileyerek kontrol edin."); } finally { setBusy(false); }
   };
 
   const visibleGroups = useMemo(() => {
@@ -207,7 +267,7 @@ export function R6TrainingGroupsPage() {
       <header className="admin-page-hero assignment-operation-hero">
         <div>
           <span>EĞİTİM OPERASYONU</span>
-          <h1>Grup Atamaları</h1>
+          <h1>Sınıf Atamaları</h1>
         <div className="group-page-hero-art" aria-hidden="true">
           <svg viewBox="0 0 320 150" fill="none">
             <path className="group-page-hero-dash" d="M25 116c38-62 95-89 174-73 44 9 72 31 94 67" />
@@ -222,13 +282,13 @@ export function R6TrainingGroupsPage() {
             <path d="M209 97c3-9 9-14 16-14s13 5 16 14" className="group-page-hero-person-muted-stroke" />
           </svg>
         </div>
-          <p>Grup eğitimi hakkı bulunan öğrenciyi seçin; paket bilgileri otomatik gelsin, yetkin eğitmene atayın.</p>
+          <p>Sınıf eğitimi hakkı bulunan öğrenciyi seçin; paket bilgileri otomatik gelsin, yetkin eğitmene atayın.</p>
         </div>
       </header>
 
       <div className="admin-segmented-tabs assignment-operation-tabs">
         <Link to="/panel/admin/atamalar">Birebir Atamalar</Link>
-        <Link className="is-active" to="/panel/owner/egitim-gruplari">Grup Atamaları</Link>
+        <Link className="is-active" to="/panel/owner/egitim-gruplari">Sınıf Atamaları</Link>
       </div>
 
       {message && <p className="admin-inline-status" role="status">{message}</p>}
@@ -236,11 +296,11 @@ export function R6TrainingGroupsPage() {
       <section className="panel-card group-assignment-builder-v20">
         <div className="admin-section-heading">
           <div>
-            <span>YENİ GRUP ATAMASI</span>
+            <span>YENİ SINIF ATAMASI</span>
             <h2>Öğrenciyi eğitmene ata</h2>
-            <p>Grup adı veya grup numarası girilmez. Sistem açık grubu kullanır; doluysa yenisini otomatik açar.</p>
+            <p>Sınıf numarası otomatik verilir. Uygun açık sınıfı seçebilir veya eğitmensiz sınıf oluşturabilirsiniz.</p>
           </div>
-          <span className="training-mode-pill">Grup</span>
+          <span className="training-mode-pill">Sınıf</span>
         </div>
 
         <div className="group-assignment-step">
@@ -252,10 +312,10 @@ export function R6TrainingGroupsPage() {
                 value={selectedKey}
                 onChange={(event) => {
                   setSelectedKey(event.target.value);
-                  setTrainerId(""); setAmount("");
+                  setTrainerId(""); setExistingClassId(""); setAmount("");
                 }}
               >
-                <option value="">Grup eğitimi hakkı olan öğrenciyi seçin</option>
+                <option value="">Sınıf eğitimi hakkı olan öğrenciyi seçin</option>
                 {candidates.map((candidate) => (
                   <option key={candidateKey(candidate)} value={candidateKey(candidate)}>
                     {candidate.studentName} · {candidate.packageTitle}
@@ -266,7 +326,7 @@ export function R6TrainingGroupsPage() {
 
             {!candidates.length && (
               <div className="group-assignment-empty">
-                Atama bekleyen aktif grup eğitimi paketi bulunmuyor.
+                Atama bekleyen aktif sınıf eğitimi paketi bulunmuyor.
               </div>
             )}
           </div>
@@ -285,12 +345,7 @@ export function R6TrainingGroupsPage() {
 
               <div className="group-assignment-context-grid">
                 <article className="group-assignment-context-card is-student">
-                  <div className="group-assignment-context-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
-                      <path d="M4.8 20c.7-3.3 3.3-5.4 7.2-5.4s6.5 2.1 7.2 5.4" />
-                    </svg>
-                  </div>
+                  <AssignmentAvatar student stage={selected.educationStage} src={studentAvatar(selected)} name={selected.studentName || "Öğrenci"} className="group-trainer-avatar"/>
                   <div className="group-assignment-context-copy">
                     <span>Öğrenci</span>
                     <strong>{selected.studentName}</strong>
@@ -299,13 +354,7 @@ export function R6TrainingGroupsPage() {
                 </article>
 
                 <article className="group-assignment-context-card is-package">
-                  <div className="group-assignment-context-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z" />
-                      <path d="M4 7.5V17l8 4 8-4V7.5" />
-                      <path d="M12 12v9" />
-                    </svg>
-                  </div>
+                  <ClassPackageCover src={selected.packageCover} title={selected.packageTitle}/>
                   <div className="group-assignment-context-copy">
                     <span>Paket</span>
                     <strong>{selected.packageTitle}</strong>
@@ -324,7 +373,7 @@ export function R6TrainingGroupsPage() {
                   <div className="group-assignment-context-copy">
                     <span>Eğitim</span>
                     <strong>{stageLabel(selected.educationStage)} · {trainingLabel(selected.trainingType)}</strong>
-                    <small>Grup eğitimi · En fazla {Number(selected.maxStudents || 5)} öğrenci</small>
+                    <small>Sınıf eğitimi · En fazla {Number(selected.maxStudents || 5)} öğrenci</small>
                   </div>
                 </article>
 
@@ -354,10 +403,14 @@ export function R6TrainingGroupsPage() {
                   </div>
                 </div>
 
+                <label>Mevcut uygun sınıf<select disabled={busy} value={existingClassId} onChange={e=>{const g=openClasses.find(x=>x.id===e.target.value);setExistingClassId(e.target.value);setTrainerId(g ? (g.trainerUserId || "UNASSIGNED") : "");}}><option value="">Yeni sınıf / eğitmen seçimi</option>{openClasses.map(g=><option key={g.id} value={g.id}>{classTitle(g)} · {g.activeParticipantCount}/{g.maxStudents} · {startLabel(g)}</option>)}</select></label>
+                {openClasses.length > 0 && <div className="group-trainer-card-grid" aria-label="Uygun sınıflar">{openClasses.map(g=><button key={g.id} type="button" disabled={busy} aria-pressed={existingClassId===g.id} className={`group-trainer-card ${existingClassId===g.id?"is-selected":""}`} onClick={()=>{setExistingClassId(g.id);setTrainerId(g.trainerUserId||"UNASSIGNED");}}><ClassPackageCover src={g.packageCover} title={g.packageTitle}/><span className="group-trainer-copy"><strong>{classTitle(g)}</strong><small>{stageLabel(g.educationStage)} · {trainingLabel(g.trainingType)}</small><small>{g.trainerUserId?"Eğitmen atandı":"Eğitmen atanmadı"} · {startLabel(g)}</small><span style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>{Array.from({length:Number(g.maxStudents||5)},(_,i)=>{const st=(g.participants||[]).filter((x:any)=>x.status==="ACTIVE")[i];return st?<span key={st.id} title={st.studentName} style={{display:"inline-flex",alignItems:"center",gap:2}}><AssignmentAvatar student stage={g.educationStage} src={studentAvatar(st)} name={st.studentName||"Öğrenci"}/><span style={{color:"#15803d"}}>✓</span></span>:<span key={i} aria-label="Boş kontenjan" style={{padding:8}}>○</span>;})}</span><small>{g.activeParticipantCount}/{g.maxStudents} dolu</small></span></button>)}</div>}
+                <label><input type="radio" name="groupTrainer" checked={trainerId==="UNASSIGNED" && !existingClassId} onChange={()=>{setTrainerId("UNASSIGNED");setExistingClassId("");}}/> Eğitmen atamadan sınıf oluştur</label>
                 <div className="group-trainer-card-grid">
                   {eligible.map((trainer) => {
                     const avatar = trainerAvatar(trainer);
                     const capacity = trainerCapacity(trainer.id);
+                    const counts = classCounts(trainer.id);
                     const name = trainer.displayName || trainer.name || "Eğitmen";
 
                     return (
@@ -367,13 +420,15 @@ export function R6TrainingGroupsPage() {
                           name="groupTrainer"
                           value={trainer.id}
                           checked={trainerId === trainer.id}
-                          onChange={(event) => setTrainerId(event.target.value)}
+                          onChange={(event) => {setTrainerId(event.target.value);setExistingClassId("");}}
                         />
                         <AssignmentAvatar src={avatar} name={name} className="group-trainer-avatar"/>
                         <span className="group-trainer-copy">
                           <strong>{name}</strong>
                           <small>{selected.requiredQualificationTitle}</small>
                           <em className={capacity.open ? "is-open" : "is-new"}>{capacity.text}</em>
+                          <small style={{background:"#dcfce7",color:"#166534",padding:"4px 8px",borderRadius:8,fontWeight:700}}>Aktif Sınıf Sayısı: {counts.active}</small>
+                          <small>Tamamlanmış Sınıf Sayısı: {counts.completed}</small>
                         </span>
                       </label>
                     );
@@ -390,10 +445,10 @@ export function R6TrainingGroupsPage() {
             <button
               className="assignment-primary-action group-assignment-submit"
               type="button"
-              disabled={!trainerId || !amountValid}
+              disabled={busy || !trainerId || !amountValid}
               onClick={() => void assign()}
             >
-              Öğrenciyi gruba ata
+              Öğrenciyi sınıfa ekle
             </button></div>
           </>
         )}
@@ -403,7 +458,9 @@ export function R6TrainingGroupsPage() {
         <div className="admin-section-heading">
           <div>
             <span>AKTİF KAYITLAR</span>
-            <h2>Aktif Eğitim Grupları</h2>
+            <h2>Eğitim Sınıfları</h2>
+            <small role="status">{refreshError ? "Güncelleme yapılamadı; önceki bilgiler gösteriliyor." : lastRefresh ? `Son güncelleme: ${new Date(lastRefresh).toLocaleTimeString("tr-TR",{timeZone:"Europe/Istanbul"})}` : "Bilgiler yükleniyor…"}</small>
+            <button type="button" disabled={busy} onClick={()=>void load()}>Listeyi yenile</button>
           </div>
           <label className="group-list-search">
             <span>Ara</span>
@@ -413,8 +470,8 @@ export function R6TrainingGroupsPage() {
 
         {!visibleGroups.length ? (
           <div className="admin-empty-state">
-            <strong>Aktif grup bulunmuyor</strong>
-            <span>İlk grup ataması yapıldığında burada otomatik oluşacak.</span>
+            <strong>Sınıf bulunmuyor</strong>
+            <span>İlk sınıf ataması yapıldığında burada otomatik oluşacak.</span>
           </div>
         ) : (
           <div className="active-group-card-grid">
@@ -428,11 +485,13 @@ export function R6TrainingGroupsPage() {
               const activeParticipants = (group.participants || []).filter(
                 (participant: any) => participant.status === "ACTIVE",
               );
-              const rosterItems = Array.from({ length: max }, (_, index) => activeParticipants[index] || null);
+              const roster = group.status === "COMPLETED" ? (group.participants || []).filter((p:any)=>p.status === "COMPLETED" || p.status === "ACTIVE") : activeParticipants;
+              const rosterItems = Array.from({ length: max }, (_, index) => roster[index] || null);
 
               return (
                 <article className="active-group-card fixoku-group-card-xl" key={group.id}>
                   <div className="active-group-card-top">
+                    <ClassPackageCover src={group.packageCover} title={group.packageTitle}/>
                     <div>
                       <span>{stageLabel(group.educationStage)}</span>
                       <h3>{trainingLabel(group.trainingType)}</h3>
@@ -445,7 +504,7 @@ export function R6TrainingGroupsPage() {
                     <div className="fixoku-group-trainer-media">
                       <AssignmentAvatar src={trainerPhoto} name={group.trainerName || "Eğitmen"} className="fixoku-group-trainer-avatar"/>
                       <div className="fixoku-group-trainer-copy">
-                        <strong>{group.trainerName || "Atanmadı"}</strong>
+                        <strong>{classTitle(group)}</strong>
                         <small>{group.requiredQualificationTitle || "Yetkin eğitmen"}</small>
                       </div>
                     </div>
@@ -459,6 +518,9 @@ export function R6TrainingGroupsPage() {
                   <div className="active-group-meta">
                     <span>Durum</span>
                     <strong>{statusLabel(group.status)}</strong>
+                    <span>Eğitim başlangıcı: {startLabel(group)}</span>
+                    {group.mode === "GROUP" && !["COMPLETED","CANCELLED"].includes(group.status) && <strong>Mutabakat: {activeParticipants.filter((p: Parameters<typeof agreementMatches>[0])=>agreementMatches(p,group)).length}/{activeParticipants.length}</strong>}
+                    {!group.trainerUserId && group.status === "DRAFT" && activeCount>0 && <label>Yetkin eğitmen ata<select disabled={busy} value="" onChange={e=>{const id=e.target.value;if(id && window.confirm("Eğitmen bu sınıfa atansın mı?")) void classAction(group,{action:"assigntrainer",trainerUserId:id});}}><option value="">Eğitmen seçin</option>{trainers.filter(t=>(t.grants||[]).some((q:any)=>q.qualificationId===group.requiredQualificationId && q.effective===true)).map(t=><option key={t.id} value={t.id}>{t.displayName||t.name} · Aktif: {classCounts(t.id).active} · Tamamlanan: {classCounts(t.id).completed}</option>)}</select></label>}
                   </div>
 
                   <div className="active-group-roster">
@@ -472,14 +534,11 @@ export function R6TrainingGroupsPage() {
                           key={participant?.id || `${group.id}-slot-${index}`}
                         >
                           <span className="active-group-roster-number">{index + 1}</span>
-                          <span className="active-group-roster-user-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none">
-                              <circle cx="12" cy="8" r="3.3" />
-                              <path d="M5.5 19c.7-4.1 3.1-6.2 6.5-6.2s5.8 2.1 6.5 6.2" />
-                            </svg>
-                          </span>
+                          {participant ? <span style={{display:"inline-flex",alignItems:"center",gap:4}}><AssignmentAvatar student stage={group.educationStage} src={studentAvatar(participant)} name={studentName}/><span aria-label="Dolu kontenjan" style={{color:"#15803d",fontWeight:700}}>✓</span></span> : <span className="active-group-roster-user-icon" aria-hidden="true">○</span>}
                           <strong>{participant ? studentName : "Boş kontenjan"}</strong>
                           <span className="active-group-roster-class">{classLabel}</span>
+                          {participant && group.mode === "GROUP" && participant.status === "ACTIVE" && <div style={{display:"grid",gap:3,gridColumn:"1 / -1",padding:"4px 8px"}}><span style={{color:agreementMatches(participant,group)?"#166534":"#92400e",fontWeight:600}}>{contactLabel(participant,group)}</span>{participant.agreedStartAt && <small>Mutabakat tarihi: {new Date(participant.agreedStartAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"})}</small>}{participant.joinedAt && group.scheduleUpdatedAt && Date.parse(participant.joinedAt)>Date.parse(group.scheduleUpdatedAt) && <small>Son başlangıç tarihi kaydından sonra eklendi.</small>}{participant.contactUpdatedAt && <small>Son görüşme kaydı: {new Date(participant.contactUpdatedAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"})}</small>}</div>}
+                          {participant && ["DRAFT","ASSIGNED","IN_PROGRESS"].includes(group.status) && <button type="button" disabled={busy} onClick={()=>{const reason=window.prompt("Öğrenciyi sınıftan çıkarma gerekçesi:")?.trim();if(reason && window.confirm("Öğrenci sınıftan çıkarılsın mı? Eğitim hakkı ve geçmiş kayıtları korunacaktır.")) void classAction(group,{action:"remove",participantId:participant.id,reason});}}>Sınıftan çıkar</button>}
                         </div>
                       );
                     })}

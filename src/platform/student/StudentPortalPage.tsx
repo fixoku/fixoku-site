@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { StudentPanelShell } from "./StudentPanelShell";
 import { studentDisplayName } from "./studentDisplayName";
 import { FixokuProfileBadges } from "../../shared/FixokuProfileBadges";
-import { resolveProfileImage } from "../panel/profileAvatar";
 import "./student-portal.css";
 import "./student-trainer-badges-r9.css";
 
 type StudentProfile = {
+  id?: string;
+  childProfileId?: string;
+  photoUrl?: string | null;
+  photoStorageKey?: string | null;
   firstName?: string;
   lastName?: string;
   grade?: string | null;
@@ -108,52 +111,54 @@ export function StudentPortalPage({
   const [portal, setPortal] = useState<Record<string, unknown>>({});
   const [trainer, setTrainer] = useState<Trainer | null>(null);
   const [trainerPhotoError, setTrainerPhotoError] = useState(false);
+  const [studentPhotoError, setStudentPhotoError] = useState(false);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     const query = window.location.search || "";
 
-    Promise.all([
-      fetch(`/api/student/profile${query}`, {
-        credentials: "same-origin",
-        cache: "no-store",
-      }),
-      fetch(`/api/student/portal-context${query}`, {
-        credentials: "same-origin",
-        cache: "no-store",
-      }),
-      fetch(`/api/student/assigned-trainer${query}`, {
-        credentials: "same-origin",
-        cache: "no-store",
-      }),
-    ])
-      .then(async ([profileResponse, portalResponse, trainerResponse]) => {
-        if (!profileResponse.ok || !portalResponse.ok) {
-          throw new Error("Öğrenci bilgileri yüklenemedi.");
-        }
-
-        const profileBody = await profileResponse.json();
+    let active = true;
+    const load = async () => {
+      try {
+        const portalResponse = await fetch(`/api/student/portal-context${query}`, { credentials: "same-origin", cache: "no-store" });
+        if (!portalResponse.ok) throw new Error("Öğrenci bilgileri yüklenemedi.");
         const portalBody = await portalResponse.json();
-        const trainerBody = trainerResponse.ok
-          ? await trainerResponse.json()
-          : { trainer: null };
-
+        const context = portalBody.context;
+        const selected = context?.childProfileId ? `?childProfileId=${encodeURIComponent(context.childProfileId)}` : context?.studentProfileId ? `?studentProfileId=${encodeURIComponent(context.studentProfileId)}` : "";
+        const [profileResponse, trainerResponse] = await Promise.all([
+          context ? fetch(`/api/student/profile${selected}`, { credentials: "same-origin", cache: "no-store" }) : Promise.resolve(null),
+          selected ? fetch(`/api/student/assigned-trainer${selected}`, { credentials: "same-origin", cache: "no-store" }) : Promise.resolve(null),
+        ]);
+        if (profileResponse && !profileResponse.ok) throw new Error("Öğrenci bilgileri yüklenemedi.");
+        const profileBody = profileResponse ? await profileResponse.json() : {};
+        const trainerBody = trainerResponse?.ok ? await trainerResponse.json() : { trainer: null };
+        const trainerIdentityMatches = Boolean(context && (context.childProfileId
+          ? trainerBody.childProfileId === context.childProfileId
+          : !trainerBody.childProfileId && trainerBody.studentProfileId === context.studentProfileId));
+        if (!active) return;
+        setStudentPhotoError(false);
         setProfile(profileBody.profile || {});
         setPortal(portalBody || {});
-        setTrainer(trainerBody.trainer || null);
+        setTrainer(trainerIdentityMatches ? trainerBody.trainer || null : null);
         setTrainerPhotoError(false);
         setState("ready");
-      })
-      .catch((error) => {
+      } catch (error) {
+        if (!active) return;
         setMessage(error instanceof Error ? error.message : "Öğrenci paneli yüklenemedi.");
         setState("error");
-      });
+      }
+    };
+    void load();
+    const refresh = () => void load();
+    window.addEventListener("fixoku:profile-photo-updated", refresh);
+    return () => { active = false; window.removeEventListener("fixoku:profile-photo-updated", refresh); };
   }, []);
 
   const enrollments = useMemo(() => extractEnrollments(portal), [portal]);
 
   const studentName = studentDisplayName(profile.firstName, profile.lastName, user.name);
+  const profileHref = `/panel/ogrenci/profil${profile.childProfileId ? `?childProfileId=${encodeURIComponent(profile.childProfileId)}` : isGuardian && profile.id ? `?studentProfileId=${encodeURIComponent(profile.id)}` : ""}`;
 
   const studentMeta = [
     profile.grade ? `${profile.grade}. Sınıf` : "",
@@ -165,7 +170,7 @@ export function StudentPortalPage({
   // FIXOKU_BADGES_R9: same trusted avatar resolver as the trainer's own profile.
   // A missing or broken photo falls back to initials, never to an invented portrait.
   const trainerPhotoSrc = trainer
-    ? trainer.photoUrl || resolveProfileImage({ name: trainer.displayName, email: trainer.email })
+    ? trainer.photoUrl
     : null;
 
   if (state === "loading") {
@@ -206,14 +211,19 @@ export function StudentPortalPage({
           </div>
         </header>
 
+        {profile.id && !profile.photoStorageKey && (
+          <section className="student-portal__banner" role="status" style={{ marginBottom: 16, padding: 16, borderRadius: 10, border: "1px solid #bbf7d0" }}>
+            <p>Eğitmeninizin sizi daha kolay tanıyabilmesi için lütfen profil fotoğrafınızı yükleyiniz.</p>
+            <a href={profileHref} className="profile-button" style={{ display: "inline-flex", marginTop: 8 }}>Profilime Git</a>
+          </section>
+        )}
         <div className="student-dashboard-v2__workspace">
           <div className="student-dashboard-v2__primary">
             <section className="student-dashboard-v2__student-card" aria-label="Öğrenci bilgileri">
               <div className="student-dashboard-v2__mini-heading">Öğrenci bilgilerim</div>
               <div className="student-dashboard-v2__student-identity">
                 <div className="student-dashboard-v2__student-avatar" aria-hidden="true">
-                  {(profile.firstName || studentName).charAt(0).toLocaleUpperCase("tr-TR")}
-                  {(profile.lastName || studentName.split(" ").at(-1) || "").charAt(0).toLocaleUpperCase("tr-TR")}
+                  {profile.photoUrl && !studentPhotoError ? <img src={profile.photoUrl} alt="" onError={() => setStudentPhotoError(true)} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} /> : <>{(profile.firstName || studentName).charAt(0).toLocaleUpperCase("tr-TR")}{(profile.lastName || studentName.split(" ").at(-1) || "").charAt(0).toLocaleUpperCase("tr-TR")}</>}
                 </div>
                 <div className="student-dashboard-v2__student-info">
                   <h2>{studentName}</h2>

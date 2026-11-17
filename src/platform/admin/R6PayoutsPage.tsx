@@ -137,7 +137,7 @@ const completionMonth = (entry: LedgerEntry) => dayKey(entry.occurredAt).slice(0
 const currentGroup = (group: TrainingGroup) =>
   Boolean(group.trainerUserId) && ["DRAFT", "ASSIGNED", "IN_PROGRESS"].includes(String(group.status || "").toUpperCase());
 const groupLabel = (group: TrainingGroup) => {
-  const mode = group.mode === "GROUP" ? "Grup" : group.mode === "INDIVIDUAL" ? "Birebir" : (group.mode || "Eğitim");
+  const mode = group.mode === "GROUP" ? "Sınıf" : group.mode === "INDIVIDUAL" ? "Birebir" : (group.mode || "Eğitim");
   const stage = group.educationStage || group.requiredQualificationTitle || "Eğitim";
   return `${stage} · ${mode}`;
 };
@@ -173,14 +173,14 @@ const readableSource = (source?: string | null): string => {
     ENROLLMENT_PROGRESS: "Eğitim ilerleme kaydı",
     SESSION: "Ders oturumu",
     ASSIGNMENT: "Öğrenci ataması",
-    GROUP_COMPLETION: "Grup eğitimi tamamlandı",
+    GROUP_COMPLETION: "Sınıf eğitimi tamamlandı",
   };
   return labels[key] || "Eğitim kaydı";
 };
 const readableGroup = (group: TrainingGroup) => {
   const stage: Record<string,string> = { PRIMARY:"İlkokul", MIDDLE:"Ortaokul", SECONDARY:"Ortaokul", HIGH:"Lise", ADULT:"Yetişkin" };
   const label = stage[String(group.educationStage || "").toUpperCase()] || group.requiredQualificationTitle || "Eğitim";
-  return `${label} · ${group.mode === "GROUP" ? "Grup" : group.mode === "INDIVIDUAL" ? "Birebir" : "Eğitim"}`;
+  return `${label} · ${group.mode === "GROUP" ? "Sınıf" : group.mode === "INDIVIDUAL" ? "Birebir" : "Eğitim"}`;
 };
 const monthTitle = (yearMonth: string) => {
   if (!/^\d{4}-\d{2}$/.test(yearMonth)) return yearMonth;
@@ -226,14 +226,14 @@ export function R6PayoutsPage() {
     }
     try {
       const r = await fetch("/api/admin/r6-training-groups", { credentials: "same-origin", cache: "no-store" });
-      if (!r.ok) throw new Error(`Grup atamaları okunamadı (HTTP ${r.status}).`);
+      if (!r.ok) throw new Error(`Sınıf atamaları okunamadı (HTTP ${r.status}).`);
       const payload = await r.json() as { groups?: TrainingGroup[] };
-      if (!Array.isArray(payload.groups)) throw new Error("Grup atama veri biçimi beklenenden farklı.");
+      if (!Array.isArray(payload.groups)) throw new Error("Sınıf atama veri biçimi beklenenden farklı.");
       setGroups(payload.groups);
       setGroupsError("");
     } catch {
       setGroups([]);
-      setGroupsError("Planlanan grup eğitimleri şu an alınamadı; kesinleşmiş hakedişler ayrı kaynaktan gösteriliyor.");
+      setGroupsError("Planlanan sınıf eğitimleri şu an alınamadı; kesinleşmiş hakedişler ayrı kaynaktan gösteriliyor.");
     }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -451,7 +451,7 @@ export function R6PayoutsPage() {
           <article className="hp4-kpi hp4-kpi-accent"><div className="hp4-kpi-head"><span>Ödeme günü gelen</span><span className="hp4-kpi-icon">◷</span></div><strong>{money(totalMinor(allDue))}</strong><small>{allDue.length} kesinleşmiş kayıt · ödeme günü geldi</small></article>
           <article className="hp4-kpi"><div className="hp4-kpi-head"><span>Yaklaşan ödemeler</span><span className="hp4-kpi-icon">▣</span></div><strong>{money(totalMinor(allSoon))}</strong><small>Önümüzdeki 30 gün içinde</small></article>
           <article className="hp4-kpi"><div className="hp4-kpi-head"><span>Toplam ödenen</span><span className="hp4-kpi-icon">✓</span></div><strong>{money(allPaid.reduce((sum, pay) => sum + toMinor(pay.amount_minor), 0))}</strong><small>Gerçek ödeme sicilindeki kayıtlar</small></article>
-          <article className="hp4-kpi"><div className="hp4-kpi-head"><span>Henüz planlanan</span><span className="hp4-kpi-icon">◇</span></div><strong>{money(sumPlanned(allPlanned))}</strong><small>Doğrulanmış grup atamaları · ödeme borcu değil</small></article>
+          <article className="hp4-kpi"><div className="hp4-kpi-head"><span>Henüz planlanan</span><span className="hp4-kpi-icon">◇</span></div><strong>{money(sumPlanned(allPlanned))}</strong><small>Doğrulanmış sınıf atamaları · ödeme borcu değil</small></article>
         </section>
         <section className="hp4-panel"><div className="hp4-panel-head"><div><h2>Ödeme bekleyen öğretmenler</h2><p>Öğretmen başına toplam ve en eski ödeme tarihi. Ayrıntılar tek tıkla açılır.</p></div>
           <span className="hp4-count">{openTrainerList.length} öğretmen</span></div>
@@ -467,16 +467,16 @@ export function R6PayoutsPage() {
           <section className="hp4-panel"><div className="hp4-panel-head"><div><h2>Planlanan eğitimler</h2><p>Henüz bitmeyen, ödeme borcu oluşturmayan atamalar</p></div><button type="button" className="hp4-btn hp4-btn-small" onClick={() => { setTab("earnings"); setEarningsMode("planned"); }}>Planlananları Gör →</button></div>
             {teacherList.filter((t) => allPlanned.some((g) => g.trainerUserId===t.id)).slice(0,4).map((teacher) => {
               const teacherPlans = allPlanned.filter((g) => g.trainerUserId===teacher.id);
-              return <div className="hp4-list-row" key={teacher.id}>{person(teacher.id, teacher.name)}<div><strong>{money(sumPlanned(teacherPlans))}</strong><small>{teacherPlans.length} aktif grup · kesinleşmedi</small></div></div>;
-            })}{allPlanned.length === 0 && <p className="hp4-empty">Planlanan grup ataması yok.</p>}</section>
+              return <div className="hp4-list-row" key={teacher.id}>{person(teacher.id, teacher.name)}<div><strong>{money(sumPlanned(teacherPlans))}</strong><small>{teacherPlans.length} aktif sınıf · kesinleşmedi</small></div></div>;
+            })}{allPlanned.length === 0 && <p className="hp4-empty">Planlanan sınıf ataması yok.</p>}</section>
         </div>
       </>}
       {tab === "earnings" && <section className="hp4-panel"><div className="hp4-panel-head"><div><h2>Hakedişler</h2><p>Planlanan tutar ile eğitim bitince kesinleşen hakediş ayrı gösterilir.</p></div>
         <div className="hp4-segment" role="group" aria-label="Hakediş görünümü"><button type="button" className={earningsMode==="confirmed"?"active":""} onClick={() => setEarningsMode("confirmed")}>Kesinleşenler</button><button type="button" className={earningsMode==="planned"?"active":""} onClick={() => setEarningsMode("planned")}>Planlananlar</button></div></div>{filters}
-        {earningsMode === "planned" ? <>{table(["Öğretmen", "Eğitim / Grup", "Katılımcı", "Atama", "Öngörülen tutar", "Durum"], filteredGroups.map((group) => <tr key={group.id}>
+        {earningsMode === "planned" ? <>{table(["Öğretmen", "Eğitim / Sınıf", "Katılımcı", "Atama", "Öngörülen tutar", "Durum"], filteredGroups.map((group) => <tr key={group.id}>
           <td>{person(group.trainerUserId || "", group.trainerName || byName(group.trainerUserId || ""))}</td><td>{readableGroup(group)}</td><td>{group.participants?.filter((p) => p.status === "ACTIVE").length || 0}</td><td>{dateText(group.createdAt)}</td>
-          <td><strong className="hp4-money">{money(group.projectedPayoutMinor)}</strong></td><td><span className="hp4-pill hp4-pill-planned">{group.status === "IN_PROGRESS" ? "Devam ediyor" : "Planlandı"}</span></td></tr>), "Planlanan grup ataması yok.")}
-          <p className="hp4-footnote">Yalnız doğrulanabilen R6 grup atamalarını gösteriyoruz; birebir atamalar bu kaynakta eksik olabilir. Planlanan tutar henüz ödeme borcu değildir.</p></> : <>{table(["Öğretmen / Öğrenci", "Eğitim", "Tamamlanma", "Ödeme günü", "Tutar", "Durum", "İşlem"], filteredRecords.filter((e) => statusFilter === "all" || e.status === statusFilter || (e.effectiveStatus || e.status) === statusFilter).map((entry) => {
+          <td><strong className="hp4-money">{money(group.projectedPayoutMinor)}</strong></td><td><span className="hp4-pill hp4-pill-planned">{group.status === "IN_PROGRESS" ? "Devam ediyor" : "Planlandı"}</span></td></tr>), "Planlanan sınıf ataması yok.")}
+          <p className="hp4-footnote">Yalnız doğrulanabilen R6 sınıf atamalarını gösteriyoruz; birebir atamalar bu kaynakta eksik olabilir. Planlanan tutar henüz ödeme borcu değildir.</p></> : <>{table(["Öğretmen / Öğrenci", "Eğitim", "Tamamlanma", "Ödeme günü", "Tutar", "Durum", "İşlem"], filteredRecords.filter((e) => statusFilter === "all" || e.status === statusFilter || (e.effectiveStatus || e.status) === statusFilter).map((entry) => {
             const candidate = paymentCandidates.find((c) => c.trainerUserId === entry.trainerUserId && c.completionMonth === completionMonth(entry) && c.currency === String(entry.currency || "TRY").toUpperCase());
             return <tr key={entry.id}><td>{person(entry.trainerUserId, entry.trainerName, entry.studentName || "")}</td><td>{entry.trainingTitle || readableSource(entry.sourceType)}</td><td>{dateText(entry.occurredAt)}</td><td>{dateText(dueDateForEntry(entry))}</td>
               <td><strong className="hp4-money">{money(entry.amountMinor)}</strong></td><td>{pill(entry.effectiveStatus || entry.status)}</td>
@@ -503,10 +503,10 @@ export function R6PayoutsPage() {
           <select aria-label="Rapor dönemi" value={period} onChange={(e) => setPeriod(e.target.value as Period)}><option value="all">Tüm dönemler</option><option value="today">Bugün</option><option value="week">Bu hafta</option><option value="month">Bu ay</option><option value="year">Bu yıl</option></select></div>
         <div className="hp4-report-kpis"><article><small>Kesinleşmiş hakediş</small><strong>{money(totalMinor(reportRecords))}</strong></article>
           <article><small>Ödenen</small><strong>{money(reportPayments.reduce((sum, payment) => sum + toMinor(payment.amount_minor), 0))}</strong></article>
-          <article><small>Henüz planlanan (grup)</small><strong>{money(sumPlanned(reportGroups))}</strong></article></div>
+          <article><small>Henüz planlanan (sınıf)</small><strong>{money(sumPlanned(reportGroups))}</strong></article></div>
         <div className="hp4-bars">{topBreakdown.map(([label, values]) => <div className="hp4-bar-row" key={label}><strong>{label}</strong><div className="hp4-bar-track"><span style={{width:`${Math.max(3, values.sum/reportMax*100)}%`}} /></div><b>{money(values.sum)}</b></div>)}
           {topBreakdown.length===0 && <p className="hp4-empty">Bu rapor döneminde kesinleşmiş kayıt yok.</p>}</div>
-        <p className="hp4-footnote">Kesinleşme raporu tamamlama tarihine, ödeme raporu ödeme tarihine, grup planı oluşturulma tarihine göre filtrelenir.</p></section>}
+        <p className="hp4-footnote">Kesinleşme raporu tamamlama tarihine, ödeme raporu ödeme tarihine, sınıf planı oluşturulma tarihine göre filtrelenir.</p></section>}
     </>}
     {activeTeacher && <div className="hp4-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target===event.currentTarget) setFocusTrainer(null); }}>
       <aside className="hp4-drawer" role="dialog" aria-modal="true" aria-label={`${activeTeacher.name} hakediş ayrıntıları`}>
@@ -521,9 +521,9 @@ export function R6PayoutsPage() {
           <h3>Hakediş ayrıntıları</h3>{drawerEntries.map((entry) => <div className="hp4-drawer-item" key={entry.id}><div><strong>{entry.trainingTitle || readableSource(entry.sourceType)}</strong>
             <small>{entry.studentName || "Öğrenci belirtilmedi"} · {dateText(entry.occurredAt)}</small><small>Ödeme günü: {dateText(dueDateForEntry(entry))}</small></div><div><b>{money(entry.amountMinor)}</b>{pill(entry.effectiveStatus || entry.status)}</div></div>)}
           {drawerEntries.length===0 && <p className="hp4-sub">Kesinleşmiş hakediş bulunmuyor.</p>}
-          <h3>Planlanan grup eğitimleri</h3>{drawerPlans.map((group) => <div className="hp4-drawer-item" key={group.id}><div><strong>{readableGroup(group)}</strong><small>{dateText(group.createdAt)}</small></div>
+          <h3>Planlanan sınıf eğitimleri</h3>{drawerPlans.map((group) => <div className="hp4-drawer-item" key={group.id}><div><strong>{readableGroup(group)}</strong><small>{dateText(group.createdAt)}</small></div>
             <div><b>{money(group.projectedPayoutMinor)}</b><span className="hp4-sub">Henüz borç değil</span></div></div>)}
-          {drawerPlans.length===0 && <p className="hp4-sub">Planlanan grup yok.</p>}
+          {drawerPlans.length===0 && <p className="hp4-sub">Planlanan sınıf yok.</p>}
           <h3>Kaydedilmiş ödemeler</h3>{drawerPayments.slice(0,7).map((payment) => <div className="hp4-drawer-item" key={payment.id}><div><strong>{dateText(payment.payment_date)}</strong><small>{payment.note || "Ödendi olarak kaydedildi"}</small></div><b>{money(payment.amount_minor)}</b></div>)}
           {drawerPayments.length===0 && <p className="hp4-sub">Ödeme sicilinde kayıt yok.</p>}
         </div></aside></div>}

@@ -2591,3 +2591,54 @@ li.is-done strong{
   }
 }
 /* FIXOKU_R385I_ORDER_SUCCESS_END */
+
+/* R399IH6B RESPONSIVE CHILD PROFILE */
+@media(max-width:768px){
+  .student-profile-trainer-parity .trainer-profile-layout,
+  .student-profile-trainer-parity .profile-grid,
+  .student-profile-trainer-parity .student-profile-rail{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .student-profile-trainer-parity .trainer-profile-card,
+  .student-profile-trainer-parity .trainer-profile-form,
+  .student-profile-trainer-parity .profile-field,
+  .student-profile-trainer-parity .profile-input-wrap{
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .student-profile-trainer-parity input:not([type="checkbox"]):not([type="radio"]),
+  .student-profile-trainer-parity select,
+  .student-profile-trainer-parity textarea{
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+    font-size:16px;
+  }
+  .student-profile-trainer-parity .profile-button{
+    min-height:44px;
+    max-width:100%;
+    white-space:normal;
+  }
+  .student-profile-trainer-parity .student-profile-save-row{
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .student-profile-trainer-parity .student-profile-identity{
+    overflow-wrap:anywhere;
+    min-width:0;
+  }
+  .student-profile-trainer-parity .student-profile-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+}
+@media(max-width:480px){
+  .student-profile-trainer-parity .trainer-profile-form{
+    padding:14px 12px;
+  }
+  .student-profile-trainer-parity .profile-button{
+    width:100%;
+  }
+}

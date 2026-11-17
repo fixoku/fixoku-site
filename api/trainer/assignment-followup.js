@@ -4,6 +4,7 @@
 
 import { Readable } from 'node:stream';
 import pg from 'pg';
+import { createProfilePhotoUrl, getProfileMediaConfig, readProfilePhoto } from '../../src/server/domain/profile-media.js';
 import { resolvePrincipal } from '../../src/server/auth/authorization.js';
 import { assertTrainerPrincipal } from '../../src/server/domain/trainer-commerce.js';
 import { eligibleToComplete, validUuid } from './assignment-followup-core.js';
@@ -16,31 +17,104 @@ async function bodyOf(req) { if(req.body && typeof req.body==='object' && !Buffe
 function cleanRecord(raw, memberIds) { const out={}; for(const id of memberIds) { const at=raw?.[id]?.plannedAt; if(typeof at==='string' && Number.isFinite(Date.parse(at))) out[id]={plannedAt:at}; } return out; }
 async function authoritativeAssignments(pool, trainerId) {
   const [groups, participants, singles] = await Promise.all([
-    pool.query(`select id::text as id, status::text as status from r6_training_groups where trainer_user_id=$1`,[trainerId]),
-    pool.query(`select p.training_group_id::text as "assignmentId", p.student_user_id::text as "studentId", p.planned_at as "plannedAt" from r6_training_group_participants p join r6_training_groups g on g.id=p.training_group_id where g.trainer_user_id=$1 and p.status='ACTIVE'`,[trainerId]),
+    pool.query(`select id::text as id, status::text as status, mode::text as mode, class_number as "classNumber", scheduled_start_at as "scheduledStartAt" from r6_training_groups where trainer_user_id=$1`,[trainerId]),
+    pool.query(`select p.training_group_id::text as "assignmentId", p.id::text as "studentId", p.planned_at as "plannedAt" from r6_training_group_participants p join r6_training_groups g on g.id=p.training_group_id where g.trainer_user_id=$1 and p.status='ACTIVE'`,[trainerId]),
     pool.query(`select e.id::text as id, e.student_user_id::text as "studentId", e.status::text as status, a.id::text as "assignmentId", a.planned_at as "plannedAt", cs.calculation_base as "calculationBase", cs.rate_minor as "rateMinor" from trainer_assignments a join enrollments e on e.id=a.enrollment_id left join trainer_compensation_snapshots cs on cs.assignment_id=a.id where a.trainer_user_id=$1 and a.status='ACTIVE'`,[trainerId]),
   ]);
   const result={};
-  for(const g of groups.rows) result[`r6-${g.id}`]={kind:'r6',id:g.id,status:g.status,memberIds:[]};
+  for(const g of groups.rows) result[`r6-${g.id}`]={kind:'r6',id:g.id,status:g.status,mode:g.mode,classNumber:g.classNumber,scheduledStartAt:g.scheduledStartAt,memberIds:[]};
   for(const p of participants.rows) { const a=result[`r6-${p.assignmentId}`]; if(a && validUuid(p.studentId) && !a.memberIds.includes(p.studentId)) a.memberIds.push(p.studentId); }
   for(const row of singles.rows) if(validUuid(row.studentId)) result[`legacy-${row.id}`]={kind:'legacy',id:row.id,status:row.status,memberIds:[row.studentId],assignmentId:row.assignmentId,isFree:row.calculationBase==='OWNER_FREE' && row.rateMinor===0};
   return result;
 }
-async function readProfiles(pool, assignments) {
-  const ids=[...new Set(Object.values(assignments).flatMap(a=>a.memberIds))];
-  if(!ids.length)return {};
-  // Only profile data of the trainer's assigned students. Photo URLs are not fabricated.
-  const q=await pool.query(`select pu.id::text as id, pu.display_name as name, pu.email,
-    sp.phone, sp.guardian_phone as "guardianPhone"
-    from platform_users pu left join lateral
-     (select phone, guardian_phone from student_profiles where user_id=pu.id order by updated_at desc limit 1) sp on true
-    where pu.id=any($1::uuid[])`,[ids]);
-  return Object.fromEntries(q.rows.map(r=>[r.id,{name:r.name,email:r.email,phone:r.phone||r.guardianPhone||null,photoUrl:null}]));
+// R399: authorized, assignment-scoped profile identity. Never use a sibling's photo.
+async function readProfiles(pool, trainerId) {
+  const result = await pool.query(`
+    with targets as (
+      select 'r6-'||g.id::text as assignment_key,p.id as profile_target,p.student_user_id,
+             p.child_profile_id,p.student_profile_id,p.enrollment_id,p.contact_status,p.agreed_start_at
+      from r6_training_group_participants p join r6_training_groups g on g.id=p.training_group_id
+      where g.trainer_user_id=$1 and g.status in ('ASSIGNED','IN_PROGRESS','COMPLETED')
+        and p.status in ('ACTIVE','COMPLETED')
+      union all
+      select 'legacy-'||e.id::text,a.id,e.student_user_id,e.beneficiary_child_profile_id,null::uuid,e.id,null::text,null::timestamptz
+      from trainer_assignments a join enrollments e on e.id=a.enrollment_id
+      where a.trainer_user_id=$1 and a.status='ACTIVE' and e.status in ('ACTIVE','PAUSED','COMPLETED')
+    )
+    select t.assignment_key as "assignmentKey", t.profile_target::text as "targetId",
+      t.student_user_id::text as "studentUserId",
+      case when t.child_profile_id is not null then nullif(concat_ws(' ',cp.first_name,cp.last_name),'')
+           else coalesce(nullif(concat_ws(' ',sp.first_name,sp.last_name),''),pu.display_name) end as name,
+      case when t.child_profile_id is not null then cp.education_stage::text else sp.education_stage::text end as stage,
+      case when t.child_profile_id is not null then coalesce(cp.grade,sp.grade) else sp.grade end as grade,
+      case when t.child_profile_id is not null then coalesce(cp.school,sp.school) else sp.school end as school,
+      case when t.child_profile_id is not null then cp.photo_storage_key else sp.photo_storage_key end as photo_key,
+      case when t.child_profile_id is null or sp.id is not null then pu.email else null end as email,
+      sp.phone, sp.guardian_phone as "guardianPhone", sp.guardian_name as "guardianName",
+      sp.guardian_email as "guardianEmail", sp.guardian_relation as "guardianRelation",
+      case when t.child_profile_id is not null then cp.date_of_birth else sp.date_of_birth end as birth_date,
+      pkg.title as "packageTitle",t.contact_status as "contactStatus",t.agreed_start_at as "agreedStartAt"
+    from targets t join platform_users pu on pu.id=t.student_user_id
+    left join r6_student_child_profiles cp on cp.id=t.child_profile_id and cp.owner_user_id=t.student_user_id and cp.status='ACTIVE'
+    left join student_profiles sp on sp.user_id=t.student_user_id and sp.status='ACTIVE' and
+      (case when t.child_profile_id is not null then sp.id=cp.legacy_student_profile_id
+            when t.student_profile_id is not null then sp.id=t.student_profile_id else true end)
+    left join lateral (
+      select case when count(distinct pe.package_version_id)=1 then min(pv.title) else null end as title
+      from package_entitlement_enrollments pee
+      join package_entitlements pe on pe.id=pee.package_entitlement_id
+      join package_versions pv on pv.id=pe.package_version_id
+      where pee.enrollment_id=t.enrollment_id and pe.beneficiary_student_user_id=t.student_user_id
+        and pe.beneficiary_child_profile_id is not distinct from t.child_profile_id
+        and (pe.beneficiary_student_profile_id is null or pe.beneficiary_student_profile_id=sp.id)
+        and pe.status='ACTIVE' and pe.revoked_at is null and pe.effective_at<=now()
+        and (pe.expires_at is null or pe.expires_at>now())
+    ) pkg on true
+    where (t.child_profile_id is null or cp.id is not null)
+      and (t.child_profile_id is not null or t.student_profile_id is null or sp.id is not null)
+    order by t.assignment_key,t.profile_target`,[trainerId]);
+  return result.rows;
+}
+function publicProfiles(rows) {
+  const out = {};
+  for (const row of rows) {
+    const {photo_key,phone,guardianPhone,guardianName,guardianEmail,guardianRelation,birth_date,email,...safe}=row;
+    const clean = v=>typeof v==='string' && v.trim() ? v.trim() : null;
+    const birth=birth_date ? new Date(birth_date) : null;
+    const cutoff=new Date(); cutoff.setUTCFullYear(cutoff.getUTCFullYear()-18);
+    const adult=birth && Number.isFinite(birth.getTime()) ? birth<=cutoff : row.stage==='ADULT';
+    const hasGuardian=[guardianPhone,guardianName,guardianEmail,guardianRelation].some(v=>clean(v));
+    const guardian=!adult && hasGuardian;
+    const contact={kind:guardian?'GUARDIAN':'STUDENT',name:guardian?clean(guardianName):clean(row.name),
+      phone:guardian?clean(guardianPhone):clean(phone),email:guardian?clean(guardianEmail):clean(email)};
+    const photoUrl=photo_key ? '/api/trainer/assignment-followup?photoAssignment='+encodeURIComponent(row.assignmentKey)+'&photoTarget='+encodeURIComponent(row.targetId) : null;
+    (out[row.assignmentKey] ||= []).push({...safe,phone:contact.phone,email:contact.email,contact,photoUrl});
+  }
+  return out;
+}
+async function sendAssignedPhoto(req,res,rows) {
+  const url=new URL(req.url||'', 'http://local');
+  const key=url.searchParams.get('photoAssignment'), target=url.searchParams.get('photoTarget');
+  if(!key || !validUuid(target)) return respond(res,400,{error:'INVALID_PHOTO_TARGET'});
+  const matches=rows.filter(r=>r.assignmentKey===key && r.targetId===target);
+  if(matches.length!==1 || !matches[0].photo_key) return respond(res,404,{error:'PHOTO_NOT_FOUND'});
+  const config=getProfileMediaConfig();
+  res.setHeader('Cache-Control','private, no-store');
+  res.setHeader('Referrer-Policy','no-referrer');
+  res.setHeader('X-Content-Type-Options','nosniff');
+  if(config.provider==='R2'||config.provider==='S3') {
+    const location=createProfilePhotoUrl(config,matches[0].photo_key);
+    if(!location)return respond(res,404,{error:'PHOTO_NOT_FOUND'});
+    res.statusCode=302;res.setHeader('Location',location);return res.end();
+  }
+  const photo=await readProfilePhoto(config,matches[0].photo_key);
+  if(!photo)return respond(res,404,{error:'PHOTO_NOT_FOUND'});
+  res.statusCode=200;res.setHeader('Content-Type',photo.mime);return res.end(photo.buffer);
 }
 async function databaseMarks(pool,trainerId,a){
     const q=a.kind==='r6'
       ? await pool.query(
-        `select p.student_user_id::text as id,
+        `select p.id::text as id,
                  p.planned_at as "plannedAt"
           from r6_training_group_participants p
           join r6_training_groups g
@@ -60,11 +134,7 @@ async function databaseMarks(pool,trainerId,a){
     const marks={};
     const ids=new Set();
     for(const row of q.rows){
-      if(ids.has(row.id))
-        throw Object.assign(
-          new Error('AMBIGUOUS_STUDENT_ASSIGNMENT'),
-          {status:409}
-        );
+      if(ids.has(row.id)) return {};
       ids.add(row.id);
       if(row.plannedAt)
         marks[row.id]={
@@ -84,6 +154,8 @@ async function databaseMarks(pool,trainerId,a){
         marks,
         eligibility:eligibleToComplete(a.memberIds,marks),
         status:a.status,
+        scheduledStartAt:a.scheduledStartAt||null,
+        classNumber:a.kind==='r6'?a.classNumber??null:null,
         memberIds:a.memberIds
       };
     }
@@ -112,7 +184,7 @@ async function databaseMarks(pool,trainerId,a){
               then coalesce(planned_at,now())
               else null end
             where training_group_id=$1
-              and student_user_id=$2
+              and id=$2
               and status='ACTIVE'
             returning id`,
           [a.id,body.studentId,planning]);
@@ -172,10 +244,13 @@ export default async function handler(req,res) {
   catch {return respond(res,403,{error:'TRAINER_ACCESS_REQUIRED'});}
   const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,connectionTimeoutMillis:4000});
   try {
+    if(req.method==='GET' && new URL(req.url||'', 'http://local').searchParams.has('photoAssignment')) {
+      return await sendAssignedPhoto(req,res,await readProfiles(pool,user.id));
+    }
     const assignments=await authoritativeAssignments(pool,user.id);
     if(req.method==='GET') {
-      const profiles=await readProfiles(pool,assignments);
-      return respond(res,200,{assignments:await snapshot(pool,user.id,assignments),profiles,scope:'DATABASE',completionDays:21});
+      const profilesByAssignment=publicProfiles(await readProfiles(pool,user.id));
+      return respond(res,200,{assignments:await snapshot(pool,user.id,assignments),profiles:{},profilesByAssignment,scope:'DATABASE',completionDays:21});
     }
     const body=await bodyOf(req);
     if(typeof body.assignmentKey!=='string' || !/^((r6|legacy)-[\da-f-]{36})$/iu.test(body.assignmentKey))return respond(res,400,{error:'INVALID_ASSIGNMENT_KEY'});
@@ -192,6 +267,7 @@ export default async function handler(req,res) {
       // We do not make direct earnings/finance writes or forge completion flags.
       return await delegateCompletion(req,res,a);
     }
+    if(a.kind==='r6' && a.mode==='GROUP') return respond(res,409,{error:'R399_USE_CLASS_AGREEMENT'});
     if(!['plan','unplan'].includes(body.action) || !validUuid(body.studentId) || !a.memberIds.includes(body.studentId))return respond(res,400,{error:'INVALID_STUDENT_OR_ACTION'});
     const result=await persistPlan(pool,user.id,a,body);
     return respond(res,200,{ok:true,...result,scope:'DATABASE'});

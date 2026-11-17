@@ -40,3 +40,71 @@
 .ta4-state,.ta4-message{font-size:15px}
 @media(max-width:1100px){.ta4-tabs button{min-width:102px;padding:11px 15px}}
 @media(max-width:720px){.ta4-page{padding:18px 13px 40px}.ta4-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.ta4-tabs button{width:100%;min-width:0;font-size:15px;padding:12px 10px}.ta4-search{width:100%}.ta4-assignment-grid{grid-template-columns:1fr}.ta4-portrait{width:56px;height:56px}.ta4-student{padding:16px}.ta4-contact strong{font-size:17px}.ta4-contact>span{font-size:14px}}
+
+/* R399IH6B RESPONSIVE TRAINER AGREEMENTS */
+@media(max-width:768px){
+  .ta4-page .ta4-assignment-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .ta4-page .ta4-detail,
+  .ta4-page .ta4-block,
+  .ta4-page .ta4-person,
+  .ta4-page .ta4-contact,
+  .ta4-page .ta4-students{
+    min-width:0;
+    max-width:100%;
+    overflow-wrap:anywhere;
+    box-sizing:border-box;
+  }
+  .ta4-page .ta4-actions,
+  .ta4-page .ta4-detail-head,
+  .ta4-page .ta4-assignment-bottom{
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .ta4-page .ta4-actions button,
+  .ta4-page .ta4-actions a,
+  .ta4-page .ta4-btn{
+    min-height:44px;
+    white-space:normal;
+    box-sizing:border-box;
+  }
+  .ta4-page textarea,
+  .ta4-page input:not([type="checkbox"]):not([type="radio"]){
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+    font-size:16px;
+  }
+  .ta4-page textarea{
+    width:100%;
+    min-height:132px;
+    resize:vertical;
+  }
+  .ta4-page input[type="checkbox"]{
+    width:20px;
+    height:20px;
+    flex-shrink:0;
+    accent-color:#24804a;
+  }
+  .ta4-page label{
+    overflow-wrap:anywhere;
+  }
+  .ta4-page [role="dialog"]{
+    max-width:calc(100vw - 24px);
+    max-height:85vh;
+    overflow-y:auto;
+    box-sizing:border-box;
+  }
+}
+@media(max-width:480px){
+  .ta4-page .ta4-detail{
+    padding:12px;
+  }
+  .ta4-page .ta4-student{
+    padding:12px;
+  }
+  .ta4-page .ta4-actions>*{
+    flex:1 1 120px;
+  }
+}

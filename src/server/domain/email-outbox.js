@@ -108,10 +108,15 @@ export async function processOutboxBatch({ client, env = process.env, transportF
           throw new Error("OWNER_SNAPSHOT_UNRESOLVED");
         }
       }
+      // Legacy rows without a rendered snapshot must never invent a recipient.
+      const recipientName = typeof claimed.recipient_name === "string" ? claimed.recipient_name.trim() : "";
+      if (!(snapshot?.html && snapshot?.text) && (!recipientName || /^Fixoku\s+(?:müşterisi|kullanıcısı)$/iu.test(recipientName))) {
+        throw Object.assign(new Error("EMAIL_RECIPIENT_NAME_REQUIRED"), { code: "EMAIL_RECIPIENT_NAME_REQUIRED" });
+      }
       const rendered = snapshot?.html && snapshot?.text
         ? { subject: snapshot.subject || claimed.subject, text: snapshot.text, html: snapshot.html, replyTo: undefined, headers: undefined }
         : renderEmailForEvent(claimed.event_type, {
-          recipientName: "Fixoku müşterisi",
+          recipientName,
           body: claimed.body,
           reference: claimed.id,
           amount: "—",

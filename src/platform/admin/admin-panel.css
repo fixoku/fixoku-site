@@ -19033,3 +19033,65 @@ main.fx40-catalog.commerce-package-page .r60c4-content-row {
 .assignment-center .assignment-pay-row-r389 .assignment-primary-action{width:auto!important;flex:1 1 140px;margin:0!important;min-height:48px;}
 .assignment-center .assignment-free-note-r389{display:grid;gap:8px;padding:14px;border:1px solid #f0dfd2;border-radius:12px;background:#fffaf6;}
 .assignment-center .assignment-free-note-r389 textarea{min-height:90px;resize:vertical;padding:10px;border:1px solid #ded9d4;border-radius:8px;color:#20364b;font:inherit;width:100%;}
+
+/* R399IH6B RESPONSIVE CLASS OPERATIONS */
+@media(max-width:768px){
+  .training-groups-center .active-group-card-grid,
+  .training-groups-center .group-assignment-context-grid,
+  .training-groups-center .group-trainer-card-grid,
+  .assignment-center .assignment-workspace,
+  .assignment-center .assignment-detail-summary-v31{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .training-groups-center .active-group-card,
+  .training-groups-center .group-assignment-step-body,
+  .training-groups-center .group-assignment-context-copy,
+  .assignment-center .assignment-detail-panel,
+  .assignment-center .assignment-request-list,
+  .assignment-center .assignment-candidate-copy{
+    min-width:0;
+    max-width:100%;
+    overflow-wrap:anywhere;
+    box-sizing:border-box;
+  }
+  .training-groups-center .active-group-card-top,
+  .training-groups-center .active-group-meta,
+  .assignment-center .assignment-current-trainer-chips,
+  .assignment-center .assignment-filterbar{
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .training-groups-center .group-assignment-student-select,
+  .training-groups-center .group-list-search,
+  .training-groups-center input:not([type="checkbox"]):not([type="radio"]),
+  .training-groups-center select,
+  .training-groups-center textarea,
+  .assignment-center input:not([type="checkbox"]):not([type="radio"]),
+  .assignment-center textarea,
+  .assignment-center select{
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .training-groups-center .group-assignment-submit,
+  .assignment-center .assignment-primary-action{
+    width:100%;
+    min-height:44px;
+  }
+  .training-groups-center .active-group-roster-user-icon{
+    flex-shrink:0;
+  }
+}
+@media(max-width:480px){
+  .training-groups-center .active-group-card,
+  .assignment-center .assignment-detail-panel{
+    padding:12px!important;
+  }
+  .training-groups-center .active-group-roster{
+    min-width:0;
+    max-width:100%;
+  }
+  .training-groups-center .group-assignment-step{
+    gap:7px;
+  }
+}

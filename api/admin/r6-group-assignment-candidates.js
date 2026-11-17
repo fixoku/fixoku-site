@@ -83,6 +83,8 @@ export default async function handler(req, res) {
             limit 1
           ) qd on true
           where pe.status = 'ACTIVE'
+            and pe.effective_at<=now() and (pe.expires_at is null or pe.expires_at>now())
+            and (pe.beneficiary_child_profile_id is null or c.id is not null)
             and (pe.source_type='OWNER_MANUAL' or exists (select 1 from orders o where o.id=pe.source_order_id and o.status in ('PAID','PARTIALLY_REFUNDED')))
             and pp.r6_product_type = 'TRAINING_SERVICE'
             and pp.service_mode = 'GROUP'

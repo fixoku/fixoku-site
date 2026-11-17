@@ -230,14 +230,14 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
         <button type="button" className={kind==="ALL"?"active":""} onClick={()=>{setKind("ALL");setProductPageV41E(1);}}>Tüm türler</button>
         {typeList.filter((option)=>trainerMode ? option.id!=="SERVICE" : option.id!=="SERVICE" && option.id!=="TRAINING_SERVICE").map((option) => <button type="button" key={option.id} className={kind===option.id?"active":""} onClick={()=>{setKind(option.id);setProductPageV41E(1);}}>{option.name}</button>)}
         {!trainerMode && <button type="button" className={kind==="INDIVIDUAL"?"active":""} onClick={()=>{setKind("INDIVIDUAL");setProductPageV41E(1);}}>Birebir Eğitim</button>}
-        {!trainerMode && <button type="button" className={kind==="GROUP"?"active":""} onClick={()=>{setKind("GROUP");setProductPageV41E(1);}}>Küçük Grup Eğitimi</button>}
+        {!trainerMode && <button type="button" className={kind==="GROUP"?"active":""} onClick={()=>{setKind("GROUP");setProductPageV41E(1);}}>Sınıf Eğitimi</button>}
       </div>
       {loading ? <p>Ürünler yükleniyor...</p> : shown.length === 0 ? <p className="fx39c-product-empty">Bu filtrelere uygun ürün bulunamadı.</p> :
         <div className="fx39c-product-grid">
           {currentProductsV41E.map((item) => <article className={form.id===item.id?"fx39c-product-tile selected":"fx39c-product-tile"} key={item.id}>
             <div className={`fx39c-product-illustration fx40-type-${item.productType.toLowerCase()}`}><FixokuPhotoV41F src={item.imageReference} fallbackSrc={productImageDefaultV41F(item.sku)} alt={item.title}><FixokuCatalogIconV40 kind={catalogVisualKindV40(item.title,item.productType,item.serviceMode || undefined)} size={35}/></FixokuPhotoV41F></div>
-            <div className="fx39c-product-copy"><strong>{item.title}</strong><small>{item.productType === "PHYSICAL" ? "Kitap" : item.productType === "SOFTWARE" ? "Yazılım" : item.productType === "SERVICE" ? (item.serviceMode === "GROUP" ? "Küçük Grup Eğitimi" : "Birebir Eğitim") : item.productType === "TRAINING_SERVICE" ? "Eğitmen eğitimi" : "Dijital"}</small>
-              <div className="fx39c-product-tags"><span>{item.productType === "SERVICE" ? (item.serviceMode === "GROUP" ? "Küçük Grup" : "Birebir") : typeList.find((t)=>t.id===item.productType)?.name || "Ürün"}</span>
+            <div className="fx39c-product-copy"><strong>{item.title}</strong><small>{item.productType === "PHYSICAL" ? "Kitap" : item.productType === "SOFTWARE" ? "Yazılım" : item.productType === "SERVICE" ? (item.serviceMode === "GROUP" ? "Sınıf Eğitimi" : "Birebir Eğitim") : item.productType === "TRAINING_SERVICE" ? "Eğitmen eğitimi" : "Dijital"}</small>
+              <div className="fx39c-product-tags"><span>{item.productType === "SERVICE" ? (item.serviceMode === "GROUP" ? "Sınıf Eğitimi" : "Birebir") : typeList.find((t)=>t.id===item.productType)?.name || "Ürün"}</span>
                 <span>{item.stageScopes?.length ? item.stageScopes.map((s)=>stageList.find((x)=>x.id===s)?.name || s).join(" · ") : "Tüm seviyeler"}</span>
                 <span className={item.isActive?"fx39c-active":"fx39c-inactive"}>{item.isActive?"Aktif":"Pasif"}</span>
               </div>
@@ -262,7 +262,7 @@ export function StudentProductCatalogV39C({ onCatalogChanged, trainerMode = fals
         <label>Ürün türü<select disabled={!creating} value={form.productType} onChange={event=>setForm({...form,productType:event.target.value as ProductType})}>
           {typeList.filter((option)=>trainerMode ? option.id !== "SERVICE" : option.id !== "TRAINING_SERVICE").map((option)=><option value={option.id} key={option.id}>{option.name}</option>)}
         </select></label>
-        {form.productType === "SERVICE" && <label>Eğitim türü<select disabled={!creating} value={form.serviceMode} onChange={event=>setForm({...form,serviceMode:event.target.value as "INDIVIDUAL" | "GROUP"})}><option value="INDIVIDUAL">Birebir Eğitim</option><option value="GROUP">Küçük Grup Eğitimi</option></select></label>}
+        {form.productType === "SERVICE" && <label>Eğitim türü<select disabled={!creating} value={form.serviceMode} onChange={event=>setForm({...form,serviceMode:event.target.value as "INDIVIDUAL" | "GROUP"})}><option value="INDIVIDUAL">Birebir Eğitim</option><option value="GROUP">Sınıf Eğitimi</option></select></label>}
         <fieldset aria-label="Ürün eğitim seviyeleri" style={{border:"1px solid #e5eaf2",borderRadius:10,padding:"12px 14px",margin:"8px 0 14px"}}>
           <legend style={{fontWeight:700,padding:"0 5px"}}>Ürünün eğitim seviyeleri</legend>
           <p style={{fontSize:12,color:"#66748a",margin:"0 0 10px"}}>Bir ürün birden fazla seviyeye uygun olabilir. Sınıf aralığı ayrıca paket oluştururken seçilir.</p>

@@ -43,7 +43,7 @@ export function TrainerStudentsPage({user}:{user:{id:string;name:string;email:st
           const status=completed?'Tamamlandı':p.assignments.some(a=>a.status==='IN_PROGRESS')?'Devam ediyor':'Planlama / Atandı';
           return <article className="roster20-person" key={p.id}>
             <div className="roster20-person-head"><span className="roster20-avatar">{p.image?<img src={p.image} alt=""/>:initials(p.name)}</span><div><strong>{p.name}</strong><span>{p.email||'E-posta bilgisi yok'}</span>{p.phone&&<span>{p.phone}</span>}</div><span className={`roster20-status ${completed?'done':''}`}>{status}</span></div>
-            <div className="roster20-courses">{p.assignments.map(a=><div className="roster20-course" key={a.key}><span className="roster20-kind">{a.type==='GROUP'?'Grup':'Birebir'}</span><strong>{a.name}</strong><small>{a.stage} · {rosterStatus(a.status)}{a.planned?' · Planlandı':''}</small></div>)}</div>
+            <div className="roster20-courses">{p.assignments.map(a=><div className="roster20-course" key={a.key}><span className="roster20-kind">{a.type==='GROUP'?'Sınıf':'Birebir'}</span><strong>{a.name}</strong><small>{a.stage} · {rosterStatus(a.status)}{a.planned?' · Planlandı':''}</small></div>)}</div>
           </article>;
         })}</div>}
       </section>

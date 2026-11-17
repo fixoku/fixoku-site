@@ -51,7 +51,7 @@ async function assignedTrainer(client, beneficiary) {
          from r6_training_group_participants p
          join r6_training_groups g on g.id=p.training_group_id
          where p.student_user_id=$1 and p.status='ACTIVE'
-           and g.status in ('DRAFT','ASSIGNED','IN_PROGRESS')
+           and g.status in ('ASSIGNED','IN_PROGRESS')
            and g.trainer_user_id is not null
            and p.child_profile_id is not distinct from $2::uuid
            and ($2::uuid is not null or p.student_profile_id=$3::uuid)
@@ -86,7 +86,12 @@ export default async function handler(req, res) {
   }
 
   const parsed = new URL(req.url || "", "http://local");
-  const requestedProfileId = parsed.searchParams.get("studentProfileId");
+  const childIds = parsed.searchParams.getAll("childProfileId");
+  const profileIds = [...parsed.searchParams.getAll("studentProfileId"), ...parsed.searchParams.getAll("studentId")];
+  if (childIds.length + profileIds.length !== 1 || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(childIds[0] || profileIds[0] || "")) {
+    return json(res, 403, { error: "EXPLICIT_PROFILE_REQUIRED" });
+  }
+  const requestedProfileId = childIds[0] || profileIds[0];
 
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   const client = await pool.connect();
@@ -98,6 +103,9 @@ export default async function handler(req, res) {
       requestedProfileId || null,
     );
 
+    if (childIds.length ? String(beneficiary.childProfileId || "").toLowerCase() !== requestedProfileId.toLowerCase() : beneficiary.childProfileId || String(beneficiary.studentProfileId || "").toLowerCase() !== requestedProfileId.toLowerCase()) {
+      return json(res, 403, { error: "FORBIDDEN" });
+    }
     const trainer = await assignedTrainer(client, beneficiary);
 
     if (!trainer) {
@@ -110,7 +118,7 @@ export default async function handler(req, res) {
     }
 
     if (parsed.searchParams.get("photo") === "1") {
-      if (!trainer.photoStorageKey) {
+      if (parsed.searchParams.get("trainerUserId") !== trainer.trainerUserId || !trainer.photoStorageKey) {
         res.statusCode = 404;
         res.setHeader("Cache-Control", "private, no-store");
         res.end();
@@ -164,9 +172,8 @@ export default async function handler(req, res) {
 
     const photoParams = new URLSearchParams();
     photoParams.set("photo", "1");
-    if (requestedProfileId) {
-      photoParams.set("studentProfileId", requestedProfileId);
-    }
+    photoParams.set(beneficiary.childProfileId ? "childProfileId" : "studentProfileId", requestedProfileId);
+    photoParams.set("trainerUserId", trainer.trainerUserId);
 
     return json(res, 200, {
       role,

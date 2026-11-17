@@ -56,7 +56,7 @@ const ADMIN_AREA_DRAFT_OPTIONS = [
   { id: "offers", title: "Özel Teklifler", group: "Satışlar", icon: "offers" },
   { id: "payouts", title: "Öğretmen Hakedişleri", group: "Satışlar", icon: "payouts" },
   { id: "students", title: "Öğrenci Yönetimi", group: "Eğitim Operasyonu", icon: "students" },
-  { id: "assignments", title: "Birebir ve Grup Atamaları", group: "Eğitim Operasyonu", icon: "assignments" },
+  { id: "assignments", title: "Birebir ve Sınıf Atamaları", group: "Eğitim Operasyonu", icon: "assignments" },
   { id: "trainers", title: "Eğitmen Yönetimi", group: "Eğitmenler", icon: "trainers" },
   { id: "catalog", title: "Ürün ve Paket Kataloğu", group: "Katalog", icon: "catalog" },
   { id: "shipments", title: "Kargo ve Gönderiler", group: "Operasyon", icon: "shipments" },

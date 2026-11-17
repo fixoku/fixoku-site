@@ -872,4 +872,152 @@ export const OWNER_EMAIL_EDITORIAL = Object.freeze({
     ],
     "status": "review"
   }
+,
+  "owner-class-scheduled": {
+    "subject": "Sınıf Eğitim Başlangıcı Belirlendi",
+    "title": "Sınıf Eğitim Başlangıcı Belirlendi",
+    "paragraphs": [
+      "Sınıfın ortak eğitim başlangıç tarihi kaydedildi."
+    ],
+    "fields": [
+      {
+        "key": "trainerName",
+        "label": "Eğitmen"
+      },
+      {
+        "key": "programName",
+        "label": "Eğitim"
+      },
+      {
+        "key": "reference",
+        "label": "Sınıf"
+      },
+      {
+        "key": "sessionDate",
+        "label": "Yeni başlangıç (Türkiye saati)"
+      },
+      {
+        "key": "date",
+        "label": "Önceki başlangıç (Türkiye saati)"
+      },
+      {
+        "key": "status",
+        "label": "Durum"
+      }
+    ],
+    "cta": "Owner panelini açın",
+    "path": "/panel/owner",
+    "fixture": {
+      "recipientName": "Ersin Bey",
+      "trainerName": "Örnek Eğitmen",
+      "programName": "İlkokul Hızlı Okuma",
+      "reference": "Sınıf 1",
+      "sessionDate": "23.11.2026 14:00",
+      "date": "22.11.2026 14:00",
+      "status": "Mutabakat tamamlandı"
+    },
+    "required": [
+      "trainerName",
+      "programName",
+      "reference",
+      "sessionDate"
+    ],
+    "status": "review"
+  },
+  "owner-class-rescheduled": {
+    "subject": "Sınıf Eğitim Başlangıcı Değiştirildi",
+    "title": "Sınıf Eğitim Başlangıcı Değiştirildi",
+    "paragraphs": [
+      "Sınıfın ortak eğitim başlangıç tarihi güncellendi."
+    ],
+    "fields": [
+      {
+        "key": "trainerName",
+        "label": "Eğitmen"
+      },
+      {
+        "key": "programName",
+        "label": "Eğitim"
+      },
+      {
+        "key": "reference",
+        "label": "Sınıf"
+      },
+      {
+        "key": "sessionDate",
+        "label": "Yeni başlangıç (Türkiye saati)"
+      },
+      {
+        "key": "date",
+        "label": "Önceki başlangıç (Türkiye saati)"
+      },
+      {
+        "key": "status",
+        "label": "Durum"
+      }
+    ],
+    "cta": "Owner panelini açın",
+    "path": "/panel/owner",
+    "fixture": {
+      "recipientName": "Ersin Bey",
+      "trainerName": "Örnek Eğitmen",
+      "programName": "İlkokul Hızlı Okuma",
+      "reference": "Sınıf 1",
+      "sessionDate": "23.11.2026 14:00",
+      "date": "22.11.2026 14:00",
+      "status": "Mutabakat tamamlandı"
+    },
+    "required": [
+      "trainerName",
+      "programName",
+      "reference",
+      "sessionDate"
+    ],
+    "status": "review"
+  },
+  "owner-reassignment-pending": {
+  "subject": "Öğrenci Yeniden Atama Bekliyor",
+  "title": "Öğrenci Yeniden Atama Bekliyor",
+  "paragraphs": [
+    "Öğrencinin mevcut ataması kaldırıldı. Geçerli eğitim hakkı korunuyor; yeni atamayı yönetim panelinden değerlendirebilirsiniz."
+  ],
+  "fields": [
+    {
+      "key": "studentName",
+      "label": "Öğrenci"
+    },
+    {
+      "key": "programName",
+      "label": "Eğitim"
+    },
+    {
+      "key": "reference",
+      "label": "Kayıt"
+    },
+    {
+      "key": "date",
+      "label": "İşlem tarihi"
+    },
+    {
+      "key": "status",
+      "label": "Durum"
+    }
+  ],
+  "cta": "Owner panelini açın",
+  "path": "/panel/owner",
+  "fixture": {
+    "recipientName": "Ersin Bey",
+    "studentName": "Örnek Öğrenci",
+    "programName": "Hızlı okuma",
+    "reference": "Örnek kayıt",
+    "date": "17.11.2026",
+    "status": "Yeniden atama bekliyor"
+  },
+  "required": [
+    "studentName",
+    "programName",
+    "reference"
+  ],
+  "status": "review"
+}
 });

@@ -141,6 +141,7 @@ async function readGroupAssignmentCandidatesV22(client) {
       pe.package_version_id as "packageVersionId",
       pv.title as "packageTitle",
       (select pk.icon_reference from packages pk where pk.id=pv.package_id) as "packageCover",
+      (select pk.slug from packages pk where pk.id=pv.package_id) as "packageSlug",
       pp.id as "trainingProductId",
       pp.title as "trainingTitle",
       pp.service_type as "trainingType",
@@ -209,6 +210,7 @@ async function readGroups(client, { trainerUserId = null } = {}) {
   const rows = (await client.query(`
     select g.id,g.package_version_id as "packageVersionId",g.training_product_id as "trainingProductId",
       (select pk.icon_reference from package_versions v join packages pk on pk.id=v.package_id where v.id=g.package_version_id) as "packageCover",
+      (select pk.slug from package_versions v join packages pk on pk.id=v.package_id where v.id=g.package_version_id) as "packageSlug",
       (select v.title from package_versions v where v.id=g.package_version_id) as "packageTitle",
       g.required_qualification_id as "requiredQualificationId",g.trainer_user_id as "trainerUserId",
       g.education_stage as "educationStage",g.training_type as "trainingType",g.mode,

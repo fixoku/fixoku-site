@@ -2,14 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./admin-panel.css";
 import "./assignment-r395.css";
+import "./assignment-r401.css";
+import {AssignmentModalR401} from "./AssignmentModalR401";
+import {FixokuPhotoV41F,packageImageDefaultV41F} from "./FixokuCatalogAssetsV41F";
 import { AssignmentAvatar, assignmentError } from "./AssignmentAvatarR395";
 
-type RequestRow = { id: string; studentName: string; programTitle: string; status: string; trainerName?: string | null; trainerUserId?: string | null };
+type RequestRow = { childProfileId?:string;studentProfileId?:string;packageTitle?:string;packageSlug?:string;packageCover?:string;contactStatus?:string;agreedStartAt?:string;plannedAt?:string; id: string; studentName: string; programTitle: string; status: string; trainerName?: string | null; trainerUserId?: string | null };
 type Candidate = { id: string; name: string; email?: string; city: string | null; qualification: string; workload: number; completedWorkload?: number; hasFutureAvailability: boolean; photoUrl?: string | null; photoStorageKey?: string | null };
 const statusLabel = (status: string) => ({ PENDING: "Bekliyor", ASSIGNED: "Atandı", CANCELLED: "İptal edildi" }[status] || "Durum bilinmiyor");
 const historyLabel = (eventType: string) => ({ ASSIGNED: "Atandı", REASSIGNED_IN: "Yeni eğitmen atandı", REASSIGNED_OUT: "Önceki eğitmen çıkarıldı", REMOVED: "Atama kaldırıldı" }[eventType] || "Atama geçmişi");
 
 export function AdminAssignmentPage() {
+  const photo=(row:RequestRow)=>row.childProfileId?`/api/admin/r6-training-groups?studentChildPhoto=${encodeURIComponent(row.childProfileId)}`:row.studentProfileId?`/api/admin/r6-training-groups?studentProfilePhoto=${encodeURIComponent(row.studentProfileId)}`:"";
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [selected, setSelected] = useState<RequestRow | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -51,7 +55,7 @@ export function AdminAssignmentPage() {
 
   const removeAssignment=async()=>{
     if(!selected || !current?.canRemove || mutationBusy || !removeReason.trim()) return;
-    if(!window.confirm("Atama kaldırılsın mı? Öğrencinin eğitim hakkı ve geçmişi korunur."))return;
+
     setMutationBusy(true);
     try {
       const r=await fetch(`/api/admin/assignment-requests/${selected.id}`,{method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify({action:"remove",assignmentId:current.id,reason:removeReason.trim()})});
@@ -66,7 +70,7 @@ export function AdminAssignmentPage() {
   const pendingCount = rows.filter((row) => row.status === "PENDING").length;
   const assignedCount = rows.filter((row) => row.status === "ASSIGNED").length;
 
-  return <main className="platform-foundation-panel admin-panel assignment-center">
+  return <main className="platform-foundation-panel admin-panel assignment-center r401-page">
     <header className="admin-page-hero"><div><span>EĞİTİM OPERASYONU</span><h1>Birebir Atamalar</h1>
           <div className="assignment-hero-art-v31" aria-hidden="true">
   <svg viewBox="0 0 340 145" fill="none">
@@ -97,7 +101,7 @@ export function AdminAssignmentPage() {
 </div><p className="assignment-hero-copy">Satın alınmış veya açılmış öğrenci eğitimlerini uygun ve yetkin eğitmenlerle eşleştirin; eğitmen değişikliklerinde tarihçeyi koruyun.</p></div></header>
     <div className="admin-segmented-tabs"><Link className="is-active" to="/panel/admin/atamalar">Birebir Atamalar</Link><Link to="/panel/owner/egitim-gruplari">Sınıf Atamaları</Link></div>
     {message && <p className="admin-inline-status" role="status">{message}</p>}
-    <section className="assignment-summary-strip"><div><span>Bekleyen</span><strong>{pendingCount}</strong></div><div><span>Atanmış</span><strong>{assignedCount}</strong></div><div><span>Toplam kayıt</span><strong>{rows.length}</strong></div></section>
+    <section className="r401-stats"><div><span>Bekleyen</span><strong>{pendingCount}</strong></div><div><span>Atanmış</span><strong>{assignedCount}</strong></div><div><span>Toplam kayıt</span><strong>{rows.length}</strong></div><div><span>Başlangıç tarihi bekleyen</span><strong>{rows.filter(r=>r.status==="ASSIGNED"&&!r.plannedAt).length}</strong></div></section>
     <section className="assignment-filterbar"><label>Öğrenci veya eğitim ara<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ara…" /></label></section>
     <div className="assignment-workspace">
       <section className="panel-card assignment-request-list">
@@ -116,7 +120,7 @@ export function AdminAssignmentPage() {
   {!queueRows.length ? <div className="admin-empty-state assignment-queue-empty">
     <strong>{queueTab === "PENDING" ? "Atama bekleyen kayıt yok" : "Atanmış kayıt yok"}</strong>
     <span>Bu sekmede gösterilecek öğrenci eğitimi bulunmuyor.</span>
-  </div> : <div className="assignment-request-stack">{queueRows.map((row) => <button type="button" className={selected?.id === row.id ? "is-selected" : ""} key={row.id} onClick={() => void open(row)}><span className={`assignment-status-dot is-${row.status.toLowerCase()}`} /><div className="assignment-request-copy-v28">
+  </div> : <div className="assignment-request-stack">{queueRows.map((row) => <button type="button" className={selected?.id === row.id ? "is-selected" : ""} key={row.id} onClick={() => void open(row)}><AssignmentAvatar src={photo(row)} name={row.studentName}/><div className="assignment-request-copy-v28">
   <strong>{row.studentName}</strong>
   <span>{(row as any).grade ? `${(row as any).grade}. Sınıf${(row as any).classBranch ? ` / ${(row as any).classBranch}` : ""}` : ((row as any).classBranch || "Sınıf bilgisi yok")}</span>
   <small>{row.programTitle}</small>
@@ -141,22 +145,12 @@ export function AdminAssignmentPage() {
             </div>
             <div className="assignment-detail-summary-v31">
               <div className="assignment-detail-summary-card-v31 is-student">
-                <span className="assignment-detail-summary-icon-v31" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="7.5" r="3.2" />
-                    <path d="M5.8 19c.7-4 2.9-6 6.2-6s5.5 2 6.2 6" />
-                  </svg>
-                </span>
+                <AssignmentAvatar src={photo(selected)} name={selected.studentName}/>
                 <div><span>Öğrenci</span><strong>{selected.studentName}</strong></div>
               </div>
 
               <div className="assignment-detail-summary-card-v31 is-program">
-                <span className="assignment-detail-summary-icon-v31" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M4 5.5c3-1.1 5.7-.8 8 .9v12c-2.3-1.7-5-2-8-.9v-12Z" />
-                    <path d="M20 5.5c-3-1.1-5.7-.8-8 .9v12c2.3-1.7 5-2 8-.9v-12Z" />
-                  </svg>
-                </span>
+                <span className="r401-cover"><FixokuPhotoV41F src={selected.packageCover} fallbackSrc={selected.packageSlug?packageImageDefaultV41F(selected.packageSlug):undefined} alt={selected.packageTitle||selected.programTitle}><span>{selected.packageTitle||selected.programTitle}</span></FixokuPhotoV41F></span>
                 <div><span>Eğitim / Paket</span><strong>{selected.programTitle}</strong></div>
               </div>
 
@@ -215,13 +209,13 @@ export function AdminAssignmentPage() {
               >
                 Eğitmeni Değiştir
               </button>
-              <div className="r400-individual-actions">
+              <div className="r400-individual-actions r401-meta">
                 <p><strong>İletişim:</strong> {({PENDING:"Görüşme bekliyor",UNREACHABLE:"Ulaşılamadı",CONTACTED:"Görüşüldü",AGREED:"Mutabakat sağlandı"} as Record<string,string>)[current.contactStatus||"PENDING"]}</p>
                 <p><strong>Mutabakat tarihi:</strong> {current.agreedStartAt ? new Date(current.agreedStartAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}) : "Belirlenmedi"}</p>
                 <p><strong>Eğitim başlangıcı / eski planlama kaydı:</strong> {current.plannedAt ? new Date(current.plannedAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}) : "Henüz planlanmadı"}</p>
                 <button type="button" className="r400-danger-button" disabled={!current.canRemove||mutationBusy} onClick={()=>{setRemoving(true);setRemoveReason("");}}>Atamayı kaldır</button>
                 {!current.canRemove && <small>Planlama kaydı olan veya artık aktif olmayan eğitimlerde atama kaldırılamaz.</small>}
-                {removing && current.canRemove && <div className="r400-remove-form"><label>Kaldırma gerekçesi<textarea maxLength={500} value={removeReason} onChange={e=>setRemoveReason(e.target.value)}/></label><button type="button" disabled={mutationBusy||!removeReason.trim()} className="r400-danger-button" onClick={()=>void removeAssignment()}>Kaldırmayı onayla</button><button type="button" disabled={mutationBusy} onClick={()=>setRemoving(false)}>Vazgeç</button></div>}
+                {removing && current.canRemove && <AssignmentModalR401 title="Birebir atamayı kaldır" busy={mutationBusy} onClose={()=>setRemoving(false)}><p>{selected.studentName} · Eğitim hakkı ve geçmişi korunur.</p><label>Kaldırma gerekçesi<textarea maxLength={500} value={removeReason} onChange={e=>setRemoveReason(e.target.value)}/></label>{message&&<p role="alert">{message}</p>}<div className="r401-actions"><button type="button" disabled={mutationBusy} onClick={()=>setRemoving(false)}>Vazgeç</button><button type="button" disabled={mutationBusy||!removeReason.trim()} className="r401-danger" onClick={()=>void removeAssignment()}>Kaldırmayı onayla</button></div></AssignmentModalR401>}
               </div>
             </section>
 ) : (
@@ -244,5 +238,6 @@ export function AdminAssignmentPage() {
   </>
 )}</>}</section>
     </div>
+    <section className="panel-card r401-assigned"><div className="r401-heading"><div><h2>Atanmış birebir eğitimler</h2><p>İletişim, mutabakat ve başlangıç durumları</p></div><label>Durum<select value={status} onChange={e=>setStatus(e.target.value)}><option value="ALL">Tüm durumlar</option><option value="WAIT">Tarih bekleyen</option><option value="DATE">Tarihi belirlenen</option></select></label></div>{rows.filter(r=>r.status==="ASSIGNED"&&(status==="ALL"||(status==="WAIT"?!r.plannedAt:!!r.plannedAt))&&(`${r.studentName} ${r.programTitle} ${r.trainerName||""}`).toLocaleLowerCase("tr-TR").includes(search.trim().toLocaleLowerCase("tr-TR"))).map(r=><article className="r401-classcard" key={r.id}><div className="r401-classhead"><div className="r401-person"><AssignmentAvatar src={photo(r)} name={r.studentName}/><div><h3>{r.studentName}</h3><small>Öğrenci</small></div></div><span className="r401-cover"><FixokuPhotoV41F src={r.packageCover} fallbackSrc={r.packageSlug?packageImageDefaultV41F(r.packageSlug):undefined} alt={r.packageTitle||r.programTitle}><span>{r.packageTitle||r.programTitle}</span></FixokuPhotoV41F></span><div><b>{r.programTitle}</b><p>{r.packageTitle}</p></div><div className="r401-person"><AssignmentAvatar src={r.trainerUserId?`/api/admin/assignment-requests/${r.id}?trainerPhoto=${encodeURIComponent(r.trainerUserId)}`:""} name={r.trainerName||"Eğitmen"}/><b>{r.trainerName||"Atanmadı"}</b></div></div><div className="r401-meta">{[["İletişim",({PENDING:"Görüşme bekliyor",UNREACHABLE:"Ulaşılamadı",CONTACTED:"Görüşüldü",AGREED:"Mutabakat sağlandı"} as Record<string,string>)[r.contactStatus||"PENDING"]],["Mutabakat",r.agreedStartAt?new Date(r.agreedStartAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}):"Belirlenmedi"],["Başlangıç / planlama",r.plannedAt?new Date(r.plannedAt).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}):"Belirlenmedi"],["Durum","Atandı"]].map(([l,v])=><div key={l}><small>{l}</small><b>{v}</b></div>)}</div><div className="r401-actions r401-classbody"><button type="button" onClick={()=>{setQueueTab("ASSIGNED");void open(r);window.scrollTo({top:0,behavior:"smooth"});}}>Eğitim detayları / atamayı yönet</button></div></article>)}</section>
   </main>;
 }

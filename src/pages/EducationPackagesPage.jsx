@@ -87,7 +87,7 @@ export default function EducationPackagesPage() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(previewMode ? "/api/admin/student-commerce-packages" : "/api/public/student-commerce-packages", { signal: controller.signal, credentials: previewMode ? "same-origin" : "omit", cache: "no-store" })
+    fetch(previewMode ? "/api/admin/student-commerce-packages" : "/api/public/student-commerce-packages", { signal: controller.signal, credentials: "same-origin", cache: "no-store" })
       .then(async (response) => {
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {

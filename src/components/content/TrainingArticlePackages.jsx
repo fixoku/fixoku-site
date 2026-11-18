@@ -66,7 +66,7 @@ export default function TrainingArticlePackages() {
       if (pending) pending.abort();
       const ctrl = new AbortController();
       pending = ctrl;
-      fetch("/api/public/student-commerce-packages", { signal: ctrl.signal, cache: "no-store", credentials: "omit" })
+      fetch("/api/public/student-commerce-packages", { signal: ctrl.signal, cache: "no-store", credentials: "same-origin" })
         .then(async res => { const payload = await res.json().catch(() => ({})); if (!res.ok) { const error = new Error(String(payload?.error || "PACKAGE_API_ERROR")); error.httpStatus = res.status; error.requestId = payload?.requestId || res.headers.get("x-fixoku-catalog-request-id") || ""; throw error; } return payload; })
         .then(data => {
           if (!mounted) return;

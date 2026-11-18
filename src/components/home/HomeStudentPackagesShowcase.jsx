@@ -66,7 +66,7 @@ export default function HomeStudentPackagesShowcase() {
       if (document.visibilityState === "hidden" || !active) return;
       if (pending) pending.abort();
       pending = new AbortController();
-      fetch("/api/public/student-commerce-packages", { signal: pending.signal, credentials: "omit", cache: "no-store" })
+      fetch("/api/public/student-commerce-packages", { signal: pending.signal, credentials: "same-origin", cache: "no-store" })
         .then(async (res) => { const payload = await res.json().catch(() => ({})); if (!res.ok) { const error = new Error(String(payload?.error || "KATALOG_ERISIM_HATASI")); error.httpStatus = res.status; error.requestId = payload?.requestId || res.headers.get("x-fixoku-catalog-request-id") || ""; throw error; } return payload; })
         .then((payload) => {
           if (!active) return;

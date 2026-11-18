@@ -1,6 +1,6 @@
 /* global process */
 import crypto from "node:crypto";
-import pg from "pg";
+import pg from "../db/guarded-pg.js";
 import { auth } from "./auth.js";
 import { captureTestMail } from "../domain/test-mail-sink.js";
 import { requireApplicationOrigin } from "./origin.js";

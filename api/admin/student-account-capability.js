@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { z } from "zod";
 import { resolvePrincipal, requireMembership, requirePermission } from "../../src/server/auth/authorization.js";
 import { canDisableMultipleStudents } from "../../src/server/domain/student-account-capability.js";

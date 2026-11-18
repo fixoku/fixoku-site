@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { UUID_PATTERN, resolveBeneficiary } from "../../src/server/domain/commerce.js";
 import { readEligibleStudentCommerceVersion, readFamilyOfferCartItem, readStudentCart, studentCartSupportsFamilyOffers } from "../../src/server/domain/student-commerce.js";

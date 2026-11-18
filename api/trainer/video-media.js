@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 import { createSignedReadUrl, createSignedTrainerVideoReadUrl, getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";

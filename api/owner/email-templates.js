@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requireMembership } from "../../src/server/auth/authorization.js";
 import { CRITICAL_KEYS, ensureEmailTemplateCatalog, listEmailTemplates, validateEmailTemplateInput } from "../../src/server/domain/email-templates.js";
 

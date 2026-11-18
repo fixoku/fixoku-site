@@ -3,7 +3,7 @@ import { queueOwnerManagementEmail } from "../../../src/server/domain/owner-mana
 import crypto from "node:crypto";
 import { assertTrainerEligible, queueR399ClassTrainerNotice, queueR399ClassLearnerNotice } from "../r6-training-groups.js";
 import { ownerEducationCompletion, ownerEducationEarning } from "../../../src/server/domain/owner-education-r390g.js";
-import pg from "pg";
+import pg from "../../../src/server/db/guarded-pg.js";
 import { queueEmailOutbox } from "../../../src/server/domain/panel-notifications.js";
 import { resolvePrincipal, requirePermission } from "../../../src/server/auth/authorization.js";
 import { calculateR6PayoutFromMatrix, completionMonthBounds, isUuid } from "../../../src/server/domain/r6-training.js";

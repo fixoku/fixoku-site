@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../src/server/db/guarded-pg.js";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";
 const json=(res,status,body)=>{res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.setHeader("X-Content-Type-Options","nosniff");res.end(JSON.stringify(body));};
 const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,Array.isArray(v)?v.join(", "):String(v)]));

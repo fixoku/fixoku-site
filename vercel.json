@@ -1,7 +1,7 @@
 {
-    "git": {
-        "deploymentEnabled": false
-    },
+    "git":  {
+                "deploymentEnabled":  false
+            },
     "cleanUrls":  true,
     "trailingSlash":  false,
     "headers":  [
@@ -22,14 +22,38 @@
                     }
                 ],
     "rewrites":  [
-                     {"source": "/ogrenci-kayit", "destination": "/auth-shell"},
-                     {"source": "/ogretmen-basvuru", "destination": "/auth-shell"},
-                     {"source": "/ogrenci-girisi", "destination": "/auth-shell"},
-                     {"source": "/ogretmen-girisi", "destination": "/auth-shell"},
-                     {"source": "/admin-girisi", "destination": "/auth-shell"},
-                     {"source": "/owner-girisi", "destination": "/auth-shell"},
-                     {"source": "/egitim-platformu-girisi", "destination": "/auth-shell"},
-                     {"source": "/sifremi-unuttum", "destination": "/auth-shell"},
+                     {
+                         "source":  "/ogrenci-kayit",
+                         "destination":  "/auth-shell"
+                     },
+                     {
+                         "source":  "/ogretmen-basvuru",
+                         "destination":  "/auth-shell"
+                     },
+                     {
+                         "source":  "/ogrenci-girisi",
+                         "destination":  "/auth-shell"
+                     },
+                     {
+                         "source":  "/ogretmen-girisi",
+                         "destination":  "/auth-shell"
+                     },
+                     {
+                         "source":  "/admin-girisi",
+                         "destination":  "/auth-shell"
+                     },
+                     {
+                         "source":  "/owner-girisi",
+                         "destination":  "/auth-shell"
+                     },
+                     {
+                         "source":  "/egitim-platformu-girisi",
+                         "destination":  "/auth-shell"
+                     },
+                     {
+                         "source":  "/sifremi-unuttum",
+                         "destination":  "/auth-shell"
+                     },
                      {
                          "source":  "/giris",
                          "destination":  "/auth-shell"
@@ -79,5 +103,11 @@
                           "destination":  "/kurumlar-icin-hizli-okuma-egitimi",
                           "permanent":  true
                       }
-                  ]
+                  ],
+    "crons":  [
+                  {
+                      "path":  "/api/internal/production-email-cron-r403",
+                      "schedule":  "*/5 * * * *"
+                  }
+              ]
 }

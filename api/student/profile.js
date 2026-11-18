@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { createProfilePhotoUrl, getProfileMediaConfig, removeProfilePhoto, saveProfilePhoto } from "../../src/server/domain/profile-media.js";
 import { validateEducationSegment } from "../../src/server/domain/student-segment.js";

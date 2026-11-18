@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { addTrainerCartItem, assertTrainerPrincipal } from "../../src/server/domain/trainer-commerce.js";
 

@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../src/server/db/guarded-pg.js";
 import { auth } from "../src/server/auth/auth.js";
 import { requireApplicationOrigin } from "../src/server/auth/origin.js";
 import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";

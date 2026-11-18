@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../src/server/db/guarded-pg.js";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";
 import { createAuthAccount, hashInvitationToken } from "../src/server/auth/invitations.js";
 import { readTrainerCatalog } from "../src/server/domain/trainer-commerce.js";

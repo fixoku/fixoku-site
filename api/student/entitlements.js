@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { collapseStudentPackageCards } from "../../src/server/domain/student-package-projection.js";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { listBeneficiaries, resolveBeneficiary } from "../../src/server/domain/commerce.js";

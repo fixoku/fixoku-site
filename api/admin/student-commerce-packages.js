@@ -1,5 +1,5 @@
 // FIXOKU_022I_PRESERVE_CASE_OPTIONAL_SUBTITLE
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission, requirePackagePermission, packagePermissionFor, PACKAGE_PERMISSIONS } from "../../src/server/auth/authorization.js";
 import { UUID_PATTERN, normalizeCurrency } from "../../src/server/domain/commerce.js";
 import { validateEducationSegment, EDUCATION_STAGE_GRADES } from "../../src/server/domain/student-segment.js";

@@ -1,5 +1,5 @@
 /* This endpoint is READ ONLY and NEVER calls the cargo provider. */
-import pg from 'pg';
+import pg from '../../../src/server/db/guarded-pg.js';
 import { resolvePrincipal, requirePermission } from '../../../src/server/auth/authorization.js';
 import { preflightOrderShipment } from '../../../src/server/shipping/order-preflight.js';
 const ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

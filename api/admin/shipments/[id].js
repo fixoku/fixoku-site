@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../../src/server/auth/authorization.js";
 import { shipmentPermission } from "../../../src/server/auth/admin-permission-contracts.js";
 import { shippingRuntime } from "../../../src/server/shipping/adapter.js";

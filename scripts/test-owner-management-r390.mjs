@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict';import {EMAIL_EVENT_TEMPLATE_MAP,buildEmailSnapshot,staticTemplateRecord} from '../src/server/domain/email-templates.js';import {OWNER_EMAIL_EDITORIAL} from '../src/server/domain/owner-email-editorial-r390.js';import {queueOwnerManagementEmail} from '../src/server/domain/owner-management-notifications-r390.js';
-assert.equal(Object.keys(OWNER_EMAIL_EDITORIAL).length,16);
+assert.equal(Object.keys(OWNER_EMAIL_EDITORIAL).length,19);
+for (const key of [
+  "owner-class-scheduled",
+  "owner-class-rescheduled",
+  "owner-reassignment-pending"
+]) {
+  assert(Object.hasOwn(OWNER_EMAIL_EDITORIAL,key),key);
+}
+assert(!Object.hasOwn(OWNER_EMAIL_EDITORIAL,"owner-stock"));
+console.log("OWNER_CATALOG_KEYS="+Object.keys(OWNER_EMAIL_EDITORIAL).sort().join(","));
 for(const [key,def] of Object.entries(OWNER_EMAIL_EDITORIAL)){const eventType=key.toUpperCase().replace(/-/g,'_');assert.equal(EMAIL_EVENT_TEMPLATE_MAP[eventType],key);const data={...def.fixture};const r=buildEmailSnapshot({eventType,record:staticTemplateRecord(key),metadata:data});assert(!r.subject.includes('{{'));assert(r.html.includes('Ersin Bey,'));}
 const noDb={query(){throw Error('unexpected db')}};assert.equal(await queueOwnerManagementEmail(noDb,{},{}),false);await assert.rejects(queueOwnerManagementEmail(noDb,{},{FIXOKU_OWNER_NOTIFICATIONS_ENABLED:'1',FIXOKU_OWNER_NOTIFICATION_EMAIL:'wrong@example.com'}),/NOT_APPROVED/);
 console.log('R390C_OFFLINE_CONTRACT_PASS');

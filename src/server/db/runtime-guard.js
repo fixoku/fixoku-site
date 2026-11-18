@@ -295,7 +295,60 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
   // Keep the existing Production contract intact. This clean Preview guard is
   // deliberately scoped to Preview; Production requires its own separately
   // reviewed host/identity contract and is never contacted by this work.
-  if (environment === "production") return String(rawUrl);
+  if (environment === "production") {
+    // R403: deny until the independent production target is pinned.
+    const expectedCommit = text(env.FIXOKU_PRODUCTION_EXPECTED_COMMIT_SHA).toLowerCase();
+    const actualCommit = text(env.VERCEL_GIT_COMMIT_SHA).toLowerCase();
+
+    if (
+      text(env.VERCEL) !== "1" ||
+      text(env.VERCEL_PROJECT_ID) !== "prj_yWvXfOndJ6se89FdCiPbvKIZoGwR" ||
+      text(env.FIXOKU_PRODUCTION_RUNTIME_ENABLED) !== "1" ||
+      text(env.FIXOKU_PRODUCTION_NEON_PROJECT_ID) !== "bitter-dream-05261699" ||
+      text(env.FIXOKU_PRODUCTION_NEON_BRANCH_ID) !== "br-patient-hall-baty51oc" ||
+      !SHA256_HEX.test(expectedCommit) ||
+      expectedCommit !== actualCommit ||
+      text(env.VERCEL_GIT_COMMIT_REF) !== "codex/fixoku-r403-production-candidate"
+    ) {
+      fail("DATABASE_PRODUCTION_TARGET_UNVERIFIED");
+    }
+
+    let target;
+    try { target = new URL(text(rawUrl)); }
+    catch { fail("DATABASE_PRODUCTION_TARGET_UNVERIFIED"); }
+
+    if (
+      !["postgresql:", "postgres:"].includes(target.protocol) ||
+      target.hostname !== "ep-shiny-moon-baj05hk6.c-8.eu-central-1.aws.neon.tech" ||
+      (target.port && target.port !== "5432") ||
+      target.pathname !== "/neondb" ||
+      !target.username ||
+      !target.password ||
+      target.hash
+    ) {
+      fail("DATABASE_PRODUCTION_TARGET_UNVERIFIED");
+    }
+
+    const seen = new Set();
+
+    for (const [key,value] of target.searchParams) {
+      if (
+        seen.has(key) ||
+        !["sslmode","channel_binding"].includes(key) ||
+        (key === "sslmode" && value !== "verify-full") ||
+        (key === "channel_binding" && value !== "require")
+      ) {
+        fail("DATABASE_PRODUCTION_TARGET_UNVERIFIED");
+      }
+      seen.add(key);
+    }
+
+    if (target.searchParams.get("sslmode") !== "verify-full") {
+      fail("DATABASE_PRODUCTION_TARGET_UNVERIFIED");
+    }
+
+    return target.toString();
+  }
   fail("DATABASE_RUNTIME_ENVIRONMENT_BLOCKED");
 }
 

@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission, validScopeType } from "../../src/server/auth/authorization.js";
 import { getProfileMediaConfig, readProfilePhoto } from "../../src/server/domain/profile-media.js";
 

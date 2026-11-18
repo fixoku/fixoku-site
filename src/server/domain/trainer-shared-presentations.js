@@ -1,7 +1,7 @@
 /* global process */
 import fs from "node:fs";
 import path from "node:path";
-import pg from "pg";
+import pg from "../db/guarded-pg.js";
 import { resolvePrincipal } from "../auth/authorization.js";
 import { fetchPrivateObject, getDigitalStorageConfig, inspectPrivateFile, inspectRemoteObject, productionPrivateMediaAvailable, resolvePrivateStoragePath } from "./digital-delivery.js";
 import { getSharedPresentationPdfDefinition } from "./trainer-shared-presentation-pdf.js";

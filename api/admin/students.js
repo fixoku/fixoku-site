@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { z } from "zod";
 import { resolvePrincipal, requirePermission, validScopeType } from "../../src/server/auth/authorization.js";
 const querySchema=z.object({studentProfileId:z.string().uuid().optional(),search:z.string().trim().max(100).default(""),status:z.enum(["ACTIVE","ARCHIVED"]).optional(),educationStage:z.enum(["PRIMARY","MIDDLE","HIGH","ADULT"]).optional(),page:z.coerce.number().int().min(1).default(1),pageSize:z.coerce.number().int().min(1).max(100).default(20),sort:z.enum(["createdAt","name","educationStage","status"]).default("createdAt"),direction:z.enum(["asc","desc"]).default("desc")});

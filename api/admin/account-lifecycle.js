@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { accountLifecyclePermission } from "../../src/server/auth/admin-permission-contracts.js";
 import { hashInvitationToken, issueInvitationMail, newInvitationToken } from "../../src/server/auth/invitations.js";

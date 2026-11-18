@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { z } from "zod";
 import { resolvePrincipal, requirePermission, validScopeType } from "../../src/server/auth/authorization.js";
 const roles=["OWNER","SUPER_ADMIN","TRAINER","STUDENT","GUARDIAN"];

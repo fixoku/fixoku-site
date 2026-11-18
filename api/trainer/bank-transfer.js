@@ -1,5 +1,5 @@
 import { queueOwnerOrderEvent } from "../../src/server/domain/owner-order-notifications-r390.js";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 import { queueRolePanelNotifications } from "../../src/server/domain/panel-notifications.js";

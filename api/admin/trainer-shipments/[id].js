@@ -1,5 +1,5 @@
 /* Limited admin preparation workflow. No provider requests or SHIPPED writes. */
-import pg from 'pg';
+import pg from '../../../src/server/db/guarded-pg.js';
 import { resolvePrincipal, requirePermission } from '../../../src/server/auth/authorization.js';
 const ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const respond=(res,code,obj)=>{res.statusCode=code;res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');res.end(JSON.stringify(obj));};

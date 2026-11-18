@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import pg from "pg";
+import pg from "../../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission, requirePackagePermission, packagePermissionFor, PACKAGE_PERMISSIONS } from "../../../src/server/auth/authorization.js";
 import { UUID_PATTERN, normalizeCurrency } from "../../../src/server/domain/commerce.js";
 

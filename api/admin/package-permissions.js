@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission, validScopeType, PACKAGE_PERMISSIONS } from "../../src/server/auth/authorization.js";
 
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };

@@ -1,5 +1,5 @@
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { devSettlementAllowed, fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
 import { cleanPreviewGateResponse } from "../../src/server/auth/preview-contract.js";
 

@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requireMembership } from "../../src/server/auth/authorization.js";
 import {
   assertFamilyOfferEditable,

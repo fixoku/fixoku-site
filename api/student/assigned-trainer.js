@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { effectiveTrainerQualificationPredicate, projectTrainerQualificationBadges, TRAINER_BASE_QUALIFICATION_CODES } from "../../src/server/domain/trainer-expertise.js";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { resolveBeneficiary } from "../../src/server/domain/commerce.js";

@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { queueOwnerManagementEmail } from "../../../src/server/domain/owner-management-notifications-r390.js";
-import pg from "pg";
+import pg from "../../../src/server/db/guarded-pg.js";
 import {getProfileMediaConfig,readProfilePhoto} from "../../../src/server/domain/profile-media.js";
 import { resolvePrincipal, requirePermission } from "../../../src/server/auth/authorization.js";
 import { effectiveTrainerQualificationPredicate } from "../../../src/server/domain/trainer-expertise.js";

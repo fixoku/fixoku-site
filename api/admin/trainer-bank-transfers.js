@@ -1,5 +1,5 @@
 import { assertUniqueBankReference, normalizeBankReference } from "../../src/server/domain/bank-reference-guard.js";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { fulfillTrainerOrder, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 import { recordApprovedAuditEvent } from "../../src/server/domain/fixoku-audit-policy.js";

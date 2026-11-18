@@ -1,5 +1,5 @@
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { createOrder, devSettlementAllowed } from "../../src/server/domain/commerce.js";
 
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };

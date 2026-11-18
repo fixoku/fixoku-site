@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requireMembership } from "../../src/server/auth/authorization.js";
 import { inspectOwnerLegalSource, legalDocumentKey, legalDocumentScope } from "../../src/server/domain/owner-legal-source.js";
 

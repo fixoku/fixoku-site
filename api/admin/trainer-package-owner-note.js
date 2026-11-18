@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { normalizeOwnerNote, assertPackageId } from "../../src/server/domain/h5af-owner-note.mjs";
 

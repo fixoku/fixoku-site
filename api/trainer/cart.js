@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { addTrainerCartItem, assertTrainerPrincipal, readTrainerCart, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 const json=(res,status,body)=>{res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(body));};

@@ -94,10 +94,10 @@ assert.equal(cleanPreviewEnvironmentStatus(BASE_ENV).ok, true);
 assert.equal(assertCleanPreviewConnectionUrl(POOLED_URL, "pooled", BASE_ENV), POOLED_URL);
 assert.equal(assertCleanPreviewConnectionUrl(DIRECT_URL, "direct", BASE_ENV), DIRECT_URL);
 assert.equal(assertSafeDatabaseUrl(POOLED_URL, BASE_ENV), POOLED_URL);
-assert.equal(assertSafeDatabaseUrl("postgresql://production-user:production-password@production.example.test/fixoku", {
-  VERCEL: "1",
-  VERCEL_ENV: "production",
-}), "postgresql://production-user:production-password@production.example.test/fixoku");
+assert.throws(() => assertSafeDatabaseUrl(
+  "postgresql://production-user:production-password@production.example.test/fixoku",
+  { VERCEL: "1", VERCEL_ENV: "production" }
+), /DATABASE_PRODUCTION_TARGET_UNVERIFIED/u);
 
 await withEnv(BASE_ENV, async () => {
   assert.throws(

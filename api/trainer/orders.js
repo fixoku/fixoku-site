@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal, createTrainerOrder } from "../../src/server/domain/trainer-commerce.js";
 import { paytrRuntime } from "../../src/server/payments/paytr.js";

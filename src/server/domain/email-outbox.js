@@ -19,7 +19,7 @@ export function getSmtpConfig(env = process.env) {
   const from = String(env.MAIL_FROM || env.SMTP_FROM || "bildirim@fixoku.com").trim();
   const secure = String(env.SMTP_SECURE || "false").toLowerCase();
   if (!host || !Number.isInteger(port) || port < 1 || port > 65535 || !user || !pass || !from || !["true", "false"].includes(secure) || port === 465 && secure !== "true" || /[\r\n]/u.test(from)) return null;
-  return { provider: "SMTP", from, transport: { host, port, secure: secure === "true", auth: { user, pass } } };
+  return { provider: "SMTP", from, transport: { host, port, secure: secure === "true", auth: { user, pass }, connectionTimeout: 10000, greetingTimeout: 10000, socketTimeout: 30000 } };
 }
 
 export function getEmailTransportStatus(env = process.env) {

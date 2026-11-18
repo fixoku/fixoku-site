@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../src/server/db/guarded-pg.js";
 import { getEmailTransportStatus, sendTransactionalEmail } from "../src/server/domain/email-outbox.js";
 import { auth } from "../src/server/auth/auth.js";
 import { resolvePrincipal } from "../src/server/auth/authorization.js";

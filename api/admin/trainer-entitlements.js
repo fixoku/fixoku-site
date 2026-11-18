@@ -1,5 +1,5 @@
 import { TRAINER_PACKAGE_QUALIFICATIONS, effectiveTrainerQualificationPredicate } from "../../src/server/domain/trainer-expertise.js";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 const json=(res,status,body)=>{res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(body));};const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,String(v)]));async function body(req){let raw="";for await(const chunk of req)raw+=chunk;return raw?JSON.parse(raw):{};}

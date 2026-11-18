@@ -1,5 +1,5 @@
 /* global process */
-import pg from "pg";
+import pg from "../db/guarded-pg.js";
 import { createAuthAccount } from "./invitations.js";
 
 /**

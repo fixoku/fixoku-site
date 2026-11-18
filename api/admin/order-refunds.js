@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { processOrderRefund } from "../../src/server/domain/order-refunds.js";
 import { verifyTrustedRefundEvidenceToken } from "../../src/server/payments/refund-adapter.js";

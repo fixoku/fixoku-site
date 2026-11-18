@@ -4,7 +4,7 @@
 
 import { permittedStart } from '../../src/server/domain/assignment-calendar-r402.js';
 import { Readable } from 'node:stream';
-import pg from 'pg';
+import pg from '../../src/server/db/guarded-pg.js';
 import crypto from 'node:crypto';
 import { createProfilePhotoUrl, getProfileMediaConfig, readProfilePhoto } from '../../src/server/domain/profile-media.js';
 import { resolvePrincipal } from '../../src/server/auth/authorization.js';

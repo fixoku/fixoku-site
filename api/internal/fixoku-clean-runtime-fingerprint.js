@@ -4,7 +4,7 @@
  * selected. It never accepts Production or an unknown branch/commit.
  */
 import { timingSafeEqual } from "node:crypto";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import {
   CLEAN_PREVIEW_BRANCH,
   assertCleanPreviewConnectionUrl,

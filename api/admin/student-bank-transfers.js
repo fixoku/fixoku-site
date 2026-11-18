@@ -1,5 +1,5 @@
 import { assertUniqueBankReference, normalizeBankReference } from "../../src/server/domain/bank-reference-guard.js";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { UUID_PATTERN, fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
 import { recordStudentBankFollowUp } from "../../src/server/domain/student-bank-transfer-follow-up.js";

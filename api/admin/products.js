@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { randomUUID } from "node:crypto";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 

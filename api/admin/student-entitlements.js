@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { queueOwnerManagementEmail } from "../../src/server/domain/owner-management-notifications-r390.js";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requireMembership } from "../../src/server/auth/authorization.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;

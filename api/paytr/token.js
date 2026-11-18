@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { requestPaytrIframeToken, paytrRuntime, paytrCustomerFromOrder } from "../../src/server/payments/paytr.js";
 import { UUID_PATTERN } from "../../src/server/domain/commerce.js";

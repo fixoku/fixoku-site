@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../src/server/db/guarded-pg.js";
 import { createAuthAccount, hashInvitationToken } from "../src/server/auth/invitations.js";
 import { cleanPreviewGateResponse } from "../src/server/auth/preview-contract.js";
 

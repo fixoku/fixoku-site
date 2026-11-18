@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { ownerEducationCompletion } from "../../src/server/domain/owner-education-r390g.js";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { completionMonthBounds } from "../../src/server/domain/r6-training.js";
 import { queuePanelNotification } from "../../src/server/domain/panel-notifications.js";

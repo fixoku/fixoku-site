@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import pg from "pg";
+import pg from "../../../src/server/db/guarded-pg.js";
 import { resolvePrincipal } from "../../../src/server/auth/authorization.js";
 import { resolveBeneficiary } from "../../../src/server/domain/commerce.js";
 import { createSignedReadUrl, fetchPrivateObject, getDigitalStorageConfig, inspectPrivateFile } from "../../../src/server/domain/digital-delivery.js";

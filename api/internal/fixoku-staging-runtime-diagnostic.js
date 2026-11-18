@@ -10,7 +10,7 @@
  * integration metadata are read only inside the Vercel Function runtime.
  */
 import { createHash, timingSafeEqual } from "node:crypto";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import {
   CLEAN_STAGING_HOSTS,
   CLEAN_STAGING_METADATA,

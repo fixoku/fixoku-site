@@ -3,7 +3,7 @@ import { verifyTrainerCatalogRead } from "../../src/server/domain/h5ai-catalog-r
 import { assertTrainerPublicationFromDb } from "../../src/server/domain/h5y-publication-gate.mjs";
 import { assertTrainerServiceProducts } from "../../src/server/domain/h5s-trainer-service-guard.mjs";
 import crypto from "node:crypto";
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission, requirePackagePermission, packagePermissionFor, PACKAGE_PERMISSIONS } from "../../src/server/auth/authorization.js";
 import { UUID_PATTERN, normalizeCurrency } from "../../src/server/domain/commerce.js";
 import { publishPackageVersionsAtomically } from "../../src/server/domain/package-version.js";

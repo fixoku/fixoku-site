@@ -1,4 +1,4 @@
-import pg from "pg";
+import pg from "../../src/server/db/guarded-pg.js";
 import { queueEmailOutbox } from "../../src/server/domain/panel-notifications.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { UUID_PATTERN } from "../../src/server/domain/commerce.js";

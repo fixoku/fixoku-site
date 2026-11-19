@@ -11,6 +11,7 @@ import {
 import { PanelShell } from "../../panel/layout/PanelShell";
 import { TrainerPhysicalProducts, type TrainerPhysicalProduct } from "./TrainerPhysicalProducts";
 import { BankTransferPayment } from "../../commerce/BankTransferPayment";
+import InstallmentCampaignBanner from "../../../shared/InstallmentCampaignBanner";
 import PaytrCheckout from "../../commerce/PaytrCheckout.jsx";
 import {
   TURKEY_LOCATIONS,
@@ -204,6 +205,9 @@ export function TrainerCheckoutPage({
     useState<PaymentMethod>(
       "PAYTR",
     );
+  const [paytrConfigured, setPaytrConfigured] = useState<boolean | null>(null);
+  const [bankTransferReady, setBankTransferReady] = useState(false);
+  const [bankDraft,setBankDraft]=useState<{id:string;reference:string;expectedAmountMinor:number;currency:string}|null>(null);
 
   const [message, setMessage] =
     useState("");
@@ -255,7 +259,7 @@ export function TrainerCheckoutPage({
 
   const [checkoutKey] = useState(() => `trainer-checkout-${crypto.randomUUID()}`);
   const [confirmedOrder, setConfirmedOrder] = useState<{
-    id: string; status: string; paymentMethod: string; totalMinor: number;
+    id: string; status: string; paymentMethod: string; totalMinor: number; bankReference?:string|null;
     createdAt?: string; items?: Array<{title: string}>;
   } | null>(null);
   const [confirmationState, setConfirmationState] = useState<'loading'|'verified'|'error'>('loading');
@@ -284,7 +288,6 @@ export function TrainerCheckoutPage({
           .toISOString()
           .slice(0, 10),
       reference: "",
-      receiptReference: "",
     });
 
 
@@ -301,6 +304,7 @@ export function TrainerCheckoutPage({
     getTurkeyDistricts(
       address.city,
     );
+  useEffect(() => { let active = true; fetch("/api/paytr/runtime", { credentials: "same-origin", cache: "no-store" }).then(async response => response.ok ? response.json() : null).then(body => { if (active) setPaytrConfigured(body?.configured === true); }).catch(() => { if (active) setPaytrConfigured(false); }); return () => { active = false; }; }, []);
 
   const load = async () => {
     try {
@@ -520,6 +524,14 @@ export function TrainerCheckoutPage({
     ) => {
       event.preventDefault();
 
+      if (!orderId) {
+        const response = await fetch("/api/trainer/bank-transfer", { method: "POST", credentials: "include", headers: { "content-type": "application/json", "idempotency-key": checkoutKey }, body: JSON.stringify({ draftId:bankDraft?.id, paymentMethod: "BANK_TRANSFER", idempotencyKey: checkoutKey, shippingAddress: { ...address, neighborhood: "", postalCode: "" }, billing, customOfferId: customOfferId || undefined, legalAcceptance: { preInformation: preInfoAcknowledged, distanceSales: distanceAcknowledged, documentHashes: { PRE_INFO: legalBodies.PRE_INFO?.sourceSha256, DISTANCE: legalBodies.DISTANCE?.sourceSha256 } }, payerName: transfer.payerName, bankName: transfer.bankName, reportedAmountMinor: minor(transfer.reportedAmountMinor), transferDate: transfer.transferDate, reference: transfer.reference } ) });
+        const body = await response.json().catch(() => ({}));
+        setMessage(response.ok ? (body.message || "Havale/EFT bildiriminiz alındı.") : (body.error || "Havale/EFT bildirimi gönderilemedi."));
+        if (response.ok && body.order?.id && body.bankReference===bankDraft?.reference) { setOrderId(body.order.id); navigate(`/panel/egitmen/checkout?orderId=${encodeURIComponent(body.order.id)}`,{replace:true}); setConfirmedOrder({ bankReference:body.bankReference,id: body.order.id, status: body.order.status, paymentMethod: "BANK_TRANSFER", totalMinor: Number(body.order.totalMinor), items: cart?.items.map((item) => ({ title: item.title })) || [] }); }
+        return;
+      }
+
       const response =
         await fetch(
           "/api/trainer/bank-transfer",
@@ -576,6 +588,7 @@ export function TrainerCheckoutPage({
       );
       return;
     }
+    if (paymentMethod === "PAYTR" && paytrConfigured !== true) { setMessage("Kart ödeme sistemi şu anda yapılandırılmadı. Havale/EFT seçebilirsiniz."); return; }
 
     if (
       billing.type ===
@@ -595,6 +608,20 @@ export function TrainerCheckoutPage({
       (await saveAddress());
 
     if (!valid) return;
+
+    if (paymentMethod === "BANK_TRANSFER" && !bankTransferReady) {
+      try {
+        const response = await fetch("/api/trainer/bank-transfer", {method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify({action:"PREPARE_DRAFT",customOfferId:customOfferId||undefined, legalAcceptance:{preInformation:preInfoAcknowledged,distanceSales:distanceAcknowledged,documentHashes:{PRE_INFO:legalBodies.PRE_INFO?.sourceSha256,DISTANCE:legalBodies.DISTANCE?.sourceSha256}}})});
+        const body = await response.json().catch(()=>({}));
+        if(!response.ok||!body.draft?.id||!body.draft?.reference||!Number.isSafeInteger(body.draft.expectedAmountMinor)) {setMessage(body.error||"Ödeme referansı hazırlanamadı. Para göndermeyin.");return;}
+        setBankDraft(body.draft);
+        setBankTransferReady(true);
+      } catch {setMessage("Ödeme referansı hazırlanamadı. Para göndermeyin.");return;}
+      setMessage("Bilgileriniz hazırlandı. Banka transferini yaptıktan sonra aşağıdaki bildirim formunu doldurun.");
+      return;
+    }
+
+    if (paymentMethod === "BANK_TRANSFER" && bankTransferReady) { await submitTransfer(event); return; }
 
     const response =
       await fetch(
@@ -697,12 +724,7 @@ export function TrainerCheckoutPage({
     );
   }
 
-  const bankReference =
-    orderId
-      ? `FIXOKU-${orderId
-          .slice(0, 8)
-          .toUpperCase()}`
-      : null;
+  const bankReference = confirmedOrder?.bankReference || bankDraft?.reference || (orderId ? `FIXOKU-${orderId.slice(0,8).toUpperCase()}` : null);
 
   if (orderId && confirmationState === 'loading') return <PanelShell user={user}><main className="trainer-commerce-page"><p role="status">Sipariş kaydı doğrulanıyor...</p></main></PanelShell>;
   if (orderId && (confirmationState === 'error' || !confirmedOrder)) return <PanelShell user={user}><main className="trainer-commerce-page"><p role="alert">Sipariş kaydı doğrulanamadı. Ödeme durumu için hesabınızdaki siparişleri kontrol edin.</p><Link to="/panel/egitmen/egitimlerim">Eğitimlerim</Link></main></PanelShell>;
@@ -710,6 +732,7 @@ export function TrainerCheckoutPage({
   return (
     <PanelShell user={user}>
       <main className="trainer-commerce-page">
+        {!orderId && <InstallmentCampaignBanner />}
         <div className="trainer-commerce-heading">
           <Link to="/panel/egitmen/sepet">
             ← Sepete dön
@@ -733,9 +756,10 @@ export function TrainerCheckoutPage({
         )}
 
         
-        {confirmedOrder?.paymentMethod === "PAYTR" && confirmedOrder.status === "PENDING_PAYMENT" && (
+        {confirmedOrder?.paymentMethod === "PAYTR" && ["PENDING_PAYMENT","PAYMENT_REVIEW"].includes(confirmedOrder.status) && (
           <PaytrCheckout
             orderId={confirmedOrder.id}
+            initialStatus={confirmedOrder.status}
             statusUrl={`/api/trainer/orders?orderId=${encodeURIComponent(confirmedOrder.id)}`}
             onPaymentState={(next: string) => setConfirmedOrder((current) => current ? ({ ...current, status: next === "succeeded" ? "PAID" : next === "review" ? "PAYMENT_REVIEW" : current.status }) : current)}
             amountMinor={Number(confirmedOrder.totalMinor)}
@@ -748,7 +772,7 @@ export function TrainerCheckoutPage({
           />
         )}
 
-        {confirmedOrder?.paymentMethod === "PAYTR" && !["PAID","PENDING_PAYMENT"].includes(confirmedOrder.status) && (
+        {confirmedOrder?.paymentMethod === "PAYTR" && !["PAID","PENDING_PAYMENT","PAYMENT_REVIEW"].includes(confirmedOrder.status) && (
           <section className="trainer-checkout-step" role="status">
             <h2>{"\u00d6deme durumu"}</h2>
             <p>{"\u00d6demeniz tamamlanmad\u0131 veya i\u015flem incelemededir."}</p>
@@ -757,7 +781,7 @@ export function TrainerCheckoutPage({
         )}
 {confirmedOrder && (confirmedOrder.paymentMethod !== "PAYTR" || confirmedOrder.status === "PAID") && <section className="trainer-checkout-step" aria-labelledby="trainer-order-success-heading">
           <h2 id="trainer-order-success-heading">{confirmedOrder.status === "PAID" ? "\u00d6demeniz ba\u015far\u0131yla tamamland\u0131!" : "Havale / EFT bilgileri"}</h2>
-          <p>Numara: <strong>{confirmedOrder.id}</strong></p>
+          <p>Numara: <strong>{confirmedOrder.bankReference||confirmedOrder.id}</strong></p>
           <p>Toplam: <strong>{money(Number(confirmedOrder.totalMinor || 0))}</strong></p>
           <p>Durum: <strong>{confirmedOrder.status === 'PAID' ? 'Ödendi' : confirmedOrder.paymentMethod === 'BANK_TRANSFER' ? 'Havale/EFT doğrulaması bekleniyor' : 'Ödeme bekleniyor'}</strong></p>
           
@@ -767,14 +791,10 @@ export function TrainerCheckoutPage({
 
         {confirmedOrder &&
           confirmedOrder.paymentMethod ===
-            "BANK_TRANSFER" && (
+            "BANK_TRANSFER" && !confirmedOrder.bankReference && (
             <>
               <section className="trainer-checkout-step">
-                <BankTransferPayment
-                  reference={
-                    bankReference
-                  }
-                />
+                <BankTransferPayment reference={bankReference} detailsVisible />
               </section>
 
               <form
@@ -905,25 +925,6 @@ export function TrainerCheckoutPage({
                     />
                   </label>
 
-                  <label>
-                    Makbuz referansı
-                    <input
-                      value={
-                        transfer.receiptReference
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        setTransfer({
-                          ...transfer,
-                          receiptReference:
-                            event
-                              .target
-                              .value,
-                        })
-                      }
-                    />
-                  </label>
                 </div>
 
                 <button
@@ -1222,6 +1223,7 @@ export function TrainerCheckoutPage({
                 <label>
                   <input
                     type="radio"
+                    disabled={paytrConfigured === false}
                     checked={
                       billing.type ===
                       "CORPORATE"
@@ -1367,14 +1369,9 @@ export function TrainerCheckoutPage({
                       paymentMethod ===
                       "PAYTR"
                     }
-                    onChange={() =>
-                      setPaymentMethod(
-                        "PAYTR",
-                      )
-                    }
+                    onChange={() => { setBankTransferReady(false); setPaymentMethod("PAYTR"); }}
                   />
-                  Kredi / banka kartı
-                  (PayTR)
+                  Kredi / banka kartı (PayTR){paytrConfigured === false ? " · Yapılandırılmadı" : ""}
                 </label>
 
                 <label>
@@ -1384,11 +1381,7 @@ export function TrainerCheckoutPage({
                       paymentMethod ===
                       "BANK_TRANSFER"
                     }
-                    onChange={() =>
-                      setPaymentMethod(
-                        "BANK_TRANSFER",
-                      )
-                    }
+                    onChange={() => { setBankTransferReady(false); setPaymentMethod("BANK_TRANSFER"); }}
                   />
                   Havale / EFT
                 </label>
@@ -1397,28 +1390,36 @@ export function TrainerCheckoutPage({
               {paymentMethod ===
                 "BANK_TRANSFER" && (
                 <BankTransferPayment
-                  reference={
-                    bankReference
-                  }
+                  reference={bankTransferReady ? bankDraft?.reference : null}
+                  detailsVisible={bankTransferReady && Boolean(bankDraft?.reference)}
                 />
               )}
 
               {paymentMethod ===
                 "PAYTR" && (
                 <>
-                  <div className="fixoku-paytr-brand">
-                    <img
-                      src="/images/payments/paytr.svg"
-                      alt="PayTR güvenli ödeme"
-                    />
-                  </div>
-
                   <p className="trainer-checkout-note">
                     Sipariş oluşturulduktan sonra güvenli PayTR ödeme alanı açılır.
                   </p>
                 </>
               )}
             </section>
+
+            {paymentMethod === "BANK_TRANSFER" && bankTransferReady && !confirmedOrder && (
+              <section className="trainer-checkout-step trainer-bank-transfer-form">
+                <h3>Havale / EFT Bildirimi</h3>
+                {bankDraft && <p><strong>Gönderilecek tutar: {money(bankDraft.expectedAmountMinor,bankDraft.currency)}</strong></p>}
+                <p>Transferi yaptıktan sonra zorunlu alanları doldurun. Bildirim gönderilmeden sipariş kaydı oluşturulmaz.</p>
+                <div className="trainer-checkout-fields">
+                  <label>Ödeyen adı ve soyadı<input required value={transfer.payerName} onChange={(event) => setTransfer({ ...transfer, payerName: event.target.value })} /></label>
+                  <label>Gönderen banka<input required value={transfer.bankName} onChange={(event) => setTransfer({ ...transfer, bankName: event.target.value })} /></label>
+                  <label>Gönderilen tutar (TL)<input required inputMode="decimal" value={transfer.reportedAmountMinor} onChange={(event) => setTransfer({ ...transfer, reportedAmountMinor: event.target.value })} /></label>
+                  <label>Transfer tarihi<input required type="date" value={transfer.transferDate} onChange={(event) => setTransfer({ ...transfer, transferDate: event.target.value })} /></label>
+                  <label>Banka referans no<input required value={transfer.reference} onChange={(event) => setTransfer({ ...transfer, reference: event.target.value })} /></label>
+                </div>
+                <button className="trainer-commerce-primary" type="submit">Havale/EFT bildirimini gönder</button>
+              </section>
+            )}
 
             <section className="trainer-checkout-step">
               <h3>
@@ -1474,11 +1475,12 @@ export function TrainerCheckoutPage({
                 {legalError && <p role="alert" className="trainer-legal-error">{legalError}</p>}
               </div>
 
-              <button
+                <button
                 className="trainer-commerce-primary"
                 type="submit"
+                  disabled={paymentMethod === "BANK_TRANSFER" && bankTransferReady}
               >
-                Siparişi oluştur
+                {paymentMethod === "BANK_TRANSFER" && bankTransferReady ? "Bildirim formunu doldurun" : "Ödemeye devam et"}
               </button>
             </section>
           </div>

@@ -4,6 +4,7 @@ import { StudentPanelShell } from "./StudentPanelShell";
 import PaytrCheckout from "../commerce/PaytrCheckout.jsx";
 import CheckoutLegalConsents from "../commerce/CheckoutLegalConsents.jsx";
 import { BankTransferPayment } from "../commerce/BankTransferPayment";
+import InstallmentCampaignBanner from "../../shared/InstallmentCampaignBanner";
 import { TrainerPhysicalProducts } from "../trainer/commerce/TrainerPhysicalProducts";
 import { pushEvent } from "../../martech/events.js";
 import {
@@ -43,6 +44,7 @@ type Cart = {
 };
 
 type SavedOrderSummary = {
+  bankReference?: string | null;
   id: string;
   status: string;
   paymentMethod: PaymentMethod;
@@ -92,7 +94,7 @@ export function StudentCheckoutPage({
   };
   guardian: boolean;
 }) {
-  const [params] = useSearchParams();
+  const [params,setParams] = useSearchParams();
 
   const studentProfileId =
     params.get("studentProfileId") || "";
@@ -107,10 +109,12 @@ export function StudentCheckoutPage({
     useState("");
 
   const [orderId, setOrderId] =
-    useState("");
+    useState(params.get("orderId") || "");
 
   const [savedOrder,setSavedOrder] =
     useState<SavedOrderSummary|null>(null);
+
+  useEffect(()=>{if(!orderId||params.get("orderId")!==orderId)return;let active=true;void fetch(`/api/student/orders?orderId=${encodeURIComponent(orderId)}`,{credentials:"same-origin",cache:"no-store"}).then(async r=>{if(!r.ok)throw new Error("ORDER_NOT_FOUND");return r.json();}).then(b=>{if(active&&b.order?.id===orderId)setSavedOrder(b.order);}).catch(()=>{if(active)setMessage("Sipariş durumu doğrulanamadı.");});return()=>{active=false;};},[orderId,params]);
 
   const [legalAcceptance, setLegalAcceptance] = useState({ preInformation: false, distanceSales: false, privacy: false, marketing: false, commencement: false });
   const legalReady = legalAcceptance.preInformation && legalAcceptance.distanceSales && legalAcceptance.privacy;
@@ -121,6 +125,10 @@ export function StudentCheckoutPage({
 
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("BANK_TRANSFER");
+  const [paytrConfigured, setPaytrConfigured] = useState<boolean | null>(null);
+  const [bankTransferReady, setBankTransferReady] = useState(false);
+  const [bankDraft,setBankDraft]=useState<{id:string;reference:string;expectedAmountMinor:number;currency:string}|null>(null);
+  const [transfer, setTransfer] = useState({ payerName: user.name, bankName: "", reportedAmount: "", transferDate: new Date().toISOString().slice(0, 10), reference: "" });
 
   const [shipping, setShipping] =
     useState({
@@ -148,6 +156,8 @@ export function StudentCheckoutPage({
 
   const districts =
     getTurkeyDistricts(shipping.city);
+
+  useEffect(() => { let active = true; fetch("/api/paytr/runtime", { credentials: "same-origin", cache: "no-store" }).then(async response => response.ok ? response.json() : null).then(body => { if (active) setPaytrConfigured(body?.configured === true); }).catch(() => { if (active) setPaytrConfigured(false); }); return () => { active = false; }; }, []);
 
   useEffect(() => {
     let active = true;
@@ -282,6 +292,21 @@ export function StudentCheckoutPage({
         return;
       }
     }
+    if (paymentMethod === "PAYTR" && paytrConfigured !== true) { setMessage("Kart ödeme sistemi şu anda yapılandırılmadı. Havale/EFT seçebilirsiniz."); return; }
+
+    if (paymentMethod === "BANK_TRANSFER" && !bankTransferReady) {
+      try {
+        const response = await fetch("/api/student/bank-transfer", {method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify({action:"PREPARE_DRAFT",...(studentProfileId ? { studentProfileId } : { catalogEducationStage: cart?.beneficiary.educationStage, catalogGrade: cart?.beneficiary.grade }), legalAcceptance})});
+        const body = await response.json().catch(()=>({}));
+        if(!response.ok||!body.draft?.id||!body.draft?.reference||!Number.isSafeInteger(body.draft.expectedAmountMinor)) {setMessage(body.error||"Ödeme referansı hazırlanamadı. Para göndermeyin.");return;}
+        setBankDraft(body.draft);
+        setBankTransferReady(true);
+      } catch {setMessage("Ödeme referansı hazırlanamadı. Para göndermeyin.");return;}
+      setMessage("Bilgileriniz hazırlandı. Banka transferini yaptıktan sonra aşağıdaki bildirim formunu doldurun.");
+      return;
+    }
+
+    if (paymentMethod === "BANK_TRANSFER" && bankTransferReady) { await submitBankTransfer(event); return; }
 
     const response = await fetch(
       "/api/student/orders",
@@ -370,6 +395,20 @@ export function StudentCheckoutPage({
     );
   };
 
+  const submitBankTransfer = async (event: FormEvent) => {
+    event.preventDefault();
+    setMessage("");
+    const response = await fetch("/api/student/bank-transfer", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", "idempotency-key": checkoutKey }, body: JSON.stringify({ draftId:bankDraft?.id, ...(studentProfileId ? { studentProfileId } : { catalogEducationStage: cart?.beneficiary.educationStage, catalogGrade: cart?.beneficiary.grade }), paymentMethod: "BANK_TRANSFER", shippingAddress: cart?.requiresShipping ? shipping : null, billing, legalAcceptance, payerName: transfer.payerName, bankName: transfer.bankName, reportedAmountMinor: transfer.reportedAmount, transferDate: transfer.transferDate, reference: transfer.reference, idempotencyKey: checkoutKey }) });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) { setMessage(body.error || "Havale/EFT bildirimi gönderilemedi."); return; }
+    const summary = body.order;
+    if(!summary?.id||body.bankReference!==bankDraft?.reference){setMessage("Sipariş referansı doğrulanamadı. Tekrar ödeme yapmayın.");return;}
+    setSavedOrder({ bankReference:body.bankReference, id: summary.id, status: summary.status, paymentMethod: "BANK_TRANSFER", currency: summary.currency, subtotalMinor: Number(summary.totalMinor), shippingMinor: 0, totalMinor: Number(summary.totalMinor), requiresShipping: Boolean(cart?.requiresShipping), items: cart?.items.map((item) => ({ title: item.title, totalMinor: item.priceMinor, quantity: 1, currency: item.currency })) || [] });
+    setOrderId(summary.id);
+    const nextParams=new URLSearchParams(params);nextParams.set("orderId",summary.id);setParams(nextParams,{replace:true});
+    setMessage(body.message || "Havale/EFT bildiriminiz alındı.");
+  };
+
   if (state === "loading") {
     return (
       <StudentPanelShell
@@ -426,12 +465,7 @@ export function StudentCheckoutPage({
     );
   }
 
-  const bankReference =
-    orderId
-      ? `FIXOKU-${orderId
-          .slice(0, 8)
-          .toUpperCase()}`
-      : null;
+  const bankReference = savedOrder?.bankReference || bankDraft?.reference || (orderId ? `FIXOKU-${orderId.slice(0,8).toUpperCase()}` : null);
 
   return (
     <StudentPanelShell
@@ -449,6 +483,7 @@ export function StudentCheckoutPage({
         }}
       >
         <main className="trainer-commerce-page">
+          {!orderId && <InstallmentCampaignBanner />}
           <div className="trainer-commerce-heading">
             <Link
               to={studentProfileId ? `/panel/ogrenci/sepet?studentProfileId=${encodeURIComponent(studentProfileId)}` : "/panel/ogrenci/sepet"}
@@ -483,6 +518,7 @@ export function StudentCheckoutPage({
 
                 <PaytrCheckout
                   orderId={orderId}
+                  initialStatus={savedOrder.status}
                   statusUrl={`/api/student/orders?orderId=${encodeURIComponent(orderId)}`}
                   onPaymentState={(next: string) => setSavedOrder((current) => current ? ({ ...current, status: next === "succeeded" ? "PAID" : next === "review" ? "PAYMENT_REVIEW" : current.status }) : current)}
                   amountMinor={savedOrder.totalMinor}
@@ -1043,6 +1079,7 @@ export function StudentCheckoutPage({
                         "PAYTR"
                       }
                       onChange={() => {
+                        setBankTransferReady(false);
                         setPaymentMethod(
                           "PAYTR",
                         );
@@ -1050,8 +1087,7 @@ export function StudentCheckoutPage({
                         setCheckoutKey(`student-checkout-${crypto.randomUUID()}`);
                       }}
                     />
-                    Kredi / banka kartı
-                    (PayTR)
+                    Kredi / banka kartı (PayTR){paytrConfigured === false ? " · Yapılandırılmadı" : ""}
                   </label>
 
                   <label>
@@ -1062,6 +1098,7 @@ export function StudentCheckoutPage({
                         "BANK_TRANSFER"
                       }
                       onChange={() => {
+                        setBankTransferReady(false);
                         setPaymentMethod(
                           "BANK_TRANSFER",
                         );
@@ -1076,28 +1113,36 @@ export function StudentCheckoutPage({
                 {paymentMethod ===
                   "BANK_TRANSFER" && (
                   <BankTransferPayment
-                    reference={
-                      bankReference
-                    }
+                    reference={bankTransferReady ? bankDraft?.reference : null}
+                    detailsVisible={bankTransferReady && Boolean(bankDraft?.reference)}
                   />
                 )}
 
                 {paymentMethod ===
                   "PAYTR" && (
                   <>
-                    <div className="fixoku-paytr-brand">
-                      <img
-                        src="/images/payments/paytr.svg"
-                        alt="PayTR güvenli ödeme"
-                      />
-                    </div>
-
                     <p className="trainer-checkout-note">
                       Sipariş oluşturulduktan sonra güvenli PayTR ödeme alanı açılır.
                     </p>
                   </>
                 )}
               </section>
+
+              {paymentMethod === "BANK_TRANSFER" && bankTransferReady && !orderId && (
+                <section className="trainer-checkout-step" aria-labelledby="student-bank-transfer-notification-title">
+                  <h3 id="student-bank-transfer-notification-title">Havale / EFT Bildirimi</h3>
+                  {bankDraft && <p><strong>Gönderilecek tutar: {money(bankDraft.expectedAmountMinor,bankDraft.currency)}</strong></p>}
+                  <p>Transferi yaptıktan sonra aşağıdaki zorunlu alanları doldurun. Bildirim gönderilmeden sipariş ve muhasebe kaydı oluşturulmaz.</p>
+                  <div className="trainer-checkout-fields">
+                    <label>Ödeyen adı ve soyadı<input required value={transfer.payerName} onChange={(event) => setTransfer({ ...transfer, payerName: event.target.value })} /></label>
+                    <label>Gönderen banka<input required value={transfer.bankName} onChange={(event) => setTransfer({ ...transfer, bankName: event.target.value })} /></label>
+                    <label>Gönderilen tutar (TL)<input required inputMode="decimal" value={transfer.reportedAmount} onChange={(event) => setTransfer({ ...transfer, reportedAmount: event.target.value })} /></label>
+                    <label>Transfer tarihi<input required type="date" value={transfer.transferDate} onChange={(event) => setTransfer({ ...transfer, transferDate: event.target.value })} /></label>
+                    <label>Banka referans no<input required value={transfer.reference} onChange={(event) => setTransfer({ ...transfer, reference: event.target.value })} /></label>
+                  </div>
+                  <button className="trainer-commerce-primary" type="submit">Havale/EFT bildirimini gönder</button>
+                </section>
+              )}
 
               <section className="trainer-checkout-step">
                 <h3>
@@ -1140,8 +1185,9 @@ export function StudentCheckoutPage({
                 <button
                   className="trainer-commerce-primary"
                   type="submit"
+                  disabled={paymentMethod === "BANK_TRANSFER" && bankTransferReady}
                 >
-                  Siparişi oluştur
+                  {paymentMethod === "BANK_TRANSFER" && bankTransferReady ? "Bildirim formunu doldurun" : "Ödemeye devam et"}
                 </button>
               </section>
             </div>

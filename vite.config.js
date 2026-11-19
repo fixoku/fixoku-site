@@ -232,6 +232,26 @@ function betterAuthApi() {
           import('./api/admin/assignment-requests.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return
         }
+        if (request.url?.split('?', 1)[0] === '/api/student/bank-transfer') {
+          import('./api/student/bank-transfer.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.split('?', 1)[0] === '/api/trainer/shipments') {
+          import('./api/trainer/shipments.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.split('?', 1)[0] === '/api/public/installment-campaign') {
+          import('./api/public/installment-campaign.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.split('?', 1)[0] === '/api/owner/installment-campaign') {
+          import('./api/owner/installment-campaign.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
+        if (request.url?.split('?', 1)[0] === '/api/paytr/runtime') {
+          import('./api/paytr/runtime.js').then(({ default: handler }) => handler(request, response)).catch(next)
+          return
+        }
         if (request.url?.startsWith('/api/student/packages')) {
           import('./api/student/packages.js').then(({ default: handler }) => handler(request, response)).catch(next)
           return

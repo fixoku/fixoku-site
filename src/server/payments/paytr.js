@@ -13,6 +13,8 @@ export const paytrConfig = (env = process.env) => ({
   okUrl: String(env.PAYTR_OK_URL || ""),
   failUrl: String(env.PAYTR_FAIL_URL || ""),
   callbackUrl: String(env.PAYTR_CALLBACK_URL || ""),
+  liveApproved: String(env.PAYTR_LIVE_APPROVED || "") === "1",
+  liveRuntimeVerified: String(env.PAYTR_LIVE_RUNTIME_VERIFIED || "") === "1",
 });
 
 function isLoopbackHost(hostname) {
@@ -57,22 +59,34 @@ export function paytrRuntime(env = process.env) {
   const c = paytrConfig(env);
   const credentials = Boolean(c.merchantId && c.merchantKey && c.merchantSalt);
   const testOnly = c.testMode === "1";
-  const configured = c.enabled && credentials && testOnly;
+  const returnUrlsConfigured = isPaytrEndpoint(c.okUrl, "/api/paytr/return-success", env)
+    && isPaytrEndpoint(c.failUrl, "/api/paytr/return-failure", env)
+    && isPaytrEndpoint(c.callbackUrl, "/api/paytr/callback", env);
+  const liveOrigin = String(env.APP_ORIGIN || "").replace(/\/$/u, "") === "https://fixoku.com";
+  const liveEndpoints = [c.okUrl, c.failUrl, c.callbackUrl].every((value) => {
+    try { return new URL(value).origin === "https://fixoku.com"; } catch { return false; }
+  });
+  const liveReady = c.enabled && credentials && c.testMode === "0" && c.liveApproved && c.liveRuntimeVerified
+    && env.VERCEL_ENV === "production" && env.NODE_ENV === "production" && liveOrigin && liveEndpoints && returnUrlsConfigured;
+  const configured = c.enabled && credentials && (testOnly || liveReady);
   return {
     implementationReady: true,
     configured,
     status: configured ? "CONFIGURED" : "CONFIG_REQUIRED",
     testMode: c.testMode,
     testOnly,
-    returnUrlsConfigured: isPaytrEndpoint(c.okUrl, "/api/paytr/return-success", env)
-      && isPaytrEndpoint(c.failUrl, "/api/paytr/return-failure", env)
-      && isPaytrEndpoint(c.callbackUrl, "/api/paytr/callback", env),
+    liveReady,
+    liveApproved: c.liveApproved,
+    liveRuntimeVerified: c.liveRuntimeVerified,
+    returnUrlsConfigured,
   };
 }
 
 export function paytrToken({ merchantOid, userIp, email, paymentAmount, userBasket, noInstallment = "0", maxInstallmentNum = "0", currency = "TL", testMode = "1" }, env = process.env) {
   const c = paytrConfig(env);
-  if (!c.enabled || !c.merchantId || !c.merchantKey || !c.merchantSalt || c.testMode !== "1" || String(testMode) !== "1") {
+  const requestedTestMode = String(testMode);
+  const modeAllowed = requestedTestMode === "1" ? c.testMode === "1" : paytrRuntime(env).liveReady && requestedTestMode === "0";
+  if (!c.enabled || !c.merchantId || !c.merchantKey || !c.merchantSalt || !modeAllowed) {
     const error = new Error("PAYTR_CONFIG_REQUIRED"); error.code = "PAYTR_CONFIG_REQUIRED"; error.status = 503; throw error;
   }
   const payload = `${c.merchantId}${userIp}${merchantOid}${email}${paymentAmount}${userBasket}${noInstallment}${maxInstallmentNum}${currency}${testMode}${c.merchantSalt}`;
@@ -176,6 +190,7 @@ export function paymentAttemptOrderKind(order) {
  * partial unique index make this safe when two tabs request a token together.
  */
 export async function ensurePaytrPaymentAttempt(client, { orderKind, orderId, amountMinor, currency, environment = "TEST" }) {
+  if (!["TEST", "LIVE"].includes(environment)) throw settlementError("PAYTR_ATTEMPT_MODE_INVALID");
   const kind = paymentAttemptOrderKind(orderKind);
   const normalizedOrderId = String(orderId || "").toLowerCase();
   const amount = parsePaytrMinor(amountMinor);
@@ -184,6 +199,7 @@ export async function ensurePaytrPaymentAttempt(client, { orderKind, orderId, am
   await client.query("select pg_advisory_xact_lock(hashtext($1))", [`PAYTR_ATTEMPT:${kind}:${normalizedOrderId}`]);
   const existing = (await client.query("select * from paytr_payment_attempts where order_kind=$1 and order_id=$2 and status in ('CREATED','TOKEN_PENDING','TOKEN_READY','PAYMENT_PENDING','UNKNOWN','REVIEW') for update", [kind, normalizedOrderId])).rows[0];
   if (existing) {
+    if (existing.environment !== environment) throw settlementError("PAYTR_ATTEMPT_MODE_MISMATCH");
     if (Number(existing.amount_minor) !== amount || normalizePaytrCurrency(existing.currency) !== normalizedCurrency) throw Object.assign(new Error("PAYTR_ATTEMPT_IMMUTABLE_MISMATCH"), { code: "PAYTR_ATTEMPT_IMMUTABLE_MISMATCH", status: 409 });
     if (["SUCCEEDED", "UNKNOWN", "REVIEW"].includes(String(existing.status))) throw Object.assign(new Error(`PAYTR_ATTEMPT_${existing.status}`), { code: `PAYTR_ATTEMPT_${existing.status}`, status: 409 });
     if (String(existing.status) === "TOKEN_PENDING" && existing.token_requested_at && (Date.now() - new Date(existing.token_requested_at).getTime()) < 60_000) throw Object.assign(new Error("PAYTR_TOKEN_REQUEST_IN_PROGRESS"), { code: "PAYTR_TOKEN_REQUEST_IN_PROGRESS", status: 409 });
@@ -321,7 +337,7 @@ export async function requestPaytrPaymentStatus(
     !config.merchantId ||
     !config.merchantKey ||
     !config.merchantSalt ||
-    config.testMode !== "1"
+    !(config.testMode === "1" || paytrRuntime(env).liveReady)
   ) {
     throw settlementError("PAYTR_CONFIG_REQUIRED", 503);
   }

@@ -8,7 +8,7 @@ import { effectiveTrainerQualificationPredicate } from "./trainer-expertise.js";
 // payment settlement intentionally does not invoke it.
 import { readEffectiveVatDecision } from "./commerce.js";
 import { queuePanelNotification, queueRolePanelNotifications } from "./panel-notifications.js";
-import { ensurePaytrPaymentAttempt } from "../payments/paytr.js";
+import { ensurePaytrPaymentAttempt, paytrRuntime } from "../payments/paytr.js";
 
 export const TRAINER_COMMERCE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const PENDING_STATUSES = ["PENDING_PAYMENT", "PAYMENT_REVIEW"];
@@ -175,18 +175,19 @@ function billingSnapshot(input, shipping) {
   return { type, sameAsShipping: false, address, identity };
 }
 
-export async function createTrainerOrder(client, principal, input) {
+export async function createTrainerOrder(client, principal, input, { manageTransaction = true } = {}) {
   const trainerUserId = (await assertTrainerPrincipal(principal)).id;
   const paymentMethod = String(input?.paymentMethod || "").toUpperCase();
   if (!['PAYTR', 'BANK_TRANSFER'].includes(paymentMethod)) throw fail("PAYMENT_METHOD_INVALID");
   const idempotencyKey = text(input?.idempotencyKey, 160); if (!idempotencyKey) throw fail("IDEMPOTENCY_KEY_REQUIRED");
   const customOfferId = input?.customOfferId ? String(input.customOfferId) : null;
   const shipping = addressSnapshot(input?.shippingAddress || {}); const billing = billingSnapshot(input?.billing || {}, shipping);
-  await client.query("begin");
+  if (manageTransaction) await client.query("begin");
   try {
+    await client.query("select pg_advisory_xact_lock(hashtext($1))", [`R405_TRAINER_CHECKOUT:${trainerUserId}`]);
     const existing = (await client.query("select * from trainer_package_orders where trainer_user_id=$1 and idempotency_key=$2 for update", [trainerUserId, idempotencyKey])).rows[0];
     const requestHash = trainerCommerceHash({ paymentMethod, shipping, billing, customOfferId });
-    if (existing) { if (existing.request_hash !== requestHash) throw fail("IDEMPOTENCY_KEY_CONFLICT", 409); await client.query("commit"); return { order: existing, replay: true }; }
+    if (existing) { if (existing.request_hash !== requestHash) throw fail("IDEMPOTENCY_KEY_CONFLICT", 409); if (manageTransaction) await client.query("commit"); return { order: existing, replay: true }; }
     const offer = customOfferId ? (await client.query(`select o.id,o.status,o.expires_at,o.customer_user_id,l.id as line_id,l.line_kind,l.package_version_id,l.gross_minor,l.net_minor,l.vat_minor,l.vat_rate_bps,l.discount_minor,l.title_snapshot from r6_custom_offers o join r6_custom_offer_lines l on l.offer_id=o.id where o.id=$1 and o.customer_user_id=$2 and o.status='SENT' and (o.expires_at is null or o.expires_at>now()) order by l.line_order,l.id`, [customOfferId, trainerUserId])).rows : [];
     if (customOfferId && (offer.length !== 1 || offer[0].line_kind !== "PACKAGE")) throw fail("TRAINER_OFFER_NOT_AVAILABLE", 409);
     const cart = (await client.query(`select c.id,p.id as package_id,p.slug,p.audience,p.catalog_scope,p.status as package_status,p.physical_product,p.shipping_policy,p.shipping_price_minor,pv.*,coalesce((select json_agg(json_build_object('productType',pp.r6_product_type,'quantity',pc.quantity)) from package_components pc join physical_products pp on pp.id=coalesce(pc.physical_product_id,pc.reference_id) where pc.package_version_id=pv.id and pc.is_active=true and pc.component_type='PHYSICAL_PRODUCT'),'[]') as shipping_components from trainer_cart_items c join package_versions pv on pv.id=c.package_version_id join packages p on p.id=pv.package_id where c.trainer_user_id=$1 for update`, [trainerUserId])).rows;
@@ -221,9 +222,16 @@ export async function createTrainerOrder(client, principal, input) {
       return { row, gross, net, vat: offerLine ? Number(offerLine.vat_rate_bps) : vat, lineVat, discountMinor, shippingMinor, total: gross + shippingMinor, offerLine };
     });
     const subtotalMinor = snapshots.reduce((sum, item) => sum + item.gross, 0); const discountMinor = snapshots.reduce((sum, item) => sum + item.discountMinor, 0); const shippingMinor = cartShippingMinor; const taxMinor = snapshots.reduce((sum, item) => sum + item.lineVat, 0) + shippingVatMinor; const totalMinor = subtotalMinor + shippingMinor;
-    const order = (await client.query(`insert into trainer_package_orders(trainer_user_id,status,payment_method,currency,subtotal_minor,shipping_minor,discount_minor,tax_minor,total_minor,shipping_address_snapshot_json,billing_snapshot_json,invoice_status,idempotency_key,request_hash) values($1,$2,$3,'TRY',$4,$5,$6,$7,$8,$9,$10,'PENDING',$11,$12) returning *`, [trainerUserId, paymentMethod === "BANK_TRANSFER" ? "PAYMENT_REVIEW" : "PENDING_PAYMENT", paymentMethod, subtotalMinor, shippingMinor, discountMinor, taxMinor, totalMinor, JSON.stringify(shipping), JSON.stringify(billing), idempotencyKey, requestHash])).rows[0];
+    const insertedOrder = (await client.query(`insert into trainer_package_orders(trainer_user_id,status,payment_method,currency,subtotal_minor,shipping_minor,discount_minor,tax_minor,total_minor,shipping_address_snapshot_json,billing_snapshot_json,invoice_status,idempotency_key,request_hash) values($1,$2,$3,'TRY',$4,$5,$6,$7,$8,$9,$10,'PENDING',$11,$12) on conflict (trainer_user_id,idempotency_key) do nothing returning *`, [trainerUserId, paymentMethod === "BANK_TRANSFER" ? "PAYMENT_REVIEW" : "PENDING_PAYMENT", paymentMethod, subtotalMinor, shippingMinor, discountMinor, taxMinor, totalMinor, JSON.stringify(shipping), JSON.stringify(billing), idempotencyKey, requestHash])).rows[0];
+    if (!insertedOrder) {
+      const raced = (await client.query("select * from trainer_package_orders where trainer_user_id=$1 and idempotency_key=$2 for update", [trainerUserId, idempotencyKey])).rows[0];
+      if (!raced || raced.request_hash !== requestHash) throw fail("IDEMPOTENCY_KEY_CONFLICT", 409);
+      if (manageTransaction) await client.query("commit");
+      return { order: raced, replay: true };
+    }
+    const order = insertedOrder;
     if (paymentMethod === "PAYTR") {
-      try { await ensurePaytrPaymentAttempt(client, { orderKind: "TRAINER_PACKAGE_ORDER", orderId: order.id, amountMinor: order.total_minor, currency: order.currency, environment: "TEST" }); }
+      try { await ensurePaytrPaymentAttempt(client, { orderKind: "TRAINER_PACKAGE_ORDER", orderId: order.id, amountMinor: order.total_minor, currency: order.currency, environment: paytrRuntime().liveReady ? "LIVE" : "TEST" }); }
       catch (cause) { if (cause?.code !== "42P01" || process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") throw cause; }
     }
     for (const item of snapshots) {
@@ -241,8 +249,8 @@ export async function createTrainerOrder(client, principal, input) {
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.legal.accepted','trainer_package_order',$2,'SUCCESS',$3,$4)", [trainerUserId, order.id, crypto.randomUUID(), JSON.stringify(legalEvidence)]);
     await client.query("delete from trainer_cart_items where trainer_user_id=$1", [trainerUserId]);
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.order.created','trainer_package_order',$2,'SUCCESS',$3,$4)", [trainerUserId, order.id, crypto.randomUUID(), JSON.stringify({ paymentMethod, packageIds, totalMinor, shippingVatRateBps, shippingVatMinor, shippingNetMinor })]);
-    await client.query("commit"); return { order, replay: false };
-  } catch (error) { await client.query("rollback"); throw error; }
+    if (manageTransaction) await client.query("commit"); return { order, replay: false };
+  } catch (error) { if (manageTransaction) await client.query("rollback"); throw error; }
 }
 
 export async function fulfillTrainerOrder(client, { orderId, actorUserId, provider, providerReference, amountMinor = undefined, currency = undefined, manageTransaction = true, settlement = null }) {

@@ -1,0 +1,13 @@
+{
+    "release":  "R405",
+    "mode":  "CONTROLLED_MANUAL",
+    "automaticExecution":  false,
+    "productionApproved":  false,
+    "stagingApproved":  false,
+    "executionOrder":  [
+                           "R405_01_BANK_TRANSFER_NOTIFICATIONS.sql",
+                           "R405_02_BANK_TRANSFER_DRAFTS.sql"
+                       ],
+    "rollback":  "Forward-only, data-preserving repair; no evidence deletion",
+    "scope":  "local/disposable or separately approved staging target only"
+}

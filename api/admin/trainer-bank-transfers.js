@@ -71,6 +71,7 @@ export default async function handler(req, res) {
           join platform_users u on u.id = o.trainer_user_id
           left join trainer_package_order_items i on i.order_id = o.id
           left join trainer_bank_transfer_notifications n on n.order_id = o.id
+          where o.payment_method='BANK_TRANSFER' and n.status in ('SUBMITTED','IN_REVIEW')
           group by
             o.id,
             u.display_name,

@@ -1,7 +1,7 @@
 import pg from '../../src/server/db/guarded-pg.js';
 import { resolvePrincipal } from '../../src/server/auth/authorization.js';
 import { assertTrainerPrincipal, readTrainerCart } from '../../src/server/domain/trainer-commerce.js';
-import { publicLegalDocument } from '../../src/server/domain/trainer-legal-documents.js';
+import { publicLegalDocument, readPublishedLegalDocuments } from '../../src/server/domain/trainer-legal-documents.js';
 import { renderTrainerLegalPreview } from '../../src/server/domain/trainer-legal-preview.js';
 const json=(res,status,body)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','private, no-store');res.setHeader('X-Content-Type-Options','nosniff');res.end(JSON.stringify(body));};
 const headers=req=>new Headers(Object.entries(req.headers||{}).map(([k,v])=>[k,String(v)]));
@@ -13,7 +13,24 @@ export default async function handler(req,res){
     if(!principal)return json(res,401,{error:'UNAUTHENTICATED'});
     const trainer=await assertTrainerPrincipal(principal);
     const code=new URL(req.url||'/api/trainer/legal-documents','http://local').searchParams.get('code');
-    const doc=publicLegalDocument(code);
+    let doc;
+    if (['PRE_INFO','DISTANCE'].includes(code)) {
+      const legalPool = new pg.Pool({connectionString:process.env.DATABASE_URL});
+      let legalClient;
+      try {
+        legalClient = await legalPool.connect();
+        await legalClient.query('BEGIN READ ONLY');
+        const published = await readPublishedLegalDocuments(legalClient,[code]);
+        if (!published?.[0] || published[0].publicationStatus !== 'PUBLISHED' || !published[0].sourceSha256) {
+          throw Object.assign(new Error('LEGAL_DOCUMENT_NOT_PUBLISHED'),{status:503});
+        }
+        doc = published[0];
+        await legalClient.query('COMMIT');
+      } catch (error) {
+        if (legalClient) await legalClient.query('ROLLBACK').catch(()=>{});
+        throw error;
+      } finally { legalClient?.release(); await legalPool.end(); }
+    } else { doc=publicLegalDocument(code); }
     if(!doc)return json(res,404,{error:'DOCUMENT_NOT_FOUND'});
     if(req.method==='GET')return json(res,200,doc);
     if(req.headers.origin){try{if(new URL(req.headers.origin).host!==String(req.headers.host||''))return json(res,403,{error:'ORIGIN_NOT_ALLOWED'});}catch{return json(res,403,{error:'ORIGIN_INVALID'});}}

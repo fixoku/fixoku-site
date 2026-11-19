@@ -43,20 +43,29 @@ async function readQueue(pool) {
       beneficiary.display_name as "beneficiaryName",
       pi.id as "paymentIntentId",
       pi.status as "paymentStatus",
+      n.id as "notificationId",
+      n.status as "notificationStatus",
+      n.payer_name as "payerName",
+      n.bank_name as "bankName",
+      n.reported_amount_minor as "reportedAmountMinor",
+      n.transfer_date as "transferDate",
+      n.reference as "bankTransactionReference",
       coalesce(json_agg(json_build_object('packageId', oi.package_id, 'packageVersionId', oi.package_version_id, 'title', oi.title_snapshot, 'quantity', oi.quantity, 'totalMinor', oi.total_minor) order by oi.created_at, oi.id) filter (where oi.id is not null), '[]'::json) as items
     from orders o
     join platform_users buyer on buyer.id=o.buyer_user_id
     join platform_users beneficiary on beneficiary.id=o.beneficiary_student_user_id
     left join payment_intents pi on pi.order_id=o.id
+    left join student_bank_transfer_notifications n on n.order_id=o.id
     left join order_items oi on oi.order_id=o.id
     where o.catalog_scope_snapshot='STUDENT_COMMERCE'
       and o.payment_method='BANK_TRANSFER'
       and o.status in ('PENDING_PAYMENT','PAYMENT_REVIEW')
+      and (n.id is null or n.status in ('SUBMITTED','IN_REVIEW'))
       and coalesce(pi.status,'CREATED') in ('CREATED','PENDING','AUTHORIZED')
-    group by o.id,buyer.display_name,buyer.email,beneficiary.display_name,pi.id
+    group by o.id,buyer.display_name,buyer.email,beneficiary.display_name,pi.id,n.id
     order by o.created_at asc
     limit 500
-  `)).rows.map((row) => ({ ...row, reference: bankReference(row.orderId), totalMinor: Number(row.totalMinor || 0), items: Array.isArray(row.items) ? row.items : [] }));
+  `)).rows.map((row) => ({ ...row, reference: row.bankTransactionReference || bankReference(row.orderId), totalMinor: Number(row.totalMinor || 0), reportedAmountMinor: Number(row.reportedAmountMinor || 0), items: Array.isArray(row.items) ? row.items : [] }));
 }
 
 export default async function handler(req, res) {
@@ -142,6 +151,7 @@ export default async function handler(req, res) {
           const items = (await client.query(`select oi.package_id,oi.package_version_id,pv.package_id as version_package_id,p.audience,oi.currency from order_items oi join package_versions pv on pv.id=oi.package_version_id join packages p on p.id=oi.package_id where oi.order_id=$1`, [orderId])).rows;
           if (!items.length || items.some((item) => item.package_id !== item.version_package_id || item.audience !== "STUDENT" || item.currency !== row.currency)) throw Object.assign(new Error("ORDER_PACKAGE_MISMATCH"), { status: 409 });
           const result = await fulfillSuccessfulPayment(client, { orderId, actorUserId: principal.user.id, provider: "BANK_TRANSFER", providerEventId: `student-bank-transfer:${orderId}`, amountMinor: receivedAmountMinor, currency: row.currency, manageTransaction: false });
+          await client.query("update student_bank_transfer_notifications set status='APPROVED',reviewed_by=$1,reviewed_at=coalesce(reviewed_at,now()),updated_at=now() where order_id=$2 and status in ('SUBMITTED','IN_REVIEW')", [principal.user.id, orderId]);
           if (!result.replay) await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'student.commerce.bank_transfer.review.approved','order',$2,'SUCCESS',gen_random_uuid(),$3)", [principal.user.id, orderId, JSON.stringify({ reference: bankReference(orderId), paymentMethod: "BANK_TRANSFER", receivedAmountMinor, bankTransactionReference, bankVerified: true })]);
           await client.query("commit");
           return json(res, 200, { ...result, status: "APPROVED", duplicateApproval: Boolean(result.replay), entitlementActivated: true });
@@ -149,6 +159,7 @@ export default async function handler(req, res) {
         const note = String(input.note || "").trim().slice(0, 500) || "Havale/EFT bildirimi reddedildi.";
         await client.query("update orders set status='CANCELLED',cancelled_at=coalesce(cancelled_at,now()),updated_at=now() where id=$1", [orderId]);
         await client.query("update payment_intents set status='CANCELLED',updated_at=now() where order_id=$1 and status in ('CREATED','PENDING','AUTHORIZED')", [orderId]);
+        await client.query("update student_bank_transfer_notifications set status='REJECTED',reviewed_by=$1,reviewed_at=coalesce(reviewed_at,now()),review_note=$2,updated_at=now() where order_id=$3 and status in ('SUBMITTED','IN_REVIEW')", [principal.user.id, note, orderId]);
         await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'student.commerce.bank_transfer.review.rejected','order',$2,'SUCCESS',gen_random_uuid(),$3)", [principal.user.id, orderId, JSON.stringify({ note, reference: bankReference(orderId), paymentMethod: "BANK_TRANSFER" })]);
         await client.query("commit");
         return json(res, 200, { status: "REJECTED", orderStatus: "CANCELLED", entitlementActivated: false });

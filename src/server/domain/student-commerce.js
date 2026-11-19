@@ -7,7 +7,7 @@ import { validateEducationSegment } from "./student-segment.js";
 import { shippingForStudentCartItems } from "./book-shipping.js";
 import { allocatePackageGross } from "./package-price-allocation.js";
 import { queueRolePanelNotifications } from "./panel-notifications.js";
-import { ensurePaytrPaymentAttempt } from "../payments/paytr.js";
+import { ensurePaytrPaymentAttempt, paytrRuntime } from "../payments/paytr.js";
 
 function error(code, status = 400) { return Object.assign(new Error(code), { code, status }); }
 const parseJson = (value, yedek) => {
@@ -160,13 +160,22 @@ function billingSnapshot(input, shippingAddress, displayName = "", requireDigita
   return paytrContact ? { ...value, ...paytrContact } : value;
 }
 
-export async function createStudentCommerceOrder(client, principal, input) {
+export async function createStudentCommerceOrder(client, principal, input, { manageTransaction = true } = {}) {
+  if (manageTransaction) {
+    await client.query("begin");
+    try {
+      const result = await createStudentCommerceOrder(client, principal, input, { manageTransaction: false });
+      await client.query("commit");
+      return result;
+    } catch (cause) { await client.query("rollback").catch(() => {}); throw cause; }
+  }
   const paymentMethod = String(input?.paymentMethod || "").toUpperCase();
   if (!["PAYTR", "BANK_TRANSFER"].includes(paymentMethod)) throw error("PAYMENT_METHOD_INVALID");
   const idempotencyKey = String(input?.idempotencyKey || "").trim();
   if (!idempotencyKey || idempotencyKey.length > 160) throw error("IDEMPOTENCY_KEY_REQUIRED");
   const requestedProfileId = input?.childProfileId || input?.studentProfileId || null;
   const accountMode = !requestedProfileId;
+  await client.query("select pg_advisory_xact_lock(hashtext($1))", [`R405_STUDENT_CHECKOUT:${principal.user.id}`]);
   const existingBeforeCart = (await client.query("select * from orders where buyer_user_id=$1 and idempotency_key=$2", [principal.user.id, idempotencyKey])).rows[0];
   if (existingBeforeCart) {
     if (existingBeforeCart.payment_method != null && existingBeforeCart.payment_method !== paymentMethod) throw error("IDEMPOTENCY_KEY_CONFLICT", 409);
@@ -196,7 +205,7 @@ export async function createStudentCommerceOrder(client, principal, input) {
   const publishedLegalDocuments = await readPublishedLegalDocuments(client, legalCodes);
   const owned = (await client.query(`select package_version_id from package_entitlements where beneficiary_student_user_id=$1 and ${accountMode ? "beneficiary_student_profile_id is null and beneficiary_child_profile_id is null" : "(($3::uuid is null and beneficiary_child_profile_id is null) or beneficiary_child_profile_id=$3)"} and status='ACTIVE' and package_version_id=any($2::uuid[])`, accountMode ? [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId)] : [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId), cart.beneficiary.childProfileId || null])).rows;
   if (owned.length) throw error("PACKAGE_ALREADY_OWNED", 409);
-  const pending = (await client.query(`select distinct oi.package_version_id from orders o join order_items oi on oi.order_id=o.id where o.beneficiary_student_user_id=$1 and ${accountMode ? "o.beneficiary_student_profile_id is null and o.beneficiary_child_profile_id is null" : "(($3::uuid is null and o.beneficiary_child_profile_id is null) or o.beneficiary_child_profile_id=$3)"} and o.status='PENDING_PAYMENT' and oi.package_version_id=any($2::uuid[])`, accountMode ? [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId)] : [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId), cart.beneficiary.childProfileId || null])).rows;
+  const pending = (await client.query(`select distinct oi.package_version_id from orders o join order_items oi on oi.order_id=o.id where o.beneficiary_student_user_id=$1 and ${accountMode ? "o.beneficiary_student_profile_id is null and o.beneficiary_child_profile_id is null" : "(($3::uuid is null and o.beneficiary_child_profile_id is null) or o.beneficiary_child_profile_id=$3)"} and o.status in ('PENDING_PAYMENT','PAYMENT_REVIEW') and oi.package_version_id=any($2::uuid[])`, accountMode ? [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId)] : [cart.beneficiary.studentUserId, cart.items.map((item) => item.packageVersionId), cart.beneficiary.childProfileId || null])).rows;
   if (pending.length) throw error("ORDER_ALREADY_EXISTS", 409);
   const shippingAddress = cart.requiresShipping ? addressSnapshot(input.shippingAddress) : null;
   const billing = billingSnapshot(input.billing, shippingAddress, principal.user?.displayName, paymentMethod === "PAYTR" && !cart.requiresShipping);
@@ -210,11 +219,18 @@ export async function createStudentCommerceOrder(client, principal, input) {
   const requestHash = accountMode
     ? sha256({ paymentMethod, accountUserId: principal.user.id, catalogSegments: cart.catalogSegments, packageVersionIds: cart.items.map((item) => item.packageVersionId), shippingAddress, billing, legalInput })
     : sha256({ paymentMethod, studentProfileId: cart.beneficiary.studentProfileId, packageVersionIds: cart.items.map((item) => item.packageVersionId), shippingAddress, billing, legalInput });
-  await client.query("begin");
+  if (manageTransaction) await client.query("begin");
   try {
     const existing = (await client.query("select * from orders where buyer_user_id=$1 and idempotency_key=$2 for update", [principal.user.id, idempotencyKey])).rows[0];
-    if (existing) { const legacyHash = sha256({ studentProfileId: cart.beneficiary.studentProfileId, packageVersionIds: cart.items.map((item) => item.packageVersionId), shippingAddress, billing }); const hashMatches = existing.request_hash === requestHash || (!accountMode && existing.payment_method == null && existing.request_hash === legacyHash); if (!hashMatches) throw error("IDEMPOTENCY_KEY_CONFLICT", 409); await client.query("commit"); return { order: existing, replay: true, providerConfigured: Boolean(process.env.PAYMENT_PROVIDER) }; }
-    const order = (await client.query(`insert into orders(buyer_user_id,beneficiary_student_user_id,beneficiary_student_profile_id,beneficiary_child_profile_id,status,payment_method,currency,subtotal_minor,shipping_minor,total_minor,catalog_scope_snapshot,shipping_address_snapshot_json,billing_snapshot_json,idempotency_key,request_hash) values($1,$2,$3,$4,'PENDING_PAYMENT',$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning *`, [principal.user.id, cart.beneficiary.studentUserId, cart.beneficiary.studentProfileId || null, cart.beneficiary.childProfileId || null, paymentMethod, cart.currency, cart.subtotalMinor, cart.shippingMinor, cart.totalMinor, "STUDENT_COMMERCE", shippingAddress ? JSON.stringify(shippingAddress) : null, JSON.stringify(billing), idempotencyKey, requestHash])).rows[0];
+    if (existing) { const legacyHash = sha256({ studentProfileId: cart.beneficiary.studentProfileId, packageVersionIds: cart.items.map((item) => item.packageVersionId), shippingAddress, billing }); const hashMatches = existing.request_hash === requestHash || (!accountMode && existing.payment_method == null && existing.request_hash === legacyHash); if (!hashMatches) throw error("IDEMPOTENCY_KEY_CONFLICT", 409); if (manageTransaction) await client.query("commit"); return { order: existing, replay: true, providerConfigured: Boolean(process.env.PAYMENT_PROVIDER) }; }
+    const insertedOrder = (await client.query(`insert into orders(buyer_user_id,beneficiary_student_user_id,beneficiary_student_profile_id,beneficiary_child_profile_id,status,payment_method,currency,subtotal_minor,shipping_minor,total_minor,catalog_scope_snapshot,shipping_address_snapshot_json,billing_snapshot_json,idempotency_key,request_hash) values($1,$2,$3,$4,'PENDING_PAYMENT',$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) on conflict (buyer_user_id,idempotency_key) do nothing returning *`, [principal.user.id, cart.beneficiary.studentUserId, cart.beneficiary.studentProfileId || null, cart.beneficiary.childProfileId || null, paymentMethod, cart.currency, cart.subtotalMinor, cart.shippingMinor, cart.totalMinor, "STUDENT_COMMERCE", shippingAddress ? JSON.stringify(shippingAddress) : null, JSON.stringify(billing), idempotencyKey, requestHash])).rows[0];
+    if (!insertedOrder) {
+      const raced = (await client.query("select * from orders where buyer_user_id=$1 and idempotency_key=$2 for update", [principal.user.id, idempotencyKey])).rows[0];
+      if (!raced || raced.request_hash !== requestHash) throw error("IDEMPOTENCY_KEY_CONFLICT", 409);
+      if (manageTransaction) await client.query("commit");
+      return { order: raced, paymentIntent: (await client.query("select * from payment_intents where order_id=$1", [raced.id])).rows[0], replay: true, providerConfigured: Boolean(process.env.PAYMENT_PROVIDER) };
+    }
+    const order = insertedOrder;
     let listGrossTotal = 0; let saleGrossTotal = 0; let discountTotal = 0; let vatNetTotal = shippingNetMinor; let vatTotal = shippingVatMinor;
     // The order-level rate is only a shorthand for homogeneous orders.  A
     // shipping charge is its own gross component, so include its approved
@@ -280,7 +296,7 @@ export async function createStudentCommerceOrder(client, principal, input) {
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'student.commerce.legal.accepted','order',$2,'SUCCESS',$3,$4)", [principal.user.id, order.id, crypto.randomUUID(), JSON.stringify(legalEvidence)]);
     const paymentIntent = (await client.query("insert into payment_intents(order_id,status,provider,amount_minor,currency,idempotency_key) values($1,'CREATED',null,$2,$3,$4) returning *", [order.id, order.total_minor, order.currency, `PAYMENT_INTENT:${order.id}`])).rows[0];
     if (paymentMethod === "PAYTR") {
-      try { await ensurePaytrPaymentAttempt(client, { orderKind: "STUDENT_ORDER", orderId: order.id, amountMinor: order.total_minor, currency: order.currency, environment: "TEST" }); }
+      try { await ensurePaytrPaymentAttempt(client, { orderKind: "STUDENT_ORDER", orderId: order.id, amountMinor: order.total_minor, currency: order.currency, environment: paytrRuntime().liveReady ? "LIVE" : "TEST" }); }
       catch (cause) { if (cause?.code !== "42P01" || process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") throw cause; }
     }
     if (accountMode) {
@@ -303,6 +319,6 @@ export async function createStudentCommerceOrder(client, principal, input) {
       });
       await queueOwnerOrderEvent(client,{kind:"student",orderId:order.id,event:"bank"});
     }
-    await client.query("commit"); return { order, paymentIntent, replay: false, providerConfigured: Boolean(process.env.PAYMENT_PROVIDER) };
-  } catch (cause) { try { await client.query("rollback"); } catch { /* preserve */ } throw cause; }
+    if (manageTransaction) await client.query("commit"); return { order, paymentIntent, replay: false, providerConfigured: Boolean(process.env.PAYMENT_PROVIDER) };
+  } catch (cause) { if (manageTransaction) { try { await client.query("rollback"); } catch { /* preserve */ } } throw cause; }
 }

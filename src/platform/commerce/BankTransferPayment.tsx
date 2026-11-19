@@ -6,8 +6,10 @@ const IBAN = "TR84 0004 6006 1688 8000 0889 81";
 
 export function BankTransferPayment({
   reference,
+  detailsVisible = Boolean(reference),
 }: {
   reference?: string | null;
+  detailsVisible?: boolean;
 }) {
   const [copied, setCopied] = useState<
     "account" | "iban" | "reference" | null
@@ -33,6 +35,12 @@ export function BankTransferPayment({
 
   return (
     <div className="fixoku-bank-transfer">
+      {!detailsVisible && (
+        <div className="fixoku-bank-transfer__pending" role="status">
+          Havale / EFT seçildi. Banka hesap bilgileri, sözleşmeleri onaylayıp ödeme adımına devam ettikten sonra gösterilir.
+        </div>
+      )}
+      {detailsVisible && <>
       <div className="fixoku-bank-transfer__head">
         <div className="fixoku-bank-transfer__bank-name">
           AKBANK
@@ -125,6 +133,7 @@ export function BankTransferPayment({
         durumunda kalır. Banka transferi tek başına paket
         erişimini açmaz.
       </p>
+      </>}
     </div>
   );
 }

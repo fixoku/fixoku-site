@@ -2649,3 +2649,4 @@ html {
 .trainer-cart-page .fixoku-trainer-cart-content-notes { padding:12px 0; }
 .trainer-cart-page .fixoku-trainer-cart-content-notes ol { margin:8px 0; padding-left:23px; }
 .trainer-cart-page .fixoku-trainer-cart-content-notes li { margin-bottom:5px; }
+.trainer-shipments-empty{display:grid;place-items:center;text-align:center;gap:10px;max-width:620px;margin:28px auto;padding:42px 24px;border:1px solid #e3e8ef;border-radius:20px;background:linear-gradient(180deg,#fff,#f8fbff);color:#314258}.trainer-shipments-empty .trainer-icon{color:#5b7391}.trainer-shipments-empty h3{margin:0;font-size:22px}.trainer-shipments-empty p{max-width:480px;margin:0;color:#64748b;line-height:1.6}

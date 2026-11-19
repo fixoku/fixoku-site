@@ -9,10 +9,10 @@ async function body(req) { let raw = ""; for await (const chunk of req) raw += c
 
 export async function handlePaytrTokenRequest(req, res, { principal: injectedPrincipal = null, pool: injectedPool = null, tokenRequester = requestPaytrIframeToken } = {}) {
   if (req.method !== "POST") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
-  if (!paytrTestSettlementAllowed()) return json(res,503,{error:"PAYTR_TEST_ENVIRONMENT_REQUIRED"});
+  if (!paytrTestSettlementAllowed() && !paytrRuntime().liveReady) return json(res,503,{error:"PAYTR_RUNTIME_NOT_APPROVED"});
   const principal = injectedPrincipal || await resolvePrincipal(headersOf(req)); if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
   const denied = requirePermission(principal, "order.create"); if (denied) return json(res, denied.status, denied.body);
-  if (paytrRuntime().status !== "CONFIGURED") return json(res, 503, { error: "PAYTR_CONFIG_REQUIRED", implementationReady: true, runtime: "CONFIG_REQUIRED" });
+  if (paytrRuntime().status !== "CONFIGURED" || !paytrRuntime().returnUrlsConfigured) return json(res, 503, { error: "PAYTR_CONFIG_REQUIRED", implementationReady: true, runtime: "CONFIG_REQUIRED" });
   let input; try { input = await body(req); } catch { return json(res, 400, { error: "INVALID_JSON" }); }
   if (!UUID_PATTERN.test(String(input.orderId || ""))) return json(res, 400, { error: "INVALID_ORDER_ID" });
   const pool = injectedPool || new pg.Pool({ connectionString: process.env.DATABASE_URL });
@@ -31,8 +31,9 @@ export async function handlePaytrTokenRequest(req, res, { principal: injectedPri
     try {
       await client.query("begin");
       attempt = (await client.query("select * from paytr_payment_attempts where order_kind=$1 and order_id=$2 for update", [orderKind, selected.id])).rows[0];
-      if (!attempt) attempt = await ensurePaytrPaymentAttempt(client, { orderKind, orderId: selected.id, amountMinor: selected.total_minor, currency: selected.currency, environment: "TEST" });
+      if (!attempt) attempt = await ensurePaytrPaymentAttempt(client, { orderKind, orderId: selected.id, amountMinor: selected.total_minor, currency: selected.currency, environment: paytrRuntime().liveReady ? "LIVE" : "TEST" });
       if (Number(attempt.amount_minor) !== Number(selected.total_minor) || String(attempt.currency).toUpperCase() !== String(selected.currency).toUpperCase()) throw Object.assign(new Error("PAYTR_ATTEMPT_ORDER_MISMATCH"), { code: "PAYTR_ATTEMPT_ORDER_MISMATCH", status: 409 });
+      if (attempt.environment !== (paytrRuntime().liveReady ? "LIVE" : "TEST")) throw Object.assign(new Error("PAYTR_ATTEMPT_MODE_MISMATCH"), { code: "PAYTR_ATTEMPT_MODE_MISMATCH", status: 409 });
       const reusableToken = decryptPaytrToken(attempt);
       if (attempt.status === "TOKEN_READY" && reusableToken && attempt.token_expires_at && new Date(attempt.token_expires_at).getTime() > Date.now()) {
         await client.query("commit");
@@ -40,12 +41,14 @@ export async function handlePaytrTokenRequest(req, res, { principal: injectedPri
       }
       if (attempt.status === "TOKEN_READY" && !reusableToken) {
         await client.query("update paytr_payment_attempts set status='REVIEW',review_required=true,review_reason='Stored PayTR token could not be decrypted; reconciliation required',last_error_code='PAYTR_TOKEN_RECONCILIATION_REQUIRED',updated_at=now() where id=$1", [attempt.id]);
+        await client.query("commit");
         throw Object.assign(new Error("PAYTR_TOKEN_RECONCILIATION_REQUIRED"), { code: "PAYTR_TOKEN_RECONCILIATION_REQUIRED", status: 503 });
       }
       if (["UNKNOWN", "REVIEW", "SUCCEEDED", "SUPERSEDED"].includes(String(attempt.status))) throw Object.assign(new Error(`PAYTR_ATTEMPT_${attempt.status}`), { code: `PAYTR_ATTEMPT_${attempt.status}`, status: 409 });
       if (attempt.status === "TOKEN_PENDING" && attempt.token_lease_until && new Date(attempt.token_lease_until).getTime() > Date.now()) throw Object.assign(new Error("PAYTR_TOKEN_REQUEST_IN_PROGRESS"), { code: "PAYTR_TOKEN_REQUEST_IN_PROGRESS", status: 409 });
       if (attempt.status === "TOKEN_PENDING") {
         await client.query("update paytr_payment_attempts set status='REVIEW',review_required=true,review_reason='Token provider request lease expired; reconciliation required',last_error_code='PAYTR_TOKEN_RESULT_UNKNOWN',updated_at=now() where id=$1", [attempt.id]);
+        await client.query("commit");
         throw Object.assign(new Error("PAYTR_TOKEN_RESULT_UNKNOWN"), { code: "PAYTR_TOKEN_RESULT_UNKNOWN", status: 503 });
       }
       const lease = await claimPaytrTokenLease(client, { merchantOid: attempt.merchant_oid });

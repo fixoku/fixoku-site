@@ -80,6 +80,7 @@
     "test:commercial-calculations": "node scripts/test-commercial-calculations.mjs",
     "test:book-shipping": "node scripts/test-book-shipping.mjs",
     "test:r404-shipping-dispatch": "node scripts/test-r404-shipping-dispatch.mjs",
+    "test:r405-contract": "node scripts/test-r405-contract.mjs",
     "test:r404-owner-email-local": "node scripts/test-r404-owner-email-local.mjs",
     "test:trainer-commerce": "node scripts/test-trainer-commerce-integration.mjs",
     "test:group-capacity": "node scripts/test-group-capacity-concurrency.mjs",

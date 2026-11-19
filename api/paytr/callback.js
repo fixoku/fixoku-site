@@ -19,8 +19,8 @@ async function reportMismatch(pool, orderId, errorCode) {
 export default async function handler(req, res) {
   if (!cleanPreviewGateResponse(res)) return;
   if (req.method !== "POST") return text(res, 405, "METHOD_NOT_ALLOWED");
-  if (!paytrTestSettlementAllowed()) return text(res, 503, "PAYTR_TEST_ENVIRONMENT_REQUIRED");
-  if (!paytrRuntime().configured) return text(res, 503, "PAYTR_CONFIG_REQUIRED");
+  if (!paytrTestSettlementAllowed() && !paytrRuntime().liveReady) return text(res, 503, "PAYTR_RUNTIME_NOT_APPROVED");
+  if (!paytrRuntime().configured || !paytrRuntime().returnUrlsConfigured) return text(res, 503, "PAYTR_CONFIG_REQUIRED");
   let payload; try { payload = await fields(req); } catch { return text(res, 400, "BAD_REQUEST"); }
   if (!verifyPaytrCallback(payload)) return text(res, 401, "PAYTR_HASH_INVALID");
   if (!payload.merchant_oid || !["success", "failed"].includes(String(payload.status))) return text(res, 400, "INVALID_CALLBACK");
@@ -28,7 +28,11 @@ export default async function handler(req, res) {
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
     let attemptStoreMissing = false;
-    const lookup = await pool.query("select order_id from paytr_payment_attempts where merchant_oid=$1", [payload.merchant_oid]).catch((error) => { if (error?.code === "42P01") { attemptStoreMissing = true; return { rows: [] }; } throw error; });
+    const lookup = await pool.query("select order_id,environment from paytr_payment_attempts where merchant_oid=$1", [payload.merchant_oid]).catch((error) => { if (error?.code === "42P01") { attemptStoreMissing = true; return { rows: [] }; } throw error; });
+    const expectedEnvironment = paytrRuntime().liveReady ? "LIVE" : "TEST";
+    const expectedTestMode = expectedEnvironment === "LIVE" ? "0" : "1";
+    if (lookup.rows[0] && lookup.rows[0].environment !== expectedEnvironment) return text(res, 409, "PAYTR_ATTEMPT_MODE_MISMATCH");
+    if (payload.test_mode != null && String(payload.test_mode) !== expectedTestMode) return text(res, 409, "PAYTR_MODE_MISMATCH");
     if (lookup.rows[0]) fallbackOrderId = lookup.rows[0].order_id;
     if (!lookup.rows[0] && (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production")) return text(res, 503, "PAYTR_ATTEMPT_STORE_REQUIRED");
     if (!fallbackOrderId) return text(res, 400, "PAYTR_REFERENCE_INVALID");
@@ -49,6 +53,7 @@ export default async function handler(req, res) {
       await client.query("begin");
       const attempt = attemptStoreMissing ? null : (await client.query("select * from paytr_payment_attempts where merchant_oid=$1 for update", [payload.merchant_oid])).rows[0];
       if (!attempt && !attemptStoreMissing) throw Object.assign(new Error("PAYTR_ATTEMPT_NOT_FOUND"), { code: "PAYTR_ATTEMPT_NOT_FOUND", status: 503 });
+      if (attempt && attempt.environment !== expectedEnvironment) throw Object.assign(new Error("PAYTR_ATTEMPT_MODE_MISMATCH"), { code: "PAYTR_ATTEMPT_MODE_MISMATCH", status: 409 });
       const orderId = attempt?.order_id || fallbackOrderId;
       const studentOrder = (await client.query("select id,status,total_minor,currency from orders where id=$1 and payment_method='PAYTR' for update", [orderId])).rows[0];
       const trainerOrder = (await client.query("select id,status,total_minor,currency from trainer_package_orders where id=$1 and payment_method='PAYTR' for update", [orderId])).rows[0];
@@ -58,13 +63,13 @@ export default async function handler(req, res) {
       const expectedKind = studentOrder ? "STUDENT_ORDER" : "TRAINER_PACKAGE_ORDER";
       if (attempt) { if (attempt.order_kind !== expectedKind || String(attempt.order_id) !== String(order.id)) throw Object.assign(new Error("PAYTR_ORDER_REFERENCE_CONFLICT"), { code: "PAYTR_ORDER_REFERENCE_CONFLICT", status: 409 }); assertPaytrCallbackOrderFacts({ attempt, order, payload }); }
       if (payload.status === "failed") {
-        if (payload.test_mode != null && String(payload.test_mode) !== "1") throw Object.assign(new Error("PAYTR_TEST_MODE_REQUIRED"), { code: "PAYTR_TEST_MODE_REQUIRED", status: 409 });
+        if (payload.test_mode != null && String(payload.test_mode) !== expectedTestMode) throw Object.assign(new Error("PAYTR_MODE_MISMATCH"), { code: "PAYTR_MODE_MISMATCH", status: 409 });
         if (order.status === "PAID" || attempt?.status === "SUCCEEDED") { if (attempt) await recordPaytrAttemptCallback(client, { merchantOid: payload.merchant_oid, callbackStatus: "failed", callbackHash: payload.hash, errorCode: "PAYTR_LATE_FAILED_CALLBACK", reviewRequired: true, reviewReason: "A failed callback arrived after successful fulfilment." }); await client.query("commit"); return text(res, 200, "OK"); }
         if (studentOrder) await client.query("update orders set status='PAYMENT_FAILED',updated_at=now() where id=$1 and status='PENDING_PAYMENT'", [order.id]);
         else await client.query("update trainer_package_orders set status='CANCELLED',cancelled_at=coalesce(cancelled_at,now()),updated_at=now() where id=$1 and status='PENDING_PAYMENT'", [order.id]);
         if (attempt) await recordPaytrAttemptCallback(client, { merchantOid: payload.merchant_oid, callbackStatus: "failed", callbackHash: payload.hash, errorCode: "PAYTR_PAYMENT_FAILED" }); await client.query("commit"); return text(res, 200, "OK");
       }
-      const settlement = validatePaytrSettlement({ payload, providerStatus, expectedAmountMinor: order.total_minor, expectedCurrency: order.currency, expectedTestMode: "1" });
+      const settlement = validatePaytrSettlement({ payload, providerStatus, expectedAmountMinor: order.total_minor, expectedCurrency: order.currency, expectedTestMode });
       if (order.status === "PAID") {
         if (attempt?.status === "SUCCEEDED" && Number(attempt.collected_amount_minor) === settlement.collectedAmountMinor && String(attempt.provider_transaction_id || "") === String(settlement.providerTransactionId || "")) { await client.query("commit"); return text(res, 200, "OK"); }
         if (attempt) { await recordPaytrAttemptCallback(client, { merchantOid: payload.merchant_oid, callbackStatus: "success", callbackHash: payload.hash, settlement, providerTransactionId: settlement.providerTransactionId || null, errorCode: "PAYTR_DUPLICATE_SETTLEMENT", reviewRequired: true, reviewReason: "A different payment attempt reported success after the order was already paid." }); await client.query("commit"); await reportMismatch(pool, order.id, "PAYTR_DUPLICATE_SETTLEMENT"); return text(res, 409, "PAYTR_DUPLICATE_SETTLEMENT_REVIEW"); }

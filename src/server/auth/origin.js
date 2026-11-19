@@ -8,6 +8,7 @@ import {
   previewContractMetadataAttested,
   previewContractForBranch,
   r54sSafePreviewRuntime,
+  r404ConnectionTargetsConfigured,
 } from "./preview-contract.js";
 
 const PRODUCTION_HOSTS = new Set(["fixoku.com", "www.fixoku.com"]);
@@ -40,6 +41,8 @@ export function resolveApplicationOrigin(env = process.env) {
         ? exactPreviewContractEnvironment(contract, env)
         : exactPreviewCommit(contract, env);
     if (!contract || !deployment || !isVercelPreviewOrigin(deployment, contract) || !runtimeVerified) return null;
+    if (contract === PREVIEW_CONTRACTS.r404Staging
+      && (!previewContractMetadataAttested(contract, env) || !r404ConnectionTargetsConfigured(env))) return null;
     if (hasConfigured && !configured) return null;
     if (configured) {
       if (!isApprovedPreviewOrigin(configured, contract, deployment)) return null;

@@ -715,7 +715,7 @@ export function TrainerCheckoutPage({
             ← Sepete dön
           </Link>
 
-          <h2>{confirmedOrder ? "Siparişiniz Alındı" : "Ödemeye Geçin"}</h2>
+          <h2>{confirmedOrder?.paymentMethod === "PAYTR" ? (confirmedOrder.status === "PAID" ? "\u00d6deme tamamland\u0131" : "") : confirmedOrder ? "Sipari\u015f bilgileri" : "\u00d6demeye ge\u00e7in"}</h2>
 
           <p>
             Teslimat, fatura ve ödeme
@@ -723,7 +723,7 @@ export function TrainerCheckoutPage({
           </p>
         </div>
 
-        {message && (
+        {message && confirmedOrder?.paymentMethod !== "PAYTR" && (
           <p
             className="trainer-commerce-message"
             role="status"
@@ -732,22 +732,35 @@ export function TrainerCheckoutPage({
           </p>
         )}
 
-        {confirmedOrder && <section className="trainer-checkout-step" aria-labelledby="trainer-order-success-heading">
-          <h2 id="trainer-order-success-heading">Siparişiniz alındı</h2>
+        
+        {confirmedOrder?.paymentMethod === "PAYTR" && confirmedOrder.status === "PENDING_PAYMENT" && (
+          <PaytrCheckout
+            orderId={confirmedOrder.id}
+            statusUrl={`/api/trainer/orders?orderId=${encodeURIComponent(confirmedOrder.id)}`}
+            onPaymentState={(next: string) => setConfirmedOrder((current) => current ? ({ ...current, status: next === "succeeded" ? "PAID" : next === "review" ? "PAYMENT_REVIEW" : current.status }) : current)}
+            amountMinor={Number(confirmedOrder.totalMinor)}
+            legalReady={true}
+            summary={{
+              title: (confirmedOrder.items || []).map((item) => item.title).filter(Boolean).join(", ") || "E\u011fitmen e\u011fitim paketi",
+              price: money(Number(confirmedOrder.totalMinor || 0)),
+              delivery: "Paket kapsam\u0131ndaki e\u011fitim ve varsa fiziksel \u00fcr\u00fcnler"
+            }}
+          />
+        )}
+
+        {confirmedOrder?.paymentMethod === "PAYTR" && !["PAID","PENDING_PAYMENT"].includes(confirmedOrder.status) && (
+          <section className="trainer-checkout-step" role="status">
+            <h2>{"\u00d6deme durumu"}</h2>
+            <p>{"\u00d6demeniz tamamlanmad\u0131 veya i\u015flem incelemededir."}</p>
+            <Link to="/panel/egitmen/sepet">{"Sepete d\u00f6n"}</Link>
+          </section>
+        )}
+{confirmedOrder && (confirmedOrder.paymentMethod !== "PAYTR" || confirmedOrder.status === "PAID") && <section className="trainer-checkout-step" aria-labelledby="trainer-order-success-heading">
+          <h2 id="trainer-order-success-heading">{confirmedOrder.status === "PAID" ? "\u00d6demeniz ba\u015far\u0131yla tamamland\u0131!" : "Havale / EFT bilgileri"}</h2>
           <p>Numara: <strong>{confirmedOrder.id}</strong></p>
           <p>Toplam: <strong>{money(Number(confirmedOrder.totalMinor || 0))}</strong></p>
           <p>Durum: <strong>{confirmedOrder.status === 'PAID' ? 'Ödendi' : confirmedOrder.paymentMethod === 'BANK_TRANSFER' ? 'Havale/EFT doğrulaması bekleniyor' : 'Ödeme bekleniyor'}</strong></p>
-          {confirmedOrder.paymentMethod === 'PAYTR' && confirmedOrder.status === 'PENDING_PAYMENT' && (
-            <PaytrCheckout
-              orderId={confirmedOrder.id}
-              legalReady={true}
-              summary={{
-                title: (confirmedOrder.items || []).map((item) => item.title).filter(Boolean).join(', ') || 'Eğitmen eğitim paketi',
-                price: money(Number(confirmedOrder.totalMinor || 0)),
-                delivery: 'Satın alınan eğitim ve varsa fiziksel ürünler',
-              }}
-            />
-          )}
+          
           {confirmedOrder.paymentMethod === 'PAYTR' && confirmedOrder.status !== 'PAID' && confirmedOrder.status !== 'PENDING_PAYMENT' && <p>Bu siparişin ödeme durumu yeniden incelenmelidir. Ödeme yetkilendirmesi henüz yapılmadı.</p>}
           <Link to="/panel/egitmen/egitimlerim">Eğitimlerime dön</Link>
         </section>}

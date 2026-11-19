@@ -11,6 +11,7 @@ import {
 import "./student-portal.css";
 import { StudentR6CommercePanel } from "./StudentR6CommercePanel";
 import { pushEvent } from "../../martech/events.js";
+import InstallmentCampaignBanner from "../../shared/InstallmentCampaignBanner";
 
 type StudentChoice = {
   studentProfileId: string;
@@ -381,6 +382,7 @@ export function StudentPackagesPage({
   return shell(
     <>
       <StudentR6CommercePanel token={new URLSearchParams(location.search).get("token")} />
+      <InstallmentCampaignBanner />
       <div
         className={`student-package-hero student-package-theme--${meta.theme}`}
       >

@@ -5,6 +5,7 @@ import Footer from "../components/Footer.jsx";
 import { FixokuPhotoV41F, packageImageDefaultV41F } from "../platform/admin/FixokuCatalogAssetsV41F";
 import { rememberStudentPurchaseIntent } from "../utils/purchaseIntent.js";
 import { pushEvent } from "../martech/events.js";
+import InstallmentCampaignBanner from "../shared/InstallmentCampaignBanner";
 import "./education-packages-owner-v1.css";
 
 const CATEGORIES = [
@@ -148,6 +149,7 @@ export default function EducationPackagesPage() {
           <div className="fx-ep-underline" aria-hidden="true" />
           <p>{meta.subtitle}</p>
         </header>
+        {!previewMode && <InstallmentCampaignBanner />}
         {previewMode && <div className="fx-ep-preview-note" role="status">Owner önizlemesi: Taslak paketler de gösterilir. Bu görünüm kamuya açık değildir ve satın alma işlemi başlatmaz.</div>}
         <nav className="fx-ep-tabs" aria-label="Eğitim paketi kategorileri">
           {CATEGORIES.map((item) => <button type="button" key={item.id} aria-current={category === item.id ? "page" : undefined} className={`fx-ep-tab ${item.id === category ? "fx-ep-selected" : ""}`} onClick={() => setCategory(item.id)}>{item.label}</button>)}

@@ -1,7 +1,7 @@
 /* global process */
 import crypto from "node:crypto";
 import { queueOwnerOrderEvent } from "./owner-order-notifications-r390.js";
-import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
+import { tryQueueOwnerManagementEmail as queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 import { queuePanelNotification, queueRolePanelNotifications } from "./panel-notifications.js";
 
 export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -205,7 +205,7 @@ export async function buildLegalSnapshots(client, { orderId, buyerUserId }) {
   return { orderId: row.id, buyer: { userId: row.buyer_user_id, email: row.buyer_email, name: row.buyer_name }, order: { status: row.status, currency: row.currency, subtotalMinor: Number(row.subtotal_minor), shippingMinor: Number(row.shipping_minor || 0), totalMinor: Number(row.total_minor) }, items: row.items, snapshots };
 }
 
-export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = null, provider = "DEV_ONLY_LOCAL", providerEventId = `dev-settlement:${orderId}`, amountMinor = undefined, currency = undefined, manageTransaction = true }) {
+export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = null, provider = "DEV_ONLY_LOCAL", providerEventId = `dev-settlement:${orderId}`, amountMinor = undefined, currency = undefined, manageTransaction = true, settlement = null }) {
   if (!UUID_PATTERN.test(String(orderId || ""))) throw error("INVALID_ORDER_ID", 400);
   const client = manageTransaction ? await pool.connect() : pool;
   try {
@@ -243,7 +243,15 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
       on conflict(provider,provider_event_id) do update set attempt_count=payment_webhook_events.attempt_count+1
       returning *
     `, [provider, providerEventId, payloadHash, JSON.stringify({ orderId, amountMinor: order.total_minor, currency: order.currency })])).rows[0];
-    await client.query(`insert into payment_transactions(payment_intent_id,provider,provider_transaction_id,transaction_type,status,amount_minor,currency,metadata_json,occurred_at) values($1,$2,$3,'SETTLEMENT','SUCCEEDED',$4,$5,$6,now()) on conflict(provider,provider_transaction_id,transaction_type) do nothing`, [payment.id, provider, providerEventId, order.total_minor, order.currency, JSON.stringify({ source: provider === "BANK_TRANSFER" ? "OWNER_BANK_TRANSFER_APPROVAL" : "LOCAL_DEV_ONLY" })]);
+    const collectedAmountMinor = settlement?.collectedAmountMinor ?? Number(order.total_minor);
+    const paymentMetadata = { source: provider === "PAYTR" ? "PAYTR_VERIFIED_SETTLEMENT" : provider === "BANK_TRANSFER" ? "OWNER_BANK_TRANSFER_APPROVAL" : "LOCAL_DEV_ONLY", orderAmountMinor: Number(order.total_minor), collectedAmountMinor, installmentDifferenceMinor: settlement?.installmentDifferenceMinor ?? 0, ...(provider === "PAYTR" && settlement ? { settlement } : {}) };
+    await client.query(`insert into payment_transactions(payment_intent_id,provider,provider_transaction_id,transaction_type,status,amount_minor,currency,metadata_json,occurred_at) values($1,$2,$3,'SETTLEMENT','SUCCEEDED',$4,$5,$6,now()) on conflict(provider,provider_transaction_id,transaction_type) do nothing`, [payment.id, provider, providerEventId, collectedAmountMinor, order.currency, JSON.stringify(paymentMetadata)]);
+    if (provider === "PAYTR") {
+      await client.query(`insert into owner_finance_ledger(entry_type,source_type,source_id,amount_minor,currency,metadata_json) select 'PAYMENT_SETTLEMENT','PAYTR_PAYMENT', $1,$2,$3,$4 where not exists (select 1 from owner_finance_ledger where entry_type='PAYMENT_SETTLEMENT' and source_type='PAYTR_PAYMENT' and source_id=$1)`, [providerEventId, collectedAmountMinor, order.currency, JSON.stringify(paymentMetadata)]);
+      try {
+        await client.query(`update paytr_payment_attempts set status='SUCCEEDED',provider_reference=$1,provider_transaction_id=$2,collected_amount_minor=$3,installment_count=$4,installment_difference_minor=$5,verified_at=coalesce(verified_at,now()),succeeded_at=coalesce(succeeded_at,now()),last_error_code=null,review_required=false,updated_at=now() where merchant_oid=$6`, [providerEventId, settlement?.providerTransactionId || null, collectedAmountMinor, settlement?.installments || null, settlement?.installmentDifferenceMinor || 0, String(providerEventId).replace(/^paytr:/u, "")]);
+      } catch (cause) { if (cause?.code !== "42P01" || process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") throw cause; }
+    }
     await client.query("update payment_intents set status='SUCCEEDED',provider=$1,provider_reference=$2,succeeded_at=coalesce(succeeded_at,now()),updated_at=now() where id=$3", [provider, providerEventId, payment.id]);
     await client.query("update orders set status='PAID',completed_at=coalesce(completed_at,now()),updated_at=now() where id=$1", [order.id]);
     const items = (await client.query("select * from order_items where order_id=$1 order by id", [order.id])).rows;
@@ -409,3 +417,4 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
     throw cause;
   } finally { if (manageTransaction) client.release(); }
 }
+

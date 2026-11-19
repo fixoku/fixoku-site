@@ -1,4 +1,5 @@
-import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
+/* global process */
+import { tryQueueOwnerManagementEmail as queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 const enabled = () => process.env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED === "1";
 const date = value => new Intl.DateTimeFormat("tr-TR", {timeZone:"Europe/Istanbul",dateStyle:"short",timeStyle:"short"}).format(value);
 const month = value => new Intl.DateTimeFormat("tr-TR", {timeZone:"Europe/Istanbul",month:"long",year:"numeric"}).format(value);
@@ -26,3 +27,4 @@ export async function ownerQualificationCreated(client,{grantId,trainerUserId,qu
   if (!row?.trainerName || !row?.qualificationName) throw new Error("OWNER_QUALIFICATION_METADATA_MISSING");
   await queueOwnerManagementEmail(client,{templateKey:"owner-qualification",eventId:grantId,metadata:{...row,date:date(new Date()),status:"Uzmanlık etkinleşti"}});
 }
+

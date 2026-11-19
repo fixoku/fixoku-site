@@ -152,6 +152,11 @@ export function OwnerFinancePage() {
         </article>
       </section>
 
+      <section className="panel-card finance-table-card" aria-labelledby="paytr-review-heading">
+        <div className="admin-section-heading"><div><span className="admin-eyebrow">PAYTR</span><h2 id="paytr-review-heading">Ödeme inceleme kayıtları</h2></div><span className="admin-section-meta">{data.paytrAttempts?.length || 0} kayıt</span></div>
+        {data.paytrAttempts?.length ? <div className="finance-table-wrap" tabIndex={0} role="region" aria-label="PayTR ödeme inceleme kayıtları; yatay kaydırılabilir"><table><thead><tr><th>Sipariş türü</th><th>Durum</th><th>Sipariş tutarı</th><th>Tahsilat</th><th>Taksit / fark</th><th>Callback</th><th>İnceleme</th></tr></thead><tbody>{data.paytrAttempts.map((item: any) => <tr key={item.id}><td><strong>{item.orderKind === "TRAINER_PACKAGE_ORDER" ? "Eğitmen" : "Öğrenci"}</strong><small>{String(item.orderId).slice(0, 8).toUpperCase()} · {item.environment}</small></td><td><strong>{item.status}</strong><small>{item.orderStatus || "—"} · {item.tokenStatus}</small></td><td>{money(item.orderAmountMinor, item.currency)}</td><td>{money(item.collectedAmountMinor, item.currency)}</td><td>{item.installmentCount == null ? "—" : `${item.installmentCount} · ${money(item.installmentDifferenceMinor, item.currency)}`}</td><td>{item.lastCallbackStatus || "—"}<small>{item.verifiedAt ? new Date(item.verifiedAt).toLocaleString("tr-TR") : "Doğrulama yok"}</small></td><td>{item.reviewRequired ? <span className="admin-callout is-danger">İnceleme · {item.lastErrorCode || item.reviewReason || "Belirsiz sonuç"}</span> : "—"}</td></tr>)}</tbody></table></div> : <div className="admin-empty-state"><span>PayTR ödeme inceleme kaydı bulunmuyor.</span></div>}
+      </section>
+
       <details className="panel-card finance-adjustment-details">
         <summary>Gelişmiş finans işlemleri</summary>
         <p className="finance-adjustment-help">Bu alan yalnızca muhasebe defterine ek düzeltme kaydı yazar; PayTR iadesi, banka transferi veya gerçek satış işlemi başlatmaz.</p>

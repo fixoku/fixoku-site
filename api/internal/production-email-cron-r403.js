@@ -136,7 +136,8 @@ export function createProductionEmailCron({
       });
 
       if (
-        ["REVIEW_REQUIRED","START_DATE_REQUIRED"].includes(owner.dailySummary) ||
+        ["OWNER_START_DATE_REQUIRED","OWNER_SMTP_BLOCKED","OWNER_RECIPIENT_BLOCKED","OWNER_WORKER_DISABLED","OWNER_NOTIFICATIONS_DISABLED"].includes(owner.status) ||
+        ["REVIEW_REQUIRED","START_DATE_REQUIRED","OWNER_START_DATE_REQUIRED"].includes(owner.dailySummary) ||
         Number(owner.reviewRequired || 0) > 0
       ) {
         return reply(res, 503, {

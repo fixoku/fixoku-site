@@ -3,7 +3,7 @@ import { getProfileMediaConfig, readProfilePhoto } from "../../src/server/domain
 import crypto from "node:crypto";
 import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
-import { calculateR6PayoutFromMatrix, isUuid, normalizeR6GroupInput, r6GroupStatus } from "../../src/server/domain/r6-training.js";
+import { isUuid, normalizeR6GroupInput, r6GroupStatus } from "../../src/server/domain/r6-training.js";
 import { assertActiveTrainerExpertise, effectiveTrainerQualificationPredicate, TRAINER_BASE_QUALIFICATION_CODES } from "../../src/server/domain/trainer-expertise.js";
 
 const json = (res, status, body) => {

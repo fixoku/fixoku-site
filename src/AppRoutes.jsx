@@ -58,7 +58,7 @@ import { AdminStudentsPage } from "./platform/admin/AdminStudentsPage";
 import { AdminAuditHistoryPage } from "./platform/admin/AdminAuditHistoryPage";
 import { AdminUserOperationsPage } from "./platform/admin/AdminUserOperationsPage";
 import { AdminQueryProvider } from "./platform/admin/AdminQueryProvider";
-import { ProtectedPanelEntry, ProtectedPanelRouter, ProtectedTrainerProfile, ProtectedTrainerAssignments, ProtectedTrainerCart, ProtectedTrainerCheckout, ProtectedTrainerVideo, ProtectedTrainerResources, ProtectedTrainerEarnings, ProtectedTrainerAvailability, ProtectedTrainerStudents, ProtectedTrainerStudentDetail, ProtectedStudentPortal, ProtectedStudentPackages, ProtectedStudentCart, ProtectedStudentCheckout, ProtectedAdminTrainers, ProtectedOwnerFinance, ProtectedOwnerRefundWorkspace, ProtectedAdminShipments, ProtectedAdminProducts, ProtectedAdminProductDetail, ProtectedStudentShipments, ProtectedStudentProfile, ProtectedStudentChildren, ProtectedNotifications, ProtectedMeasurement, ProtectedEmailTemplates, ProtectedLegalPreparation, ProtectedR6CustomOffers, ProtectedR6TrainingGroups, ProtectedR6Payouts, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
+import { ProtectedPanelEntry, ProtectedPanelRouter, ProtectedTrainerProfile, ProtectedTrainerAssignments, ProtectedTrainerCart, ProtectedTrainerCheckout, ProtectedTrainerShipments, ProtectedTrainerVideo, ProtectedTrainerResources, ProtectedTrainerEarnings, ProtectedTrainerAvailability, ProtectedTrainerStudents, ProtectedTrainerStudentDetail, ProtectedStudentPortal, ProtectedStudentPackages, ProtectedStudentCart, ProtectedStudentCheckout, ProtectedAdminTrainers, ProtectedOwnerFinance, ProtectedOwnerRefundWorkspace, ProtectedAdminShipments, ProtectedAdminProducts, ProtectedAdminProductDetail, ProtectedStudentShipments, ProtectedStudentProfile, ProtectedStudentChildren, ProtectedNotifications, ProtectedMeasurement, ProtectedEmailTemplates, ProtectedOwnerInstallmentCampaign, ProtectedLegalPreparation, ProtectedR6CustomOffers, ProtectedR6TrainingGroups, ProtectedR6Payouts, FoundationPanel } from "./platform/auth/ProtectedPanelEntry";
 
 const ManagementShell=({user,uiRole,children})=><PanelShell user={user} role={uiRole === "OWNER" ? "OWNER" : "ADMIN"}>{children}</PanelShell>;
 const OwnerShell=({user,children})=><PanelShell user={user} role="OWNER">{children}</PanelShell>;
@@ -208,6 +208,7 @@ export default function AppRoutes() {
         <Route path="/panel/egitmen/egitimlerim/:slug" element={<ProtectedTrainerVideo />} />
         <Route path="/panel/egitmen/sepet" element={<ProtectedTrainerCart />} />
         <Route path="/panel/egitmen/checkout" element={<ProtectedTrainerCheckout />} />
+        <Route path="/panel/egitmen/kargolar" element={<ProtectedTrainerShipments />} />
         <Route path="/panel/egitmen/sunumlarim" element={<TrainerPanelEntrySwitch view="presentations" />} />
         <Route path="/panel/egitmen/kaynaklarim" element={<ProtectedTrainerResources />} />
         <Route path="/panel/egitmen/ogrencilerim" element={<ProtectedTrainerStudents />} />
@@ -247,6 +248,7 @@ export default function AppRoutes() {
         <Route path="/panel/owner/hakedisler" element={<ProtectedR6Payouts />} />
         <Route path="/panel/owner/olcumleme" element={<ProtectedMeasurement />} />
         <Route path="/panel/owner/e-posta-sablonlari" element={<ProtectedEmailTemplates />} />
+        <Route path="/panel/owner/taksit-kampanyasi" element={<ProtectedOwnerInstallmentCampaign />} />
         <Route path="/panel/owner/yasal-hazirlik" element={<ProtectedLegalPreparation />} />
         <Route path="/panel/ogrenci" element={<ProtectedStudentPortal />} />
         <Route path="/panel/ogrenci/paketler" element={<ProtectedStudentPackages />} />

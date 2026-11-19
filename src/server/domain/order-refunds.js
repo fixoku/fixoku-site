@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
+import { tryQueueOwnerManagementEmail as queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 import { verifyRefundEvidence } from "../payments/refund-adapter.js";
 import { queuePanelNotification, queueRolePanelNotifications } from "./panel-notifications.js";
 
@@ -271,3 +271,4 @@ export async function processOrderRefund(pool, options) {
     if (options.manageTransaction !== false) client.release();
   }
 }
+

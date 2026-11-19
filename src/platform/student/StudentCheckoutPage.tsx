@@ -456,7 +456,7 @@ export function StudentCheckoutPage({
               ← Sepete dön
             </Link>
 
-            <h2>{orderId ? "Sipari\u015f Sonucu" : "\u00d6demeye Ge\u00e7in"}</h2>
+            <h2>{savedOrder?.paymentMethod === "PAYTR" ? (savedOrder.status === "PAID" ? "\u00d6deme tamamland\u0131" : "") : orderId ? "Sipari\u015f bilgileri" : "\u00d6demeye ge\u00e7in"}</h2>
 
             <p>
               Teslimat, fatura ve ödeme
@@ -464,7 +464,7 @@ export function StudentCheckoutPage({
             </p>
           </div>
 
-          {message && (
+          {message && savedOrder?.paymentMethod !== "PAYTR" && (
             <p
               className="trainer-commerce-message"
               role="status"
@@ -483,6 +483,9 @@ export function StudentCheckoutPage({
 
                 <PaytrCheckout
                   orderId={orderId}
+                  statusUrl={`/api/student/orders?orderId=${encodeURIComponent(orderId)}`}
+                  onPaymentState={(next: string) => setSavedOrder((current) => current ? ({ ...current, status: next === "succeeded" ? "PAID" : next === "review" ? "PAYMENT_REVIEW" : current.status }) : current)}
+                  amountMinor={savedOrder.totalMinor}
                   summary={{
                     title:
                       savedOrder.items
@@ -509,7 +512,7 @@ export function StudentCheckoutPage({
 
 
 
-          {orderId && savedOrder && (
+          {orderId && savedOrder && (savedOrder.paymentMethod !== "PAYTR" || savedOrder.status === "PAID") && (
             <section
   className="fixoku-order-success-r385"
   aria-labelledby="fixoku-order-success-title"

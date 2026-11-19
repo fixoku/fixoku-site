@@ -1,4 +1,4 @@
-import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
+import { tryQueueOwnerManagementEmail as queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 import { queueOwnerOrderEvent } from "./owner-order-notifications-r390.js";
 /* global process */
 import { legalSnapshotRows, readPublishedLegalDocuments, trainerLegalAcceptance } from "./trainer-legal-documents.js";
@@ -8,6 +8,7 @@ import { effectiveTrainerQualificationPredicate } from "./trainer-expertise.js";
 // payment settlement intentionally does not invoke it.
 import { readEffectiveVatDecision } from "./commerce.js";
 import { queuePanelNotification, queueRolePanelNotifications } from "./panel-notifications.js";
+import { ensurePaytrPaymentAttempt } from "../payments/paytr.js";
 
 export const TRAINER_COMMERCE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const PENDING_STATUSES = ["PENDING_PAYMENT", "PAYMENT_REVIEW"];
@@ -221,6 +222,10 @@ export async function createTrainerOrder(client, principal, input) {
     });
     const subtotalMinor = snapshots.reduce((sum, item) => sum + item.gross, 0); const discountMinor = snapshots.reduce((sum, item) => sum + item.discountMinor, 0); const shippingMinor = cartShippingMinor; const taxMinor = snapshots.reduce((sum, item) => sum + item.lineVat, 0) + shippingVatMinor; const totalMinor = subtotalMinor + shippingMinor;
     const order = (await client.query(`insert into trainer_package_orders(trainer_user_id,status,payment_method,currency,subtotal_minor,shipping_minor,discount_minor,tax_minor,total_minor,shipping_address_snapshot_json,billing_snapshot_json,invoice_status,idempotency_key,request_hash) values($1,$2,$3,'TRY',$4,$5,$6,$7,$8,$9,$10,'PENDING',$11,$12) returning *`, [trainerUserId, paymentMethod === "BANK_TRANSFER" ? "PAYMENT_REVIEW" : "PENDING_PAYMENT", paymentMethod, subtotalMinor, shippingMinor, discountMinor, taxMinor, totalMinor, JSON.stringify(shipping), JSON.stringify(billing), idempotencyKey, requestHash])).rows[0];
+    if (paymentMethod === "PAYTR") {
+      try { await ensurePaytrPaymentAttempt(client, { orderKind: "TRAINER_PACKAGE_ORDER", orderId: order.id, amountMinor: order.total_minor, currency: order.currency, environment: "TEST" }); }
+      catch (cause) { if (cause?.code !== "42P01" || process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") throw cause; }
+    }
     for (const item of snapshots) {
       const invoiceDescription = item.offerLine ? `${item.row.invoice_description || item.row.description || item.row.title}
 [R6_CUSTOM_OFFER_ID:${customOfferId}]` : item.row.invoice_description;
@@ -240,10 +245,11 @@ export async function createTrainerOrder(client, principal, input) {
   } catch (error) { await client.query("rollback"); throw error; }
 }
 
-export async function fulfillTrainerOrder(client, { orderId, actorUserId, provider, providerReference, amountMinor = undefined, currency = undefined, manageTransaction = true }) {
+export async function fulfillTrainerOrder(client, { orderId, actorUserId, provider, providerReference, amountMinor = undefined, currency = undefined, manageTransaction = true, settlement = null }) {
   if (!TRAINER_COMMERCE_UUID.test(String(orderId || ""))) throw fail("INVALID_ORDER_ID");
   if (manageTransaction) await client.query("begin");
   try {
+    await client.query("select pg_advisory_xact_lock(hashtext($1))", [`TRAINER_PAYTR_ORDER:${orderId}`]);
     const order = (await client.query("select * from trainer_package_orders where id=$1 for update", [orderId])).rows[0]; if (!order) throw fail("ORDER_NOT_FOUND", 404);
     // A PayTR callback must carry the same immutable amount and currency that
     // were captured at checkout.  The callback handler performs the first
@@ -255,7 +261,8 @@ export async function fulfillTrainerOrder(client, { orderId, actorUserId, provid
     if (provider === "PAYTR" && order.payment_method !== "PAYTR") throw fail("PAYTR_METHOD_REQUIRED", 409);
     if (provider === "BANK_TRANSFER" && order.payment_method !== "BANK_TRANSFER") throw fail("BANK_TRANSFER_METHOD_REQUIRED", 409);
     if (order.status === "PAID") { const materialized = (await client.query("select count(*)::int as count from trainer_order_physical_items poi join trainer_package_order_items oi on oi.id=poi.trainer_package_order_item_id where oi.order_id=$1", [orderId])).rows[0]; if (manageTransaction) await client.query("commit"); return { replay: true, orderStatus: "PAID", physicalItemCount: Number(materialized?.count || 0) }; }
-    if (!PENDING_STATUSES.includes(order.status)) throw fail("ORDER_NOT_SETTLEABLE", 409);
+    const recoverablePaytrFailure = provider === "PAYTR" && ["CANCELLED", "REJECTED"].includes(order.status);
+    if (!PENDING_STATUSES.includes(order.status) && !recoverablePaytrFailure) throw fail("ORDER_NOT_SETTLEABLE", 409);
     const items = (await client.query("select * from trainer_package_order_items where order_id=$1 order by id", [orderId])).rows;
     const components = [];
     for (const item of items) {
@@ -264,21 +271,29 @@ export async function fulfillTrainerOrder(client, { orderId, actorUserId, provid
       await client.query(`insert into trainer_package_entitlements(trainer_user_id,package_id,package_version_id,status,source,source_order_id,assigned_by) values($1,$2,$3,'ACTIVE','PAYMENT',$4,$5) on conflict(trainer_user_id,package_id) where status='ACTIVE' do nothing`, [order.trainer_user_id, item.package_id, item.package_version_id, order.id, actorUserId]);
     }
     const trainerUser = (await client.query("select id,email from platform_users where id=$1", [order.trainer_user_id])).rows[0];
-    const grouped = new Map();
-    for (const component of components) grouped.set(component.physical_product_id, (grouped.get(component.physical_product_id) || 0) + component.requiredQuantity);
-    for (const [productId, quantity] of [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b))) {
-      const product = (await client.query("select id,on_hand,reserved from physical_products where id=$1 for update", [productId])).rows[0];
-      if (!product || Number(product.on_hand) - Number(product.reserved) < quantity) throw fail("INSUFFICIENT_STOCK", 409);
-      const movementKey = `TRAINER_ORDER:${order.id}:RESERVATION:${productId}`;
-      const movement = (await client.query("insert into inventory_movements(physical_product_id,movement_type,quantity,source_type,source_id,idempotency_key) values($1,'RESERVATION',$2,'TRAINER_ORDER',$3,$4) on conflict(idempotency_key) do nothing returning id", [productId, quantity, order.id, movementKey])).rows[0];
-      if (movement) await client.query("update physical_products set reserved=reserved+$1,updated_at=now() where id=$2", [quantity, productId]);
-    }
+    // FIXOKU: unlimited stock policy.
+    // Purchased physical quantities remain in fulfillment snapshots.
+    // No stock reservation or stock depletion is performed here.
+
     for (const component of components) await client.query(`insert into trainer_order_physical_items(trainer_package_order_item_id,package_component_id,physical_product_id,quantity,title_snapshot,sku_snapshot,display_label_snapshot) values($1,$2,$3,$4,$5,$6,$7) on conflict(trainer_package_order_item_id,package_component_id) do nothing`, [component.item.id, component.component_id, component.physical_product_id, component.requiredQuantity, component.title, component.sku, component.display_label || component.title_snapshot]);
     await client.query("update trainer_package_orders set status='PAID',completed_at=coalesce(completed_at,now()),invoice_status='PENDING',updated_at=now() where id=$1", [order.id]);
+    if (provider === "PAYTR") {
+      const collectedAmountMinor = settlement?.collectedAmountMinor ?? Number(order.total_minor);
+      const paymentMetadata = { source: "PAYTR_VERIFIED_SETTLEMENT", orderAmountMinor: Number(order.total_minor), collectedAmountMinor, installmentDifferenceMinor: settlement?.installmentDifferenceMinor ?? 0, ...(settlement ? { settlement } : {}) };
+      await client.query(`insert into owner_finance_ledger(entry_type,source_type,source_id,amount_minor,currency,metadata_json) select 'PAYMENT_SETTLEMENT','PAYTR_PAYMENT',$1,$2,$3,$4 where not exists (select 1 from owner_finance_ledger where entry_type='PAYMENT_SETTLEMENT' and source_type='PAYTR_PAYMENT' and source_id=$1)`, [providerReference, collectedAmountMinor, order.currency, JSON.stringify(paymentMetadata)]);
+      try {
+        await client.query(`update paytr_payment_attempts set status='SUCCEEDED',provider_reference=$1,provider_transaction_id=$2,collected_amount_minor=$3,installment_count=$4,installment_difference_minor=$5,verified_at=coalesce(verified_at,now()),succeeded_at=coalesce(succeeded_at,now()),last_error_code=null,review_required=false,updated_at=now() where merchant_oid=$6`, [providerReference, settlement?.providerTransactionId || null, collectedAmountMinor, settlement?.installments || null, settlement?.installmentDifferenceMinor || 0, String(providerReference).replace(/^paytr:/u, "")]);
+      } catch (cause) { if (cause?.code !== "42P01" || process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") throw cause; }
+    }
     await client.query("update r6_custom_offers set status='ACCEPTED',accepted_at=coalesce(accepted_at,now()),updated_at=now() where status='SENT' and customer_user_id=$1 and id=(select substring(invoice_description_snapshot from '\\[R6_CUSTOM_OFFER_ID:([0-9a-f-]{36})\\]')::uuid from trainer_package_order_items where order_id=$2 and invoice_description_snapshot like '%[R6_CUSTOM_OFFER_ID:%' limit 1)", [order.trainer_user_id, order.id]);
-    const shipment = (await client.query(`insert into trainer_order_shipments(order_id,trainer_user_id,address_snapshot_json,shipping_charge_minor,status,provider_enabled) values($1,$2,$3,$4,'PREPARING',false) on conflict(order_id) do update set updated_at=now() returning id`, [order.id, order.trainer_user_id, order.shipping_address_snapshot_json, order.shipping_minor])).rows[0];
+
     const physicalItems = (await client.query("select poi.id as physical_item_id,poi.physical_product_id,poi.quantity,poi.title_snapshot,poi.sku_snapshot,poi.display_label_snapshot from trainer_order_physical_items poi join trainer_package_order_items oi on oi.id=poi.trainer_package_order_item_id where oi.order_id=$1 order by poi.id", [order.id])).rows;
-    for (const item of physicalItems) await client.query(`insert into trainer_order_shipment_items(trainer_order_shipment_id,trainer_order_physical_item_id,physical_product_id,quantity,title_snapshot,sku_snapshot,display_label_snapshot) values($1,$2,$3,$4,$5,$6,$7) on conflict(trainer_order_shipment_id,trainer_order_physical_item_id) do nothing`, [shipment.id, item.physical_item_id, item.physical_product_id, item.quantity, item.title_snapshot, item.sku_snapshot, item.display_label_snapshot]);
+    let shipment = null;
+    if (physicalItems.length > 0) {
+      if (!order.shipping_address_snapshot_json) throw fail("SHIPPING_ADDRESS_REQUIRED", 409);
+      shipment = (await client.query(`insert into trainer_order_shipments(order_id,trainer_user_id,address_snapshot_json,shipping_charge_minor,status,provider_enabled) values($1,$2,$3,$4,'PREPARING',false) on conflict(order_id) do update set updated_at=now() returning id`, [order.id, order.trainer_user_id, order.shipping_address_snapshot_json, order.shipping_minor])).rows[0];
+      for (const item of physicalItems) await client.query(`insert into trainer_order_shipment_items(trainer_order_shipment_id,trainer_order_physical_item_id,physical_product_id,quantity,title_snapshot,sku_snapshot,display_label_snapshot) values($1,$2,$3,$4,$5,$6,$7) on conflict(trainer_order_shipment_id,trainer_order_physical_item_id) do nothing`, [shipment.id, item.physical_item_id, item.physical_product_id, item.quantity, item.title_snapshot, item.sku_snapshot, item.display_label_snapshot]);
+    }
     await queuePanelNotification(client, {
       recipientUserId: order.trainer_user_id,
       recipientEmail: trainerUser?.email,
@@ -288,7 +303,7 @@ export async function fulfillTrainerOrder(client, { orderId, actorUserId, provid
       metadata: { path: "/panel/egitmen/egitimlerim", orderId: order.id },
       dedupeKey: `trainer-package-activated:${order.id}`,
     });
-    await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.payment.settled','trainer_package_order',$2,'SUCCESS',$3,$4)", [actorUserId, order.id, crypto.randomUUID(), JSON.stringify({ provider, providerReference })]);
+    await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.payment.settled','trainer_package_order',$2,'SUCCESS',$3,$4)", [actorUserId, order.id, crypto.randomUUID(), JSON.stringify({ provider, providerReference, ...(provider === "PAYTR" && settlement ? { settlement } : {}) })]);
     await queueRolePanelNotifications(client, {
       role: "OWNER",
       scopeType: "GLOBAL",
@@ -317,3 +332,4 @@ export function watchedCoverageBps(ranges, duration) {
   const seconds = mergeWatchedRanges(ranges).reduce((sum, [start, end]) => sum + Math.max(0, Math.min(duration, end) - Math.min(duration, start)), 0);
   return Math.min(10000, Math.floor(seconds * 10000 / Math.max(1, duration)));
 }
+

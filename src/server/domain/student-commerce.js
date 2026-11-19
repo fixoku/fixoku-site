@@ -7,6 +7,7 @@ import { validateEducationSegment } from "./student-segment.js";
 import { shippingForStudentCartItems } from "./book-shipping.js";
 import { allocatePackageGross } from "./package-price-allocation.js";
 import { queueRolePanelNotifications } from "./panel-notifications.js";
+import { ensurePaytrPaymentAttempt } from "../payments/paytr.js";
 
 function error(code, status = 400) { return Object.assign(new Error(code), { code, status }); }
 const parseJson = (value, yedek) => {
@@ -278,6 +279,10 @@ export async function createStudentCommerceOrder(client, principal, input) {
     }
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'student.commerce.legal.accepted','order',$2,'SUCCESS',$3,$4)", [principal.user.id, order.id, crypto.randomUUID(), JSON.stringify(legalEvidence)]);
     const paymentIntent = (await client.query("insert into payment_intents(order_id,status,provider,amount_minor,currency,idempotency_key) values($1,'CREATED',null,$2,$3,$4) returning *", [order.id, order.total_minor, order.currency, `PAYMENT_INTENT:${order.id}`])).rows[0];
+    if (paymentMethod === "PAYTR") {
+      try { await ensurePaytrPaymentAttempt(client, { orderKind: "STUDENT_ORDER", orderId: order.id, amountMinor: order.total_minor, currency: order.currency, environment: "TEST" }); }
+      catch (cause) { if (cause?.code !== "42P01" || process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") throw cause; }
+    }
     if (accountMode) {
       await client.query("delete from student_cart_items where buyer_user_id=$1 and beneficiary_student_profile_id is null and beneficiary_child_profile_id is null", [principal.user.id]);
     } else {

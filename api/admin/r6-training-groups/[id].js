@@ -6,7 +6,7 @@ import { ownerEducationCompletion, ownerEducationEarning } from "../../../src/se
 import pg from "../../../src/server/db/guarded-pg.js";
 import { queueEmailOutbox } from "../../../src/server/domain/panel-notifications.js";
 import { resolvePrincipal, requirePermission } from "../../../src/server/auth/authorization.js";
-import { calculateR6PayoutFromMatrix, completionMonthBounds, isUuid } from "../../../src/server/domain/r6-training.js";
+import { completionMonthBounds, isUuid } from "../../../src/server/domain/r6-training.js";
 import { refundR6GroupParticipant } from "../../../src/server/domain/r6-training-lifecycle.js";
 
 const json = (res, status, body) => {

@@ -1,0 +1,10 @@
+{
+  "release": "R404",
+  "mode": "CONTROLLED_MANUAL",
+  "automaticExecution": false,
+  "productionApproved": false,
+  "stagingApproved": false,
+  "executionOrder": ["R404_01_PAYTR_PAYMENT_ATTEMPTS.sql", "R404_02_PAYTR_TOKEN_LEASES_AND_INTEGRITY.sql", "R404_03_SHIPMENT_DISPATCH_IDEMPOTENCY.sql", "R404_04_INSTALLMENT_CAMPAIGN_SETTINGS.sql"],
+  "rollback": "Forward-only, data-preserving repair; no evidence deletion",
+  "scope": "local/disposable or separately approved staging target only"
+}

@@ -1,6 +1,7 @@
+/* global process */
 import { createHash } from "node:crypto";
 import pg from "../db/guarded-pg.js";
-import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
+import { tryQueueOwnerManagementEmail as queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 
 // The original public SMTP delivery remains authoritative. A secondary
 // queue failure must not cause the visitor to resend the original message.
@@ -17,11 +18,12 @@ export async function queueAcceptedPublicOwnerEmail(templateKey, metadata, messa
     await client.query("commit");
     return queued;
   } catch {
-    if (client) { try { await client.query("rollback"); } catch {} }
+    if (client) { try { await client.query("rollback"); } catch { /* preserve public response */ } }
     logger.error?.("OWNER_PUBLIC_NOTIFICATION_QUEUE_FAILED", {templateKey});
     return false;
   } finally {
     client?.release();
-    if (pool) { try { await pool.end(); } catch {} }
+    if (pool) { try { await pool.end(); } catch { /* preserve public response */ } }
   }
 }
+

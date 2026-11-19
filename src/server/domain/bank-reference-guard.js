@@ -10,7 +10,7 @@ export function normalizeBankReference(value) {
   if (
     reference.length<3 ||
     reference.length>160 ||
-    /[\u0000-\u001f\u007f;]/u.test(reference)
+    ([...reference].some((character) => character.charCodeAt(0) <= 31 || character.charCodeAt(0) === 127) || reference.includes(";"))
   ) {
     throw fail("BANK_TRANSFER_REFERENCE_INVALID",400);
   }

@@ -8,6 +8,7 @@ import { trainerCourseCover020P } from "../components/trainerCourseCovers020P";
 import "./trainer-course-covers-020p.css";
 import "./trainer-trainings.css";
 import "./trainer-cards-020q.css";
+import InstallmentCampaignBanner from "../../../shared/InstallmentCampaignBanner";
 
 export type TrainerPackageRow = {
   packageId:string; packageVersionId:string; slug:string; title:string; description:string; shortDescription?:string|null; features:string[]; contentItems?:string[]; iconReference?:string|null;
@@ -44,6 +45,7 @@ export function TrainerTrainingsPage({user,candidatePreview=false}:{packages?:bo
  const prepareOffer=async(offer:TrainerSpecialOffer)=>{setMessage("");const response=await fetch("/api/trainer/custom-offers",{method:"POST",credentials:"include",headers:{"content-type":"application/json"},body:JSON.stringify({offerId:offer.id})});const body=await response.json().catch(()=>({}));if(!response.ok){setMessage(errorLabels[body.error]||"Özel teklif hazırlanamadı.");return}navigate(body.checkoutPath||`/panel/egitmen/checkout?customOfferId=${encodeURIComponent(offer.id)}`);};
  const add=async(row:TrainerPackageRow,buy=false)=>{if(candidatePreview)return;setMessage("");const response=await fetch("/api/trainer/cart",{method:"POST",credentials:"include",headers:{"content-type":"application/json"},body:JSON.stringify({packageVersionId:row.packageVersionId})});const body=await response.json().catch(()=>({}));if(!response.ok&&body.error!=="PACKAGE_ALREADY_IN_CART"){setMessage(errorLabels[body.error]||"Paket sepete eklenemedi.");return}window.dispatchEvent(new CustomEvent("fixoku:trainer-cart-updated"));await load();if(buy)navigate("/panel/egitmen/sepet");else setMessage("Paket sepetinize eklendi.");};
  return <PanelShell user={user}><main className="trainer-trainings-page trainer-commerce-catalog">
+  {!candidatePreview&&<InstallmentCampaignBanner />}
   {/* FIXOKU_020U_TRAININGS_TOP_BANNER_REMOVED */}
   {message&&<p className="trainer-commerce-message" role="status">{message}</p>}
   {!candidatePreview&&specialOffers.length>0&&<section className="trainer-special-offers" aria-label="Size Özel Paket Teklifiniz"><h2>Size Özel Paket Teklifiniz</h2><p>FIXOKU tarafından bu eğitmen hesabına özel sunuldu.</p>{specialOffers.map((offer)=><article key={offer.id} className="trainer-special-offer-card"><div><span>FIXOKU HESABINIZA ÖZEL</span><h3>{offer.title}</h3><p><del>{money(offer.listGrossMinor,offer.currency)}</del> <strong>{money(offer.specialGrossMinor,offer.currency)}</strong> · %{(offer.discountPercentBps/100).toFixed(2)} indirim</p>{offer.expiresAt&&<small>Son geçerlilik: {new Date(offer.expiresAt).toLocaleString("tr-TR")}</small>}</div><button type="button" className="trainer-package-primary" onClick={()=>void prepareOffer(offer)}>Sepete Ekle / Satın Al</button></article>)}</section>}

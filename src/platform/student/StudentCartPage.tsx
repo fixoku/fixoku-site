@@ -4,6 +4,7 @@ import { StudentPanelShell } from "./StudentPanelShell";
 import { TrainerIcon } from "../trainer/components/TrainerIcon";
 import "../trainer/commerce/trainer-commerce.css";
 import "./student-portal.css";
+import InstallmentCampaignBanner from "../../shared/InstallmentCampaignBanner";
 
 type CartItem = {
   kind?: string;
@@ -100,6 +101,7 @@ export function StudentCartPage({
     <StudentPanelShell user={user} guardian={guardian}>
       <div className="trainer-panel" style={{ display: "contents" }}>
         <main className="trainer-commerce-page trainer-cart-page">
+          <InstallmentCampaignBanner />
           <div className="trainer-commerce-heading">
             <Link
               to={cart?.beneficiary.studentProfileId ? `/panel/ogrenci/paketler?studentProfileId=${encodeURIComponent(cart.beneficiary.studentProfileId)}` : `/panel/ogrenci/paketler${accountQuery}`}

@@ -1,3 +1,4 @@
+/* global process */
 import { processOutboxBatch, getSmtpConfig } from "./email-outbox.js";
 import { queueDailyOwnerSummary } from "./owner-daily-summary-r391.js";
 
@@ -18,6 +19,10 @@ export async function runOwnerEmailWorker({
 
   if (env.FIXOKU_OWNER_NOTIFICATION_EMAIL !== "ersinusta@fixoku.com") {
     return { status: "OWNER_RECIPIENT_BLOCKED", processed: 0 };
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(String(env.FIXOKU_OWNER_EMAIL_START_DATE || ""))) {
+    return { status: "OWNER_START_DATE_REQUIRED", processed: 0 };
   }
 
   const smtp = getSmtpConfig(env);

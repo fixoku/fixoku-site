@@ -8,7 +8,8 @@ export function countPhysicalBooks(lines) {
     if (!Number.isSafeInteger(quantity) || quantity < 1)
       throw new RangeError("BOOK_QUANTITY_INVALID");
 
-    const physical = String(item?.productType || "").toUpperCase() === "PHYSICAL";
+    const productType = String(item?.productType || "").toUpperCase();
+    const physical = productType === "PHYSICAL" || productType === "BOOK";
     const subtype = String(item?.r6ProductType || "").toUpperCase();
 
     if (physical && subtype && subtype !== "BOOK")

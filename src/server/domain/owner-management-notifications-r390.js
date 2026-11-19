@@ -1,3 +1,4 @@
+/* global process */
 import { queueEmailOutbox } from "./panel-notifications.js";
 import { OWNER_EMAIL_EDITORIAL } from "./owner-email-editorial-r390.js";
 
@@ -12,7 +13,12 @@ export async function queueOwnerManagementEmail(client, { templateKey, eventId, 
   for (const key of definition.required || []) if (!String(metadata?.[key] ?? "").trim()) throw new Error("OWNER_NOTIFICATION_REQUIRED_FIELD_" + key);
   const rows = (await client.query(`select distinct u.id from platform_users u join platform_memberships m on m.user_id=u.id where lower(u.email)=$1 and u.email_verified=true and m.role='OWNER' and m.status='ACTIVE' and m.scope_type='GLOBAL' and m.scope_id is null`, ["ersin@fixoku.com"])).rows;
   if (rows.length !== 1) throw new Error("OWNER_NOTIFICATION_RECIPIENT_NOT_UNIQUE_VERIFIED_OWNER");
-  return queueEmailOutbox(client, {recipientUserId:rows[0].id, recipientEmail:address, eventType:templateKey.toUpperCase().replace(/-/g,"_"), subject:definition.title, body:"", metadata, dedupeKey:`owner-management:${templateKey}:${eventId}`});
+  return queueEmailOutbox(client, {recipientUserId:rows[0].id, recipientEmail:address, eventType:templateKey.toUpperCase().replace(/-/g,"_"), subject:`FIXOKU | ${definition.subject}`, body:"", metadata:{...metadata,recipientName:"Ersin Bey"}, dedupeKey:`owner-management:${templateKey}:${eventId}`});
+}
+
+export async function tryQueueOwnerManagementEmail(client, input, env = process.env, logger = console) {
+  try { return await queueOwnerManagementEmail(client, input, env); }
+  catch (error) { logger.warn?.("OWNER_EMAIL_QUEUE_DEFERRED", { code: error?.code || error?.message || "OWNER_EMAIL_QUEUE_FAILED" }); return false; }
 }
 
 // Only verified, active registrations; no historical backfill here.

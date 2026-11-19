@@ -45,6 +45,7 @@ const trainerNavigation: NavItem[] = [
   ["cap", "Eğitimlerim", "/panel/egitmen/egitimlerim"],
   ["folder", "Eğitmen Kaynakları", "/panel/egitmen/kaynaklarim"],
   ["users", "Öğrencilerim", "/panel/egitmen/ogrencilerim"],
+  ["cube", "Kargolarım", "/panel/egitmen/kargolar"],
   ["wallet", "Hakedişlerim", "/panel/egitmen/hakedislerim"],
   ["bell", "Bildirimler", "/panel/bildirimler"],
 ];
@@ -171,6 +172,7 @@ const ownerGroups: NavGroup[] = [
       ["bolt", "Entegrasyon Durumu", "/panel/owner/saglayicilar"],
       ["chart", "Ölçümleme", "/panel/owner/olcumleme"],
       ["mail", "E-posta Şablonları", "/panel/owner/e-posta-sablonlari"],
+      ["card", "Taksit Kampanyası", "/panel/owner/taksit-kampanyasi"],
       ["shield", "Yasal & Uyumluluk", "/panel/owner/yasal-hazirlik"],
       ["history", "Denetim Kaydı", "/panel/admin/denetim-gecmisi"],
       ["bell", "Bildirimler", "/panel/bildirimler"],

@@ -1,4 +1,4 @@
-import { calculateR6PayoutFromMatrix } from "./r6-training.js";
+
 
 function fail(code, status = 400) {
   throw Object.assign(new Error(code), { code, status });

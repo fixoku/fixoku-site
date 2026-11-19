@@ -117,6 +117,27 @@ export const PREVIEW_CONTRACTS = Object.freeze({
     deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-staging-acceptance-20261113|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
     forbiddenCommits: Object.freeze([]),
   }),
+  r404Staging: Object.freeze({
+    id: "r404-development",
+    businessGate: true,
+    branch: "codex/fixoku-r404-development",
+    vercelProjectId: "prj_yWvXfOndJ6se89FdCiPbvKIZoGwR",
+    expectedCommitEnv: "FIXOKU_R404_RUNTIME_EXPECTED_COMMIT_SHA",
+    probeEnabledEnv: "FIXOKU_R404_RUNTIME_PROBE_ENABLED",
+    probeTokenEnv: "FIXOKU_R404_RUNTIME_PROBE_TOKEN",
+    probeTokenHeader: "x-fixoku-r404-runtime-token",
+    metadata: Object.freeze({
+      attested: "FIXOKU_R404_ENDPOINT_METADATA_ATTESTED",
+      project: "FIXOKU_R404_NEON_PROJECT_ID",
+      branch: "FIXOKU_R404_NEON_BRANCH_ID",
+      database: "FIXOKU_R404_DATABASE",
+      pooledHost: "FIXOKU_R404_POOLED_HOST",
+      directHost: "FIXOKU_R404_DIRECT_HOST",
+    }),
+    fixedOrigins: Object.freeze(["https://staging.fixoku.com"]),
+    deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-r404-development|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
+    forbiddenCommits: Object.freeze(["a913f49b4e40213321b5304594ce3b0bf7bad40b"]),
+  }),
   r16Staging: Object.freeze({
     id: "r16-staging",
     businessGate: true,
@@ -315,7 +336,8 @@ export function previewContractMetadataConfigured(contract, env = process.env) {
   const metadata = contract.metadata;
   const usesR18Target = contract === PREVIEW_CONTRACTS.r18Acceptance
     || contract === PREVIEW_CONTRACTS.r54StudentAcceptance
-    || contract === PREVIEW_CONTRACTS.stagingAcceptance;
+    || contract === PREVIEW_CONTRACTS.stagingAcceptance
+    || contract === PREVIEW_CONTRACTS.r404Staging;
   const target = contract === PREVIEW_CONTRACTS.r16Staging
     ? R16_STAGING_METADATA
     : usesR18Target
@@ -354,6 +376,31 @@ export function previewContractMetadataAttested(contract, env = process.env) {
  * Business access is fail-closed only for the new clean Preview contract.
  * Legacy R98 and Production do not consult this gate.
  */
+// R404 uses the independently verified existing staging target, not a new branch.
+export function r404ConnectionUrl(raw, kind) {
+  try {
+    if (!["pooled", "direct"].includes(kind)) return null;
+    const url = new URL(String(raw || ""));
+    const host = kind === "pooled" ? STAGING_ACCEPTANCE_METADATA.pooledHost : STAGING_ACCEPTANCE_METADATA.directHost;
+    if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.username || !url.password
+      || url.hostname !== host || (url.port && url.port !== "5432")
+      || url.pathname !== "/neondb" || url.hash) return null;
+    const seen = new Set();
+    for (const [key, value] of url.searchParams) {
+      if (seen.has(key) || !["sslmode", "channel_binding"].includes(key)
+        || (key === "sslmode" && value !== "verify-full")
+        || (key === "channel_binding" && value !== "require")) return null;
+      seen.add(key);
+    }
+    if (url.searchParams.get("sslmode") !== "verify-full") return null;
+    return url.toString();
+  } catch { return null; }
+}
+
+export function r404ConnectionTargetsConfigured(env = process.env) {
+  return Boolean(r404ConnectionUrl(env.DATABASE_URL, "pooled") && r404ConnectionUrl(env.DATABASE_URL_UNPOOLED, "direct"));
+}
+
 export function isCleanPreviewBusinessAccessBlocked(env = process.env) {
   const isPreview = env.VERCEL === "1"
     && String(env.VERCEL_ENV || "").trim().toLowerCase() === "preview";
@@ -367,7 +414,8 @@ export function isCleanPreviewBusinessAccessBlocked(env = process.env) {
   // Preserve the explicitly grandfathered legacy R98 contract.
   if (contract.businessGate !== true) return false;
   return !exactPreviewContractEnvironment(contract, env)
-    || !previewContractMetadataAttested(contract, env);
+    || !previewContractMetadataAttested(contract, env)
+    || (contract === PREVIEW_CONTRACTS.r404Staging && !r404ConnectionTargetsConfigured(env));
 }
 
 export function cleanPreviewGateResponse(res, env = process.env) {

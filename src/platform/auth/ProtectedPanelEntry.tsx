@@ -32,6 +32,8 @@ import { R6TrainingGroupsPage } from "../admin/R6TrainingGroupsPage";
 import { R6PayoutsPage } from "../admin/R6PayoutsPage";
 import { TrainerCartPage } from "../trainer/commerce/TrainerCartPage";
 import { TrainerCheckoutPage } from "../trainer/commerce/TrainerCheckoutPage";
+import { TrainerShipmentsPage } from "../trainer/commerce/TrainerShipmentsPage";
+import { OwnerInstallmentCampaignPage } from "../admin/OwnerInstallmentCampaignPage";
 import { TrainerVideoPage } from "../trainer/commerce/TrainerVideoPage";
 import { TrainerPresentationsPage } from "../trainer/commerce/TrainerPresentationsPage";
 import "../../pages/local-review-hub.css";
@@ -159,6 +161,7 @@ export function ProtectedTrainerTrainings({ packages = false }: { packages?: boo
 export function ProtectedTrainerAssignments() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerAssignmentsPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerCart() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerCartPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerCheckout() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerCheckoutPage user={user} />}</ProtectedPanelEntry>; }
+export function ProtectedTrainerShipments() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerShipmentsPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerVideo() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerVideoPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerPresentations() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerPresentationsPage user={user} />}</ProtectedPanelEntry>; }
 export function ProtectedTrainerResources() { return <ProtectedPanelEntry requiredRole="TRAINER">{({ user }) => <TrainerResourcesPage user={user} />}</ProtectedPanelEntry>; }
@@ -202,6 +205,7 @@ export function ProtectedStudentPortal() { return <ProtectedPanelEntry requiredR
 export function ProtectedNotifications() { return <ProtectedPanelEntry>{({ user, roles }) => <NotificationCenterPage user={user} role={roles.includes("OWNER") ? "OWNER" : roles.includes("SUPER_ADMIN") ? "ADMIN" : roles.includes("STUDENT") || roles.includes("GUARDIAN") ? "STUDENT" : "TRAINER"} />}</ProtectedPanelEntry>; }
 export function ProtectedMeasurement() { return <ProtectedPanelEntry requiredRole="OWNER">{({ user }) => <OwnerShell user={user}><MeasurementPage /></OwnerShell>}</ProtectedPanelEntry>; }
 export function ProtectedEmailTemplates() { return <ProtectedPanelEntry requiredRole="OWNER">{({ user }) => <OwnerShell user={user}><EmailTemplatesPage /></OwnerShell>}</ProtectedPanelEntry>; }
+export function ProtectedOwnerInstallmentCampaign() { return <ProtectedPanelEntry requiredRole="OWNER">{({ user }) => <OwnerShell user={user}><OwnerInstallmentCampaignPage /></OwnerShell>}</ProtectedPanelEntry>; }
 export function ProtectedLegalPreparation() { return <ProtectedPanelEntry requiredRole="OWNER">{({ user }) => <OwnerShell user={user}><LegalPreparationPage /></OwnerShell>}</ProtectedPanelEntry>; }
 export function ProtectedR6CustomOffers() { return <ProtectedPanelEntry requiredRole="OWNER">{({ user }) => <OwnerShell user={user}><R6CustomOffersPage /></OwnerShell>}</ProtectedPanelEntry>; }
 export function ProtectedR6TrainingGroups() { return <ProtectedPanelEntry requiredRole="OWNER">{({ user }) => <OwnerShell user={user}><R6TrainingGroupsPage /></OwnerShell>}</ProtectedPanelEntry>; }

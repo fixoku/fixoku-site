@@ -83,10 +83,12 @@ export async function processOutboxBatch({ client, env = process.env, transportF
         and m.scope_id is null
     )
     and `;
+  const ownerStart = String(env.FIXOKU_OWNER_EMAIL_START_DATE || "").trim();
+  if (ownerOnly && !/^\d{4}-\d{2}-\d{2}$/u.test(ownerStart)) return { status: "OWNER_START_DATE_REQUIRED", processed: 0 };
   const transport = transportFactory(smtp.transport);
   let processed = 0;
   for (let index = 0; index < limit; index += 1) {
-    const claimed = (await client.query(`update notification_email_outbox set status='PROCESSING',attempt_count=attempt_count+1,processing_started_at=$1,last_error=null where id=(select id from notification_email_outbox where ${ownerOnly ? ownerScope : "(dedupe_key is null or dedupe_key not like 'owner-management:%') and "}(status in ('QUEUED','RETRYABLE') and (next_attempt_at is null or next_attempt_at<= $1) ${ownerOnly ? "" : "or status='PROCESSING' and processing_started_at < $1::timestamptz - interval '15 minutes'"}) order by created_at for update skip locked limit 1) returning *`, [now()])).rows[0];
+    const claimed = (await client.query(`update notification_email_outbox set status='PROCESSING',attempt_count=attempt_count+1,processing_started_at=$1,last_error=null where id=(select id from notification_email_outbox where ${ownerOnly ? ownerScope + "created_at >= cast($2 as date) and " : "(dedupe_key is null or dedupe_key not like 'owner-management:%') and "}(status in ('QUEUED','RETRYABLE') and (next_attempt_at is null or next_attempt_at<= $1) ${ownerOnly ? "" : "or status='PROCESSING' and processing_started_at < $1::timestamptz - interval '15 minutes'"}) order by created_at for update skip locked limit 1) returning *`, ownerOnly ? [now(), ownerStart] : [now()])).rows[0];
     if (!claimed) break;
     processed += 1;
     try {

@@ -1,3 +1,4 @@
+import process from "node:process";
 import { queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 
 // Caller must use a verified database and one repeatable-read transaction.

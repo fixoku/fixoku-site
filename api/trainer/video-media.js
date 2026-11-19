@@ -5,7 +5,7 @@ import { resolvePrincipal } from "../../src/server/auth/authorization.js";
 import { assertTrainerPrincipal, TRAINER_COMMERCE_UUID } from "../../src/server/domain/trainer-commerce.js";
 import { createSignedReadUrl, createSignedTrainerVideoReadUrl, getDigitalStorageConfig, productionPrivateMediaAvailable } from "../../src/server/domain/digital-delivery.js";
 import { loadRealTrainerLessons } from "./video-config.js";
-import { previewUnlocked } from "./video-preview-progress.js";
+
 import { readTrainerVideoProgress } from "../../src/server/domain/trainer-completion.js";
 
 const reply = (res, status, body = "") => {

@@ -1,9 +1,11 @@
+import process from "node:process";
 import pg from "pg";
 import { assertSafeDatabaseUrl } from "./runtime-guard.js";
 
 function guardedConfig(config) {
   if (
     process.env.VERCEL_ENV === "production" ||
+    (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF === "codex/fixoku-r404-development") ||
     (process.env.VERCEL === "1" && process.env.NODE_ENV === "production")
   ) {
     if (config && typeof config === "object") {

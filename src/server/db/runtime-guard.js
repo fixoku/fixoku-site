@@ -7,6 +7,10 @@ import {
   STAGING_ACCEPTANCE_METADATA,
   isR16StagingHost,
   trustedPreviewDeploymentHost,
+  exactPreviewContractEnvironment,
+  previewContractMetadataAttested,
+  r404ConnectionUrl,
+  r404ConnectionTargetsConfigured,
 } from "../auth/preview-contract.js";
 /*
  * FIXOKU clean Preview database guard.
@@ -276,11 +280,24 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
 
   // Local tests and disposable development databases do not carry Vercel
   // runtime markers. They retain their existing local safety guards.
-  if (!hasVercelRuntimeMarkers(env)) return String(rawUrl);
+  if (!hasVercelRuntimeMarkers(env)) {
+    if (text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r404Staging.branch) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+    return String(rawUrl);
+  }
 
   const environment = text(env.VERCEL_ENV).toLowerCase();
   if (environment === "preview") {
     const branch = text(env.VERCEL_GIT_COMMIT_REF);
+    if (branch === PREVIEW_CONTRACTS.r404Staging.branch) {
+      const contract = PREVIEW_CONTRACTS.r404Staging;
+      if (!exactPreviewContractEnvironment(contract, env) || !previewContractMetadataAttested(contract, env)
+        || !r404ConnectionTargetsConfigured(env)) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+      const pooled = r404ConnectionUrl(rawUrl, "pooled");
+      const direct = r404ConnectionUrl(rawUrl, "direct");
+      if (pooled && pooled === r404ConnectionUrl(env.DATABASE_URL, "pooled")) return pooled;
+      if (direct && direct === r404ConnectionUrl(env.DATABASE_URL_UNPOOLED, "direct")) return direct;
+      fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+    }
     if (branch === STAGING_ACCEPTANCE_PREVIEW_BRANCH) return assertStagingAcceptancePreviewConnectionUrl(rawUrl, "pooled", env);
     if (branch === R54S_PREVIEW_BRANCH
       || (!branch && r54PreviewHostContract.r54sSafePreviewRuntime(env))) {

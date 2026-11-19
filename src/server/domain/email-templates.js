@@ -292,7 +292,8 @@ export function buildEmailSnapshot({ eventType, record, metadata = {}, body = ""
     }
   }
   const rendered = renderEmail(templateKey, data, { baseUrl: process.env.APP_ORIGIN || "https://fixoku.com", templateOverride: templateRevisionOverride(record) });
-  return { templateKey, revisionId: record?.revisionId || null, revisionNumber: record?.revisionNumber || null, subject: rendered.subject, text: rendered.text, html: rendered.html, contentSha256: createHash("sha256").update(`${rendered.subject}\n${rendered.text}\n${rendered.html}`).digest("hex") };
+  const subject = templateKey.startsWith("owner-") && !String(rendered.subject).startsWith("FIXOKU | ") ? `FIXOKU | ${rendered.subject}` : rendered.subject;
+  return { templateKey, revisionId: record?.revisionId || null, revisionNumber: record?.revisionNumber || null, subject, text: rendered.text, html: rendered.html, contentSha256: createHash("sha256").update(`${subject}\n${rendered.text}\n${rendered.html}`).digest("hex") };
 }
 
 export { ALLOWED_VARIABLES, CRITICAL_KEYS, catalogById };

@@ -79,6 +79,8 @@
     "test:student-commerce": "node scripts/test-student-commerce.mjs",
     "test:commercial-calculations": "node scripts/test-commercial-calculations.mjs",
     "test:book-shipping": "node scripts/test-book-shipping.mjs",
+    "test:r404-shipping-dispatch": "node scripts/test-r404-shipping-dispatch.mjs",
+    "test:r404-owner-email-local": "node scripts/test-r404-owner-email-local.mjs",
     "test:trainer-commerce": "node scripts/test-trainer-commerce-integration.mjs",
     "test:group-capacity": "node scripts/test-group-capacity-concurrency.mjs",
     "test:paytr-callback": "node scripts/test-paytr-callback-contract.mjs",

@@ -32,11 +32,14 @@ export function buildKolayGelsinDelivery(input) {
   };
 }
 function normalize(data) {
-  const number=string(data?.TrackingNumber ?? data?.trackingNumber,64);
+  const number=string(data?.TrackingNumber ?? data?.TrackingNo ?? data?.trackingNumber ?? data?.trackingNo,64);
   if (!number) throw fail('KG_TRACKING_NUMBER_MISSING',502);
   const url=string(data?.TrackingUrl ?? data?.trackingUrl,1024);
-  if (url && (!url.startsWith('https://') || !new URL(url).hostname.endsWith('.kolaygelsin.com'))) throw fail('KG_TRACKING_URL_UNTRUSTED',502);
-  return {provider:'KOLAYGELSIN',providerReference:number,trackingNumber:number,trackingUrl:url||null,barcode:data?.Barcode ?? data?.barcode ?? null};
+  if (url) {
+    let parsed; try { parsed = new URL(url); } catch { throw fail('KG_TRACKING_URL_UNTRUSTED',502); }
+    if (parsed.protocol !== 'https:' || parsed.hostname.toLowerCase() !== 'sube.kolaygelsin.com') throw fail('KG_TRACKING_URL_UNTRUSTED',502);
+  }
+  return {provider:'KOLAYGELSIN',providerReference:string(data?.ReferenceNo ?? data?.referenceNo,64)||number,trackingNumber:number,trackingUrl:url||null,barcode:data?.Barcode ?? data?.barcode ?? null};
 }
 export function createKolayGelsinAdapter(options={}) {
   const token=String(options.token ?? process.env.SHIPPING_TOKEN ?? '');
@@ -57,7 +60,7 @@ export function createKolayGelsinAdapter(options={}) {
     try {
       const result=await (options.fetchImpl || fetch)(target.toString(),{method,redirect:'error',signal:controller.signal,headers:{authorization:`Bearer ${token}`,'content-type':'application/json',accept:'application/json'},...(method==='POST'?{body:JSON.stringify(body ?? {})}:{})});
       const response=await result.json().catch(()=>({}));
-      if(!result.ok || response?.IsSuccess===false || response?.isSuccess===false || response?.ExceptionMessage) throw fail('KG_PROVIDER_REJECTED',502);
+      if(!result.ok || response?.IsSuccess===false || response?.isSuccess===false || response?.IsSuccessful===false || response?.isSuccessful===false || response?.ExceptionMessage) throw fail('KG_PROVIDER_REJECTED',502);
       return response;
     } catch(error) {if(error?.name === 'AbortError') throw fail('KG_PROVIDER_TIMEOUT',503);throw error;} finally {clearTimeout(timeout);}
   }
@@ -68,5 +71,6 @@ export function createKolayGelsinAdapter(options={}) {
     getTracking: async ref => {if(!ref)throw fail('KG_REFERENCE_REQUIRED'); return request('TrackDelivery',{method:'GET',query:{referenceNo:ref}});},
     cancelShipment: async ref => {if(!ref)throw fail('KG_REFERENCE_REQUIRED'); const r=await request('CancelDelivery',{query:{referenceNo:ref}});if(r?.IsSuccess!==true && r?.isSuccess!==true)throw fail('KG_CANCEL_NOT_CONFIRMED',502);return {cancelled:true};},
     createLabel: async ref => {if(!ref)throw fail('KG_REFERENCE_REQUIRED');return request('GetBarcode',{body:{barcodeLabelType:1,referenceNo:ref,BarcodeVersion:'V2'}});},
+    getCityDistricts: async ({cityName='',districtName=''}={}) => request('GetCityDistricts',{method:'GET',query:{CityName:string(cityName,80),DistrictName:string(districtName,80)}}),
   });
 }

@@ -179,8 +179,11 @@ function Footer({ showCta = true }) {
               </span>
               <div className="footer-contact-details">
                 <span className="footer-contact-label">{contactPhones.mobile.label}</span>
-                <a href={`${contactPhones.mobile.whatsappUrl}?text=${encodeURIComponent("Merhaba Fixoku, internet siteniz üzerinden size ulaşıyorum. Eğitimleriniz ve hizmetleriniz hakkında bilgi ve destek almak istiyorum. Yardımcı olabilir misiniz?")}`} target="_blank" rel="noopener noreferrer" aria-label="Fixoku WhatsApp destek hattını aç" data-analytics-placement="footer" data-cta-id="footer-whatsapp">
+                <a href={contactPhones.mobile.telUri} aria-label="Fixoku cep telefonunu ara" data-analytics-placement="footer" data-cta-id="footer-mobile-phone">
                   {contactPhones.mobile.display}
+                </a>
+                <a href={`${contactPhones.mobile.whatsappUrl}?text=${encodeURIComponent("Merhaba Fixoku, internet siteniz üzerinden size ulaşıyorum. Eğitimleriniz ve hizmetleriniz hakkında bilgi ve destek almak istiyorum. Yardımcı olabilir misiniz?")}`} target="_blank" rel="noopener noreferrer" aria-label="Fixoku WhatsApp destek hattını aç" data-analytics-placement="footer" data-cta-id="footer-whatsapp">
+                  WhatsApp üzerinden yazın
                 </a>
               </div>
             </div>

@@ -281,15 +281,15 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
   // Local tests and disposable development databases do not carry Vercel
   // runtime markers. They retain their existing local safety guards.
   if (!hasVercelRuntimeMarkers(env)) {
-    if (text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r404Staging.branch) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+    if ((text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r404Staging.branch || text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r405Staging.branch)) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
     return String(rawUrl);
   }
 
   const environment = text(env.VERCEL_ENV).toLowerCase();
   if (environment === "preview") {
     const branch = text(env.VERCEL_GIT_COMMIT_REF);
-    if (branch === PREVIEW_CONTRACTS.r404Staging.branch) {
-      const contract = PREVIEW_CONTRACTS.r404Staging;
+    if (branch === PREVIEW_CONTRACTS.r404Staging.branch || branch === PREVIEW_CONTRACTS.r405Staging.branch) {
+      const contract = branch === PREVIEW_CONTRACTS.r405Staging.branch ? PREVIEW_CONTRACTS.r405Staging : PREVIEW_CONTRACTS.r404Staging;
       if (!exactPreviewContractEnvironment(contract, env) || !previewContractMetadataAttested(contract, env)
         || !r404ConnectionTargetsConfigured(env)) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
       const pooled = r404ConnectionUrl(rawUrl, "pooled");

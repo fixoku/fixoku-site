@@ -58,6 +58,49 @@ export function OrderBankApprovalR385({
     !["PENDING_PAYMENT", "PAYMENT_REVIEW"].includes(order.status)
   ) return null;
 
+  // R406_REJECT_PAYMENT
+  async function rejectPayment() {
+    if (busy || done || lock.current) return;
+
+    if (!window.confirm("Banka hesab\u0131na \u00f6deme ula\u015fmad\u0131\u011f\u0131n\u0131 do\u011frulad\u0131n\u0131z m\u0131? Bu \u00f6deme bildirimi reddedilecek.")) return;
+
+    lock.current = true;
+    setBusy(true);
+    setMessage("");
+
+    try {
+      const endpoint = order.kind === "STUDENT"
+        ? "/api/admin/student-bank-transfers"
+        : "/api/admin/trainer-bank-transfers";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          action: "REJECT",
+          note: "Banka hesabina odeme ulasmadi."
+        })
+      });
+
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok || body.status !== "REJECTED") {
+        throw new Error("Odeme reddedilemedi. Siparisi yenileyip tekrar kontrol edin.");
+      }
+
+      setDone(true);
+      setMessage("\u00d6deme reddedildi.");
+      onApproved();
+    } catch {
+      setMessage("\u00d6deme reddedilemedi. L\u00fctfen tekrar deneyin.");
+    } finally {
+      setBusy(false);
+      lock.current = false;
+    }
+  }
+
   async function approve() {
     if (!ready || lock.current) return;
 
@@ -240,6 +283,26 @@ export function OrderBankApprovalR385({
             ? "\u00d6deme onayland\u0131"
             : "\u2713 \u00d6demeyi onayla"}
       </button>
+      {!done && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={()=>void rejectPayment()}
+          style={{
+            width: "100%",
+            marginTop: 10,
+            padding: "12px 16px",
+            border: "1px solid #dc2626",
+            borderRadius: 8,
+            background: "#fff",
+            color: "#b91c1c",
+            fontWeight: 700,
+            cursor: busy ? "not-allowed" : "pointer"
+          }}
+        >
+          {"\u00d6deme gelmedi, reddet"}
+        </button>
+      )}
     </section>
   );
 }

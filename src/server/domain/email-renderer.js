@@ -18,6 +18,7 @@ export const EMAIL_TEMPLATE_CATALOG = [
   ["profile-completion", "ACCOUNT", "Profilinizi tamamlayın", "Profilinizde birkaç adım kaldı", "Size daha iyi bir Fixoku deneyimi sunabilmemiz için profilinizi tamamlayın."],
   ["order-received", "COMMERCE", "Siparişiniz alındı", "Siparişinizi aldık", "Sipariş bilgileriniz kaydedildi. Güncel durumu panelinizden takip edebilirsiniz."],
   ["payment-successful", "COMMERCE", "Ödemeniz başarıyla alındı", "Ödemeniz onaylandı", "Ödemeniz güvenli şekilde işlendi. Siparişiniz hazırlanmaya başlayacak."],
+  ["bank-transfer-rejected", "COMMERCE", "FIXOKU | Havale/EFT ödemeniz onaylanmadı", "Ödemeniz onaylanmadı", "Havale/EFT ödemeniz onaylanmadı."],
   ["payment-failed", "COMMERCE", "Ödeme tamamlanamadı", "Ödeme işlemi tamamlanamadı", "Ödeme sağlayıcısı işlemi tamamlayamadı. Siparişinizi panelden yeniden deneyebilirsiniz."],
   ["package-activated", "COMMERCE", "Paketiniz etkinleştirildi", "Paketiniz kullanıma hazır", "Satın aldığınız paket hesabınıza tanımlandı."],
   ["digital-content-available", "COMMERCE", "Dijital içeriğiniz hazır", "Dijital içeriğinize erişebilirsiniz", "Yetkiniz bulunan içerikler panelinizde sizi bekliyor."],

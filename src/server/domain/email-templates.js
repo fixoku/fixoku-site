@@ -83,6 +83,7 @@ export const EMAIL_EVENT_TEMPLATE_MAP = Object.freeze({
   PROVIDER_VERIFIED: "payment-successful",
   PAYOUT_RECONCILED: "payout-completed",
   REJECTED: "payment-failed",
+  BANK_TRANSFER_REJECTED: "bank-transfer-rejected",
   REQUESTED: "order-received",
   TRAINER_INVITATION: "trainer-welcome",
   ADMIN_INVITATION: "welcome",

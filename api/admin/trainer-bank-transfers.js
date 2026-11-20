@@ -1,3 +1,4 @@
+import { queuePanelNotification as queueR406RejectionNotification } from "../../src/server/domain/panel-notifications.js";
 import { assertUniqueBankReference, normalizeBankReference } from "../../src/server/domain/bank-reference-guard.js";
 import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
@@ -138,6 +139,23 @@ export default async function handler(req, res) {
       if (!order || order.payment_method !== "BANK_TRANSFER") throw Object.assign(new Error("BANK_TRANSFER_ORDER_NOT_FOUND"), { status: 404 });
 
       if (action === "REJECT") {
+        // R406_REJECT_STATE_GUARD
+        if (order.status === "REJECTED" && row.status === "REJECTED") {
+          await client.query("commit");
+          return json(res, 200, {
+            status: "REJECTED",
+            entitlementActivated: false,
+            replay: true
+          });
+        }
+
+        if (!["PENDING_PAYMENT", "PAYMENT_REVIEW"].includes(order.status) ||
+            !["SUBMITTED", "IN_REVIEW"].includes(row.status)) {
+          await client.query("rollback");
+          return json(res, 409, {
+            error: "BANK_TRANSFER_NOT_REVIEWABLE"
+          });
+        }
         if (order.status === "PAID" || row.status === "APPROVED") {
           await client.query("rollback");
           return json(res, 409, { error: "BANK_TRANSFER_ALREADY_APPROVED" });
@@ -163,6 +181,38 @@ export default async function handler(req, res) {
           subjectType: "trainer_package_order",
           subjectId: input.orderId,
         });
+        // R406_REJECTION_NOTIFICATION
+        const recipient = (await client.query(
+          "select u.id,u.email,u.display_name from trainer_package_orders o join platform_users u on u.id=o.trainer_user_id where o.id=$1",
+          [input.orderId]
+        )).rows[0];
+
+        if (recipient?.id) {
+          const title = "Havale/EFT ödemeniz onaylanmadı.";
+          const message = "Banka hesabımızda ilgili ödeme tespit edilemediği için siparişiniz onaylanmamıştır. Eğitim paketinizi panelinizden yeniden satın alabilirsiniz.";
+
+          await queueR406RejectionNotification(client, {
+            recipientUserId: recipient.id,
+            recipientEmail: recipient.email,
+            eventType: "BANK_TRANSFER_REJECTED",
+            title,
+            body: message,
+            emailSubject: "FIXOKU | Havale/EFT ödemeniz onaylanmadı",
+            emailBody: message,
+            metadata: {
+              recipientName: recipient.display_name,
+              orderId: input.orderId,
+              reference: input.orderId,
+              paymentMethod: "Havale/EFT",
+              status: "REJECTED",
+              path: "/panel/egitmen/egitimlerim",
+              actionUrl: "/panel/egitmen/egitimlerim",
+              reason: message
+            },
+            dedupeKey: "r406-bank-rejected:TRAINER:" + input.orderId
+          });
+        }
+
         await client.query("commit");
         return json(res, 200, { status: "REJECTED", entitlementActivated: false });
       }

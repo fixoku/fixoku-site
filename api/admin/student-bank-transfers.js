@@ -1,3 +1,4 @@
+import { queuePanelNotification as queueR406RejectionNotification } from "../../src/server/domain/panel-notifications.js";
 import { assertUniqueBankReference, normalizeBankReference } from "../../src/server/domain/bank-reference-guard.js";
 import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
@@ -161,6 +162,38 @@ export default async function handler(req, res) {
         await client.query("update payment_intents set status='CANCELLED',updated_at=now() where order_id=$1 and status in ('CREATED','PENDING','AUTHORIZED')", [orderId]);
         await client.query("update student_bank_transfer_notifications set status='REJECTED',reviewed_by=$1,reviewed_at=coalesce(reviewed_at,now()),review_note=$2,updated_at=now() where order_id=$3 and status in ('SUBMITTED','IN_REVIEW')", [principal.user.id, note, orderId]);
         await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'student.commerce.bank_transfer.review.rejected','order',$2,'SUCCESS',gen_random_uuid(),$3)", [principal.user.id, orderId, JSON.stringify({ note, reference: bankReference(orderId), paymentMethod: "BANK_TRANSFER" })]);
+        // R406_REJECTION_NOTIFICATION
+        const recipient = (await client.query(
+          "select u.id,u.email,u.display_name from orders o join platform_users u on u.id=o.buyer_user_id where o.id=$1",
+          [orderId]
+        )).rows[0];
+
+        if (recipient?.id) {
+          const title = "Havale/EFT ödemeniz onaylanmadı.";
+          const message = "Banka hesabımızda ilgili ödeme tespit edilemediği için siparişiniz onaylanmamıştır. Eğitim paketinizi panelinizden yeniden satın alabilirsiniz.";
+
+          await queueR406RejectionNotification(client, {
+            recipientUserId: recipient.id,
+            recipientEmail: recipient.email,
+            eventType: "BANK_TRANSFER_REJECTED",
+            title,
+            body: message,
+            emailSubject: "FIXOKU | Havale/EFT ödemeniz onaylanmadı",
+            emailBody: message,
+            metadata: {
+              recipientName: recipient.display_name,
+              orderId: orderId,
+              reference: orderId,
+              paymentMethod: "Havale/EFT",
+              status: "REJECTED",
+              path: "/panel/ogrenci/paketler",
+              actionUrl: "/panel/ogrenci/paketler",
+              reason: message
+            },
+            dedupeKey: "r406-bank-rejected:STUDENT:" + orderId
+          });
+        }
+
         await client.query("commit");
         return json(res, 200, { status: "REJECTED", orderStatus: "CANCELLED", entitlementActivated: false });
       } catch (error) {

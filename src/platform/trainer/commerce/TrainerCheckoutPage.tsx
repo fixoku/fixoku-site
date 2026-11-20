@@ -755,7 +755,7 @@ export function TrainerCheckoutPage({
           </p>
         )}
 
-        
+
         {confirmedOrder?.paymentMethod === "PAYTR" && ["PENDING_PAYMENT","PAYMENT_REVIEW"].includes(confirmedOrder.status) && (
           <PaytrCheckout
             orderId={confirmedOrder.id}
@@ -784,7 +784,7 @@ export function TrainerCheckoutPage({
           <p>Numara: <strong>{confirmedOrder.bankReference||confirmedOrder.id}</strong></p>
           <p>Toplam: <strong>{money(Number(confirmedOrder.totalMinor || 0))}</strong></p>
           <p>Durum: <strong>{confirmedOrder.status === 'PAID' ? 'Ödendi' : confirmedOrder.paymentMethod === 'BANK_TRANSFER' ? 'Havale/EFT doğrulaması bekleniyor' : 'Ödeme bekleniyor'}</strong></p>
-          
+
           {confirmedOrder.paymentMethod === 'PAYTR' && confirmedOrder.status !== 'PAID' && confirmedOrder.status !== 'PENDING_PAYMENT' && <p>Bu siparişin ödeme durumu yeniden incelenmelidir. Ödeme yetkilendirmesi henüz yapılmadı.</p>}
           <Link to="/panel/egitmen/egitimlerim">Eğitimlerime dön</Link>
         </section>}
@@ -944,7 +944,7 @@ export function TrainerCheckoutPage({
           }
         >
           <div className="trainer-checkout-main">
-            <section className="trainer-checkout-step">
+            <section className="trainer-checkout-step" hidden={paymentMethod === "BANK_TRANSFER" && bankTransferReady}>
               <h3>
                 <span>1</span>
                 Teslimat Adresi
@@ -1193,7 +1193,7 @@ export function TrainerCheckoutPage({
               </div>
             </section>
 
-            <section className="trainer-checkout-step">
+            <section className="trainer-checkout-step" hidden={paymentMethod === "BANK_TRANSFER" && bankTransferReady}>
               <h3>
                 <span>2</span>
                 Fatura ve Kargo Bilgileri
@@ -1223,7 +1223,7 @@ export function TrainerCheckoutPage({
                 <label>
                   <input
                     type="radio"
-                    disabled={paytrConfigured === false}
+
                     checked={
                       billing.type ===
                       "CORPORATE"
@@ -1355,7 +1355,7 @@ export function TrainerCheckoutPage({
               )}
             </section>
 
-            <section className="trainer-checkout-step">
+            <section className="trainer-checkout-step" hidden={paymentMethod === "BANK_TRANSFER" && bankTransferReady}>
               <h3>
                 <span>3</span>
                 Ödeme
@@ -1387,41 +1387,14 @@ export function TrainerCheckoutPage({
                 </label>
               </div>
 
-              {paymentMethod ===
-                "BANK_TRANSFER" && (
-                <BankTransferPayment
-                  reference={bankTransferReady ? bankDraft?.reference : null}
-                  detailsVisible={bankTransferReady && Boolean(bankDraft?.reference)}
-                />
-              )}
 
-              {paymentMethod ===
-                "PAYTR" && (
-                <>
-                  <p className="trainer-checkout-note">
-                    Sipariş oluşturulduktan sonra güvenli PayTR ödeme alanı açılır.
-                  </p>
-                </>
-              )}
+
+
             </section>
 
-            {paymentMethod === "BANK_TRANSFER" && bankTransferReady && !confirmedOrder && (
-              <section className="trainer-checkout-step trainer-bank-transfer-form">
-                <h3>Havale / EFT Bildirimi</h3>
-                {bankDraft && <p><strong>Gönderilecek tutar: {money(bankDraft.expectedAmountMinor,bankDraft.currency)}</strong></p>}
-                <p>Transferi yaptıktan sonra zorunlu alanları doldurun. Bildirim gönderilmeden sipariş kaydı oluşturulmaz.</p>
-                <div className="trainer-checkout-fields">
-                  <label>Ödeyen adı ve soyadı<input required value={transfer.payerName} onChange={(event) => setTransfer({ ...transfer, payerName: event.target.value })} /></label>
-                  <label>Gönderen banka<input required value={transfer.bankName} onChange={(event) => setTransfer({ ...transfer, bankName: event.target.value })} /></label>
-                  <label>Gönderilen tutar (TL)<input required inputMode="decimal" value={transfer.reportedAmountMinor} onChange={(event) => setTransfer({ ...transfer, reportedAmountMinor: event.target.value })} /></label>
-                  <label>Transfer tarihi<input required type="date" value={transfer.transferDate} onChange={(event) => setTransfer({ ...transfer, transferDate: event.target.value })} /></label>
-                  <label>Banka referans no<input required value={transfer.reference} onChange={(event) => setTransfer({ ...transfer, reference: event.target.value })} /></label>
-                </div>
-                <button className="trainer-commerce-primary" type="submit">Havale/EFT bildirimini gönder</button>
-              </section>
-            )}
 
-            <section className="trainer-checkout-step">
+
+            <section className="trainer-checkout-step" hidden={paymentMethod === "BANK_TRANSFER" && bankTransferReady}>
               <h3>
                 <span>4</span>
                 Onay
@@ -1485,7 +1458,37 @@ export function TrainerCheckoutPage({
             </section>
           </div>
 
-          <aside className="trainer-order-summary">
+          {paymentMethod === "BANK_TRANSFER" && bankTransferReady && bankDraft && (
+  <section className="trainer-checkout-step" aria-label="Havale / EFT ödeme bilgileri">
+    <h2>Havale / EFT Ödeme</h2>
+    <p>Gönderilecek tutar: {money(bankDraft.expectedAmountMinor, bankDraft.currency)}</p>
+    <button type="button" onClick={() => setBankTransferReady(false)}>
+      Ödeme bilgilerine dön
+    </button>
+  </section>
+)}
+{paymentMethod === "BANK_TRANSFER" && bankTransferReady && bankDraft && (
+    <BankTransferPayment
+      reference={bankDraft.reference}
+      detailsVisible={true}
+    />
+)}
+{paymentMethod === "BANK_TRANSFER" && bankTransferReady && !confirmedOrder && (
+              <section className="trainer-checkout-step trainer-bank-transfer-form">
+                <h3>Havale / EFT Bildirimi</h3>
+                {bankDraft && <p><strong>Gönderilecek tutar: {money(bankDraft.expectedAmountMinor,bankDraft.currency)}</strong></p>}
+                <p>Transferi yaptıktan sonra zorunlu alanları doldurun. Bildirim gönderilmeden sipariş kaydı oluşturulmaz.</p>
+                <div className="trainer-checkout-fields">
+                  <label>Ödeyen adı ve soyadı<input required value={transfer.payerName} onChange={(event) => setTransfer({ ...transfer, payerName: event.target.value })} /></label>
+                  <label>Gönderen banka<input required value={transfer.bankName} onChange={(event) => setTransfer({ ...transfer, bankName: event.target.value })} /></label>
+                  <label>Gönderilen tutar (TL)<input required inputMode="decimal" value={transfer.reportedAmountMinor} onChange={(event) => setTransfer({ ...transfer, reportedAmountMinor: event.target.value })} /></label>
+                  <label>Transfer tarihi<input required type="date" value={transfer.transferDate} onChange={(event) => setTransfer({ ...transfer, transferDate: event.target.value })} /></label>
+                  <label>Banka referans no<input required value={transfer.reference} onChange={(event) => setTransfer({ ...transfer, reference: event.target.value })} /></label>
+                </div>
+                <button className="trainer-commerce-primary" type="submit">Ödememi yaptım, bildirim gönder</button>
+              </section>
+            )}
+<aside className="trainer-order-summary">
             <h3>Sipariş özeti</h3>
 
             {cart?.items.map(

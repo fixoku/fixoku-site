@@ -136,6 +136,21 @@ export const EMAIL_EDITORIAL_V1 = Object.freeze({
     ],
     "status": "review"
   },
+  "bank-transfer-rejected": {
+    subject: "FIXOKU | Havale/EFT ödemeniz onaylanmadı",
+    title: "Ödemeniz onaylanmadı",
+    paragraphs: [
+      "Havale/EFT ödeme bildiriminiz incelenmiş ancak banka hesabımızda ilgili ödeme tespit edilemediği için siparişiniz onaylanmamıştır.",
+      "Eğitim paketinizi paneliniz üzerinden yeniden satın alabilirsiniz.",
+      "Ödeme yaptığınızı düşünüyorsanız banka işlem referansınızla birlikte destek ekibimizle iletişime geçebilirsiniz."
+    ],
+    fields: [{ label: "Sipariş numarası", key: "reference" }],
+    cta: "Hesabıma git",
+    path: "/giris",
+    fixture: { recipientName: "Deniz Yılmaz", reference: "FX-SIP-1003" },
+    required: ["reference"],
+    status: "review"
+  },
   "payment-failed": {
     "subject": "Fixoku | Ödemeniz tamamlanamadı",
     "title": "Ödeme işleminiz tamamlanamadı",

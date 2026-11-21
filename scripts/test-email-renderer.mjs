@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { EMAIL_TEMPLATE_COUNT, renderEmail, renderEmailForEvent } from "../src/server/domain/email-renderer.js";
 import { getSmtpConfig, processOutboxBatch } from "../src/server/domain/email-outbox.js";
 
-assert.equal(EMAIL_TEMPLATE_COUNT, 56);
+assert.equal(EMAIL_TEMPLATE_COUNT, 57);
 const { EMAIL_EVENT_TEMPLATE_MAP } = await import("../src/server/domain/email-templates.js");
 const r399Expected = {
   OWNER_REASSIGNMENT_PENDING: "owner-reassignment-pending",

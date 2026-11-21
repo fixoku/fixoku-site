@@ -1,4 +1,5 @@
 import { queueOwnerOrderEvent } from "./owner-order-notifications-r390.js";
+import {captureOrderProductCosts} from "./r410-order-cost-hook.js";
 /* global process */
 import crypto from "node:crypto";
 import { legalSnapshotRows, readPublishedLegalDocuments, studentLegalAcceptance } from "./trainer-legal-documents.js";
@@ -319,6 +320,7 @@ export async function createStudentCommerceOrder(client, principal, input, { man
       });
       await queueOwnerOrderEvent(client,{kind:"student",orderId:order.id,event:"bank"});
     }
+    await captureOrderProductCosts(client,"STUDENT_ORDER",order.id);
     if (manageTransaction) await client.query("commit"); return { order, paymentIntent, replay: false, providerConfigured: Boolean(process.env.PAYMENT_PROVIDER) };
   } catch (cause) { if (manageTransaction) { try { await client.query("rollback"); } catch { /* preserve */ } } throw cause; }
 }

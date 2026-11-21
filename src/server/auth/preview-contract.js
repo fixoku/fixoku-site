@@ -159,6 +159,27 @@ export const PREVIEW_CONTRACTS = Object.freeze({
     deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-r405-staging-20261119|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
     forbiddenCommits: Object.freeze(["a913f49b4e40213321b5304594ce3b0bf7bad40b"]),
   }),
+  r410Staging: Object.freeze({
+    id: "r410-staging-20261121",
+    businessGate: true,
+    branch: "codex/fixoku-r410-staging-prep-20261121",
+    vercelProjectId: "prj_yWvXfOndJ6se89FdCiPbvKIZoGwR",
+    expectedCommitEnv: "FIXOKU_R410_RUNTIME_EXPECTED_COMMIT_SHA",
+    probeEnabledEnv: "FIXOKU_R410_RUNTIME_PROBE_ENABLED",
+    probeTokenEnv: "FIXOKU_R410_RUNTIME_PROBE_TOKEN",
+    probeTokenHeader: "x-fixoku-r410-runtime-token",
+    metadata: Object.freeze({
+      attested: "FIXOKU_R410_ENDPOINT_METADATA_ATTESTED",
+      project: "FIXOKU_R410_NEON_PROJECT_ID",
+      branch: "FIXOKU_R410_NEON_BRANCH_ID",
+      database: "FIXOKU_R410_DATABASE",
+      pooledHost: "FIXOKU_R410_POOLED_HOST",
+      directHost: "FIXOKU_R410_DIRECT_HOST",
+    }),
+    fixedOrigins: Object.freeze(["https://staging.fixoku.com"]),
+    deploymentHostPattern: /^fixoku-site-(?:git-codex-fixoku-r410-staging-prep-20261121|[a-z0-9]{9,})-fixoku\.vercel\.app$/u,
+    forbiddenCommits: Object.freeze([]),
+  }),
   r16Staging: Object.freeze({
     id: "r16-staging",
     businessGate: true,
@@ -358,7 +379,7 @@ export function previewContractMetadataConfigured(contract, env = process.env) {
   const usesR18Target = contract === PREVIEW_CONTRACTS.r18Acceptance
     || contract === PREVIEW_CONTRACTS.r54StudentAcceptance
     || contract === PREVIEW_CONTRACTS.stagingAcceptance
-    || (contract === PREVIEW_CONTRACTS.r404Staging || contract === PREVIEW_CONTRACTS.r405Staging);
+    || (contract === PREVIEW_CONTRACTS.r404Staging || contract === PREVIEW_CONTRACTS.r405Staging || contract === PREVIEW_CONTRACTS.r410Staging);
   const target = contract === PREVIEW_CONTRACTS.r16Staging
     ? R16_STAGING_METADATA
     : usesR18Target
@@ -436,7 +457,7 @@ export function isCleanPreviewBusinessAccessBlocked(env = process.env) {
   if (contract.businessGate !== true) return false;
   return !exactPreviewContractEnvironment(contract, env)
     || !previewContractMetadataAttested(contract, env)
-    || ((contract === PREVIEW_CONTRACTS.r404Staging || contract === PREVIEW_CONTRACTS.r405Staging) && !r404ConnectionTargetsConfigured(env));
+    || ((contract === PREVIEW_CONTRACTS.r404Staging || contract === PREVIEW_CONTRACTS.r405Staging || contract === PREVIEW_CONTRACTS.r410Staging) && !r404ConnectionTargetsConfigured(env));
 }
 
 export function cleanPreviewGateResponse(res, env = process.env) {

@@ -1,0 +1,174 @@
+.r408-parcel-settings {
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  padding:26px;
+  color:#172c44;
+}
+
+.r408-parcel-settings h2 {
+  margin:0 0 12px;
+  font-size:23px;
+}
+
+.r408-parcel-settings p {
+  color:#64748b;
+  line-height:1.6;
+}
+
+.r408-parcel-tabs {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:0 0 20px;
+}
+
+.r408-parcel-tabs button {
+  border:1px solid #dce3ea;
+  background:#fff;
+  border-radius:10px;
+  padding:12px 20px;
+  color:#172c44;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.r408-parcel-tabs button[aria-selected="true"] {
+  background:#172c44;
+  color:#fff;
+}
+
+.parcel-table-scroll {
+  width:100%;
+  overflow-x:auto;
+  margin:20px 0;
+}
+
+.r408-parcel-settings table {
+  width:100%;
+  min-width:850px;
+  border-collapse:collapse;
+}
+
+.r408-parcel-settings th {
+  background:#172c44;
+  color:#fff;
+  font-size:13px;
+  padding:14px 10px;
+  text-align:center;
+}
+
+.r408-parcel-settings td {
+  border-bottom:1px solid #e5eaf0;
+  padding:12px 8px;
+  text-align:center;
+}
+
+.r408-parcel-settings tr:nth-child(even) {
+  background:#f8fafc;
+}
+
+.r408-parcel-settings input {
+  box-sizing:border-box;
+  width:100%;
+  min-width:90px;
+  padding:12px 8px;
+  border:1px solid #dce3ea;
+  border-radius:8px;
+  background:#fff;
+  color:#172c44;
+  text-align:center;
+  font-size:15px;
+}
+
+.r408-parcel-settings input:focus {
+  outline:2px solid #e87519;
+  outline-offset:1px;
+}
+
+.parcel-desi {
+  color:#b85410;
+  font-weight:700;
+}
+
+.parcel-footer {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding-top:18px;
+}
+
+.parcel-footer small {
+  display:block;
+  color:#64748b;
+  margin-top:7px;
+}
+
+.parcel-footer button {
+  background:#e87519;
+  color:#fff;
+  border:0;
+  border-radius:10px;
+  padding:15px 27px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.parcel-footer button:disabled {
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.r408-parcel-settings .parcel-success {
+  color:#168548;
+}
+
+.r408-parcel-settings .parcel-error {
+  color:#b91c1c;
+}
+
+.parcel-help {
+  font-size:12px;
+  margin-top:22px;
+}
+
+@media(max-width:760px) {
+  .r408-parcel-settings {
+    padding:15px;
+  }
+
+  .parcel-footer button {
+    width:100%;
+  }
+}
+.parcel-order-summary-r408 {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  border-radius:14px;
+  padding:20px;
+  background:#172c44;
+  color:#fff;
+}
+.parcel-order-summary-r408 small {
+  display:block;
+  color:#cbd5e1;
+  font-size:12px;
+  margin-bottom:7px;
+}
+.parcel-order-summary-r408 strong {
+  display:block;
+  color:#fff;
+  font-size:24px;
+}
+.parcel-summary-line-r408 {
+  border-bottom:1px solid #e2e8f0;
+  padding:13px 2px;
+}
+.parcel-summary-line-r408 p {
+  margin:6px 0 0;
+  color:#64748b;
+  font-size:13px;
+}

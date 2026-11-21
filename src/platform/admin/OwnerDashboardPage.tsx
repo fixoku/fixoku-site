@@ -1,3 +1,4 @@
+import { DashboardPaytrFinanceR410 } from "./PaytrFinanceSummaryR410";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PanelIcon } from "../panel/components/PanelIcon";
@@ -421,7 +422,7 @@ export function OwnerDashboardPage() {
       </article>
     </section>
 
-    <section className="owner-v5-main-grid">
+    <DashboardPaytrFinanceR410 from={activeRange.from} to={activeRange.to}/><section className="owner-v5-main-grid">
       <article className="owner-v5-card owner-v5-chart-card">
         <div className="owner-v5-section-head">
           <div className="owner-v5-section-title"><span className="owner-v5-section-icon"><PanelIcon name="chart" size={23} /></span><div><h2>Satış performansı</h2><p>Toplam ve kategori bazlı ciro gelişimi</p></div></div>

@@ -342,7 +342,14 @@ export async function requestPaytrPaymentStatus(
     throw settlementError("PAYTR_CONFIG_REQUIRED", 503);
   }
 
-  if (!/^[a-f0-9]{32}$/.test(String(merchantOid))) {
+  if (!/^[a-f0-9]{32}$/.test(String(merchantOid)) &&
+    !(env.FIXOKU_PAYTR_OWNER_TEST_ENABLED === "1" &&
+      env.VERCEL_ENV === "production" &&
+      env.NODE_ENV === "production" &&
+      env.FIXOKU_PRODUCTION_RUNTIME_ENABLED === "1" &&
+      env.PAYTR_TEST_MODE === "1" &&
+      env.APP_ORIGIN === "https://fixoku.com" &&
+      /^FIXOKUR408TEST[0-9A-F]{32}$/u.test(String(merchantOid)))) {
     throw settlementError("PAYTR_REFERENCE_INVALID");
   }
 

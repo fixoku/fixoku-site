@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "./admin-panel.css";
 import { AdminStudentEntitlementsPage } from "./AdminStudentEntitlementsPage";
 import { StudentProductCatalogV39C } from "./StudentProductCatalogV39C";
+import {OwnerProductCostsR410} from "./OwnerProductCostsR410";
 import { FixokuCatalogIconV40, catalogVisualKindV40 } from "./FixokuCatalogIconV40";
 import { isApprovedStudentSkuV41 } from "./FixokuApprovedCatalogV41";
 import { FixokuPhotoV41F, moneySuffixV41F, productImageDefaultV41F, packageImageDefaultV41F, friendlySkuV41F } from "./FixokuCatalogAssetsV41F";
@@ -411,7 +412,7 @@ const fxR85DescribeError = (error: unknown, yedek: string): string => {
     <ul className="admin-preview-items">{preview.components.filter((component) => component.isActive !== false).map((component, index) => <li key={`${component.componentId || component.title}-${index}`}>{component.componentType === "PHYSICAL_PRODUCT" ? (component.displayLabel || component.title) : component.title}</li>)}</ul>
     <div className="fx41j-preview-footer"><span>Toplam paket fiyatı</span><strong className="admin-preview-price">{money(preview.priceMinor, preview.currency || "TRY")}</strong></div>
   </section>
-</div>}{catalogTabV39C === "products" && <StudentProductCatalogV39C onCatalogChanged={load} />}</main>;
+</div>}{catalogTabV39C === "products" && <><StudentProductCatalogV39C onCatalogChanged={load} /><OwnerProductCostsR410 audience="STUDENT" /></>}</main>;
 }
 
 

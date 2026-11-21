@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {parseCostEvidenceFilters,buildCostEvidence,readCostEvidence} from '../src/server/domain/r410-finance-cost-evidence.js';
+const uuid='11111111-1111-4111-8111-111111111111';
+assert.deepEqual(parseCostEvidenceFilters({from:'2026-11-01',to:'2026-11-21',kind:'STUDENT_ORDER'}),{from:'2026-11-01',to:'2026-11-21',kind:'STUDENT_ORDER'});
+for(const input of [{from:'2026-02-30'},{from:'2026-11-22',to:'2026-11-21'},{kind:'UNAUTHORIZED'},{to:'not-a-date'}])assert.throws(()=>parseCostEvidenceFilters(input));
+console.log('COST_FILTER_GUARDS=PASS');
+const preview=buildCostEvidence([{orderId:uuid,orderKind:'STUDENT_ORDER',costMinor:'12500',lines:2,recordedAt:'2026-11-21T01:00:00Z'}]);
+assert.equal(preview.knownCostMinor,12500);assert.equal(preview.certifiedProfit,false);assert.equal(preview.coverageVerified,false);assert.equal(preview.status,'COST_EVIDENCE_ONLY');assert.equal(preview.orders.length,1);assert.equal('contributionMinor' in preview,false);
+console.log('KNOWN_COST_NOT_CERTIFIED_PROFIT=PASS');
+const empty=buildCostEvidence([]);assert.equal(empty.knownOrderCount,0);assert.equal(empty.coverageVerified,false);assert.equal(empty.certifiedProfit,false);
+console.log('EMPTY_REPORT_NOT_CERTIFIED=PASS');
+for(const bad of [{orderId:uuid,orderKind:'STUDENT_ORDER',costMinor:null,lines:1},{orderId:uuid,orderKind:'STUDENT_ORDER',costMinor:-100,lines:1},{orderId:uuid,orderKind:'STUDENT_ORDER',costMinor:10,lines:0}])assert.throws(()=>buildCostEvidence([bad]));
+console.log('INVALID_COST_EVIDENCE_BLOCKED=PASS');
+const calls=[];const pool={query:async(sql,params)=>{calls.push({sql,params});return {rows:[{orderId:uuid,orderKind:'STUDENT_ORDER',recordedAt:'2026-11-21',lines:1,costMinor:'4300'}]};}};
+const result=await readCostEvidence(pool,{from:'2026-11-01',to:'2026-11-21',kind:'STUDENT_ORDER'});
+assert.equal(result.knownCostMinor,4300);assert.deepEqual(calls[0].params,['2026-11-01','2026-11-21','STUDENT_ORDER']);assert.match(calls[0].sql,/limit 500/);assert.equal(calls[0].sql.includes('2026-11-01'),false);
+console.log('PARAMETERIZED_OWNER_READ_ONLY=PASS');
+console.log('R410_D8I_COST_EVIDENCE_OFFLINE=PASS');

@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import {normalizePaytrTransfer,reconcileTransferDay} from "../src/server/payments/paytr-transfer-reconcile-r410.js";
+const summary={date_paid:"2026-11-20",currency:"TL",sales:"970.00",return:"0.00",net:"970.00"};
+const details=[{merchant_oid:"a".repeat(32),currency:"TL",payment:"970.00"}];
+const run=(over={})=>reconcileTransferDay({summary,details,...over});
+assert.equal(normalizePaytrTransfer(summary).netMinor,97000);console.log("PROVIDER_SUMMARY_EXACT_MINOR=PASS");
+assert.equal(run().status,"PROVIDER_REPORTED_BANK_PENDING");assert.equal(run().bankConfirmed,false);console.log("PROVIDER_NOT_BANK_PROOF=PASS");
+assert.equal(run({details:[]}).status,"DETAIL_REVIEW_REQUIRED");
+assert.equal(run({details:[...details,...details]}).status,"DETAIL_REVIEW_REQUIRED");
+assert.equal(run({details:[{...details[0],payment:"960.00"}]}).status,"DETAIL_REVIEW_REQUIRED");console.log("DETAIL_MISSING_DUPLICATE_MISMATCH=PASS");
+assert.equal(run({summary:{...summary,return:"10.00",net:"960.00"}}).status,"DETAIL_REVIEW_REQUIRED");console.log("REFUND_REVIEW=PASS");
+const bankEvidence={currency:"TRY",date:"2026-11-20",amountMinor:97000};
+assert.equal(run({bankEvidence}).status,"BANK_AMOUNT_MATCH_REVIEW_REQUIRED");assert.equal(run({bankEvidence}).bankConfirmed,false);
+assert.equal(run({bankEvidence:{...bankEvidence,amountMinor:96000}}).status,"BANK_MISMATCH");console.log("BANK_MATCH_NOT_AUTO_CONFIRMED=PASS");
+for(const patch of [{currency:"USD"},{date_paid:"2026-02-30"},{net:"999"},{net:"9e2"}]) assert.throws(()=>normalizePaytrTransfer({...summary,...patch}));console.log("INVALID_EVIDENCE_REJECTED=PASS");
+console.log("R410_D7A_OFFLINE=PASS");

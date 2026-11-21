@@ -1,5 +1,6 @@
 import { tryQueueOwnerManagementEmail as queueOwnerManagementEmail } from "./owner-management-notifications-r390.js";
 import { queueOwnerOrderEvent } from "./owner-order-notifications-r390.js";
+import {captureOrderProductCosts} from "./r410-order-cost-hook.js";
 /* global process */
 import { legalSnapshotRows, readPublishedLegalDocuments, trainerLegalAcceptance } from "./trainer-legal-documents.js";
 import crypto from "node:crypto";
@@ -249,6 +250,7 @@ export async function createTrainerOrder(client, principal, input, { manageTrans
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.legal.accepted','trainer_package_order',$2,'SUCCESS',$3,$4)", [trainerUserId, order.id, crypto.randomUUID(), JSON.stringify(legalEvidence)]);
     await client.query("delete from trainer_cart_items where trainer_user_id=$1", [trainerUserId]);
     await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'trainer.commerce.order.created','trainer_package_order',$2,'SUCCESS',$3,$4)", [trainerUserId, order.id, crypto.randomUUID(), JSON.stringify({ paymentMethod, packageIds, totalMinor, shippingVatRateBps, shippingVatMinor, shippingNetMinor })]);
+    await captureOrderProductCosts(client,"TRAINER_PACKAGE_ORDER",order.id);
     if (manageTransaction) await client.query("commit"); return { order, replay: false };
   } catch (error) { if (manageTransaction) await client.query("rollback"); throw error; }
 }

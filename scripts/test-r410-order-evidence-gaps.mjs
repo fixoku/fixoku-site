@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {buildOrderEvidenceGapReport,readOrderEvidenceGaps} from '../src/server/domain/r410-order-evidence-gaps.js';
+const id='123e4567-e89b-42d3-a456-426614174000';
+const sample={kind:'STUDENT_ORDER',orderId:id,orderStatus:'PAID',createdAt:'2026-11-21',currency:'TRY',paymentMethod:'PAYTR',costLines:'1',costMinor:'10000',paytrAttempts:'1',earningRecords:'0',shipmentRecords:'0'};
+const a=buildOrderEvidenceGapReport([sample],1);
+assert.equal(a.certifiedProfit,false);assert.equal(a.contributionMinor,null);assert.equal(a.rows[0].recordedCostMinor,10000);console.log('EVIDENCE_NOT_CERTIFIED=PASS');
+assert(a.rows[0].blockers.includes('OTHER_EXPENSE_COVERAGE_UNVERIFIED'));console.log('OTHER_EXPENSE_GUARD=PASS');
+const b=buildOrderEvidenceGapReport([{...sample,costLines:'0',costMinor:'0',paytrAttempts:'0'}],1);
+assert.equal(b.rows[0].recordedCostMinor,null);assert(b.rows[0].blockers.includes('PAYTR_ATTEMPT_MISSING'));console.log('UNKNOWN_COST_AND_PAYTR_GUARD=PASS');
+assert.throws(()=>buildOrderEvidenceGapReport([sample,sample],2),/DUPLICATE_ORDER/);console.log('DUPLICATE_GUARD=PASS');
+assert.throws(()=>buildOrderEvidenceGapReport([sample],0),/SCOPE_COUNT_MISMATCH/);console.log('SCOPE_GUARD=PASS');
+assert.throws(()=>buildOrderEvidenceGapReport([{...sample,costMinor:'invalid'}],1),/INVALID_COST_MINOR/);console.log('AMOUNT_GUARD=PASS');
+const q=[];const pool={query:async(sql,params)=>{q.push({sql,params});return q.length===1?{rows:[{total:'1'}]}:{rows:[sample]};}};
+const result=await readOrderEvidenceGaps(pool,{from:'2026-11-01',to:'2026-11-30',currency:'TRY'});
+assert.equal(result.scopeOrderCount,1);assert.equal(q.length,2);assert(q[0].params.length===6);assert(q[1].sql.includes('limit 100'));assert(!q.some(x=>/\b(insert|update|delete)\b/i.test(x.sql)));console.log('PARAMETERIZED_READ_ONLY=PASS');
+const none=await readOrderEvidenceGaps({query:()=>{throw Error('UNEXPECTED_QUERY');}},{packageId:id});assert.equal(none.status,'FILTER_NOT_SUPPORTED');console.log('UNSUPPORTED_FILTER_BLOCK=PASS');
+assert.equal(buildOrderEvidenceGapReport([],1).truncated,true);console.log('PARTIAL_PAGE_NOT_FULL_COVERAGE=PASS');
+console.log('R410_D8M_ORDER_EVIDENCE_GAPS_OFFLINE=PASS');

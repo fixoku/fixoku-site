@@ -21,6 +21,11 @@ export function AdminAssignmentPage() {
 
   const [trainerId, setTrainerId] = useState("");
   const [amount,setAmount]=useState("");
+  const [tariff,setTariff]=useState<{version:number;individualMinor:number}|null>(null);
+  const [approved,setApproved]=useState("");
+  const payoutKey=`${selected?.id||""}|${trainerId}|${tariff?.version||0}|${tariff?.individualMinor||0}`;
+  useEffect(()=>{let active=true;fetch("/api/admin/r410-payout-tariffs",{credentials:"same-origin",cache:"no-store"}).then(r=>r.ok?r.json():null).then(b=>{if(active){setTariff(b?.tariff||null);setApproved("");}}).catch(()=>{if(active)setTariff(null);});return()=>{active=false;};},[]);
+  useEffect(()=>{setAmount(tariff?(tariff.individualMinor/100).toFixed(2):"");setApproved("");},[tariff?.version,tariff?.individualMinor,selected?.id,trainerId]);
   const [free,setFree]=useState(false);
   const [freeReason,setFreeReason]=useState("");
   const chosen=candidates.find(c=>c.id===trainerId);
@@ -46,7 +51,7 @@ export function AdminAssignmentPage() {
     () => current ? candidates.find((candidate) => candidate.id === current.trainerUserId) || null : null,
     [candidates, current],
   );
-  const assign = async () => { if (!selected || !trainerId || (free ? !freeReason.trim() : !amountValid)) return; const isReassign = Boolean(current); if (isReassign && !reason.trim()) { setMessage("Değişiklik gerekçesi zorunludur."); return; } const r = await fetch(`/api/admin/assignment-requests/${selected.id}`, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ trainerId, compensationMinor:free?0:Math.round(Number(amount)*100), freeAssignment:free, ...(free?{freeReason:freeReason.trim()}:{}), ...(isReassign ? { reassign: true, reassignmentReason: reason.trim(), compensationDecision } : {}) }) }); const b = await r.json(); if (!r.ok) { setMessage(assignmentError(b.error,"Atama yapılamadı. Bilgileri kontrol edin.")); return; } setMessage(isReassign ? "Eğitmen değişikliği kaydedildi." : "Eğitmen ataması kaydedildi."); await load(); setSelected(null); setTrainerId(""); };
+  const assign = async () => { if (!selected || !trainerId || (free ? !freeReason.trim() : !amountValid||approved!==payoutKey||!tariff)) return; const isReassign = Boolean(current); if (isReassign && !reason.trim()) { setMessage("Değişiklik gerekçesi zorunludur."); return; } const r = await fetch(`/api/admin/assignment-requests/${selected.id}`, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ trainerId, compensationMinor:free?0:Math.round(Number(amount)*100), payoutApproval:free?null:{approved:true,version:tariff?.version,seat:1,amountMinor:tariff?.individualMinor}, freeAssignment:free, ...(free?{freeReason:freeReason.trim()}:{}), ...(isReassign ? { reassign: true, reassignmentReason: reason.trim(), compensationDecision } : {}) }) }); const b = await r.json(); if (!r.ok) { setMessage(assignmentError(b.error,"Atama yapılamadı. Bilgileri kontrol edin.")); return; } setMessage(isReassign ? "Eğitmen değişikliği kaydedildi." : "Eğitmen ataması kaydedildi."); await load(); setSelected(null); setTrainerId(""); };
 
   const removeAssignment=async()=>{
     if(!selected || !current?.canRemove || mutationBusy || !removeReason.trim()) return;
@@ -203,9 +208,10 @@ export function AdminAssignmentPage() {
     <div className="assignment-pay-r389">
       <label htmlFor="assignment-amount-r389">{chosen ? `${givenName(chosen.name)} Öğretmenin hakedişi` : "Eğitmen hakedişi"}</label>
       <div className="assignment-pay-row-r389">
-        <div className="assignment-money-r389"><input id="assignment-amount-r389" type="number" min="0.01" max="21474836.47" step="0.01" value={free?"0":amount} disabled={free} onChange={e=>setAmount(e.target.value)} placeholder="Tutarı giriniz" /><span>₺</span></div>
+        <div className="assignment-money-r389"><input id="assignment-amount-r389" type="number" min="0.01" max="21474836.47" step="0.01" value={free?"0":amount} readOnly disabled={free} placeholder="Tutarı giriniz" /><span>₺</span></div>
         <button type="button" className="assignment-free-r389" aria-pressed={free} disabled={!trainerId} onClick={()=>{setFree(!free);setFreeReason("");}}>Ücretsiz</button>
-        <button className="assignment-primary-action" type="button" disabled={(free ? !freeReason.trim() : !amountValid) || !trainerId || Boolean(current && !reason.trim())} onClick={() => void assign()}>{current ? "Eğitmeni değiştir" : "Eğitmeni Ata"}</button>
+        {!free&&<><p>Birebir eğitim için tanımlanan hakediş · {tariff?`Tarife v${tariff.version}`:"Önce hakediş tarifesini kaydedin"}</p><button type="button" disabled={!trainerId||!tariff} onClick={()=>setApproved(payoutKey)}>Hakedişi Onayla</button>{approved===payoutKey&&tariff&&<p role="status">Hakediş onaylandı: {(tariff.individualMinor/100).toLocaleString("tr-TR")} ₺</p>}</>}
+        <button className="assignment-primary-action" type="button" disabled={(free ? !freeReason.trim() : !amountValid||approved!==payoutKey||!tariff) || !trainerId || Boolean(current && !reason.trim())} onClick={() => void assign()}>{current ? "Eğitmeni değiştir" : "Eğitmeni Ata"}</button>
       </div>
       {free && <div className="assignment-free-note-r389"><label htmlFor="assignment-free-reason-r389">{chosen ? `${givenName(chosen.name)} Öğretmene özel açıklama` : "Eğitmene özel açıklama"} (zorunlu)</label><textarea id="assignment-free-reason-r389" required maxLength={500} value={freeReason} onChange={e=>setFreeReason(e.target.value)} placeholder="Bu eğitim için neden hakediş ödenmeyeceğini açıklayın..."/><small>{freeReason.length}/500 · Bu açıklama yalnızca yetkili Owner ve atanan eğitmene gösterilir.</small></div>}
     </div></div>

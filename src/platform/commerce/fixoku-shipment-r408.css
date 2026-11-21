@@ -1,0 +1,210 @@
+/* FIXOKU R408 shared shipment presentation */
+.student-shipment-card.r408-shipment-card {
+  display:block!important;
+  width:100%;
+  max-width:none;
+  padding:28px!important;
+  border:1px solid #e1e7ee;
+  border-radius:22px!important;
+  box-shadow:0 8px 30px rgba(20,33,46,.05);
+  background:#fff;
+  color:#14212e;
+  min-width:0;
+}
+.r408-shipment-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+}
+.r408-shipment-header small,
+.r408-shipment-header span {
+  color:#64748b;
+  font-size:13px;
+}
+.r408-shipment-header h2 {
+  font-size:22px!important;
+  line-height:1.4;
+  margin:7px 0!important;
+}
+.r408-shipment-status {
+  background:#fff1e5;
+  color:#b24a08;
+  border-radius:30px;
+  padding:10px 16px;
+  font-size:13px;
+  flex-shrink:0;
+}
+.r408-shipment-status.is-delivered {
+  background:#e4f7eb;
+  color:#147743;
+}
+.r408-shipment-status.is-special {
+  background:#fce8e8;
+  color:#9f3030;
+}
+.r408-shipment-progress {
+  list-style:none!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  padding:0!important;
+  margin:35px 0!important;
+  gap:0!important;
+}
+.r408-shipment-progress li {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  min-width:0;
+  padding:0!important;
+  gap:12px;
+}
+.r408-shipment-progress li:not(:last-child)::after {
+  content:"";
+  position:absolute;
+  height:5px;
+  width:100%;
+  left:50%;
+  top:20px;
+  background:#cbd5e1;
+  z-index:0;
+}
+.r408-shipment-progress li.is-done:not(:last-child)::after {
+  background:#ef6008;
+}
+.r408-progress-dot {
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#cbd5e1;
+  color:#fff;
+  position:relative;
+  z-index:1;
+}
+.r408-shipment-progress .is-done .r408-progress-dot,
+.r408-shipment-progress .is-current .r408-progress-dot {
+  background:#ef6008;
+}
+.r408-progress-dot svg {
+  width:25px;
+  height:25px;
+}
+.r408-progress-dot i {
+  display:block;
+  width:15px;
+  height:15px;
+  border-radius:50%;
+  background:white;
+}
+.r408-progress-label {
+  font-size:14px;
+  font-weight:600;
+  color:#14212e;
+}
+.r408-shipment-products {
+  padding:20px;
+  border:1px solid #e6ebf0;
+  border-radius:14px;
+  background:#f7f9fc;
+  margin-bottom:20px;
+}
+.r408-shipment-products h3 {
+  font-size:15px;
+  margin:0 0 12px;
+}
+.r408-shipment-products > div {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  padding:10px 0;
+  border-bottom:1px solid #e2e8f0;
+}
+.r408-shipment-products > div:last-child {
+  border-bottom:0;
+}
+.r408-shipment-products strong {
+  flex-shrink:0;
+}
+.r408-shipment-card .r408-shipment-data {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px!important;
+  margin:0!important;
+}
+.r408-shipment-data > div {
+  padding:14px;
+  border:1px solid #e1e7ee;
+  border-radius:12px;
+  min-width:0;
+}
+.r408-shipment-data dt {
+  color:#64748b;
+  font-size:12px;
+  margin-bottom:7px;
+}
+.r408-shipment-data dd {
+  margin:0;
+  font-weight:650;
+  overflow-wrap:anywhere;
+}
+.r408-shipment-footer {
+  display:block;
+  margin-top:22px;
+}
+.r408-shipment-footer a {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  background:#ef6008;
+  border-radius:12px;
+  color:#fff!important;
+  text-decoration:none;
+  font-weight:700;
+  padding:15px;
+}
+.r408-shipment-footer p,
+.r408-shipment-attention {
+  padding:16px;
+  border-radius:12px;
+  background:#f3f6fa;
+  color:#475569;
+  font-size:13px;
+}
+.r408-shipment-attention {
+  margin:20px 0;
+}
+@media(max-width:600px) {
+  .student-shipment-card.r408-shipment-card {
+    padding:18px 14px!important;
+  }
+  .r408-shipment-header {
+    flex-direction:column;
+  }
+  .r408-shipment-header h2 {
+    font-size:18px!important;
+  }
+  .r408-progress-dot {
+    width:32px;
+    height:32px;
+  }
+  .r408-shipment-progress li:not(:last-child)::after {
+    top:14px;
+    height:4px;
+  }
+  .r408-progress-dot svg {
+    width:20px;
+    height:20px;
+  }
+  .r408-progress-label {
+    font-size:10px;
+  }
+  .r408-shipment-card .r408-shipment-data {
+    grid-template-columns:minmax(0,1fr);
+  }
+}

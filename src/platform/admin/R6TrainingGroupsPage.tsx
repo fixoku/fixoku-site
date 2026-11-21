@@ -33,6 +33,20 @@ export function R6TrainingGroupsPage() {
   const [existingClassId, setExistingClassId] = useState("");
   const [busy, setBusy] = useState(false);
   const [amount,setAmount]=useState("");
+   type Tariff={version:number;individualMinor:number;groupMinor:number[]};
+   const [tariff,setTariff]=useState<Tariff|null>(null);
+   const [tariffDraft,setTariffDraft]=useState<string[]>(Array(6).fill(""));
+   const [tariffError,setTariffError]=useState("");
+   const [tariffBusy,setTariffBusy]=useState(false);
+   const [approved,setApproved]=useState("");
+   const [modalApproved,setModalApproved]=useState("");
+   const minor=(value:string)=>/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/.test(value)&&Number(value)>0&&Math.round(Number(value)*100)<=2147483647?Math.round(Number(value)*100):null;
+   const loadTariff=async()=>{try{const r=await fetch("/api/admin/r410-payout-tariffs",{credentials:"same-origin",cache:"no-store"});const b=await r.json();if(!r.ok)throw Error(b.error||"Tarife yüklenemedi");const t=b.tariff as Tariff|null;setTariff(t);setTariffDraft(t?[t.individualMinor,...t.groupMinor].map(x=>(x/100).toFixed(2)):Array(6).fill(""));setTariffError("");setApproved("");setModalApproved("");}catch(e){setTariff(null);setTariffError(e instanceof Error?e.message:"Tarife yüklenemedi");}};
+   useEffect(()=>{void loadTariff();},[]);
+   const saveTariff=async()=>{const values=tariffDraft.map(minor);if(values.some(x=>x===null)){setTariffError("Altı tutarı da girin.");return;}setTariffBusy(true);try{const r=await fetch("/api/admin/r410-payout-tariffs",{method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify({expectedVersion:tariff?.version||0,tariff:{individualMinor:values[0],groupMinor:values.slice(1)}})});const b=await r.json();if(!r.ok)throw Error(b.error||"Tarife kaydedilemedi");await loadTariff();}catch(e){setTariffError(e instanceof Error?e.message:"Tarife kaydedilemedi");}finally{setTariffBusy(false);}};
+   const seatFor=(g?:any)=>g?Number(g.activeParticipantCount??(g.participants||[]).filter((p:any)=>p.status==="ACTIVE").length)+1:1;
+   const quoteFor=(seat:number)=>tariff&&seat>=1&&seat<=5?{version:tariff.version,seat,amountMinor:tariff.groupMinor[seat-1]}:null;
+   const approvalKey=(seat:number,value:number,student:string,group:string,trainer:string)=>`${tariff?.version}|${seat}|${value}|${student}|${group}|${trainer}`;
   const amountValid=(/^[0-9]+(?:\.[0-9]{1,2})?$/.test(amount) && Number(amount)>0 && Math.round(Number(amount)*100)<=2147483647);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
@@ -40,7 +54,7 @@ export function R6TrainingGroupsPage() {
   const [modalReason,setModalReason]=useState(""); const [modalTrainer,setModalTrainer]=useState("");
   const [modalCandidate,setModalCandidate]=useState(""); const [modalAmount,setModalAmount]=useState("");
   const [modalError,setModalError]=useState("");
-  const showModal=(kind:"remove"|"trainer"|"add",group:any,participant?:any)=>{setModal({kind,group,participant});setModalReason("");setModalTrainer("");setModalCandidate("");setModalAmount("");setModalError("");};
+  const showModal=(kind:"remove"|"trainer"|"add",group:any,participant?:any)=>{setModal({kind,group,participant});setModalReason("");setModalTrainer("");setModalCandidate("");setModalAmount(quoteFor(seatFor(group))?(quoteFor(seatFor(group))!.amountMinor/100).toFixed(2):"");setModalApproved("");setModalError("");};
   const canAdd=(g:any)=>["DRAFT","ASSIGNED"].includes(g.status)&&(!g.scheduledStartAt||Date.parse(g.scheduledStartAt)>Date.now())&&Number(g.activeParticipantCount||0)<Number(g.maxStudents||5);
   const matchesGroup=(c:any,g:any)=>c.educationStage===g.educationStage&&c.trainingType===g.trainingType&&c.requiredQualificationId===g.requiredQualificationId&&c.trainingProductId===g.trainingProductId;
 
@@ -183,7 +197,16 @@ export function R6TrainingGroupsPage() {
     g.trainingProductId === selected.trainingProductId && (g.packageVersionId === selected.packageVersionId || Boolean(selected.trainingProductId)) &&
     ["DRAFT", "ASSIGNED"].includes(g.status) && (!g.scheduledStartAt || Date.parse(g.scheduledStartAt) > Date.now()) &&
     Number(g.activeParticipantCount || 0) < Number(g.maxStudents || 5)) : [];
-  const classTitle = (g: any) => g.trainerName && g.classNumber ? `${g.trainerName} · Sınıf ${g.classNumber}` : "Eğitmen bekleyen sınıf";
+   const chosenGroup=existingClassId?groups.find(g=>g.id===existingClassId):undefined;
+   const seat=seatFor(chosenGroup);
+   const quote=quoteFor(seat);
+   const candidateApproval=selected?approvalKey(seat,quote?.amountMinor||0,candidateKey(selected),existingClassId||"NEW",trainerId):"";
+   useEffect(()=>{setAmount(quote?(quote.amountMinor/100).toFixed(2):"");setApproved("");},[selectedKey,existingClassId,trainerId,quote?.version,quote?.amountMinor]);
+   const modalSeat=modal?seatFor(modal.group):0;
+   const modalQuote=quoteFor(modalSeat);
+   const modalCandidateObj=candidates.find(c=>candidateKey(c)===modalCandidate);
+   const modalApproval=modalCandidateObj?approvalKey(modalSeat,modalQuote?.amountMinor||0,modalCandidate,modal?.group?.id||"",modal?.group?.trainerUserId||"UNASSIGNED"):"";
+   const classTitle = (g: any) => g.trainerName && g.classNumber ? `${g.trainerName} · Sınıf ${g.classNumber}` : "Eğitmen bekleyen sınıf";
   const startLabel = (g: any) => g.scheduledStartAt ? new Date(g.scheduledStartAt).toLocaleString("tr-TR", {timeZone:"Europe/Istanbul"}) : "Belirlenmedi";
   const agreementMatches = (p:any,g:any) => p.contactStatus === "AGREED" && Boolean(p.agreedStartAt) && (!g.scheduledStartAt || Date.parse(p.agreedStartAt) === Date.parse(g.scheduledStartAt));
   const contactLabel = (p:any,g:any) => p.contactStatus === "AGREED" ? (agreementMatches(p,g) ? "Mutabakat sağlandı" : "Yeni tarih için mutabakat bekleniyor") : ({PENDING:"Görüşme bekleniyor",UNREACHABLE:"Telefonla ulaşılamadı",CONTACTED:"Görüşüldü, mutabakat bekleniyor"} as Record<string,string>)[p.contactStatus] || "Durum bilinmiyor";
@@ -201,7 +224,12 @@ export function R6TrainingGroupsPage() {
   const assign = async (direct?:{candidate:any;group:any;fee:string}) => {
     const chosen=direct?.candidate||selected, chosenTrainer=direct?(direct.group.trainerUserId||"UNASSIGNED"):trainerId, chosenClass=direct?direct.group.id:existingClassId, fee=direct?direct.fee:amount;
     const valid=/^[0-9]+(?:\.[0-9]{1,2})?$/.test(fee)&&Number(fee)>0&&Math.round(Number(fee)*100)<=2147483647;
-    if (!chosen || !chosenTrainer || !valid || busy) return false;
+         if (!chosen || !chosenTrainer || !valid || busy) return false;
+     const currentGroup=chosenClass?groups.find(g=>g.id===chosenClass):undefined;
+     const currentSeat=seatFor(currentGroup);
+     const currentQuote=quoteFor(currentSeat);
+     const currentApproval=approvalKey(currentSeat,currentQuote?.amountMinor||0,candidateKey(chosen),chosenClass||"NEW",chosenTrainer);
+     if(!currentQuote || Math.round(Number(fee)*100)!==currentQuote.amountMinor || (direct?modalApproved:approved)!==currentApproval){if(direct)setModalError("Önce güncel hakedişi onaylayın.");else setMessage("Önce güncel hakedişi onaylayın.");return false;}
     if(direct && (!canAdd(direct.group)||!matchesGroup(chosen,direct.group))) {setModalError("Sınıf artık uygun değil.");return false;}
     if (!direct && existingClassId && !openClasses.some(g=>g.id===existingClassId)) {setMessage("Sınıf artık uygun değil. Listeyi yenileyin."); return;}
     setBusy(true);
@@ -218,7 +246,9 @@ export function R6TrainingGroupsPage() {
       minStudents: 1,
       maxStudents: Number(chosen.maxStudents || 5),
       trainerUserId: chosenTrainer === "UNASSIGNED" ? null : chosenTrainer,
-      existingClassId: chosenClass || null,
+             existingClassId: chosenClass || null,
+       forceNewClass: !chosenClass,
+       payoutApproval:{approved:true,version:currentQuote.version,seat:currentQuote.seat,amountMinor:currentQuote.amountMinor},
       requiredQualificationId: chosen.requiredQualificationId,
       participants: [
         {
@@ -301,7 +331,12 @@ export function R6TrainingGroupsPage() {
         <Link className="is-active" to="/panel/owner/egitim-gruplari">Sınıf Atamaları</Link>
       </div>
 
-      {message && <p className="admin-inline-status" role="status">{message}</p>}
+             {message && <p className="admin-inline-status" role="status">{message}</p>}
+       <section className="panel-card" aria-label="Owner hakediş tarifeleri"><div className="admin-section-heading"><div><span>OWNER YÖNETİMİ</span><h2>Hakediş Tarifeleri</h2><p>Birebir eğitim ve sınıfın 1–5. öğrencisi için tutarlar. Geçmiş sürümler değişmez.</p></div></div>
+       <div className="group-assignment-context-grid">{["Birebir eğitim",...Array.from({length:5},(_,i)=>`${i+1}. öğrenci`)].map((label,i)=><label key={label}>{label}<input aria-label={label} type="number" min="0.01" step="0.01" value={tariffDraft[i]} disabled={tariffBusy} onChange={e=>{setTariffDraft(d=>d.map((x,j)=>i===j?e.target.value:x));setApproved("");setModalApproved("");}}/></label>)}</div>
+       <p>Geçerli tarife sürümü: {tariff?.version||"Henüz kaydedilmedi"}</p>
+       {tariffError&&<p role="alert">{tariffError}</p>}
+       <button type="button" disabled={tariffBusy} onClick={()=>void saveTariff()}>Tarifeyi kaydet</button></section>
 
       <div className="r401-stats">{[["Atama bekleyen",candidates.length],["Aktif sınıflar",groups.filter(g=>g.mode==="GROUP"&&["DRAFT","ASSIGNED","IN_PROGRESS"].includes(g.status)).length],["Boş kontenjan",groups.filter(g=>g.mode==="GROUP"&&canAdd(g)).reduce((n,g)=>n+Number(g.maxStudents||5)-Number(g.activeParticipantCount||0),0)],["Eğitmen bekleyen",groups.filter(g=>g.mode==="GROUP"&&g.status==="DRAFT"&&!g.trainerUserId).length]].map(([label,value])=><div key={String(label)}><span>{label}</span><strong>{value}</strong></div>)}</div>
       <section className="panel-card group-assignment-builder-v20">
@@ -323,7 +358,7 @@ export function R6TrainingGroupsPage() {
                 value={selectedKey}
                 onChange={(event) => {
                   setSelectedKey(event.target.value);
-                  setTrainerId(""); setExistingClassId(""); setAmount("");
+                  setTrainerId(""); setExistingClassId(""); setAmount("");setApproved("");setModalApproved("");
                 }}
               >
                 <option value="">Sınıf eğitimi hakkı olan öğrenciyi seçin</option>
@@ -452,11 +487,13 @@ export function R6TrainingGroupsPage() {
               </div>
             </div>
 
-            <div className="r395-pay"><h3>3. Hakediş ve atama</h3><label className="assignment-compensation-field">Öğrenci başına hakediş<div className="r395-money"><input type="number" min="0.01" max="21474836.47" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="Tutarı giriniz" /><span>₺</span></div></label>
+            <div className="r395-pay"><h3>3. Hakediş ve atama</h3><label className="assignment-compensation-field">{quote?`${quote.seat}. öğrenci için tanımlanan hakediş`:"Önce Owner hakediş tarifesini kaydedin"}<div className="r395-money"><input type="number" readOnly value={amount} placeholder="Tarife bekleniyor" /><span>₺</span></div></label>
+             <button type="button" disabled={busy||!selected||!trainerId||!quote} onClick={()=>setApproved(candidateApproval)}>Hakedişi Onayla</button>
+             {approved===candidateApproval&&quote&&<p role="status">Hakediş onaylandı: {money(quote.amountMinor)} · tarife v{quote.version}</p>}
             <button
               className="assignment-primary-action group-assignment-submit"
               type="button"
-              disabled={busy || !trainerId || !amountValid}
+              disabled={busy || !trainerId || !amountValid || !quote || approved!==candidateApproval}
               onClick={() => void assign()}
             >
               Öğrenciyi sınıfa ekle
@@ -511,7 +548,7 @@ export function R6TrainingGroupsPage() {
           </div>
         )}
       </section>
-      {modal&&<AssignmentModalR401 title={modal.kind==="remove"?"Öğrenciyi sınıftan çıkar":modal.kind==="trainer"?"Sınıfa eğitmen ata":"Sınıfa öğrenci ekle"} busy={busy} onClose={()=>setModal(null)}><p>{classTitle(modal.group)}</p>{modal.kind==="remove"?<><p>{modal.participant?.studentName} · Eğitim hakkı ve geçmişi korunacaktır.</p><label>Çıkarma gerekçesi<textarea value={modalReason} maxLength={500} onChange={e=>setModalReason(e.target.value)}/></label></>:modal.kind==="trainer"?<label>Yetkin eğitmen<select value={modalTrainer} onChange={e=>setModalTrainer(e.target.value)}><option value="">Seçiniz</option>{trainers.filter(t=>(t.grants||[]).some((q:any)=>q.qualificationId===modal.group.requiredQualificationId&&q.effective===true)).map(t=><option key={t.id} value={t.id}>{t.displayName||t.name}</option>)}</select></label>:<><label>Uygun öğrenci<select value={modalCandidate} onChange={e=>setModalCandidate(e.target.value)}><option value="">Seçiniz</option>{candidates.filter(c=>matchesGroup(c,modal.group)).map(c=><option key={candidateKey(c)} value={candidateKey(c)}>{c.studentName} · {c.packageTitle}</option>)}</select></label><label>Öğrenci başına hakediş (₺)<input type="number" min="0.01" step="0.01" value={modalAmount} onChange={e=>setModalAmount(e.target.value)}/></label></>}{modalError&&<p role="alert">{modalError}</p>}<div className="r401-actions"><button type="button" disabled={busy} onClick={()=>setModal(null)}>Vazgeç</button><button type="button" disabled={busy||(modal.kind==="remove"?!modalReason.trim():modal.kind==="trainer"?!modalTrainer:!modalCandidate||!(/^[0-9]+(?:\.[0-9]{1,2})?$/.test(modalAmount)&&Number(modalAmount)>0&&Math.round(Number(modalAmount)*100)<=2147483647))} onClick={async()=>{setModalError("");const ok=modal.kind==="remove"?await classAction(modal.group,{action:"remove",participantId:modal.participant.id,reason:modalReason.trim()}):modal.kind==="trainer"?await classAction(modal.group,{action:"assigntrainer",trainerUserId:modalTrainer}):await assign({candidate:candidates.find(c=>candidateKey(c)===modalCandidate),group:modal.group,fee:modalAmount});if(ok)setModal(null);}}>Onayla</button></div></AssignmentModalR401>}
+      {modal&&<AssignmentModalR401 title={modal.kind==="remove"?"Öğrenciyi sınıftan çıkar":modal.kind==="trainer"?"Sınıfa eğitmen ata":"Sınıfa öğrenci ekle"} busy={busy} onClose={()=>setModal(null)}><p>{classTitle(modal.group)}</p>{modal.kind==="remove"?<><p>{modal.participant?.studentName} · Eğitim hakkı ve geçmişi korunacaktır.</p><label>Çıkarma gerekçesi<textarea value={modalReason} maxLength={500} onChange={e=>setModalReason(e.target.value)}/></label></>:modal.kind==="trainer"?<label>Yetkin eğitmen<select value={modalTrainer} onChange={e=>setModalTrainer(e.target.value)}><option value="">Seçiniz</option>{trainers.filter(t=>(t.grants||[]).some((q:any)=>q.qualificationId===modal.group.requiredQualificationId&&q.effective===true)).map(t=><option key={t.id} value={t.id}>{t.displayName||t.name}</option>)}</select></label>:<><label>Uygun öğrenci<select value={modalCandidate} onChange={e=>{setModalCandidate(e.target.value);setModalApproved("");}}><option value="">Seçiniz</option>{candidates.filter(c=>matchesGroup(c,modal.group)).map(c=><option key={candidateKey(c)} value={candidateKey(c)}>{c.studentName} · {c.packageTitle}</option>)}</select></label><label>{modalQuote?`${modalQuote.seat}. öğrenci için tanımlanan hakediş`:"Tarife bulunamadı"}<input type="number" readOnly value={modalAmount}/></label><button type="button" disabled={!modalCandidate||!modalQuote||busy} onClick={()=>setModalApproved(modalApproval)}>Hakedişi Onayla</button>{modalApproved===modalApproval&&modalQuote&&<p role="status">Hakediş onaylandı: {money(modalQuote.amountMinor)}</p>}</>}{modalError&&<p role="alert">{modalError}</p>}<div className="r401-actions"><button type="button" disabled={busy} onClick={()=>setModal(null)}>Vazgeç</button><button type="button" disabled={busy||(modal.kind==="remove"?!modalReason.trim():modal.kind==="trainer"?!modalTrainer:!modalCandidate||!modalQuote||modalApproved!==modalApproval)} onClick={async()=>{setModalError("");const ok=modal.kind==="remove"?await classAction(modal.group,{action:"remove",participantId:modal.participant.id,reason:modalReason.trim()}):modal.kind==="trainer"?await classAction(modal.group,{action:"assigntrainer",trainerUserId:modalTrainer}):await assign({candidate:candidates.find(c=>candidateKey(c)===modalCandidate),group:modal.group,fee:modalAmount});if(ok)setModal(null);}}>Onayla</button></div></AssignmentModalR401>}
     </main>
   );
 }

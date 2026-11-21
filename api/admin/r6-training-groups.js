@@ -1,6 +1,7 @@
 import { queuePanelNotification } from "../../src/server/domain/panel-notifications.js";
 import { getProfileMediaConfig, readProfilePhoto } from "../../src/server/domain/profile-media.js";
 import crypto from "node:crypto";
+import { assertR410PayoutApproval } from "../../src/server/domain/r410-assignment-payout-approval.js";
 import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { isUuid, normalizeR6GroupInput, r6GroupStatus } from "../../src/server/domain/r6-training.js";
@@ -318,7 +319,7 @@ export default async function handler(req, res) {
       }
       const requestedClass = body.existingClassId || null;
       if (requestedClass && !isUuid(requestedClass)) throw Object.assign(new Error("R399_CLASS_ID_INVALID"),{status:400});
-      if (requestedClass || input.trainerUserId) {
+      if (requestedClass || (input.trainerUserId && body.forceNewClass !== true)) {
         const open = (await client.query(`select g.*, (select count(*)::int from r6_training_group_participants p where p.training_group_id=g.id and p.status='ACTIVE') as occupied
           from r6_training_groups g where g.mode='GROUP' and g.education_stage=$1 and g.training_type=$2
           and g.status in ('DRAFT','ASSIGNED') and (g.scheduled_start_at is null or g.scheduled_start_at>clock_timestamp())
@@ -332,6 +333,13 @@ export default async function handler(req, res) {
         }
       }
     }
+    // R410: approval is checked in the same transaction after the class row is locked.
+    if (input.participants.length !== 1 || !["GROUP","INDIVIDUAL"].includes(input.mode)) throw Object.assign(new Error("R410_ONE_STUDENT_PER_APPROVAL_REQUIRED"),{status:409});
+    const occupied = group ? Number((await client.query("select count(*)::int as n from r6_training_group_participants where training_group_id=$1 and status='ACTIVE'",[group.id])).rows[0]?.n) : 0;
+    const tariffApproval = await assertR410PayoutApproval(client,{
+      supplied:body.payoutApproval,mode:input.mode,activeStudentCount:occupied,
+      compensationMinor:input.participants[0].compensationMinor
+    });
     const existingClass = Boolean(group);
     const addedParticipantIds = [];
     if (!group) {
@@ -361,6 +369,7 @@ export default async function handler(req, res) {
         ) limit 1`, [group.id])).rows[0];
       if (unsafe) throw Object.assign(new Error("R399_CLASS_LEGACY_LINK_REQUIRED"), {status:409});
     }
+    await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'r410.group_payout.owner_approved','r6_training_group',$2,'SUCCESS',gen_random_uuid(),$3)",[principal.user.id,group.id,JSON.stringify({tariffVersion:tariffApproval.tariffVersion,seat:tariffApproval.seat,amountMinor:tariffApproval.amountMinor,approvedBy:principal.user.id})]);
     for (const participant of input.participants) {
       const added = (await client.query("insert into r6_training_group_participants(training_group_id,child_profile_id,student_profile_id,student_user_id,enrollment_id,status,billable,compensation_minor) values($1,$2,$3,$4,$5,'ACTIVE',true,$6) returning id", [group.id, participant.childProfileId || null, participant.studentProfileId || null, participant.studentUserId, participant.enrollmentId || null,participant.compensationMinor])).rows[0];
       addedParticipantIds.push(added.id);

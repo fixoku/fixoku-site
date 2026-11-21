@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import {readPaytrFinanceSummary} from "../src/server/payments/paytr-finance-summary-r410.js";
+const noQuery={query(){throw new Error('unexpected query')}};
+assert.equal((await readPaytrFinanceSummary(noQuery,{packageId:'x'})).status,'OUT_OF_SCOPE');
+assert.equal((await readPaytrFinanceSummary(noQuery,{currency:'USD'})).status,'OUT_OF_SCOPE');
+const row={total:'3',verified:'2',deduction:'8000',net:'192000',difference:'0',merchant_cost:'8000',single_cost:'3000',two_cost:'5000'};
+const db={async query(sql,args){assert.deepEqual(args,['2026-11-01','2026-11-20']);assert.ok(sql.includes("a.environment='LIVE'"));assert.ok(sql.includes("CONFLICT_REVIEW_REQUIRED"));return {rows:[row]};}};
+const s=await readPaytrFinanceSummary(db,{from:'2026-11-01',to:'2026-11-20'});
+assert.equal(s.unresolvedAttempts,1);assert.equal(s.merchantCostMinor,8000);assert.equal(s.twoCostMinor,5000);
+const empty=await readPaytrFinanceSummary({async query(){return {rows:[{total:'0',verified:'0'}]}}});assert.equal(empty.deductionMinor,null);
+assert.equal((await readPaytrFinanceSummary({async query(){throw Object.assign(new Error(),{code:'42P01'})}})).status,'SCHEMA_PENDING');
+console.log('R410_FINANCE_SUMMARY_MOCK=PASS');

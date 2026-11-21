@@ -1,3 +1,5 @@
+import { ShipmentParcelPlanR408, type ParcelPlanR408 } from "./ShipmentParcelPlanR408";
+import { BookParcelSettingsR408 } from "./BookParcelSettingsR408";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode, FormEvent } from "react";
 import "./admin-panel.css";
@@ -11,13 +13,13 @@ type Kind = "student" | "trainer";
 type Tab = "all" | "action" | "transit" | "complete" | "issue";
 type Mode = "demo" | "real";
 type Event = { at: string; title: string; detail: string };
-type Shipment = {
+type Shipment = { cancellationPendingR408?: boolean; shippingChargeMinor?: number | null; actualShippingCostMinor?: number | null; reportedCargoCostMinorR408?: number | null;
   id: string; orderId: string; person: string; kind: Kind; product: string; carrier: string;
   status: Status; tracking: string; createdAt: string; updatedAt: string;
   city: string; district: string; note: string; events: Event[]; demo: boolean; dispatchId?: string; dispatchStatus?: string; trackingUrl?: string;
 };
 
-type APIShipment = {
+type APIShipment = { cancellationPendingR408?: unknown; shippingChargeMinor?: unknown; actualShippingCostMinor?: unknown; reportedCargoCostMinorR408?: unknown;
   id?: unknown; orderId?: unknown; status?: unknown;
   beneficiaryStudentName?: unknown; trainerName?: unknown; carrier?: unknown; providerName?: unknown;
   trackingNumber?: unknown; trackingUrl?: unknown; createdAt?: unknown; shippedAt?: unknown; deliveredAt?: unknown;
@@ -26,6 +28,8 @@ type APIShipment = {
   items?: unknown;
 };
 
+const cargoMinorR408 = (v: unknown): number | null => typeof v === "number" && Number.isSafeInteger(v) && v >= 0 ? v : null;
+const cargoMoneyR408 = (v: number | null | undefined) => v == null ? "Bekleniyor" : (v / 100).toLocaleString("tr-TR", {style:"currency",currency:"TRY"});
 const STORAGE = "fixoku-cargo-owner-v2-demo-only";
 const statusText: Record<Status, string> = {
   waiting: "Bekliyor", preparing: "Hazırlanıyor", integration: "Entegrasyon Bekliyor",
@@ -80,17 +84,78 @@ function readDemo(): Shipment[] {
 }
 function convertAPI(items: APIShipment[], kind: Kind): Shipment[] {
   return items.filter((x) => x && typeof x === "object").map((x, idx) => {
+    const details = x as APIShipment & {
+      packageCount?: unknown;
+      addressSnapshotJson?: unknown;
+      lastProviderQueryAt?: unknown;
+      barcodeReference?: unknown;
+      referenceNo?: unknown;
+      reviewReason?: unknown;
+      lastErrorCode?: unknown;
+    };
+
+    let address: Record<string, unknown> = {};
+
+    try {
+      const raw = typeof details.addressSnapshotJson === "string"
+        ? JSON.parse(details.addressSnapshotJson)
+        : details.addressSnapshotJson;
+
+      if (raw && typeof raw === "object" && !Array.isArray(raw))
+        address = raw as Record<string, unknown>;
+    } catch {
+      address = {};
+    }
+
+    const savedCount = Number(details.packageCount);
+
     const original = text(x.status).toUpperCase();
     const dispatch = text(x.dispatchStatus).toUpperCase();
-    const mapped: Status = ({ WAITING: "waiting", PREPARING: "preparing", PACKED: "packed", SHIPPED: "shipped", DELIVERED: "delivered", RETURNED: "return", CANCELLED: "canceled" } as Record<string, Status>)[original] || ({ READY: "packed", CREATED: "integration", HANDED_OVER: "shipped", IN_TRANSIT: "transit", OUT_FOR_DELIVERY: "transit", DELIVERED: "delivered", RETURNING: "return", REVIEW_REQUIRED: "failed", CANCELLED: "canceled" } as Record<string, Status>)[dispatch] || "waiting";
+    const providerStates: Record<string,Status> = {
+      NOT_READY:"waiting",
+      READY:"packed",
+      CREATED:"integration",
+      HANDED_OVER:"shipped",
+      IN_TRANSIT:"transit",
+      OUT_FOR_DELIVERY:"transit",
+      DELIVERED:"delivered",
+      RETURNING:"return",
+      RETURNED:"return",
+      REVIEW_REQUIRED:"failed",
+      FAILED:"failed",
+      CANCELLED:"canceled"
+    };
+
+    const sourceStates: Record<string,Status> = {
+      WAITING:"waiting",
+      PREPARING:"preparing",
+      PACKED:"packed",
+      SHIPPED:"shipped",
+      DELIVERED:"delivered",
+      RETURNED:"return",
+      CANCELLED:"canceled"
+    };
+
+    const mapped: Status =
+      (dispatch ? providerStates[dispatch] : undefined) ||
+      (dispatch ? "failed" : sourceStates[original]) ||
+      "failed";
     const pieces = Array.isArray(x.items) ? x.items as Array<{ titleSnapshot?: unknown; quantity?: unknown }> : [];
     const product = pieces.map(i => `${text(i.titleSnapshot, "Ürün")} × ${Number(i.quantity || 1)}`).join(" · ") || "Ürün bilgisi bulunmuyor";
     const date = text(x.createdAt, today());
-    const last = text(x.deliveredAt) || text(x.shippedAt) || date;
+    const last = text(details.lastProviderQueryAt) || text(x.deliveredAt) || text(x.shippedAt) || date;
     return { id: text(x.id, `${kind}-${idx}`), orderId: text(x.orderId, ""), person: kind === "student" ? text(x.beneficiaryStudentName, "Öğrenci") : text(x.trainerName, "Eğitmen"), kind,
-      product, carrier: text(x.providerName || x.carrier, "Kolay Gelsin"), status: mapped, tracking: text(x.providerTrackingNumber || x.trackingNumber), trackingUrl: text(x.providerTrackingUrl || x.trackingUrl), dispatchId: text(x.dispatchId), dispatchStatus: dispatch,
-      createdAt: date, updatedAt: last, city: "", district: "", note: "Gerçek sistemden okunmuştur. Bu kabul sürümünde işlem yapılamaz.", demo: false,
-      events: [{ at: date, title: "Gönderi kaydı", detail: "Gerçek kargo kaydı, yalnızca görüntülenebilir." }],
+      product, carrier: text(x.providerName || x.carrier, "Kolay Gelsin"), status: mapped, tracking: text(x.providerTrackingNumber || x.trackingNumber), trackingUrl: text(x.providerTrackingUrl || x.trackingUrl), dispatchId: text(x.dispatchId), dispatchStatus: dispatch, cancellationPendingR408: x.cancellationPendingR408 === true, shippingChargeMinor:cargoMinorR408(x.shippingChargeMinor), actualShippingCostMinor:cargoMinorR408(x.actualShippingCostMinor), reportedCargoCostMinorR408:cargoMinorR408(x.reportedCargoCostMinorR408),
+      ...{
+        packageCount:Number.isSafeInteger(savedCount) &&
+          savedCount >= 1 && savedCount <= 999
+            ? savedCount : undefined,
+        addressLine:text(address.addressLine || address.address),
+        barcodeReference:text(details.barcodeReference),
+        referenceNo:text(details.referenceNo)
+      },
+      createdAt: date, updatedAt: last, city: text(address.cityName || address.city), district: text(address.districtName || address.district), note: text(details.reviewReason || details.lastErrorCode), demo: false,
+      events: [{ at: date, title: "Gönderi kaydı", detail: "Siparişe bağlı kargo kaydı." }],
     };
   });
 }
@@ -114,6 +179,24 @@ function Icon({ name, size = 19 }: { name: string; size?: number }) {
 }
 
 export function AdminShipmentsPage() {
+  const [parcelTab,setParcelTab] =
+    useState<"shipments"|"settings">("shipments");
+  const [parcelSettingsAllowed,setParcelSettingsAllowed] =
+    useState(false);
+
+  useEffect(()=>{
+    let active=true;
+
+    fetch("/api/owner/book-parcel-profiles-r408",{
+      credentials:"same-origin",cache:"no-store"
+    }).then(response=>{
+      if(active) setParcelSettingsAllowed(response.ok);
+    }).catch(()=>{
+      if(active) setParcelSettingsAllowed(false);
+    });
+
+    return ()=>{active=false;};
+  },[]);
   const [mode, setMode] = useState<Mode>("real");
   const [demo, setDemo] = useState<Shipment[]>(readDemo);
   const [real, setReal] = useState<Shipment[]>([]);
@@ -129,7 +212,11 @@ export function AdminShipmentsPage() {
   const [draftStatus, setDraftStatus] = useState<Status>("preparing");
   const [draftTracking, setDraftTracking] = useState("");
   const [draftCarrier, setDraftCarrier] = useState("Sendeo");
-  const [packageCount, setPackageCount] = useState("1");
+  const [parcelResult,setParcelResult] = useState<{
+    plan:ParcelPlanR408;
+    saved:boolean;
+  }|null>(null);
+  const [parcelRefresh,setParcelRefresh] = useState(0);
   const [actionBusy, setActionBusy] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [create, setCreate] = useState({ person: "", product: "", carrier: "Sendeo", city: "", district: "", status: "preparing" as Status });
@@ -157,6 +244,63 @@ export function AdminShipmentsPage() {
 
   const items = mode === "demo" ? demo : real;
   const selected = items.find(x => x.id === selectedId) || null;
+
+  const selectedDetails = selected as (Shipment & {
+    packageCount?: number;
+    addressLine?: string;
+    referenceNo?: string;
+    barcodeReference?: string;
+  }) | null;
+
+  const [measurementDetail,setMeasurementDetail] = useState<{id:string;status:string}|null>(null);
+  useEffect(() => {
+    if (!selected || selected.demo || !selected.dispatchId) return;
+    let alive = true;
+    const id = selected.id;
+    const query = new URLSearchParams({shipmentKind:selected.kind.toUpperCase(),shipmentId:id});
+    fetch(`/api/admin/shipments/dispatch?${query}`,{credentials:"same-origin",cache:"no-store"})
+      .then(async r => { if (!r.ok) throw new Error("MEASUREMENT_READ_FAILED"); return r.json(); })
+      .then(data => { if (alive) setMeasurementDetail({id,status:String(data.dispatch?.measurement_status_r408 || "NOT_REQUIRED")}); })
+      .catch(() => { if (alive) setMeasurementDetail({id,status:"UNKNOWN"}); });
+    return () => { alive=false; };
+  },[selected?.id,selected?.kind,selected?.demo,selected?.dispatchId,parcelRefresh]);
+  const measurementStatus = measurementDetail?.id === selected?.id ? measurementDetail?.status : undefined;
+  const [labelPreviewR408,setLabelPreviewR408] = useState<{id:string;src:string}|null>(null);
+  function printLabelR408(src:string) {
+    const win=window.open("","_blank","width=720,height=850");
+    if (!win) {setNotice("Yazdırma penceresi engellendi. Tarayıcı izinlerini kontrol edin.");return;}
+    win.opener=null;
+    win.document.title="FIXOKU - Kargo etiketi";
+    const image=win.document.createElement("img");
+    image.alt="Kargo etiketi";
+    image.style.maxWidth="100%";
+    image.style.height="auto";
+    image.onload=()=>{win.focus();win.print();};
+    image.onerror=()=>{win.close();setNotice("Barkod görseli okunamadı; yazdırılmadı.");};
+    win.document.body.appendChild(image);
+    image.src=src;
+  }
+
+  const cancellationPendingR408 = selected?.cancellationPendingR408 === true && selected?.dispatchStatus !== "CANCELLED";
+  const dispatchState = selected?.dispatchStatus || "";
+  const canPack = !!selected &&
+    ["waiting","preparing","packed"].includes(selected.status) &&
+    ["","NOT_READY","READY"].includes(dispatchState);
+
+  const validPackageCount =
+    !!parcelResult &&
+    parcelResult.plan.packageCount >= 1;
+
+  const canDispatch =
+    dispatchState === "READY" &&
+    validPackageCount &&
+    parcelResult?.saved === true;
+
+  const canTrack =
+    !!selected?.dispatchId &&
+    ["CREATED","HANDED_OVER","IN_TRANSIT",
+     "OUT_FOR_DELIVERY","DELIVERED","RETURNING",
+     "RETURNED","REVIEW_REQUIRED"].includes(dispatchState);
   const counts = useMemo(() => ({
     all: items.length, action: items.filter(x => statusGroup[x.status] === "action").length,
     transit: items.filter(x => statusGroup[x.status] === "transit").length,
@@ -174,22 +318,66 @@ export function AdminShipmentsPage() {
   }), [items, tab, carrier, status, kind, onlyMissing, query]);
 
   function switchMode(m: Mode) {
+    setLabelPreviewR408(null);
     setMode(m); setTab("all"); setSelectedId(null); setNotice("");
     setQuery(""); setCarrier("all"); setStatus("all"); setKind("all"); setOnlyMissing(false);
   }
   function openDetails(item: Shipment) {
-    setSelectedId(item.id); setDraftStatus(item.status); setDraftTracking(item.tracking); setDraftCarrier(item.carrier); setPackageCount("1");
+    setLabelPreviewR408(null);
+    setSelectedId(item.id); setDraftStatus(item.status); setDraftTracking(item.tracking); setDraftCarrier(item.carrier); setParcelResult(null); setParcelRefresh(n=>n+1);
   }
   async function realAction(action: "PACK" | "DISPATCH" | "TRACK" | "BARCODE" | "CANCEL" | "RECONCILE") {
     if (!selected || selected.demo || actionBusy) return;
+
+    if (action === "PACK" && (!canPack || !validPackageCount)) return;
+    if (action === "DISPATCH" && !canDispatch) return;
+
+    if (action === "DISPATCH" &&
+        !window.confirm("Bu sipariş için kargo gönderisi oluşturulsun mu?"))
+      return;
+
+    if (action === "CANCEL" &&
+        !window.confirm("Bu kargo için iptal isteği gönderilsin mi?"))
+      return;
+    setLabelPreviewR408(null);
     setActionBusy(true);
     try {
-      const response = await fetch("/api/admin/shipments/dispatch", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, shipmentKind: selected.kind === "student" ? "STUDENT" : "TRAINER", shipmentId: selected.id, dispatchId: selected.dispatchId, packageCount: Number(packageCount) }) });
+      const response = await fetch("/api/admin/shipments/dispatch", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, shipmentKind: selected.kind === "student" ? "STUDENT" : "TRAINER", shipmentId: selected.id, dispatchId: selected.dispatchId || undefined, packageCount: undefined }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(text(data.error, "Kargo işlemi tamamlanamadı."));
-      setNotice(action === "DISPATCH" ? "Gönderi sağlayıcıya iletildi." : action === "PACK" ? "Paketleme kaydedildi." : "Gönderi işlemi güncellendi.");
-      setSelectedId(null);
-      const refreshed = await fetch("/api/admin/shipments", { credentials: "same-origin", cache: "no-store" }).then(r => r.json());
+      setParcelResult(null);
+      setParcelRefresh(n=>n+1);
+
+      if (action === "BARCODE") {
+        const payload=data.dispatch?.barcode_payload;
+        if (data.dispatch?.provider_name !== "KOLAYGELSIN" || data.barcodeMime !== "image/png" || typeof payload !== "string" || payload.length > 1400000 || !/^[A-Za-z0-9+/=]+$/.test(payload)) throw new Error("Yazdırılabilir gerçek barkod doğrulanamadı.");
+        const src="data:image/png;base64,"+payload;
+        const probe=new Image();probe.src=src;
+        await probe.decode();
+        setLabelPreviewR408({id:selected.id,src});
+      }
+
+      const outcome = String(data.dispatch?.dispatch_status || "");
+
+      setNotice(
+        data.measurementReviewRequired === true
+          ? "Kargo oluşturuldu. Koli ölçüm bildirimi inceleme gerektiriyor. Yeni kargo oluşturmayın."
+          : action === "CANCEL" && data.reviewRequired === true ? "İptal sonucu doğrulanamadı. Tekrar iptal isteği göndermeyin; takibi kontrol edin." : outcome === "REVIEW_REQUIRED"
+          ? "Gönderi inceleme gerektiriyor. Yeni gönderi başlatmayın."
+          : action === "PACK"
+            ? "Paketleme kaydedildi."
+            : action === "BARCODE"
+              ? "Barkod görseli hazır. Yazdırmadan önce etiketi kontrol edin."
+              : "İşlem yanıtı alındı. Güncel gönderi durumunu kontrol edin."
+      );
+      const refreshed = await fetch(
+        "/api/admin/shipments",
+        { credentials:"same-origin",cache:"no-store" }
+      ).then(async r => {
+        if (!r.ok)
+          throw new Error("İşlem yanıtı alındı ancak liste yenilenemedi. Tekrar göndermeden önce durumu kontrol edin.");
+        return r.json();
+      });
       setReal([...convertAPI(Array.isArray(refreshed.shipments) ? refreshed.shipments : [], "student"), ...convertAPI(Array.isArray(refreshed.trainerShipments) ? refreshed.trainerShipments : [], "trainer")]);
     } catch (error) { setNotice(error instanceof Error ? error.message : "Kargo işlemi tamamlanamadı."); } finally { setActionBusy(false); }
   }
@@ -219,7 +407,28 @@ export function AdminShipmentsPage() {
   const uniqueCarriers = Array.from(new Set([...carriers, ...items.map(i => i.carrier).filter(Boolean)]));
   const actionItems = items.filter(i => ["waiting", "preparing", "integration", "failed"].includes(i.status)).slice(0, 3);
 
+  const parcelTabs = parcelSettingsAllowed && (
+    <div className="r408-parcel-tabs" role="tablist" aria-label="Kargo yönetimi">
+      <button
+        type="button"
+        role="tab"
+        aria-selected={parcelTab==="shipments"}
+        onClick={()=>setParcelTab("shipments")}
+      >Gönderiler</button>
+
+      <button
+        type="button"
+        role="tab"
+        aria-selected={parcelTab==="settings"}
+        onClick={()=>setParcelTab("settings")}
+      >Paketleme Ayarları</button>
+    </div>
+  );
+
   return <main className="platform-foundation-panel admin-panel fx-cargo-owner-v2">
+    {parcelTabs}
+
+    <div hidden={parcelTab==="settings"}>
     <div className="fx-cargo-header">
       <div><div className="fx-cargo-eyebrow">OPERASYON / KARGO</div><h1>Kargo ve Gönderiler</h1><p>Gönderilerin durumunu görün, sorunlu kayıtları hızlıca çözün.</p></div>
       <div className="fx-cargo-actions">
@@ -229,7 +438,7 @@ export function AdminShipmentsPage() {
     </div>
     <div className={`fx-cargo-banner ${mode === "real" ? "real" : ""}`} role="status">
       <Icon name={mode === "demo" ? "info" : "shield"} size={20}/>
-      <span>{mode === "demo" ? <><b>TEST MODU:</b> Bu ekrandaki {demo.length} gönderi örnektir. Durum ve takip numarası değişiklikleri yalnızca bu tarayıcıda saklanır. Gerçek sipariş, stok veya kargo firması etkilenmez.</> : <><b>GERÇEK KAYITLAR · SALT OKUNUR:</b> Öğrenci ve eğitmen gönderileri mevcut API'den okunur. Bu kabul aşamasında canlı durum değişikliği ve stok hareketi devre dışıdır.</>}</span>
+      <span>{mode === "demo" ? <><b>TEST MODU:</b> Bu ekrandaki {demo.length} gönderi örnektir. Durum ve takip numarası değişiklikleri yalnızca bu tarayıcıda saklanır. Gerçek sipariş, stok veya kargo firması etkilenmez.</> : <><b>GERÇEK GÖNDERİLER:</b> Öğrenci ve eğitmen gönderileri sistemden okunur. Taşıyıcı işlemleri sunucu güvenlik kontrollerine bağlıdır.</>}</span>
       <strong>{mode === "demo" ? `${demo.length} TEST` : `${items.length} GERÇEK`}</strong>
     </div>
     {notice && <div className="fx-cargo-notice" role="status">{notice}<button type="button" aria-label="Bildirimi kapat" onClick={() => setNotice("")}><Icon name="close" size={15}/></button></div>}
@@ -261,13 +470,32 @@ export function AdminShipmentsPage() {
       <section className="fx-cargo-panel small"><h3>Öncelikli İşler</h3>{actionItems.length ? actionItems.map(i => <button className="fx-cargo-task" type="button" key={i.id} onClick={() => openDetails(i)}><span className="fx-cargo-taskdot"/><span><b>{i.person}</b><small>{statusText[i.status]} · {i.product}</small></span><Icon name="chevron" size={16}/></button>) : <p>Şu anda öncelikli işlem bulunmuyor.</p>}</section>
       <section className="fx-cargo-panel small"><h3>Gönderi Akışı</h3><div className="fx-cargo-flow"><div><span>İşlem Bekleyen</span><strong>{counts.action}</strong></div><div><span>Yolda</span><strong>{counts.transit}</strong></div><div><span>Tamamlanan</span><strong>{counts.complete}</strong></div></div><p>{mode === "demo" ? "Bu sayılar yalnızca sekiz örnek kargo ve eklediğin test kayıtlarından oluşur." : "Mevcut kargo API'sinden okunan gönderilerin özetidir."}</p></section>
     </div>
-    <div className="fx-cargo-footer">Fixoku Kargo ve Gönderiler · {mode === "demo" ? "Yerel test modu · Gerçek API'ye hiçbir işlem yazılmaz" : "Gerçek gönderiler · Salt okunur kabul sürümü"}</div>
+    <div className="fx-cargo-footer">Fixoku Kargo ve Gönderiler · {mode === "demo" ? "Yerel test modu · Gerçek API'ye hiçbir işlem yazılmaz" : "Gerçek gönderiler · Kargo yönetimi"}</div>
     {selected && <><div className="fx-cargo-scrim" onClick={() => setSelectedId(null)} aria-hidden="true"/><aside className="fx-cargo-drawer" role="dialog" aria-modal="true" aria-label="Kargo ayrıntıları">
-      <header><div><small>{selected.demo ? "TEST GÖNDERİSİ" : "GERÇEK GÖNDERİ · SALT OKUNUR"}</small><h2>{selected.person}</h2><p>{selected.orderId ? `#${selected.orderId}` : selected.id} · {statusText[selected.status]}</p></div><button className="fx-cargo-button compact" type="button" aria-label="Kapat" onClick={() => setSelectedId(null)}><Icon name="close"/></button></header>
+      <header><div><small>{selected.demo ? "TEST GÖNDERİSİ" : "GERÇEK GÖNDERİ"}</small><h2>{selected.person}</h2><p>{selected.orderId ? `#${selected.orderId}` : selected.id} · {statusText[selected.status]}</p></div><button className="fx-cargo-button compact" type="button" aria-label="Kapat" onClick={() => setSelectedId(null)}><Icon name="close"/></button></header>
       <div className="fx-cargo-drawerbody"><section className="fx-cargo-drawcard"><h3>Gönderi Bilgileri</h3><div className="fx-cargo-data"><div><small>Alıcı</small><b>{selected.person}</b></div><div><small>Alıcı türü</small><b>{selected.kind === "student" ? "Öğrenci" : "Eğitmen"}</b></div><div><small>Taşıyıcı</small><b>{selected.carrier}</b></div><div><small>Güncel durum</small><b>{statusText[selected.status]}</b></div><div><small>Takip numarası</small><b>{selected.tracking || "Henüz yok"}</b></div><div><small>Son güncelleme</small><b>{safeDate(selected.updatedAt)}</b></div></div></section>
-        <section className="fx-cargo-drawcard"><h3>Ürün ve Teslimat</h3><p className="fx-cargo-drawproduct">{selected.product}</p><p className="fx-cargo-muted">{selected.demo ? `${selected.city} / ${selected.district}` : "Gerçek teslimat adresi güvenlik nedeniyle bu önizlemede gösterilmiyor."}</p><p>{selected.note}</p></section>
+        <section className="fx-cargo-drawcard"><h3>Ürün ve Teslimat</h3><p className="fx-cargo-drawproduct">{selected.product}</p><p className="fx-cargo-muted">{selected.demo ? `${selected.city} / ${selected.district}` : "Teslimat adresi aşağıda gösterilmektedir."}</p>{!selected.demo && <p className="fx-cargo-drawproduct">
+          {selectedDetails?.addressLine || "Teslimat adresi bulunamadı."}
+          {" "}{selected.city}{" "}{selected.district}
+        </p>}
+        {selected.note && <p>{selected.note}</p>}
+        {!selected.demo && !cancellationPendingR408 && labelPreviewR408?.id === selected.id && measurementStatus === "CONFIRMED" && ["CREATED","HANDED_OVER","IN_TRANSIT","OUT_FOR_DELIVERY","DELIVERED"].includes(dispatchState) && <section className="fx-cargo-drawcard"><h3>Kargo etiketi</h3><img src={labelPreviewR408.src} alt="Kolay Gelsin kargo etiketi" style={{maxWidth:"100%",height:"auto"}}/><button type="button" className="fx-cargo-button primary" onClick={()=>printLabelR408(labelPreviewR408.src)}>Barkodu yazdır</button><p>Etiketin fiziksel boyutu ve tüm koli barkodları gerçek sağlayıcı kabulünde doğrulanacaktır.</p></section>}
+
+        {!selected.demo && cancellationPendingR408 && <p role="alert">İptal sonucu inceleme gerektiriyor. Yeni iptal veya barkod işlemi yapmayın. Takip bilgilerini kontrol edin.</p>}
+        {!selected.demo && selectedDetails?.barcodeReference &&
+          <p>Barkod referansı: <b>{selectedDetails.barcodeReference}</b></p>}
+        </section>
         {selected.demo && <section className="fx-cargo-drawcard"><h3>Test Gönderisini Güncelle</h3><p className="fx-cargo-drawhelp">Bu alan yalnızca örnek kaydı değiştirir. Gerçek kargo ya da stok işlemi yapılmaz.</p><label>Durum<select value={draftStatus} onChange={e => setDraftStatus(e.target.value as Status)}>{statusChoices.map(st => <option key={st} value={st}>{statusText[st]}</option>)}</select></label><label>Taşıyıcı<select value={draftCarrier} onChange={e => setDraftCarrier(e.target.value)}>{carriers.map(c => <option key={c}>{c}</option>)}</select></label><label>Takip numarası<input value={draftTracking} onChange={e => setDraftTracking(e.target.value)} maxLength={80} placeholder="TEST-..."/></label><button className="fx-cargo-button primary full" type="button" onClick={updateDemo}>Test Değişikliğini Kaydet</button></section>}
-        {!selected.demo && <section className="fx-cargo-drawcard"><h3>Owner gönderi işlemleri</h3><p className="fx-cargo-drawhelp">Koli sayısı gerçek paketleme sırasında belirlenir. Sağlayıcı sonucu belirsizse tekrar gönderim yerine inceleme kaydı açılır.</p><label>Gerçek koli sayısı<input type="number" min="1" max="999" value={packageCount} onChange={e => setPackageCount(e.target.value)} /></label><div className="fx-cargo-two"><button disabled={actionBusy} className="fx-cargo-button" type="button" onClick={() => realAction("PACK")}>Paketlemeyi tamamla</button><button disabled={actionBusy} className="fx-cargo-button primary" type="button" onClick={() => realAction("DISPATCH")}>Kargo oluştur</button></div><div className="fx-cargo-two"><button disabled={actionBusy} className="fx-cargo-button" type="button" onClick={() => realAction("TRACK")}>Takibi yenile</button><button disabled={actionBusy} className="fx-cargo-button" type="button" onClick={() => realAction("BARCODE")}>Barkodu al</button></div><div className="fx-cargo-two"><button disabled={actionBusy} className="fx-cargo-button" type="button" onClick={() => realAction("RECONCILE")}>İncelemeyi çalıştır</button><button disabled={actionBusy} className="fx-cargo-button" type="button" onClick={() => realAction("CANCEL")}>İptal isteği</button></div></section>}
+        {!selected.demo && <section className="fx-cargo-drawcard"><h3>Kargo maliyetleri</h3><p>Müşteri kargo ücreti: <b>{cargoMoneyR408(selected.shippingChargeMinor)}</b></p><p>Taşıyıcı tarafından bildirilen bedel: <b>{cargoMoneyR408(selected.reportedCargoCostMinorR408)}</b></p><p>Kayıtlı gerçek maliyet: <b>{cargoMoneyR408(selected.actualShippingCostMinor)}</b></p><p className="fx-cargo-drawhelp">Bildirilen bedel kesin fatura tutarı değildir. Fatura mutabakatı ayrı yapılır.</p></section>}
+        {!selected.demo && <ShipmentParcelPlanR408
+          key={`${selected.kind}:${selected.id}`}
+          shipmentId={selected.id}
+          shipmentKind={selected.kind==="student"?"STUDENT":"TRAINER"}
+          refreshKey={parcelRefresh}
+          onPlan={setParcelResult}
+        />}
+        {!selected.demo && measurementStatus && !["NOT_REQUIRED"].includes(measurementStatus) && <section className="fx-cargo-drawcard"><h3>Koli ölçüm bildirimi</h3><p>{measurementStatus === "CONFIRMED" ? "Ölçüler taşıyıcı tarafından onaylandı." : "Ölçüm bildirimi henüz doğrulanmadı. Yeni kargo oluşturmayın; kontrol gerekli."}</p></section>}
+        {!selected.demo && <section className="fx-cargo-drawcard"><h3>Owner gönderi işlemleri</h3><p className="fx-cargo-drawhelp">Koli bilgileri otomatik hesaplanır. Kitapları hazırladıktan sonra paketlemeyi tamamlayın.</p><div className="fx-cargo-two"><button disabled={actionBusy || !canPack || !validPackageCount} className="fx-cargo-button" type="button" onClick={() => realAction("PACK")}>Paketlemeyi tamamla</button><button disabled={actionBusy || !canDispatch} className="fx-cargo-button primary" type="button" onClick={() => realAction("DISPATCH")}>Kargo oluştur</button></div><div className="fx-cargo-two"><button disabled={actionBusy || !canTrack} className="fx-cargo-button" type="button" onClick={() => realAction("TRACK")}>Takibi yenile</button><button disabled={actionBusy || cancellationPendingR408 || !selected.dispatchId || !["CREATED","HANDED_OVER","IN_TRANSIT","OUT_FOR_DELIVERY"].includes(dispatchState)} className="fx-cargo-button" type="button" onClick={() => { if (!cancellationPendingR408) void realAction("BARCODE"); }}>Barkodu görüntüle</button></div><div className="fx-cargo-two"><button disabled={actionBusy || !selected.dispatchId || dispatchState !== "REVIEW_REQUIRED"} className="fx-cargo-button" type="button" onClick={() => realAction("RECONCILE")}>İncelemeyi çalıştır</button><button disabled={actionBusy || cancellationPendingR408 || !selected.dispatchId || dispatchState !== "CREATED"} className="fx-cargo-button" type="button" onClick={() => realAction("CANCEL")}>İptal isteği</button></div></section>}
         <section className="fx-cargo-drawcard"><h3>Durum Geçmişi</h3><ol className="fx-cargo-timeline">{selected.events.map((e, idx) => <li key={`${idx}-${e.at}`}><b>{e.title}</b><small>{safeDate(e.at)}</small><p>{e.detail}</p></li>)}</ol></section>
       </div><footer><button type="button" className="fx-cargo-button" onClick={() => setSelectedId(null)}>Listeye Dön</button></footer>
     </aside></>}
@@ -279,5 +507,10 @@ export function AdminShipmentsPage() {
       <label>Durum<select value={create.status} onChange={e => setCreate({ ...create, status: e.target.value as Status })}>{statusChoices.map(st => <option key={st} value={st}>{statusText[st]}</option>)}</select></label>
       <div className="fx-cargo-modalactions"><button type="button" className="fx-cargo-button" onClick={() => setCreateOpen(false)}>Vazgeç</button><button className="fx-cargo-button primary" type="submit">Test Kargosunu Ekle</button></div>
     </form></section></div>}
+    </div>
+
+    {parcelTab==="settings" && parcelSettingsAllowed && (
+      <BookParcelSettingsR408/>
+    )}
   </main>;
 }

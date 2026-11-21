@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {parseProfitCoverageFilters,buildProfitCoverageOverview,readOwnerProfitCoverage} from '../src/server/domain/r410-owner-profit-coverage.js';
+const id='123e4567-e89b-42d3-a456-426614174000';
+const row={orderKind:'STUDENT_ORDER',orderId:id,currency:'TRY',createdAt:'2026-11-21',costLines:1,costMinor:'25000'};
+const result=buildProfitCoverageOverview([row],1);
+assert.equal(result.certifiedProfit,false);assert.equal(result.contributionMinor,null);assert.equal(result.recordedCostMinor,25000);console.log('NO_CERTIFIED_PROFIT=PASS');
+assert.equal(buildProfitCoverageOverview([{...row,costLines:0,costMinor:0}],1).withoutSnapshot,1);console.log('UNKNOWN_COST_NOT_ZERO=PASS');
+assert.equal(buildProfitCoverageOverview([row],3).truncated,true);console.log('PAGINATION_NOT_FULL_COVERAGE=PASS');
+assert.throws(()=>buildProfitCoverageOverview([row,row],2),/DUPLICATE_ORDER/);console.log('DUPLICATE_BLOCKED=PASS');
+assert.throws(()=>buildProfitCoverageOverview([{...row,costMinor:'not-a-number'}],1),/INVALID_EVIDENCE/);console.log('BAD_COST_BLOCKED=PASS');
+assert.throws(()=>parseProfitCoverageFilters({from:'2026-02-30'}),/INVALID_DATE/);console.log('DATE_GUARD=PASS');
+const calls=[];const pool={query:async(sql,params)=>{calls.push({sql,params});return calls.length===1?{rows:[{total:'1'}]}:{rows:[row]};}};
+const data=await readOwnerProfitCoverage(pool,{from:'2026-11-01',to:'2026-11-30',currency:'TRY'});
+assert.equal(data.withSnapshot,1);assert.equal(calls.length,2);assert(calls.every(c=>c.params.length===6));
+assert.match(calls[1].sql,/limit 200/);console.log('SQL_SCOPED_READ_ONLY=PASS');
+const out=await readOwnerProfitCoverage({query:()=>{throw Error('not allowed');}},{packageId:id});assert.equal(out.status,'FILTER_NOT_SUPPORTED');console.log('UNSUPPORTED_FILTER_FAIL_CLOSED=PASS');
+console.log('R410_D8L_PROFIT_COVERAGE_OFFLINE=PASS');

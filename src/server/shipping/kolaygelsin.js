@@ -1,3 +1,8 @@
+import {
+  buildKgMeasurementPayload,
+  assertKgMeasurementSuccess
+} from "./kolaygelsin-measurements-r408.js";
+
 /* global process */
 /** Kolay Gelsin / Sendeo documented cargo endpoints. Network is OFF by default.
  * Reference: https://klyglsn.github.io/web-service-doc/
@@ -68,6 +73,24 @@ export function createKolayGelsinAdapter(options={}) {
     runtime,
     quote: async () => {throw fail('KG_QUOTE_API_NOT_VERIFIED',503);},
     createShipment: async input => normalize(await request('SetDelivery',{body:buildKolayGelsinDelivery(input)})),
+    updateMeasurements: async (referenceNo, parcelPlan) => {
+      const payload = buildKgMeasurementPayload(
+        referenceNo,parcelPlan
+      );
+
+      const response = await request(
+        "CargoMeasurementUpdate",
+        {method:"POST",body:payload}
+      );
+
+      assertKgMeasurementSuccess(response);
+
+      return {
+        confirmed:true,
+        referenceNo,
+        packageCount:parcelPlan.packageCount
+      };
+    },
     getTracking: async ref => {if(!ref)throw fail('KG_REFERENCE_REQUIRED'); return request('TrackDelivery',{method:'GET',query:{referenceNo:ref}});},
     cancelShipment: async ref => {if(!ref)throw fail('KG_REFERENCE_REQUIRED'); const r=await request('CancelDelivery',{query:{referenceNo:ref}});if(r?.IsSuccess!==true && r?.isSuccess!==true)throw fail('KG_CANCEL_NOT_CONFIRMED',502);return {cancelled:true};},
     createLabel: async ref => {if(!ref)throw fail('KG_REFERENCE_REQUIRED');return request('GetBarcode',{body:{barcodeLabelType:1,referenceNo:ref,BarcodeVersion:'V2'}});},

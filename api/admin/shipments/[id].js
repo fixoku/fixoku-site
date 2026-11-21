@@ -11,6 +11,7 @@ export default async function handler(req, res) {
   const principal = await resolvePrincipal(headers(req)); if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
   if (req.method !== "GET" && req.method !== "POST" && req.method !== "PATCH") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
   const denied = requirePermission(principal, shipmentPermission(req.method)); if (denied) return json(res, denied.status, denied.body);
+  if (req.method !== "GET") return json(res,409,{error:"USE_UNIFIED_SHIPMENT_WORKFLOW"});
   const id = String(req.query?.id || req.url?.split("/").pop()?.split("?")[0] || ""); if (!/^[0-9a-f-]{36}$/iu.test(id)) return json(res, 400, { error: "SHIPMENT_ID_INVALID" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); const client = await pool.connect();
   try {

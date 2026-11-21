@@ -1,3 +1,4 @@
+import "./fixoku-owner-bank-r408.css";
 import { useRef, useState } from "react";
 
 type Order = {
@@ -30,7 +31,7 @@ export function OrderBankApprovalR385({
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [message, setMessage] = useState("");
-  const lock = useRef(false);
+  const lock = useRef(false); const [rejected,setRejected] = useState(false);
 
   const normalized = amount.trim().replace(",", ".");
   const validAmount = /^\d+(\.\d{1,2})?$/.test(normalized);
@@ -91,7 +92,7 @@ export function OrderBankApprovalR385({
       }
 
       setDone(true);
-      setMessage("\u00d6deme reddedildi.");
+      setRejected(true); setMessage("\u00d6deme reddedildi.");
       onApproved();
     } catch {
       setMessage("\u00d6deme reddedilemedi. L\u00fctfen tekrar deneyin.");
@@ -175,13 +176,13 @@ export function OrderBankApprovalR385({
 
   return (
     <section
-      className="fixoku-owner-bank-r385"
+      className="fixoku-owner-bank-r385 r408-owner-bank"
       aria-label="Havale EFT onayi"
     >
       <header>
         <h3>{"Havale / EFT Onay\u0131"}</h3>
         <span className="fixoku-owner-bank-status-r385">
-          {done ? "Onayland\u0131" : "\u00d6deme bekleniyor"}
+          {done ? (rejected ? "Reddedildi" : "Onayland\u0131") : "\u00d6deme bekleniyor"}
         </span>
       </header>
 
@@ -215,7 +216,7 @@ export function OrderBankApprovalR385({
           <input
             type="text"
             inputMode="decimal"
-            placeholder="11990,00"
+            placeholder="0,00"
             value={amount}
             disabled={busy || done}
             onChange={e=>setAmount(e.target.value)}
@@ -223,7 +224,7 @@ export function OrderBankApprovalR385({
         </label>
 
         <label>
-          <span>{"Banka i\u015flem / dekont referans\u0131"}</span>
+          <span>{"Banka i\u015flem referans\u0131"}</span>
           <input
             type="text"
             maxLength={160}
@@ -235,15 +236,23 @@ export function OrderBankApprovalR385({
         </label>
       </div>
 
-      <div className="fixoku-owner-bank-difference-r385">
-        <span>{"Eksik \u00f6deme"}</span>
-        <strong>
-          {money(
-            Math.max(0,order.totalMinor-receivedAmountMinor),
-            order.currency
-          )}
-        </strong>
-      </div>
+      <div className={`fixoku-owner-bank-difference-r385 r408-bank-match ${!amount.trim()?"idle":exact?"match":"mismatch"}`} aria-live="polite">
+  <div>
+    <small>Tutar karşılaştırması</small>
+    <strong>
+      {!amount.trim() ? "Tutar giriniz" :
+        !validAmount || !Number.isSafeInteger(receivedAmountMinor) ? "Geçersiz tutar" :
+        exact ? "Tutar tam eşleşiyor" :
+        receivedAmountMinor < order.totalMinor ? "Eksik ödeme" :
+        receivedAmountMinor > order.totalMinor ? "Fazla ödeme" : "Tutar doğrulanamadı"}
+    </strong>
+  </div>
+  <strong>
+    {amount.trim() && validAmount && Number.isSafeInteger(receivedAmountMinor)
+      ? money(Math.abs(order.totalMinor-receivedAmountMinor),order.currency)
+      : "—"}
+  </strong>
+</div>
 
       {amount && !exact && (
         <p className="fixoku-owner-bank-error-r385" role="alert">
@@ -280,7 +289,7 @@ export function OrderBankApprovalR385({
         {busy
           ? "Onaylan\u0131yor..."
           : done
-            ? "\u00d6deme onayland\u0131"
+            ? (rejected ? "\u00d6deme reddedildi" : "\u00d6deme onayland\u0131")
             : "\u2713 \u00d6demeyi onayla"}
       </button>
       {!done && (

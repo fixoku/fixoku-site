@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { assertR410PayoutApproval } from "../../../src/server/domain/r410-assignment-payout-approval.js";
 import { queueOwnerManagementEmail } from "../../../src/server/domain/owner-management-notifications-r390.js";
 import pg from "../../../src/server/db/guarded-pg.js";
 import {getProfileMediaConfig,readProfilePhoto} from "../../../src/server/domain/profile-media.js";
@@ -200,6 +201,11 @@ export default async function handler(req,res){
     const assignment=(await c.query("insert into trainer_assignments(trainer_user_id,enrollment_id,status) values($1,$2,'ACTIVE') returning id",[input.trainerId,locked.enrollment_id])).rows[0];
     const versions=(await c.query(`select distinct coalesce(oi.package_version_id,pe.package_version_id) as id from package_entitlement_enrollments pee join package_entitlements pe on pe.id=pee.package_entitlement_id left join orders o on o.id=pe.source_order_id left join order_items oi on oi.id=pee.source_order_item_id where pee.enrollment_id=$1 and pe.status='ACTIVE' and pe.revoked_at is null and pe.effective_at<=now() and (pe.expires_at is null or pe.expires_at>now()) and (pe.source_type='OWNER_MANUAL' or o.status in ('PAID','PARTIALLY_REFUNDED'))`,[locked.enrollment_id])).rows;
     if(versions.length!==1 || !versions[0].id) throw Object.assign(new Error('COMPENSATION_PACKAGE_AMBIGUOUS'),{status:409});
+    const tariffApproval = freeAssignment ? null : await assertR410PayoutApproval(c,{
+      supplied:input.payoutApproval,mode:"INDIVIDUAL",activeStudentCount:0,
+      compensationMinor:input.compensationMinor
+    });
+    if (tariffApproval) await c.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'r410.individual_payout.owner_approved','trainer_assignment',$2,'SUCCESS',gen_random_uuid(),$3)",[principal.user.id,assignment.id,JSON.stringify({tariffVersion:tariffApproval.tariffVersion,amountMinor:tariffApproval.amountMinor,approvedBy:principal.user.id})]);
     const comp={type:'FIXED_AMOUNT',rate_minor:input.compensationMinor,percentage_bps:null,calculation_base:freeAssignment?'OWNER_FREE':'ORDER_TOTAL',currency:'TRY',package_version_id:versions[0].id};
     await c.query("insert into trainer_compensation_snapshots(assignment_id,trainer_user_id,enrollment_id,type,rate_minor,percentage_bps,calculation_base,currency,package_version_id) values($1,$2,$3,coalesce($4,'FIXED_AMOUNT')::trainer_compensation_type,$5,$6,coalesce($7,'ORDER_TOTAL'),coalesce($8,'TRY'),$9)",[assignment.id,input.trainerId,locked.enrollment_id,comp?.type||null,comp.rate_minor,comp?.percentage_bps??null,comp?.calculation_base||null,comp?.currency||null,comp?.package_version_id||null]);
     await c.query("insert into trainer_assignment_history(assignment_id,enrollment_id,trainer_user_id,event_type,reason,changed_by) values($1,$2,$3,$4,$5,$6)",[assignment.id,locked.enrollment_id,input.trainerId,isReassignment?'REASSIGNED_IN':'ASSIGNED',isReassignment?String(input.reassignmentReason).trim().slice(0,500):null,principal.user.id]);

@@ -1,3 +1,5 @@
+import { capturePaytrFinance } from "../../src/server/payments/paytr-finance-capture-r410.js";
+import { processOwnerTestCallback } from "../../src/server/payments/paytr-owner-callback-r408.js";
 import pg from "../../src/server/db/guarded-pg.js";
 import { tryQueueOwnerManagementEmail as queueOwnerManagementEmail } from "../../src/server/domain/owner-management-notifications-r390.js";
 import { paytrRuntime, verifyPaytrCallback, fromPaytrMerchantOid, requestPaytrPaymentStatus, validatePaytrSettlement, paytrTestSettlementAllowed, recordPaytrAttemptCallback, assertPaytrCallbackOrderFacts } from "../../src/server/payments/paytr.js";
@@ -19,9 +21,23 @@ async function reportMismatch(pool, orderId, errorCode) {
 export default async function handler(req, res) {
   if (!cleanPreviewGateResponse(res)) return;
   if (req.method !== "POST") return text(res, 405, "METHOD_NOT_ALLOWED");
+  let payload;
+  try {
+    payload = await fields(req);
+  } catch {
+    return text(res,400,"BAD_REQUEST");
+  }
+
+  // R408: segregated Owner acceptance traffic.
+  // Never fall through into commercial settlement.
+  if (String(payload.merchant_oid || "").startsWith("FIXOKUR408TEST")) {
+    const result = await processOwnerTestCallback(payload);
+    return text(res,result.status,result.body);
+  }
+
   if (!paytrTestSettlementAllowed() && !paytrRuntime().liveReady) return text(res, 503, "PAYTR_RUNTIME_NOT_APPROVED");
   if (!paytrRuntime().configured || !paytrRuntime().returnUrlsConfigured) return text(res, 503, "PAYTR_CONFIG_REQUIRED");
-  let payload; try { payload = await fields(req); } catch { return text(res, 400, "BAD_REQUEST"); }
+
   if (!verifyPaytrCallback(payload)) return text(res, 401, "PAYTR_HASH_INVALID");
   if (!payload.merchant_oid || !["success", "failed"].includes(String(payload.status))) return text(res, 400, "INVALID_CALLBACK");
   let fallbackOrderId = null; try { fallbackOrderId = fromPaytrMerchantOid(payload.merchant_oid); } catch { /* attempt lookup is authoritative */ }
@@ -71,14 +87,14 @@ export default async function handler(req, res) {
       }
       const settlement = validatePaytrSettlement({ payload, providerStatus, expectedAmountMinor: order.total_minor, expectedCurrency: order.currency, expectedTestMode });
       if (order.status === "PAID") {
-        if (attempt?.status === "SUCCEEDED" && Number(attempt.collected_amount_minor) === settlement.collectedAmountMinor && String(attempt.provider_transaction_id || "") === String(settlement.providerTransactionId || "")) { await client.query("commit"); return text(res, 200, "OK"); }
+        if (attempt?.status === "SUCCEEDED" && Number(attempt.collected_amount_minor) === settlement.collectedAmountMinor && String(attempt.provider_transaction_id || "") === String(settlement.providerTransactionId || "")) { await capturePaytrFinance(client, { attempt, providerStatus }); await client.query("commit"); return text(res, 200, "OK"); }
         if (attempt) { await recordPaytrAttemptCallback(client, { merchantOid: payload.merchant_oid, callbackStatus: "success", callbackHash: payload.hash, settlement, providerTransactionId: settlement.providerTransactionId || null, errorCode: "PAYTR_DUPLICATE_SETTLEMENT", reviewRequired: true, reviewReason: "A different payment attempt reported success after the order was already paid." }); await client.query("commit"); await reportMismatch(pool, order.id, "PAYTR_DUPLICATE_SETTLEMENT"); return text(res, 409, "PAYTR_DUPLICATE_SETTLEMENT_REVIEW"); }
         await client.query("commit"); return text(res, 409, "PAYTR_DUPLICATE_SETTLEMENT_REVIEW");
       }
       const providerReference = `paytr:${payload.merchant_oid}`;
       if (trainerOrder) await fulfillTrainerOrder(client, { orderId: order.id, actorUserId: null, provider: "PAYTR", providerReference, amountMinor: settlement.orderAmountMinor, settlement, currency: settlement.currency, manageTransaction: false });
       else await fulfillSuccessfulPayment(client, { orderId: order.id, provider: "PAYTR", providerEventId: providerReference, amountMinor: settlement.orderAmountMinor, settlement, currency: settlement.currency, manageTransaction: false });
-      if (attempt) await recordPaytrAttemptCallback(client, { merchantOid: payload.merchant_oid, callbackStatus: "success", callbackHash: payload.hash, settlement, providerTransactionId: settlement.providerTransactionId || null }); await client.query("commit"); return text(res, 200, "OK");
+      if (attempt) { const recordedAttempt = await recordPaytrAttemptCallback(client, { merchantOid: payload.merchant_oid, callbackStatus: "success", callbackHash: payload.hash, settlement, providerTransactionId: settlement.providerTransactionId || null }); await capturePaytrFinance(client, { attempt: recordedAttempt, providerStatus }); } await client.query("commit"); return text(res, 200, "OK");
     } catch (error) { await client.query("rollback").catch(() => {}); throw error; }
     finally { client.release(); }
   } catch (error) { const detail = debugAllowed() ? `${error.code || "CALLBACK_FAILED"}:${error.detail || error.constraint || error.message || ""}` : (error.code || "CALLBACK_FAILED"); return text(res, error.status || 409, detail); }

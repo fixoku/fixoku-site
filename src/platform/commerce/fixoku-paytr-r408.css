@@ -1,0 +1,67 @@
+.r408-paytr-summary {
+  display:grid;
+  gap:12px;
+  background:#14212e!important;
+  color:#fff!important;
+  border:0!important;
+  padding:24px!important;
+  border-radius:16px!important;
+}
+.r408-paytr-summary strong,
+.r408-paytr-summary span,
+.r408-paytr-summary p {
+  color:#fff!important;
+}
+.r408-paytr-total {
+  display:block;
+  font-size:clamp(28px,5vw,40px)!important;
+  font-weight:800!important;
+}
+.r408-paytr-checkout .r408-paytr-total::after {
+  content:"KDV dahil";
+  display:block;
+  font-size:13px;
+  font-weight:500;
+  margin-top:6px;
+  text-align:right;
+}
+.r408-paytr-primary {
+  background:#ea580c!important;
+  color:white!important;
+  border:0!important;
+  border-radius:12px!important;
+  min-height:50px;
+  font-weight:700;
+  padding:14px 20px;
+}
+.r408-paytr-primary:disabled {
+  background:#d1d5db!important;
+  color:#64748b!important;
+  cursor:not-allowed;
+}
+.r408-owner-paytr .panel-card {
+  max-width:1050px;
+  padding:24px;
+  margin-bottom:20px;
+}
+.r408-owner-paytr button {
+  margin:6px;
+}
+.r408-test-row {
+  display:grid;
+  gap:8px;
+  padding:18px;
+  margin-top:12px;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  overflow-wrap:anywhere;
+}
+@media(max-width:650px) {
+  .r408-owner-paytr .panel-card {
+    padding:14px;
+  }
+  .r408-owner-paytr button {
+    width:100%;
+    margin:6px 0;
+  }
+}

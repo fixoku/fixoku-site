@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const file = fs.readFileSync('src/platform/admin/OwnerFinancePage.tsx','utf8');
+const cmp = fs.readFileSync('src/platform/admin/OwnerCostEvidenceR410.tsx','utf8');
+assert.match(file, /<OwnerCostEvidenceR410 from=\{filters\.from\} to=\{filters\.to\} \/>/);
+assert.match(cmp, /certifiedProfit !== false/);
+assert.match(cmp, /coverageVerified !== false/);
+assert.match(cmp, /status === "pending"/);
+assert.match(cmp, /Sipariş maliyet kayıtları/);
+assert.match(cmp, /Doğrulanmadı/);
+assert.doesNotMatch(cmp,/setInterval|localStorage/);
+console.log('OWNER_UI_EVIDENCE_FAIL_CLOSED=PASS');
+console.log('OWNER_UI_FILTERS_AND_READ_ONLY=PASS');

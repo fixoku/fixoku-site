@@ -1,3 +1,5 @@
+import { PaymentResultR408 } from "../commerce/PaymentResultR408";
+import "../commerce/fixoku-checkout-r408.css";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { StudentPanelShell } from "./StudentPanelShell";
@@ -549,130 +551,19 @@ export function StudentCheckoutPage({
 
 
           {orderId && savedOrder && (savedOrder.paymentMethod !== "PAYTR" || savedOrder.status === "PAID") && (
-            <section
-  className="fixoku-order-success-r385"
-  aria-labelledby="fixoku-order-success-title"
->
-  <header className="fixoku-order-success-head-r385">
-    <div className="fixoku-order-success-check-r385"
-         aria-hidden="true">
-      &#10003;
-    </div>
-
-    <h2 id="fixoku-order-success-title">
-      {"Sipari\u015finiz ba\u015far\u0131yla al\u0131nd\u0131!"}
-    </h2>
-
-    <p>{"Fixoku'yu tercih etti\u011finiz i\u00e7in te\u015fekk\u00fcr ederiz."}</p>
-
-    <span className="fixoku-order-success-status-r385">
-      {savedOrder.status === "PAID"
-        ? "\u00d6deme tamamland\u0131"
-        : ["CANCELLED","REJECTED","REFUNDED"].includes(savedOrder.status)
-          ? "Sipari\u015f i\u015flemi kapat\u0131ld\u0131"
-          : savedOrder.paymentMethod === "BANK_TRANSFER"
-            ? "Havale / EFT onay\u0131 bekleniyor"
-            : "\u00d6deme bekleniyor"}
-    </span>
-  </header>
-
-  <div className="fixoku-order-success-summary-r385">
-    <div>
-      <small>{"Sipari\u015f referans\u0131"}</small>
-      <strong>{bankReference || orderId}</strong>
-    </div>
-
-    <div>
-      <small>{"\u00d6denecek toplam tutar"}</small>
-      <strong className="fixoku-order-success-price-r385">
-        {money(savedOrder.totalMinor,savedOrder.currency)}
-      </strong>
-    </div>
-
-    <div className="fixoku-order-success-packages-r385">
-      <small>{"Sat\u0131n al\u0131nan paketler"}</small>
-      <strong>
-        {savedOrder.items.map(item=>item.title).join(", ")}
-      </strong>
-    </div>
-  </div>
-
-  {["PENDING_PAYMENT","PAYMENT_REVIEW"].includes(savedOrder.status) && <div className="fixoku-order-success-timeline-r385">
-    <h3>{"Sipari\u015finizin durumu"}</h3>
-
-    <ol>
-      <li className="is-done">
-        <span>&#10003;</span>
-        <div>
-          <strong>{"Sipari\u015f olu\u015fturuldu"}</strong>
-          <small>{"Sipari\u015finiz kay\u0131t alt\u0131na al\u0131nd\u0131."}</small>
-        </div>
-      </li>
-
-      <li className="is-current">
-        <span>2</span>
-        <div>
-          <strong>{"\u00d6deme onay\u0131 bekleniyor"}</strong>
-          <small>{"\u00d6deme do\u011frulanmas\u0131 gerekmektedir."}</small>
-        </div>
-      </li>
-
-      <li>
-        <span>3</span>
-        <div>
-          <strong>{"E\u011fitim eri\u015fiminin a\u00e7\u0131lmas\u0131"}</strong>
-        </div>
-      </li>
-
-      {savedOrder.requiresShipping && (
-        <>
-          <li>
-            <span>4</span>
-            <div>
-              <strong>{"Fiziksel \u00fcr\u00fcnlerin haz\u0131rlanmas\u0131"}</strong>
-            </div>
-          </li>
-          <li>
-            <span>5</span>
-            <div>
-              <strong>{"Kargoya teslim edilmesi"}</strong>
-            </div>
-          </li>
-          <li>
-            <span>6</span>
-            <div>
-              <strong>{"Teslim edilmesi"}</strong>
-            </div>
-          </li>
-        </>
-      )}
-    </ol>
-  </div>}
-
-  {savedOrder.paymentMethod === "BANK_TRANSFER" && ["PENDING_PAYMENT","PAYMENT_REVIEW"].includes(savedOrder.status) && (
-    <BankTransferPayment reference={bankReference} />
-  )}
-
-  <div className="fixoku-order-success-actions-r385">
-    <Link to={studentProfileId
-      ? `/panel/ogrenci?studentProfileId=${encodeURIComponent(studentProfileId)}`
-      : "/panel/ogrenci"}>
-      {"\u00d6\u011frenci paneline d\u00f6n"}
-    </Link>
-
-    {savedOrder.requiresShipping && (
-      <Link to={studentProfileId
-        ? `/panel/ogrenci/kargolar?studentProfileId=${encodeURIComponent(studentProfileId)}`
-        : "/panel/ogrenci/kargolar"}>
-        {"Kargolar\u0131m"}
-      </Link>
-    )}
-  </div>
-</section>
-          )}
+  <PaymentResultR408
+    status={savedOrder.status}
+    paymentMethod={savedOrder.paymentMethod}
+    reference={savedOrder.bankReference || orderId}
+    total={money(savedOrder.totalMinor,savedOrder.currency)}
+    packages={savedOrder.items.map(item=>item.title)}
+    returnPath="/panel/ogrenci/paketler"
+    returnLabel="Paketlerime dön"
+  />
+)}
 
           {!orderId && <form
-            className="trainer-checkout-layout"
+            className={`trainer-checkout-layout r408-checkout ${paymentMethod === "BANK_TRANSFER" && bankTransferReady ? "r408-bank-stage" : ""}`}
             onSubmit={(event) =>
               void submit(event)
             }
@@ -1166,7 +1057,7 @@ export function StudentCheckoutPage({
             </div>
 
             {paymentMethod === "BANK_TRANSFER" && bankTransferReady && bankDraft && (
-  <section className="trainer-checkout-step" aria-label="Havale / EFT ödeme bilgileri">
+  <section className="trainer-checkout-step" data-r408-bank-heading="true" aria-label="Havale / EFT ödeme bilgileri">
     <h2>Havale / EFT Ödeme</h2>
     <p>Gönderilecek tutar: {money(bankDraft.expectedAmountMinor, bankDraft.currency)}</p>
     <button type="button" onClick={() => setBankTransferReady(false)}>

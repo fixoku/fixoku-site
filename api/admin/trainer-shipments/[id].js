@@ -11,6 +11,7 @@ export default async function handler(req,res){
   if(!principal)return respond(res,401,{error:'UNAUTHENTICATED'});
   const denied=requirePermission(principal,req.method==='GET'?'shipment.read':'shipment.manage');
   if(denied)return respond(res,denied.status,denied.body);
+  if(req.method!=="GET")return respond(res,409,{error:"USE_UNIFIED_SHIPMENT_WORKFLOW"});
   const id=String(req.query?.id||'');if(!ID.test(id))return respond(res,400,{error:'SHIPMENT_ID_INVALID'});
   const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});let client;
   try{

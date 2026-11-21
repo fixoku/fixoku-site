@@ -1,0 +1,146 @@
+/* FIXOKU R408 - payment presentation */
+
+.trainer-checkout-layout.r408-checkout {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(300px,350px);
+  gap:24px;
+  align-items:start;
+}
+
+.r408-checkout [hidden] {
+  display:none!important;
+}
+
+.r408-checkout > .trainer-order-summary {
+  background:#14212e!important;
+  border:1px solid #263849!important;
+  border-radius:20px!important;
+  padding:24px!important;
+  color:#fff!important;
+  box-shadow:0 12px 30px rgba(20,33,46,.14);
+  position:sticky;
+  top:90px;
+  min-width:0;
+}
+
+.r408-checkout .trainer-order-summary h2,
+.r408-checkout .trainer-order-summary h3,
+.r408-checkout .trainer-order-summary strong,
+.r408-checkout .trainer-order-summary dd {
+  color:#fff!important;
+}
+
+.r408-checkout .trainer-order-summary p,
+.r408-checkout .trainer-order-summary span,
+.r408-checkout .trainer-order-summary dt {
+  color:#cbd5e1!important;
+}
+
+.r408-checkout .trainer-order-summary dl > div {
+  border-color:rgba(255,255,255,.18)!important;
+}
+
+.r408-checkout .trainer-order-summary dl > div:last-child {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  padding-top:18px;
+  margin-top:12px;
+}
+
+.r408-checkout .trainer-order-summary dl > div:last-child dd {
+  font-size:clamp(27px,2.5vw,38px)!important;
+  font-weight:800!important;
+  line-height:1.15;
+  letter-spacing:-1px;
+  margin:8px 0 0;
+}
+
+.r408-checkout .trainer-order-summary::after {
+  content:"KDV dahil";
+  display:block;
+  color:#b9c8d8;
+  font-size:12px;
+  margin-top:12px;
+}
+
+.trainer-checkout-layout.r408-bank-stage {
+  grid-template-columns:minmax(0,1fr) minmax(340px,.85fr);
+  gap:20px;
+  align-items:start;
+}
+
+.r408-bank-stage > [data-r408-bank-heading="true"] {
+  grid-column:1/-1!important;
+  grid-row:1!important;
+  background:#14212e!important;
+  color:#fff!important;
+  border-radius:20px!important;
+  padding:26px!important;
+}
+
+.r408-bank-stage [data-r408-bank-heading="true"] h2 {
+  color:#fff!important;
+  font-size:22px!important;
+}
+
+.r408-bank-stage [data-r408-bank-heading="true"] p {
+  color:#fff!important;
+  font-size:clamp(25px,3vw,38px)!important;
+  font-weight:800!important;
+  line-height:1.3;
+  margin:12px 0 18px;
+}
+
+.r408-bank-stage [data-r408-bank-heading="true"] button {
+  color:#ffd1b6!important;
+  background:transparent!important;
+  border:1px solid #687581!important;
+  border-radius:9px;
+  padding:10px 14px;
+  cursor:pointer;
+}
+
+.r408-bank-stage > :has(.fixoku-bank-transfer),
+.r408-bank-stage > .fixoku-bank-transfer {
+  grid-column:1;
+  min-width:0;
+}
+
+.r408-bank-stage > .trainer-bank-transfer-form,
+.r408-bank-stage > section:has(input[name="payerName"]),
+.r408-bank-stage > section:has(input[name="bankName"]),
+.r408-bank-stage > section:has(input[name="reference"]) {
+  grid-column:2;
+  min-width:0;
+}
+
+.r408-bank-stage > .trainer-order-summary {
+  grid-column:1/-1;
+  position:static;
+}
+
+.r408-bank-stage input,
+.r408-bank-stage select {
+  max-width:100%;
+  min-width:0;
+}
+
+.r408-bank-stage .trainer-commerce-primary {
+  min-height:46px;
+}
+
+@media(max-width:900px) {
+  .trainer-checkout-layout.r408-checkout,
+  .trainer-checkout-layout.r408-bank-stage {
+    grid-template-columns:minmax(0,1fr);
+  }
+
+  .r408-bank-stage > * {
+    grid-column:1!important;
+  }
+
+  .r408-checkout > .trainer-order-summary {
+    position:static;
+  }
+}

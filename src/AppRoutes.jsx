@@ -1,3 +1,4 @@
+import { OwnerPaytrAcceptanceR408 } from "./platform/admin/OwnerPaytrAcceptanceR408";
 import "./platform/student/child-profiles-021a.css";
 import { Suspense } from "react";
 import ConsentManager from "./martech/ConsentManager.jsx";
@@ -249,6 +250,7 @@ export default function AppRoutes() {
         <Route path="/panel/owner/olcumleme" element={<ProtectedMeasurement />} />
         <Route path="/panel/owner/e-posta-sablonlari" element={<ProtectedEmailTemplates />} />
         <Route path="/panel/owner/taksit-kampanyasi" element={<ProtectedOwnerInstallmentCampaign />} />
+        <Route path="/panel/owner/paytr-test" element={<ProtectedPanelEntry requiredRole="OWNER">{({user})=><OwnerShell user={user}><OwnerPaytrAcceptanceR408 /></OwnerShell>}</ProtectedPanelEntry>} />
         <Route path="/panel/owner/yasal-hazirlik" element={<ProtectedLegalPreparation />} />
         <Route path="/panel/ogrenci" element={<ProtectedStudentPortal />} />
         <Route path="/panel/ogrenci/paketler" element={<ProtectedStudentPackages />} />

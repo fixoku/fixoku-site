@@ -1,8 +1,12 @@
+import {
+  buildKgMeasurementPayload
+} from "./kolaygelsin-measurements-r408.js";
+
 import crypto from "node:crypto";
 
 /** Local-only provider double. It never opens a network connection. */
 export function createMockShippingProvider(options = {}) {
-  const calls = { create: 0, track: 0, cancel: 0, barcode: 0 };
+  const calls = { create: 0, track: 0, cancel: 0, barcode: 0, measurement: 0 };
   const records = new Map();
   const behavior = options.behavior || {};
   const provider = {
@@ -20,6 +24,45 @@ export function createMockShippingProvider(options = {}) {
       records.set(referenceNo, { ...result, state: 102, State: 102, StateText: "Gönderi Oluşturuldu", ReferenceNo: referenceNo, TrackingNumber: trackingNumber });
       return result;
     },
+    async updateMeasurements(referenceNo, parcelPlan) {
+      calls.measurement += 1;
+
+      const payload = buildKgMeasurementPayload(
+        referenceNo,parcelPlan
+      );
+
+      const row = records.get(referenceNo);
+
+      if (!row)
+        throw Object.assign(
+          new Error("MOCK_NOT_FOUND"),
+          {code:"MOCK_NOT_FOUND",status:404}
+        );
+
+      if (behavior.measurementError)
+        throw Object.assign(
+          new Error(behavior.measurementError),
+          {code:behavior.measurementError}
+        );
+
+      if (row.state >= 138 || row.state === 133)
+        throw Object.assign(
+          new Error("MOCK_MEASUREMENT_NOT_ALLOWED"),
+          {code:"MOCK_MEASUREMENT_NOT_ALLOWED"}
+        );
+
+      records.set(referenceNo,{
+        ...row,
+        measurementPayload:payload
+      });
+
+      return {
+        confirmed:true,
+        referenceNo,
+        packageCount:parcelPlan.packageCount
+      };
+    },
+
     async getTracking(referenceNo) {
       calls.track += 1;
       if (behavior.trackError) throw Object.assign(new Error(behavior.trackError), { code: behavior.trackError });

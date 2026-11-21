@@ -281,13 +281,28 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
   // Local tests and disposable development databases do not carry Vercel
   // runtime markers. They retain their existing local safety guards.
   if (!hasVercelRuntimeMarkers(env)) {
-    if ((text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r404Staging.branch || text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r405Staging.branch)) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+    if ((text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r404Staging.branch || text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r405Staging.branch || text(env.VERCEL_GIT_COMMIT_REF) === PREVIEW_CONTRACTS.r410Staging.branch)) fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
     return String(rawUrl);
   }
 
   const environment = text(env.VERCEL_ENV).toLowerCase();
   if (environment === "preview") {
     const branch = text(env.VERCEL_GIT_COMMIT_REF);
+    // R410 uses only the existing source-pinned R18/R405 staging target.
+    // Branch identity, commit, metadata and both URLs must be verified.
+    if (branch === PREVIEW_CONTRACTS.r410Staging.branch) {
+      const contract = PREVIEW_CONTRACTS.r410Staging;
+      if (!exactPreviewContractEnvironment(contract, env)
+        || !previewContractMetadataAttested(contract, env)
+        || !r404ConnectionTargetsConfigured(env)) {
+        fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+      }
+      const pooled = r404ConnectionUrl(rawUrl, "pooled");
+      const direct = r404ConnectionUrl(rawUrl, "direct");
+      if (pooled && pooled === r404ConnectionUrl(env.DATABASE_URL, "pooled")) return pooled;
+      if (direct && direct === r404ConnectionUrl(env.DATABASE_URL_UNPOOLED, "direct")) return direct;
+      fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
+    }
     if (branch === PREVIEW_CONTRACTS.r404Staging.branch || branch === PREVIEW_CONTRACTS.r405Staging.branch) {
       const contract = branch === PREVIEW_CONTRACTS.r405Staging.branch ? PREVIEW_CONTRACTS.r405Staging : PREVIEW_CONTRACTS.r404Staging;
       if (!exactPreviewContractEnvironment(contract, env) || !previewContractMetadataAttested(contract, env)

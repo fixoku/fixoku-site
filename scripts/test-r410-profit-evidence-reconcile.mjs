@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {reconcileOwnerProfitEvidence as run} from '../src/server/domain/r410-profit-evidence-reconcile.js';
+const BASE={id:'12345678-1234-4234-8234-123456789012',kind:'STUDENT_ORDER',finalized:true,coverageVerified:true,
+  netRevenueMinor:100000,refundNetMinor:5000,productCostMinor:15000,trainerEarnedMinor:20000,
+  shippingExpenseMinor:5000,paymentFeeMinor:2000,otherExpenseMinor:3000,trainerPayoutPaidMinor:20000};
+const ok=run([BASE],{overallCoverageVerified:true});
+assert.equal(ok.status,'INDICATIVE_CONTRIBUTION');assert.equal(ok.indicativeContributionMinor,50000);
+assert.equal(ok.certifiedProfit,false);console.log('CONTRIBUTION_AND_NOT_CERTIFIED=PASS');
+assert.equal(run([{...BASE,trainerPayoutPaidMinor:0}],{overallCoverageVerified:true}).indicativeContributionMinor,50000);
+console.log('PAYOUT_SETTLEMENT_NOT_DOUBLE_EXPENSE=PASS');
+assert.equal(run([{...BASE,productCostMinor:null}],{overallCoverageVerified:true}).indicativeContributionMinor,null);
+console.log('UNKNOWN_COST_FAIL_CLOSED=PASS');
+assert.equal(run([{...BASE,coverageVerified:false}],{overallCoverageVerified:true}).indicativeContributionMinor,null);
+assert.equal(run([BASE],{overallCoverageVerified:false}).indicativeContributionMinor,null);
+console.log('COVERAGE_REQUIRED=PASS');
+assert.equal(run([{...BASE,finalized:false}],{overallCoverageVerified:true}).indicativeContributionMinor,null);
+console.log('FINALIZATION_REQUIRED=PASS');
+assert.throws(()=>run([BASE,BASE],{overallCoverageVerified:true}),/DUPLICATE_ORDER_EVIDENCE/);
+console.log('DUPLICATE_ORDERS_BLOCKED=PASS');
+assert.throws(()=>run([{...BASE,refundNetMinor:100001}],{overallCoverageVerified:true}),/REFUND_EXCEEDS_REVENUE/);
+console.log('REFUND_GUARD=PASS');
+assert.throws(()=>run([{...BASE,shippingExpenseMinor:-1}],{overallCoverageVerified:true}),/INVALID_AMOUNT/);
+assert.throws(()=>run([{...BASE,productCostMinor:0.1}],{overallCoverageVerified:true}),/INVALID_AMOUNT/);
+console.log('INVALID_EXPENSES_BLOCKED=PASS');
+assert.equal(run([],{overallCoverageVerified:true}).indicativeContributionMinor,null);
+console.log('EMPTY_NOT_PROFIT=PASS');
+assert.equal(run([BASE,{...BASE,id:'87654321-1234-4234-8234-123456789012',kind:'TRAINER_PACKAGE_ORDER'}],{overallCoverageVerified:true}).indicativeContributionMinor,100000);
+console.log('STUDENT_AND_TRAINER_ORDERS=PASS');
+assert.equal(run([{...BASE,otherExpenseMinor:null}],{overallCoverageVerified:true}).orders[0].blockers.includes('MISSING_OTHEREXPENSEMINOR'),true);
+console.log('MISSING_OTHER_EXPENSE_BLOCKED=PASS');
+console.log('R410_D8K_PROFIT_EVIDENCE_OFFLINE=PASS');

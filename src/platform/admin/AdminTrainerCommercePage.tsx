@@ -1,3 +1,4 @@
+import {OwnerProductCostsR410} from "./OwnerProductCostsR410";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const commerceTrainerPhotoV20=(name:string)=>{
@@ -768,6 +769,7 @@ const response = await fetch("/api/admin/trainer-bank-transfers", {
           <p>Eğitmen, yetkinlik, eğitim satın alma ve özel erişim işlemlerini tek merkezden yönetin.</p>
         </div>
       </header>
+      <OwnerProductCostsR410 audience="TRAINER" />
 
       {message && <p className="admin-feedback trainer-commerce-feedback" role="status">{message}</p>}
 

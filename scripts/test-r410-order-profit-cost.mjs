@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import {normalizeCostLines,recordOrderProductCostSnapshots} from '../src/server/domain/r410-order-cost-snapshot.js';
+import {computeOrderContribution} from '../src/server/domain/r410-order-profit-core.js';
+const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',p='33333333-3333-4333-8333-333333333333';
+const lines=[{orderItemId:b,productId:p,quantity:1},{orderItemId:b,productId:p,quantity:2}];
+assert.deepEqual(normalizeCostLines(lines),[{orderItemId:b,productId:p,quantity:3}]);
+console.log('DUPLICATE_COMPONENTS_AGGREGATED=PASS');
+assert.throws(()=>normalizeCostLines([{orderItemId:b,productId:p,quantity:100}]),/COST_LINE_INVALID/);
+console.log('BAD_QUANTITY_BLOCKED=PASS');
+let saved=[];let currentVersion=1;let known=true;
+const db={async query(sql,args){
+ if(sql.includes('pg_advisory_xact_lock'))return {rows:[]};
+ if(sql.includes('from public.physical_products p'))return {rows:known?[{id:p,product_type:'SOFTWARE',version:currentVersion,unit_cost_minor:1500}]:[{id:p,product_type:'SOFTWARE',version:null,unit_cost_minor:null}]};
+ if(sql.includes('select order_id,quantity'))return {rows:saved.filter(x=>x.order_item_id===args[1]&&x.product_id===args[2]).map(x=>({order_id:x.order_id,quantity:x.quantity,cost_version:x.cost_version,unit_cost_minor:x.unit_cost_minor,total_cost_minor:x.total_cost_minor}))};
+ if(sql.includes('insert into public.r410_order_product_cost_snapshots')){saved.push({order_id:args[1],order_item_id:args[2],product_id:args[3],cost_version:args[4],quantity:args[5],unit_cost_minor:args[6],total_cost_minor:args[7]});return {rows:[]};}
+ throw Error('UNEXPECTED_SQL:'+sql.slice(0,60));
+}};
+let result=await recordOrderProductCostSnapshots(db,{orderKind:'STUDENT_ORDER',orderId:a,lines});
+assert.equal(result.totalCostMinor,4500);assert.equal(saved.length,1);
+console.log('ORDER_COST_SNAPSHOT=PASS');
+result=await recordOrderProductCostSnapshots(db,{orderKind:'STUDENT_ORDER',orderId:a,lines});assert.equal(saved.length,1);
+console.log('IDEMPOTENT_REPLAY=PASS');
+currentVersion=2;await assert.rejects(()=>recordOrderProductCostSnapshots(db,{orderKind:'STUDENT_ORDER',orderId:a,lines}),/COST_REPLAY_CONFLICT/);
+console.log('HISTORIC_COST_LOCKED=PASS');
+saved=[];known=false;result=await recordOrderProductCostSnapshots(db,{orderKind:'TRAINER_PACKAGE_ORDER',orderId:a,lines});assert.equal(result.status,'INCOMPLETE');assert.equal(saved.length,0);
+console.log('MISSING_COST_NOT_ZERO=PASS');
+assert.deepEqual(computeOrderContribution({netRevenueMinor:100000,productCostMinor:10000,trainerEarnedMinor:20000,shippingExpenseMinor:5000,paymentFeeMinor:1000,otherExpenseMinor:2000,refundNetMinor:0}),{status:'COMPLETE',contributionMinor:62000,missingFields:[]});
+console.log('PROFIT_COMPONENTS=PASS');
+assert.equal(computeOrderContribution({netRevenueMinor:100000,productCostMinor:null,trainerEarnedMinor:0,shippingExpenseMinor:0,paymentFeeMinor:0,otherExpenseMinor:0,refundNetMinor:0}).status,'INCOMPLETE');
+console.log('INCOMPLETE_PROFIT_NOT_CERTIFIED=PASS');
+assert.equal(computeOrderContribution({netRevenueMinor:100000,productCostMinor:10000,trainerEarnedMinor:20000,shippingExpenseMinor:5000,paymentFeeMinor:1000,otherExpenseMinor:2000,refundNetMinor:0,trainerPayoutMinor:20000}).contributionMinor,62000);
+console.log('PAYOUT_NOT_DOUBLE_EXPENSE=PASS');
+console.log('R410_D8F_OFFLINE=PASS');

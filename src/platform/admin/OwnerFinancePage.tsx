@@ -1,6 +1,10 @@
+import { PaytrFinanceSummaryR410 } from "./PaytrFinanceSummaryR410";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import "./admin-panel.css";
+import { OwnerCostEvidenceR410 } from "./OwnerCostEvidenceR410";
+import { OwnerProfitCoverageR410 } from "./OwnerProfitCoverageR410";
+import { OwnerOrderEvidenceGapsR410 } from "./OwnerOrderEvidenceGapsR410";
 
 type FilterState = { from: string; to: string; packageId: string; trainerId: string; currency: string };
 const EMPTY_FILTERS: FilterState = { from: "", to: "", packageId: "", trainerId: "", currency: "" };
@@ -77,8 +81,7 @@ export function OwnerFinancePage() {
   ] as const;
   const numericCosts = costRows.map(([, value]) => value).filter((value): value is number => value != null);
   const maxCost = Math.max(1, ...numericCosts);
-  const contributionValues = [metrics.trainerEarnedLiabilityMinor, metrics.physicalProductCostMinor, metrics.shippingCostMinor];
-  const contributionMinor = metrics.netSalesMinor == null || contributionValues.some((value: number | null | undefined) => value == null) ? null : Number(metrics.netSalesMinor) - contributionValues.reduce((sum: number, value: number | null | undefined) => sum + Number(value || 0), 0);
+  const contributionMinor: number | null = null; // R410: full cost reconciliation pending.
 
   return <main className="platform-foundation-panel admin-panel owner-finance-pro">
     <header className="admin-pro-header">
@@ -115,10 +118,10 @@ export function OwnerFinancePage() {
         <article><span>Net satış</span><strong>{money(metrics.netSalesMinor, displayCurrency)}</strong><small>İadeler sonrası satış; düzeltmeler ayrı defterde</small></article>
         <article><span>Eğitmen yükümlülüğü</span><strong>{money(metrics.trainerEarnedLiabilityMinor, displayCurrency)}</strong><small>Kazanılmış eğitmen hakedişi</small></article>
         <article><span>Ürün + kargo</span><strong>{metrics.physicalProductCostMinor == null || metrics.shippingCostMinor == null ? "—" : money(Number(metrics.physicalProductCostMinor) + Number(metrics.shippingCostMinor), displayCurrency)}</strong><small>Fiziksel operasyon maliyeti</small></article>
-        <article className={contributionMinor == null ? "" : contributionMinor >= 0 ? "is-positive" : "is-negative"}><span>Operasyon katkısı</span><strong>{money(contributionMinor, displayCurrency)}</strong><small>Net satış eksi görünen maliyetler</small></article>
+        <article className={contributionMinor == null ? "" : contributionMinor >= 0 ? "is-positive" : "is-negative"}><span>Operasyon katkısı</span><strong>{money(contributionMinor, displayCurrency)}</strong><small>Kargo maliyet mutabakatı tamamlanmadan hesaplanmaz</small></article>
       </section>
 
-      <section className="admin-dashboard-grid owner-finance-visuals">
+      <PaytrFinanceSummaryR410 value={JSON.stringify(data.filters && {from:data.filters.from,to:data.filters.to,packageId:data.filters.packageId,trainerId:data.filters.trainerId,currency:data.filters.currency}) === JSON.stringify(filters) ? data.paytrFinanceR410 : null}/><section className="admin-dashboard-grid owner-finance-visuals">
         <article className="panel-card">
           <div className="admin-section-heading"><div><span className="admin-eyebrow">MALİYET</span><h2>Maliyet dağılımı</h2></div></div>
           <div className="admin-bar-list">
@@ -131,6 +134,9 @@ export function OwnerFinancePage() {
             <p><strong>Net satış</strong><span>Seçilen dönem ve filtre kapsamındaki satış sonucudur.</span></p>
             <p><strong>Eğitmen yükümlülüğü</strong><span>Kesinleşmiş brüt hakediştir; ödenmiş ve ödenmemiş bakiyeler tahsislerden ayrı izlenir.</span></p>
             {Number(metrics.trainerOverpaidMinor || 0) > 0 && <p><strong>Fazla ödenmiş tutar</strong><span>{money(metrics.trainerOverpaidMinor, displayCurrency)} ödeme tahsislerinin kesinleşmiş yükümlülüğü aştığını gösterir; yeni ödeme borcu değildir.</span></p>}
+            <p><strong>Kargo tahsilatı</strong><span>{money(metrics.shippingRevenueMinor, displayCurrency)} - Brüt sipariş satışlarına dahildir.</span></p>
+            <p><strong>Kayıtlı gerçek kargo gideri</strong><span>{money(metrics.knownShippingCostMinorR410, displayCurrency)}</span></p>
+            <p><strong>Maliyeti eksik gönderiler</strong><span>{metrics.unknownShippingCostCountR410 == null ? "—" : metrics.unknownShippingCostCountR410}</span></p>
             <p><strong>Katkı</strong><span>Operasyon görünümüdür; resmî muhasebe kârı veya vergi hesabı değildir.</span></p>
           </div>
         </article>
@@ -171,5 +177,8 @@ export function OwnerFinancePage() {
         </form>
       </details>
     </>}
+    <OwnerProfitCoverageR410 from={filters.from} to={filters.to} packageId={filters.packageId} trainerId={filters.trainerId} currency={filters.currency} />
+    <OwnerOrderEvidenceGapsR410 from={filters.from} to={filters.to} packageId={filters.packageId} trainerId={filters.trainerId} currency={filters.currency} />
+    <OwnerCostEvidenceR410 from={filters.from} to={filters.to} />
   </main>;
 }

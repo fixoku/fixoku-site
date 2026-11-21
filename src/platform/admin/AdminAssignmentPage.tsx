@@ -99,7 +99,7 @@ export function AdminAssignmentPage() {
     </g>
   </svg>
 </div><p className="assignment-hero-copy">Satın alınmış veya açılmış öğrenci eğitimlerini uygun ve yetkin eğitmenlerle eşleştirin; eğitmen değişikliklerinde tarihçeyi koruyun.</p></div></header>
-    <div className="admin-segmented-tabs"><Link className="is-active" to="/panel/admin/atamalar">Birebir Atamalar</Link><Link to="/panel/owner/egitim-gruplari">Sınıf Atamaları</Link></div>
+    <div className="admin-segmented-tabs"><Link className="is-active" to="/panel/admin/atamalar">Birebir Atamalar</Link><Link to="/panel/owner/egitim-gruplari">Sınıf Atamaları</Link><Link to="/panel/owner/egitim-gruplari?sekme=tarifeler">Hakediş Tarifeleri</Link></div>
     {message && <p className="admin-inline-status" role="status">{message}</p>}
     <section className="r401-stats"><div><span>Bekleyen</span><strong>{pendingCount}</strong></div><div><span>Atanmış</span><strong>{assignedCount}</strong></div><div><span>Toplam kayıt</span><strong>{rows.length}</strong></div><div><span>Başlangıç tarihi bekleyen</span><strong>{rows.filter(r=>r.status==="ASSIGNED"&&!r.plannedAt).length}</strong></div></section>
     <section className="assignment-filterbar"><label>Öğrenci veya eğitim ara<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ara…" /></label></section>

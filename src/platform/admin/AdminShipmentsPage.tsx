@@ -407,7 +407,7 @@ export function AdminShipmentsPage() {
   const uniqueCarriers = Array.from(new Set([...carriers, ...items.map(i => i.carrier).filter(Boolean)]));
   const actionItems = items.filter(i => ["waiting", "preparing", "integration", "failed"].includes(i.status)).slice(0, 3);
 
-  const parcelTabs = parcelSettingsAllowed && (
+  const parcelTabs = (
     <div className="r408-parcel-tabs" role="tablist" aria-label="Kargo yönetimi">
       <button
         type="button"
@@ -509,8 +509,14 @@ export function AdminShipmentsPage() {
     </form></section></div>}
     </div>
 
-    {parcelTab==="settings" && parcelSettingsAllowed && (
-      <BookParcelSettingsR408/>
+    {parcelTab==="settings" && (
+      (parcelSettingsAllowed
+  ? <BookParcelSettingsR408/>
+  : <section className="panel-card" role="alert" style={{padding:20}}>
+      <h2>Paketleme Ayarları</h2>
+      <p>Koli profilleri yüklenemiyor. Veritabanı geçişi veya Owner yetkisi kontrol edilmeli.</p>
+      <p>Mevcut gönderiler korunuyor.</p>
+    </section>)
     )}
   </main>;
 }

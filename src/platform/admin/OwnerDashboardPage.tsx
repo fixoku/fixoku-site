@@ -34,6 +34,10 @@ type OverviewOrder = {
   packageTitle: string;
   educationStage?: string | null;
   kind: "STUDENT" | "TRAINER";
+  paymentCostMinor?: number | null;
+  shippingCostMinor?: number | null;
+  productCostMinor?: number | null;
+  profitMinor?: number | null;
 };
 
 type OverviewData = {
@@ -515,14 +519,18 @@ export function OwnerDashboardPage() {
         <Link to="/panel/admin/siparisler">Tüm siparişleri gör →</Link>
       </div>
       {data.recentOrders.length ? <div className="owner-v5-table-wrap"><table>
-        <thead><tr><th>Sipariş No</th><th>Müşteri / Kullanıcı</th><th>Paket</th><th>Ödeme</th><th>Tutar</th><th>Durum</th><th>Tarih</th><th>İşlemler</th></tr></thead>
+        <thead><tr><th>Sipariş No</th><th>Müşteri / Kullanıcı</th><th>Paket</th><th>Ödeme</th><th>Tahsilat</th><th>PayTR gideri</th><th>Kargo gideri</th><th>Ürün maliyeti</th><th>Net kâr</th><th>Durum</th><th>Tarih</th><th>İşlemler</th></tr></thead>
         <tbody>{data.recentOrders.map((order) =>
           <tr key={`${order.kind}-${order.id}`}>
             <td>#{order.id.slice(0, 8).toUpperCase()}</td>
             <td><strong>{order.customerName || order.beneficiaryName}</strong></td>
             <td>{displayOrderPackage(order)}</td>
             <td>{paymentLabel(order.paymentMethod)}</td>
-            <td>{money(order.totalMinor, order.currency)}</td>
+            <td style={{color:"#087d4a",fontWeight:800,whiteSpace:"nowrap"}}>{order.status==="PAID"?money(order.totalMinor,order.currency):"—"}</td>
+             <td style={{color:"#b42318",fontWeight:700,whiteSpace:"nowrap"}}>{order.paymentCostMinor==null?"—":money(order.paymentCostMinor,order.currency)}</td>
+             <td style={{color:"#b42318",fontWeight:700,whiteSpace:"nowrap"}}>{order.shippingCostMinor==null?"—":money(order.shippingCostMinor,order.currency)}</td>
+             <td style={{color:"#b42318",fontWeight:700,whiteSpace:"nowrap"}}>{order.productCostMinor==null?"—":money(order.productCostMinor,order.currency)}</td>
+             <td style={{color:order.profitMinor==null?"#66758a":order.profitMinor<0?"#b42318":"#087d4a",fontWeight:800,whiteSpace:"nowrap"}}>{order.profitMinor==null?"—":money(order.profitMinor,order.currency)}</td>
             <td><span className={`owner-v5-status ${statusTone(order.status)}`}>{statusLabel[order.status] || order.status}</span></td>
             <td>{new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(order.createdAt))}</td>
             <td><Link className="owner-v5-detail" to={order.kind === "TRAINER" ? "/panel/admin/egitmen-ticaret" : "/panel/admin/siparisler"}>Detay</Link><span className="owner-v5-more">•••</span></td>
@@ -531,6 +539,6 @@ export function OwnerDashboardPage() {
       </table></div> : <div className="owner-v5-empty">Henüz sipariş kaydı yok.</div>}
     </section>
 
-    <div className="owner-v5-blank-frame" aria-hidden="true" />
+
   </main>;
 }

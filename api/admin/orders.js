@@ -399,6 +399,40 @@ async function readOverview(pool, range) {
     ...trainerRecent.rows.map((row) => ({ ...row, kind: "TRAINER", educationStage: null })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
 
+  // R410: only auditable, order-specific cost evidence may be displayed.
+  const evidenceIds=recentOrders.map(row=>row.id);
+  const evidenceMap=new Map();
+  if(evidenceIds.length){
+    const [paytrCosts,shippingCosts,productCosts]=await Promise.all([
+      pool.query(`select a.order_kind as kind,a.order_id as "orderId",sum(f.merchant_payment_cost_minor)::bigint as minor
+        from public.r410_paytr_finance f join public.paytr_payment_attempts a on a.id=f.attempt_id
+        where a.order_id=any($1::uuid[]) group by a.order_kind,a.order_id`,[evidenceIds]),
+      pool.query(`select 'STUDENT_ORDER' as kind,s.order_id as "orderId",count(*)::int as count,
+        count(*) filter(where s.actual_shipping_cost_minor is null)::int as missing,
+        coalesce(sum(s.actual_shipping_cost_minor),0)::bigint as minor
+        from public.shipments s where s.order_id=any($1::uuid[]) group by s.order_id
+        union all
+        select 'TRAINER_PACKAGE_ORDER' as kind,s.order_id as "orderId",count(*)::int as count,
+        count(*) filter(where s.actual_shipping_cost_minor is null)::int as missing,
+        coalesce(sum(s.actual_shipping_cost_minor),0)::bigint as minor
+        from public.trainer_order_shipments s where s.order_id=any($1::uuid[]) group by s.order_id`,[evidenceIds]),
+      pool.query(`select order_kind as kind,order_id as "orderId",sum(total_cost_minor)::bigint as minor
+        from public.r410_order_product_cost_snapshots where order_id=any($1::uuid[])
+        group by order_kind,order_id`,[evidenceIds])
+    ]);
+    const put=(kind,id,field,value)=>{const key=kind+":"+id;const current=evidenceMap.get(key)||{};current[field]=value;evidenceMap.set(key,current);};
+    for(const row of paytrCosts.rows)put(row.kind,row.orderId,"paymentCostMinor",Number(row.minor));
+    for(const row of shippingCosts.rows)if(Number(row.count)>0&&Number(row.missing)===0)put(row.kind,row.orderId,"shippingCostMinor",Number(row.minor));
+    for(const row of productCosts.rows)put(row.kind,row.orderId,"productCostMinor",Number(row.minor));
+  }
+  const recentOrdersWithEvidence=recentOrders.map(order=>{
+    const key=(order.kind==="TRAINER"?"TRAINER_PACKAGE_ORDER":"STUDENT_ORDER")+":"+order.id;
+    const costs=evidenceMap.get(key)||{};
+    // Unknown shipping, product, payouts, refunds or payment fees prohibit certified net profit.
+    return {...order,paymentCostMinor:costs.paymentCostMinor??null,
+      shippingCostMinor:costs.shippingCostMinor??null,
+      productCostMinor:costs.productCostMinor??null,profitMinor:null};
+  });
   return {
     period: range.period,
     range,
@@ -423,7 +457,7 @@ async function readOverview(pool, range) {
     },
     series,
     topPackages,
-    recentOrders,
+    recentOrders: recentOrdersWithEvidence,
   };
 }
 

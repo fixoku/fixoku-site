@@ -339,10 +339,10 @@ export function R6TrainingGroupsPage() {
         </div>
       </header>
 
-      <div className="admin-segmented-tabs assignment-operation-tabs">
-        <Link to="/panel/admin/atamalar">Birebir Atamalar</Link>
-        <Link className={tariffMode ? "" : "is-active"} to="/panel/owner/egitim-gruplari">Sınıf Atamaları</Link>
-        <Link className={tariffMode ? "is-active" : ""} to="/panel/owner/egitim-gruplari?sekme=tarifeler">Hakediş Tarifeleri</Link>
+      <div className="admin-segmented-tabs assignment-operation-tabs" style={{display:"flex",flexWrap:"nowrap",overflowX:"auto",alignItems:"center",gap:8,width:"100%",maxWidth:"100%"}}>
+        <Link style={{flex:"0 0 auto",whiteSpace:"nowrap"}} to="/panel/admin/atamalar">Birebir Atamalar</Link>
+        <Link style={{flex:"0 0 auto",whiteSpace:"nowrap"}} className={tariffMode ? "" : "is-active"} to="/panel/owner/egitim-gruplari">Sınıf Atamaları</Link>
+        <Link style={{flex:"0 0 auto",whiteSpace:"nowrap"}} className={tariffMode ? "is-active" : ""} to="/panel/owner/egitim-gruplari?sekme=tarifeler">Hakediş Tarifeleri</Link>
       </div>
 
              {message && <p className="admin-inline-status" role="status">{message}</p>}

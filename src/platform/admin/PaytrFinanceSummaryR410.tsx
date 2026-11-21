@@ -5,11 +5,12 @@ const money = (n: number | null | undefined) => n == null ? "—" : new Intl.Num
 export function PaytrFinanceSummaryR410({value}: {value?: Summary | null}) {
   return <section className="panel-card finance-table-card" aria-label="PayTR komisyon özeti">
     <div className="admin-section-heading"><div><span className="admin-eyebrow">PAYTR</span><h2>Ödeme maliyetleri</h2></div></div>
-    {!value ? <p>Komisyon verileri bekleniyor.</p> : value.status !== "AVAILABLE" ? <p>{value.status === "OUT_OF_SCOPE" ? "Bu filtre için güvenilir maliyet dağılımı henüz yok." : "Komisyon verileri şu anda kullanılamıyor."}</p> : <>
+    {<>
+      {(!value || value.status !== "AVAILABLE") && <p role="status">PayTR maliyet verileri henüz doğrulanmadı. Bilinmeyen tutarlar sıfır kabul edilmez.</p>}
       <div className="finance-reading-list">
-        {[["PayTR kesintisi",value.deductionMinor],["İşletmenin net ödeme maliyeti",value.merchantCostMinor],["Tek çekim maliyeti",value.singleCostMinor],["Vade farksız iki taksit maliyeti",value.twoCostMinor],["Müşterinin ödediği vade farkı",value.customerDifferenceMinor],["PayTR bildirilen net tutar",value.providerNetMinor]].map(([label,amount])=><p key={String(label)}><strong>{label}</strong><span>{money(typeof amount === "number" ? amount : null)}</span></p>)}
-        <p><strong>Doğrulanmış işlemler</strong><span>{value.verifiedAttempts} / {value.totalAttempts}</span></p>
-        <p><strong>İnceleme veya kayıt bekleyen işlemler</strong><span>{value.unresolvedAttempts}</span></p>
+        {[["PayTR kesintisi",value?.deductionMinor],["İşletmenin net ödeme maliyeti",value?.merchantCostMinor],["Tek çekim maliyeti",value?.singleCostMinor],["Vade farksız iki taksit maliyeti",value?.twoCostMinor],["Müşterinin ödediği vade farkı",value?.customerDifferenceMinor],["PayTR bildirilen net tutar",value?.providerNetMinor]].map(([label,amount])=><p key={String(label)}><strong>{label}</strong><span>{money(typeof amount === "number" ? amount : null)}</span></p>)}
+        <p><strong>Doğrulanmış işlemler</strong><span>{value?.verifiedAttempts ?? "—"} / {value?.totalAttempts ?? "—"}</span></p>
+        <p><strong>İnceleme veya kayıt bekleyen işlemler</strong><span>{value?.unresolvedAttempts ?? "—"}</span></p>
       </div>
       <p>Yalnızca doğrulanmış, iadesiz gerçek ödeme denemeleri; ödeme tarihi esas alınır. Eski veya deneme kaydı olmayan siparişler kapsam dışı olabilir. Net tutar banka aktarımı kanıtı değildir.</p>
     </>}

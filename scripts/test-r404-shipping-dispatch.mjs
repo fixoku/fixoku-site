@@ -29,6 +29,8 @@ try {
   await db.query(fs.readFileSync(new URL("../drizzle/controlled-migrations/r404/R404_01_PAYTR_PAYMENT_ATTEMPTS.sql", import.meta.url), "utf8"));
   await db.query(fs.readFileSync(new URL("../drizzle/controlled-migrations/r404/R404_02_PAYTR_TOKEN_LEASES_AND_INTEGRITY.sql", import.meta.url), "utf8"));
   await db.query(fs.readFileSync(new URL("../drizzle/controlled-migrations/r404/R404_03_SHIPMENT_DISPATCH_IDEMPOTENCY.sql", import.meta.url), "utf8"));
+  await db.query(fs.readFileSync(new URL("../drizzle/controlled-migrations/r408/R408_02_BOOK_PARCEL_PROFILES.sql", import.meta.url), "utf8"));
+  await db.query(fs.readFileSync(new URL("../drizzle/controlled-migrations/r408/R408_03_SHIPMENT_MEASUREMENT.sql", import.meta.url), "utf8"));
   const tableCheck = (await db.query("select count(*)::int as n from information_schema.tables where table_schema='public' and table_name in ('shipment_dispatches','shipment_dispatch_attempts','shipment_status_events')")).rows[0].n;
   assert.equal(Number(tableCheck), 3);
 

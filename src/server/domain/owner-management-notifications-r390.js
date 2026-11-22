@@ -2,10 +2,13 @@
 import { queueEmailOutbox } from "./panel-notifications.js";
 import { OWNER_EMAIL_EDITORIAL } from "./owner-email-editorial-r390.js";
 
+const APPROVED_OWNER_EMAIL_KEYS = new Set(["owner-trainer-registration","owner-student-registration","owner-student-sale","owner-trainer-sale","owner-bank-review","owner-shipment","owner-guardian-registration","owner-qualification","owner-assignment","owner-completion","owner-earning","owner-refund","owner-contact","owner-institution","owner-payment-error","owner-daily-summary"]);
+
 // Call only from trusted server-side event producers inside their transaction.
 // Default-off until staging acceptance; never read an address from request input.
 export async function queueOwnerManagementEmail(client, { templateKey, eventId, metadata }, env = process.env) {
   if (env.FIXOKU_OWNER_NOTIFICATIONS_ENABLED !== "1") return false;
+  if (!APPROVED_OWNER_EMAIL_KEYS.has(String(templateKey))) return false;
   const address = String(env.FIXOKU_OWNER_NOTIFICATION_EMAIL || "").trim().toLowerCase();
   if (address !== "ersinusta@fixoku.com") throw new Error("OWNER_NOTIFICATION_RECIPIENT_NOT_APPROVED");
   if (!Object.hasOwn(OWNER_EMAIL_EDITORIAL, templateKey) || typeof eventId !== "string" || !/^[a-zA-Z0-9:_-]{1,120}$/.test(eventId)) throw new Error("OWNER_NOTIFICATION_EVENT_INVALID");

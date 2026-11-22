@@ -71,6 +71,7 @@ export async function processOutboxBatch({ client, env = process.env, transportF
 
   const ownerScope = `
     dedupe_key like 'owner-management:%'
+    and event_type in ('OWNER_TRAINER_REGISTRATION','OWNER_STUDENT_REGISTRATION','OWNER_STUDENT_SALE','OWNER_TRAINER_SALE','OWNER_BANK_REVIEW','OWNER_SHIPMENT','OWNER_GUARDIAN_REGISTRATION','OWNER_QUALIFICATION','OWNER_ASSIGNMENT','OWNER_COMPLETION','OWNER_EARNING','OWNER_REFUND','OWNER_CONTACT','OWNER_INSTITUTION','OWNER_PAYMENT_ERROR','OWNER_DAILY_SUMMARY')
     and lower(recipient_email)='ersinusta@fixoku.com'
     and recipient_user_id in (
       select u.id from platform_users u

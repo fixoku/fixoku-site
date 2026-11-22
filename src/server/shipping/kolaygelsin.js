@@ -134,6 +134,17 @@ export function createKolayGelsinAdapter(options={}) {
   }
   return Object.freeze({
     runtime,
+    verifyConnection: async () => {
+      if (!trusted || !username || !password || token) {
+        throw fail('KG_PROBE_CREDENTIALS_REQUIRED',503);
+      }
+      await accessToken();
+      return Object.freeze({
+        provider:'KOLAYGELSIN',
+        verified:true,
+        readOnly:true
+      });
+    },
     quote: async () => {throw fail('KG_QUOTE_API_NOT_VERIFIED',503);},
     createShipment: async input => normalize(await request('SetDelivery',{body:buildKolayGelsinDelivery(input)})),
     updateMeasurements: async (referenceNo, parcelPlan) => {

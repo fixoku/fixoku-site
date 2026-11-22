@@ -1,13 +1,13 @@
 import {parseOwnerCost,COST_TYPES} from "./r410-product-cost-core.js";
 export async function readOwnerProductCosts(db) {
-  const result=await db.query(`select p.id,p.sku,p.title,p.product_type as "productType",p.list_gross_minor as "salePriceMinor",p.vat_rate_bps as "vatRateBps",p.is_active as "isActive",v.version as "costVersion",v.unit_cost_minor as "unitCostMinor",v.created_at as "costUpdatedAt" from public.physical_products p left join lateral (select version,unit_cost_minor,created_at from public.r410_product_cost_versions where product_id=p.id order by version desc limit 1) v on true where p.product_type in ('PHYSICAL','SOFTWARE') order by p.product_type,p.title,p.sku`);
+  const result=await db.query(`select p.id,p.sku,p.title,p.product_type as "productType",p.list_gross_minor as "salePriceMinor",p.vat_rate_bps as "vatRateBps",p.is_active as "isActive",p.image_reference as "imageReference",v.version as "costVersion",v.unit_cost_minor as "unitCostMinor",v.created_at as "costUpdatedAt" from public.physical_products p left join lateral (select version,unit_cost_minor,created_at from public.r410_product_cost_versions where product_id=p.id order by version desc limit 1) v on true where (p.product_type in ('PHYSICAL','SOFTWARE') or (p.product_type='DIGITAL' and p.sku in ('FIXOKU-STUDENT-YAPAY-ZEKA','FIXOKU-SOFTWARE-AI'))) order by p.product_type,p.title,p.sku`);
   return result.rows;
 }
 export async function saveOwnerProductCost(client,raw,ownerId) {
   const v=parseOwnerCost(raw);
   await client.query("select pg_advisory_xact_lock(hashtext($1))",[`r410-cost:${v.productId}`]);
-  const product=(await client.query("select id,product_type from public.physical_products where id=$1 for update",[v.productId])).rows[0];
-  if (!product || !COST_TYPES.includes(product.product_type)) throw Object.assign(new Error("COST_PRODUCT_NOT_SUPPORTED"),{status:409});
+  const product=(await client.query("select id,sku,product_type from public.physical_products where id=$1 for update",[v.productId])).rows[0];
+  if (!product || !(COST_TYPES.includes(product.product_type) || (product.product_type === "DIGITAL" && ["FIXOKU-STUDENT-YAPAY-ZEKA", "FIXOKU-SOFTWARE-AI"].includes(product.sku)))) throw Object.assign(new Error("COST_PRODUCT_NOT_SUPPORTED"),{status:409});
   const latest=(await client.query("select version from public.r410_product_cost_versions where product_id=$1 order by version desc limit 1 for update",[v.productId])).rows[0];
   const current=Number(latest?.version||0);
   if(current!==v.expectedVersion) throw Object.assign(new Error("COST_STALE_VERSION"),{status:409});

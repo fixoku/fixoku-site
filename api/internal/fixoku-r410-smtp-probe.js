@@ -85,10 +85,24 @@ export function createHandler({
         emailSent:false,
         status:"SMTP_AUTH_VERIFIED"
       });
-    } catch {
+    } catch (error) {
+      const code=String(error?.code||"");
+      const responseCode=Number(error?.responseCode||0);
+      let failureClass="SMTP_UNKNOWN_FAILURE";
+
+      if (code==="EAUTH" || [530,534,535].includes(responseCode))
+        failureClass="SMTP_AUTH_REJECTED";
+      else if (["ETIMEDOUT","ESOCKETTIMEOUT"].includes(code))
+        failureClass="SMTP_TIMEOUT";
+      else if (["ECONNECTION","ECONNREFUSED","ECONNRESET","ENOTFOUND","EAI_AGAIN","ESOCKET"].includes(code))
+        failureClass="SMTP_NETWORK_FAILURE";
+      else if (["ESOCKET","ETLS","CERT_HAS_EXPIRED","UNABLE_TO_VERIFY_LEAF_SIGNATURE","ERR_TLS_CERT_ALTNAME_INVALID"].includes(code))
+        failureClass="SMTP_TLS_FAILURE";
+
       return reply(res,503,{
         ok:false,
         status:"SMTP_AUTH_NOT_VERIFIED",
+        failureClass,
         emailSent:false
       });
     } finally {

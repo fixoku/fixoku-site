@@ -49,13 +49,76 @@ function normalize(data) {
 export function createKolayGelsinAdapter(options={}) {
   const token=String(options.token ?? process.env.SHIPPING_TOKEN ?? '');
   const base=String(options.baseUrl ?? process.env.SHIPPING_BASE_URL ?? '').trim();
+  const username=String(options.username ?? process.env.SHIPPING_KG_USERNAME ?? '');
+  const password=String(options.password ?? process.env.SHIPPING_KG_PASSWORD ?? '');
   let url;
   try { url=new URL(base); } catch { /* fail closed below */ }
   const trusted=Boolean(url && url.protocol === 'https:' && url.hostname.toLowerCase() === OFFICIAL_HOST && !url.username && !url.password && !url.port && (url.pathname === '/' || url.pathname === '') && !url.search && !url.hash);
-  const configured=trusted && Boolean(token);
+  const configured=trusted && Boolean(token || (username && password));
   const explicitlyApproved = options.allowDispatch === true && typeof options.fetchImpl === 'function' || (String(process.env.SHIPPING_KG_LIVE_DISPATCH_APPROVED || '') === '1' && options.allowDispatch !== false);
   const enabled=configured && explicitlyApproved;
   const runtime=Object.freeze({provider:'KOLAYGELSIN',enabled,configured,status:!configured?'CONFIG_REQUIRED':enabled?'CONFIGURED':'CONFIGURED_UNVERIFIED'});
+  let cachedToken = '';
+  let tokenExpiresAt = 0;
+  let pendingLogin = null;
+
+  async function accessToken() {
+    if (token) return token;
+    if (cachedToken && Date.now() < tokenExpiresAt) return cachedToken;
+    if (!username || !password) throw fail('KG_CREDENTIALS_REQUIRED',503);
+
+    if (!pendingLogin) {
+      pendingLogin = (async () => {
+        const fetcher = options.fetchImpl || fetch;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(),8000);
+        try {
+          const response = await fetcher(
+            new URL('/api/Token/LoginAES',url).toString(),
+            {
+              method:'POST',
+              redirect:'error',
+              signal:controller.signal,
+              headers:{'content-type':'application/json',accept:'application/json'},
+              body:JSON.stringify({musteri:username,sifre:password})
+            }
+          );
+          if (!response.ok) throw fail('KG_LOGIN_HTTP_FAILED',502);
+          const data = await response.json();
+          const fresh = data?.result?.Token;
+          if (
+            Number(data?.StatusCode) !== 200 ||
+            typeof fresh !== 'string' ||
+            !/^[A-Za-z0-9._~-]+$/.test(fresh)
+          ) throw fail('KG_LOGIN_INVALID',502);
+
+          const probe = await fetcher(
+            new URL('/api/Cargo/GetCityDistricts?CityName=Istanbul',url).toString(),
+            {
+              method:'GET',
+              redirect:'error',
+              signal:controller.signal,
+              headers:{authorization:`Bearer ${fresh}`,accept:'application/json'}
+            }
+          );
+          if (!probe.ok) throw fail('KG_TOKEN_PROBE_HTTP_FAILED',502);
+          const verified = await probe.json();
+          if (
+            verified?.IsSuccessful !== true ||
+            Number(verified?.StatusCode) !== 200
+          ) throw fail('KG_TOKEN_NOT_VERIFIED',502);
+
+          cachedToken = fresh;
+          tokenExpiresAt = Date.now() + 19 * 60 * 60 * 1000;
+          return cachedToken;
+        } finally {
+          clearTimeout(timeout);
+        }
+      })().finally(() => { pendingLogin = null; });
+    }
+    return pendingLogin;
+  }
+
   async function request(service,{method='POST',body,query}={}) {
     if (!enabled) throw fail('KG_DISPATCH_NOT_APPROVED',503);
     const target=new URL(`/api/Cargo/${service}`,url);
@@ -63,7 +126,7 @@ export function createKolayGelsinAdapter(options={}) {
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),8000);
     try {
-      const result=await (options.fetchImpl || fetch)(target.toString(),{method,redirect:'error',signal:controller.signal,headers:{authorization:`Bearer ${token}`,'content-type':'application/json',accept:'application/json'},...(method==='POST'?{body:JSON.stringify(body ?? {})}:{})});
+      const result=await (options.fetchImpl || fetch)(target.toString(),{method,redirect:'error',signal:controller.signal,headers:{authorization:`Bearer ${await accessToken()}`,'content-type':'application/json',accept:'application/json'},...(method==='POST'?{body:JSON.stringify(body ?? {})}:{})});
       const response=await result.json().catch(()=>({}));
       if(!result.ok || response?.IsSuccess===false || response?.isSuccess===false || response?.IsSuccessful===false || response?.isSuccessful===false || response?.ExceptionMessage) throw fail('KG_PROVIDER_REJECTED',502);
       return response;

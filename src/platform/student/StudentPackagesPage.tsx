@@ -382,7 +382,7 @@ export function StudentPackagesPage({
   return shell(
     <>
       <StudentR6CommercePanel token={new URLSearchParams(location.search).get("token")} />
-      <InstallmentCampaignBanner />
+
       <div
         className={`student-package-hero student-package-theme--${meta.theme}`}
       >
@@ -606,6 +606,7 @@ export function StudentPackagesPage({
                 )}
 
                 <div className="student-package-card__footer">
+                  <InstallmentCampaignBanner />
                   <div className="student-package-card__price">
                     <span>Paket fiyatı</span>
                     <strong

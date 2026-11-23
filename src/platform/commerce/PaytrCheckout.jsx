@@ -93,7 +93,6 @@ export default function PaytrCheckout({ orderId, summary = null, legalReady = tr
   };
 
   return <section className="paytr-checkout r408-paytr-checkout" aria-labelledby="paytr-title" style={{ border: 0, padding: 0, background: "transparent" }}>
-    <InstallmentCampaignBanner />
     <div style={{ marginBottom: 16 }}><div><h2 id="paytr-title" style={{ fontSize: 24, margin: "0 0 5px", color: "#17283c" }}>Güvenli kart ödemesi</h2><p style={{ margin: 0, color: "#64748b" }}>Kart bilgileriniz yalnızca resmi PayTR iframe’inde alınır.</p></div></div>
     {summary && <div className="r408-paytr-summary" style={{ background: "#f7fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, marginBottom: 16 }}><strong>{summary.title}</strong><div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginTop: 10, flexWrap: "wrap" }}><span>{summary.delivery}</span><strong className="r408-paytr-total">{summary.price}</strong></div></div>}
     <p role={state === "failed" || state === "review" ? "alert" : "status"} style={{ color: state === "review" ? "#92400e" : "#475569", lineHeight: 1.6 }}>{error || stateText[state]}</p>
@@ -102,6 +101,7 @@ export default function PaytrCheckout({ orderId, summary = null, legalReady = tr
     {["failed", "review"].includes(state) && <button type="button" onClick={checkStatus} style={{ width: "100%", padding: "14px 20px", fontWeight: 700, borderRadius: 10 }}>Sipariş durumunu kontrol et</button>}
     {!legalReady && <p>Zorunlu yasal onayları tamamlayın.</p>}
     {iframeUrl && <div id="paytr_iframe" style={{ marginTop: 12, overflow: "hidden", borderRadius: 12 }}><iframe id="paytriframe" title="PayTR güvenli ödeme formu" src={iframeUrl} loading="eager" referrerPolicy="strict-origin-when-cross-origin" style={{ width: "100%", minHeight: 460, height: "min(720px, calc(100vh - 220px))", border: 0, display: "block" }} /></div>}
+    <InstallmentCampaignBanner />
     <PaytrInstallmentTable amountMinor={amountMinor} />
   </section>;
 }

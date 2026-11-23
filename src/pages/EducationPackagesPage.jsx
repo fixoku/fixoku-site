@@ -68,6 +68,7 @@ function PublicPackageCard({ item, previewMode }) {
         )}
         <div className="fx-ep-bottom">
           <div className="fx-ep-price">{money(item.priceMinor, item.currency)}</div>
+          {!previewMode && <InstallmentCampaignBanner />}
           <div className="fx-ep-actions">
             {previewMode ? <button className="fx-ep-button fx-ep-buy" type="button" disabled title="Yerel Owner önizlemesi, satın alma başlatılmaz">Hemen Al</button> : buyable && item.packageVersionId ? <Link className="fx-ep-button fx-ep-buy" onClick={() => { const analytics = analyticsItem(item); pushEvent("select_item", { item_list_id: "education_packages", items: [analytics] }); pushEvent("student_package_interest", analytics); rememberStudentPurchaseIntent(item.packageVersionId); }} to={`/panel/ogrenci/paketler?packageVersionId=${encodeURIComponent(item.packageVersionId)}`} aria-label={`${item.title} paketi için öğrenci paneline git`}>Hemen Al</Link> : <span className="fx-ep-button fx-ep-disabled">Satışa kapalı</span>}
             {remaining > 0 && <button type="button" className="fx-ep-button fx-ep-details" aria-expanded={expanded} onClick={() => setExpanded((current) => !current)}>{expanded ? "Daha Az Göster" : "Detaya Bak"}</button>}
@@ -149,7 +150,7 @@ export default function EducationPackagesPage() {
           <div className="fx-ep-underline" aria-hidden="true" />
           <p>{meta.subtitle}</p>
         </header>
-        {!previewMode && <InstallmentCampaignBanner />}
+
         {previewMode && <div className="fx-ep-preview-note" role="status">Owner önizlemesi: Taslak paketler de gösterilir. Bu görünüm kamuya açık değildir ve satın alma işlemi başlatmaz.</div>}
         <nav className="fx-ep-tabs" aria-label="Eğitim paketi kategorileri">
           {CATEGORIES.map((item) => <button type="button" key={item.id} aria-current={category === item.id ? "page" : undefined} className={`fx-ep-tab ${item.id === category ? "fx-ep-selected" : ""}`} onClick={() => setCategory(item.id)}>{item.label}</button>)}

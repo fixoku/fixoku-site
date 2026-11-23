@@ -15,7 +15,6 @@ import { TrainerPhysicalProducts, type TrainerPhysicalProduct } from "./TrainerP
 import { BankTransferPayment } from "../../commerce/BankTransferPayment";
 import InstallmentCampaignBanner from "../../../shared/InstallmentCampaignBanner";
 import PaytrCheckout from "../../commerce/PaytrCheckout.jsx";
-import PaytrInstallmentTable from "../../commerce/PaytrInstallmentTable.jsx";
 import {
   TURKEY_LOCATIONS,
   getTurkeyDistricts,
@@ -205,9 +204,7 @@ export function TrainerCheckoutPage({
     });
 
   const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod>(
-      "PAYTR",
-    );
+    useState<PaymentMethod | null>(null);
   const [paytrConfigured, setPaytrConfigured] = useState<boolean | null>(null);
   const [bankTransferReady, setBankTransferReady] = useState(false);
   const [bankDraft,setBankDraft]=useState<{id:string;reference:string;expectedAmountMinor:number;currency:string}|null>(null);
@@ -591,6 +588,7 @@ export function TrainerCheckoutPage({
       );
       return;
     }
+    if (!paymentMethod) { setMessage("Ödeme yöntemini seçin."); return; }
     if (paymentMethod === "PAYTR" && paytrConfigured !== true) { setMessage("Kart ödeme sistemi şu anda yapılandırılmadı. Havale/EFT seçebilirsiniz."); return; }
 
     if (
@@ -735,7 +733,7 @@ export function TrainerCheckoutPage({
   return (
     <PanelShell user={user}>
       <main className="trainer-commerce-page">
-        {!orderId && <InstallmentCampaignBanner />}
+
         <div className="trainer-commerce-heading">
           <Link to="/panel/egitmen/sepet">
             ← Sepete dön
@@ -1366,7 +1364,8 @@ export function TrainerCheckoutPage({
                 Ödeme
               </h3>
 
-              <div className="trainer-choice-row">
+              <InstallmentCampaignBanner />
+                <div className="trainer-choice-row">
                 <label>
                   <input
                     type="radio"
@@ -1391,10 +1390,6 @@ export function TrainerCheckoutPage({
                   Havale / EFT
                 </label>
               </div>
-{paymentMethod === "PAYTR" && <PaytrInstallmentTable amountMinor={cart?.totalMinor ?? 0} />}
-
-
-
 
             </section>
 

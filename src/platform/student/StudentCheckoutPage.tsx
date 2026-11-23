@@ -4,7 +4,6 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { StudentPanelShell } from "./StudentPanelShell";
 import PaytrCheckout from "../commerce/PaytrCheckout.jsx";
-import PaytrInstallmentTable from "../commerce/PaytrInstallmentTable.jsx";
 import CheckoutLegalConsents from "../commerce/CheckoutLegalConsents.jsx";
 import { BankTransferPayment } from "../commerce/BankTransferPayment";
 import InstallmentCampaignBanner from "../../shared/InstallmentCampaignBanner";
@@ -127,7 +126,7 @@ export function StudentCheckoutPage({
     useState(() => `student-checkout-${crypto.randomUUID()}`);
 
   const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod>("BANK_TRANSFER");
+    useState<PaymentMethod | null>(null);
   const [paytrConfigured, setPaytrConfigured] = useState<boolean | null>(null);
   const [bankTransferReady, setBankTransferReady] = useState(false);
   const [bankDraft,setBankDraft]=useState<{id:string;reference:string;expectedAmountMinor:number;currency:string}|null>(null);
@@ -295,6 +294,7 @@ export function StudentCheckoutPage({
         return;
       }
     }
+    if (!paymentMethod) { setMessage("Ödeme yöntemini seçin."); return; }
     if (paymentMethod === "PAYTR" && paytrConfigured !== true) { setMessage("Kart ödeme sistemi şu anda yapılandırılmadı. Havale/EFT seçebilirsiniz."); return; }
 
     if (paymentMethod === "BANK_TRANSFER" && !bankTransferReady) {
@@ -486,7 +486,7 @@ export function StudentCheckoutPage({
         }}
       >
         <main className="trainer-commerce-page">
-          {!orderId && <InstallmentCampaignBanner />}
+
           <div className="trainer-commerce-heading">
             <Link
               to={studentProfileId ? `/panel/ogrenci/sepet?studentProfileId=${encodeURIComponent(studentProfileId)}` : "/panel/ogrenci/sepet"}
@@ -962,6 +962,7 @@ export function StudentCheckoutPage({
                   Ödeme
                 </h3>
 
+                <InstallmentCampaignBanner />
                 <div className="trainer-choice-row">
                   <label>
                     <input
@@ -1001,10 +1002,6 @@ export function StudentCheckoutPage({
                     Havale / EFT
                   </label>
                 </div>
-{paymentMethod === "PAYTR" && <PaytrInstallmentTable amountMinor={cart?.totalMinor ?? 0} />}
-
-
-
 
               </section>
 

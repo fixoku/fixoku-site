@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { FixokuPhotoV41F, packageImageDefaultV41F } from "../../platform/admin/FixokuCatalogAssetsV41F";
 import { rememberStudentPurchaseIntent } from "../../utils/purchaseIntent.js";
 import { pushEvent } from "../../martech/events.js";
+import InstallmentCampaignBanner from "../../shared/InstallmentCampaignBanner";
 import "./home-student-packages-showcase.css";
 
 const CATEGORIES = [
@@ -183,6 +184,7 @@ export default function HomeStudentPackagesShowcase() {
                     {cardFeatures(item).length > 9 && <button type="button" className="fx-home-packages__expand" aria-expanded={expanded.has(item.id)} onClick={() => setExpanded((current) => { const next = new Set(current); if (next.has(item.id)) next.delete(item.id); else next.add(item.id); return next; })}>{expanded.has(item.id) ? "Daha Az Göster" : `+${cardFeatures(item).length - 9} madde daha, tümünü incele`}</button>}
                     <div className="fx-home-packages__bottom">
                       <strong className="fx-home-packages__price">{priceText(item.priceMinor, item.currency)}</strong>
+                      <InstallmentCampaignBanner />
                       <div className="fx-home-packages__actions">
                         <Link className="fx-home-packages__card-link" to="/egitim-paketleri" onClick={() => pushEvent("select_item", { item_list_id: "home_packages", items: [{ item_id: item.packageVersionId || item.id, item_name: item.title, item_category: category }] })} aria-label={`${item.title} paketini incele`}>Paketi İncele <span aria-hidden="true">→</span></Link>
                         {buyable(item) && <Link

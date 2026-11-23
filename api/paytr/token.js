@@ -1,3 +1,4 @@
+import { paytrR410PreviewIsolation } from "../../src/server/payments/paytr-staging-isolation-r410.js";
 import pg from "../../src/server/db/guarded-pg.js";
 import { resolvePrincipal, requirePermission } from "../../src/server/auth/authorization.js";
 import { requestPaytrIframeToken, paytrRuntime, paytrCustomerFromOrder, toPaytrMerchantOid, paytrTestSettlementAllowed, ensurePaytrPaymentAttempt, claimPaytrTokenLease, decryptPaytrToken, persistPaytrToken, releasePaytrTokenLease } from "../../src/server/payments/paytr.js";
@@ -9,6 +10,8 @@ async function body(req) { let raw = ""; for await (const chunk of req) raw += c
 
 export async function handlePaytrTokenRequest(req, res, { principal: injectedPrincipal = null, pool: injectedPool = null, tokenRequester = requestPaytrIframeToken } = {}) {
   if (req.method !== "POST") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
+  const isolation = paytrR410PreviewIsolation();
+  if (isolation.applicable && !isolation.approved) return json(res,503,{error:"PAYTR_STAGING_ISOLATION_REQUIRED"});
   if (!paytrTestSettlementAllowed() && !paytrRuntime().liveReady) return json(res,503,{error:"PAYTR_RUNTIME_NOT_APPROVED"});
   const principal = injectedPrincipal || await resolvePrincipal(headersOf(req)); if (!principal) return json(res, 401, { error: "UNAUTHENTICATED" });
   const denied = requirePermission(principal, "order.create"); if (denied) return json(res, denied.status, denied.body);

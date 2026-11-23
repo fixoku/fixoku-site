@@ -1,3 +1,4 @@
+import { paytrR410PreviewIsolation } from "../../src/server/payments/paytr-staging-isolation-r410.js";
 import { capturePaytrFinance } from "../../src/server/payments/paytr-finance-capture-r410.js";
 import { processOwnerTestCallback } from "../../src/server/payments/paytr-owner-callback-r408.js";
 import pg from "../../src/server/db/guarded-pg.js";
@@ -35,6 +36,8 @@ export default async function handler(req, res) {
     return text(res,result.status,result.body);
   }
 
+  const isolation = paytrR410PreviewIsolation();
+  if (isolation.applicable && !isolation.approved) return text(res, 503, "PAYTR_STAGING_ISOLATION_REQUIRED");
   if (!paytrTestSettlementAllowed() && !paytrRuntime().liveReady) return text(res, 503, "PAYTR_RUNTIME_NOT_APPROVED");
   if (!paytrRuntime().configured || !paytrRuntime().returnUrlsConfigured) return text(res, 503, "PAYTR_CONFIG_REQUIRED");
 

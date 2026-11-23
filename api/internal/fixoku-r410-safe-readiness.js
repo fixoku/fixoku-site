@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import pg from "../../src/server/db/guarded-pg.js";
 import { R18_STAGING_METADATA, PREVIEW_CONTRACTS, exactPreviewContractEnvironment, previewContractMetadataAttested, r404ConnectionTargetsConfigured } from "../../src/server/auth/preview-contract.js";
 import { paytrRuntime, paytrTestSettlementAllowed } from "../../src/server/payments/paytr.js";
+import { paytrR410PreviewIsolation } from "../../src/server/payments/paytr-staging-isolation-r410.js";
 
 const PATH = "/api/internal/fixoku-r410-safe-readiness";
 const BRANCH = "codex/fixoku-r410-staging-prep-20261121";
@@ -34,6 +35,9 @@ export default async function handler(req, res) {
   const dbUrlsPinned = r404ConnectionTargetsConfigured(e);
   const payment = paytrRuntime(e);
   const paymentGate = payment.configured && payment.returnUrlsConfigured && paytrTestSettlementAllowed(e);
+  const isolation = paytrR410PreviewIsolation(e);
+  const emailDisabled = e.EMAIL_PROVIDER === "DISABLED" && e.FIXOKU_OWNER_NOTIFICATIONS_ENABLED !== "1";
+  const shippingDisabled = (e.SHIPPING_PROVIDER || "DISABLED") === "DISABLED" && e.SHIPPING_KG_LIVE_DISPATCH_APPROVED !== "1";
   // This read-only probe NEVER asserts external email/shipping isolation from metadata alone.
   const result = {
     ok:false,
@@ -42,8 +46,8 @@ export default async function handler(req, res) {
     dbBranchMatchesPinnedTarget:false,
     dbReadOnlyTransaction:false,
     paytrTestRuntimeReady:paymentGate,
-    externalEmailIsolation:"NOT_VERIFIED",
-    externalShippingIsolation:"NOT_VERIFIED",
+    externalEmailIsolation:emailDisabled ? "DISABLED_BY_CONFIGURATION" : "NOT_VERIFIED",
+    externalShippingIsolation:shippingDisabled ? "DISABLED_BY_CONFIGURATION" : "NOT_VERIFIED",
     testPaymentAuthorized:false,
     paymentAttempted:false,
     emailSent:false,
@@ -61,6 +65,7 @@ export default async function handler(req, res) {
     result.dbBranchMatchesPinnedTarget=rows[0]?.branch_id === R18_STAGING_METADATA.branch;
     await client.query("ROLLBACK"); tx=false;
     result.ok=result.dbUrlsPinned && result.dbReadOnlyTransaction && result.dbBranchMatchesPinnedTarget;
+    result.testPaymentAuthorized = result.ok && paymentGate && isolation.applicable && isolation.approved && emailDisabled && shippingDisabled;
     return reply(res, result.ok?200:503, result);
   } catch {
     return reply(res,503,{...result,error:"READ_ONLY_DB_FINGERPRINT_UNAVAILABLE"});

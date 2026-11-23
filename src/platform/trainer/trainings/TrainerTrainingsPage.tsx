@@ -95,7 +95,6 @@ export function TrainerTrainingsPage({user,candidatePreview=false}:{packages?:bo
       </div>
       <div className="trainer-card-meta-020q">
        {contentCount>0&&<span><TrainerIcon name="info" size={15}/>{contentCount} paket tanıtım maddesi</span>}
-       {!owned&&!expanded&&<InstallmentCampaignBanner />}
        {!owned&&<div className="trainer-package-price h5cf-price">
         {showDiscount&&<div className="h5cf-price-discount"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12.5V5a2 2 0 0 1 2-2h7.5L21 11.5a2 2 0 0 1 0 2.8L13.5 21a2 2 0 0 1-2.8 0L3 13.3Z"/><circle cx="8" cy="8" r="1.2"/><path d="m10 16 5-5"/></svg><span>Paket avantajı</span><del>{money(normalGrossMinor!,row.currency)}</del></div>}
         {showDiscount?<div className="h5cl-combo-price-line"><span>Paket Fiyatı -</span><strong>{money(row.priceGrossMinor,row.currency)}</strong></div>:<><small>Paket Fiyatı</small><strong>{money(row.priceGrossMinor,row.currency)}</strong></>}</div>}

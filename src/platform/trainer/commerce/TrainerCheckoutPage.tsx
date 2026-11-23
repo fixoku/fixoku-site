@@ -1364,7 +1364,7 @@ export function TrainerCheckoutPage({
                 Ödeme
               </h3>
 
-              <InstallmentCampaignBanner />
+              <InstallmentCampaignBanner showNote />
                 <div className="trainer-choice-row">
                 <label>
                   <input

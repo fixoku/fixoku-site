@@ -606,7 +606,7 @@ export function StudentPackagesPage({
                 )}
 
                 <div className="student-package-card__footer">
-                  <InstallmentCampaignBanner />
+
                   <div className="student-package-card__price">
                     <span>Paket fiyatı</span>
                     <strong
@@ -642,6 +642,7 @@ export function StudentPackagesPage({
                     </div>
                   )}
 
+                  {canBuy && (<details className="student-package-campaign-detail"><summary>Paket detaylari ve taksit kampanyasi</summary><InstallmentCampaignBanner /></details>)}
                   {canBuy && (
                     <div className="student-package-card__actions">
                       {inCart ? (

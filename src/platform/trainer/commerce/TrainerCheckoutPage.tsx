@@ -15,6 +15,7 @@ import { TrainerPhysicalProducts, type TrainerPhysicalProduct } from "./TrainerP
 import { BankTransferPayment } from "../../commerce/BankTransferPayment";
 import InstallmentCampaignBanner from "../../../shared/InstallmentCampaignBanner";
 import PaytrCheckout from "../../commerce/PaytrCheckout.jsx";
+import PaytrInstallmentTable from "../../commerce/PaytrInstallmentTable.jsx";
 import {
   TURKEY_LOCATIONS,
   getTurkeyDistricts,
@@ -1390,6 +1391,7 @@ export function TrainerCheckoutPage({
                   Havale / EFT
                 </label>
               </div>
+{paymentMethod === "PAYTR" && <PaytrInstallmentTable amountMinor={cart?.totalMinor ?? 0} />}
 
 
 

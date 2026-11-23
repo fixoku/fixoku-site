@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { StudentPanelShell } from "./StudentPanelShell";
 import PaytrCheckout from "../commerce/PaytrCheckout.jsx";
+import PaytrInstallmentTable from "../commerce/PaytrInstallmentTable.jsx";
 import CheckoutLegalConsents from "../commerce/CheckoutLegalConsents.jsx";
 import { BankTransferPayment } from "../commerce/BankTransferPayment";
 import InstallmentCampaignBanner from "../../shared/InstallmentCampaignBanner";
@@ -1000,6 +1001,7 @@ export function StudentCheckoutPage({
                     Havale / EFT
                   </label>
                 </div>
+{paymentMethod === "PAYTR" && <PaytrInstallmentTable amountMinor={cart?.totalMinor ?? 0} />}
 
 
 

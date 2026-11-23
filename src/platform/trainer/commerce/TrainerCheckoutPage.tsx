@@ -1,4 +1,3 @@
-import PaymentPreviewR410 from "../../commerce/PaymentPreviewR410";
 import { PaymentResultR408 } from "../../commerce/PaymentResultR408";
 import "../../commerce/fixoku-checkout-r408.css";
 import {
@@ -1391,7 +1390,6 @@ export function TrainerCheckoutPage({
                   Havale / EFT
                 </label>
               </div>
-{paymentMethod === "PAYTR" && <PaymentPreviewR410 amountMinor={cart?.totalMinor ?? 0} />}
 
 
 

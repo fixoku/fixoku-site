@@ -33,7 +33,7 @@ type TopbarNotification = {
 };
 
 const roleLabel: Record<PanelRole, string> = {
-  OWNER: "Yönetici",
+  OWNER: "Locadaki Adam",
   ADMIN: "Yönetici",
   TRAINER: "Eğitmen",
   STUDENT: "Öğrenci",

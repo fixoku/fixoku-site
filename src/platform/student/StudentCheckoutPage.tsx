@@ -1,3 +1,4 @@
+import PaymentPreviewR410 from "../commerce/PaymentPreviewR410";
 import { PaymentResultR408 } from "../commerce/PaymentResultR408";
 import "../commerce/fixoku-checkout-r408.css";
 import { FormEvent, useEffect, useState } from "react";
@@ -1000,6 +1001,7 @@ export function StudentCheckoutPage({
                     Havale / EFT
                   </label>
                 </div>
+{paymentMethod === "PAYTR" && <PaymentPreviewR410 amountMinor={cart?.totalMinor ?? 0} />}
 
 
 

@@ -12,5 +12,29 @@ export default async function handler(req, res) {
   if (denied) return json(res, denied.status, denied.body);
   const runtime = paytrRuntime();
   const configured = runtime.configured && runtime.returnUrlsConfigured && (runtime.liveReady || paytrTestSettlementAllowed());
-  return json(res, 200, { configured, status: configured ? "CONFIGURED" : "CONFIG_REQUIRED", testMode: runtime.testMode, testOnly: runtime.testOnly, liveReady: runtime.liveReady === true });
+  const e = process.env;
+  const diagnosticAllowed =
+    e.VERCEL_ENV === "preview" &&
+    e.VERCEL_GIT_COMMIT_REF === "codex/fixoku-r410-staging-prep-20261121";
+
+  const readiness = diagnosticAllowed ? {
+    enabled: e.PAYTR_ENABLED === "1",
+    testMode: e.PAYTR_TEST_MODE === "1",
+    testApproved: e.FIXOKU_PAYTR_STAGING_TEST_APPROVED === "1",
+    credentialsPresent: Boolean(
+      e.PAYTR_MERCHANT_ID && e.PAYTR_MERCHANT_KEY && e.PAYTR_MERCHANT_SALT
+    ),
+    returnUrlsConfigured: runtime.returnUrlsConfigured,
+    originCorrect: e.APP_ORIGIN === "https://staging.fixoku.com",
+    testSettlementAllowed: paytrTestSettlementAllowed()
+  } : undefined;
+
+  return json(res, 200, {
+    configured,
+    status: configured ? "CONFIGURED" : "CONFIG_REQUIRED",
+    testMode: runtime.testMode,
+    testOnly: runtime.testOnly,
+    liveReady: runtime.liveReady === true,
+    ...(readiness ? { readiness } : {})
+  });
 }

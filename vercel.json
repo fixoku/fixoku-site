@@ -64,7 +64,7 @@
                      },
                      {
                          "source":  "/panel/:path*",
-                         "destination":  "/panel"
+                         "destination":  "/panel.html"
                      },
                      {
                          "source":  "/sifre-sifirla",

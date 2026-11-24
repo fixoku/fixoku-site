@@ -713,7 +713,7 @@ check(
     rewrites.filter(({ source }) => authRoutePaths.has(source)).length === 14 &&
     rewrites.every(({ source, destination }) =>
       ((source === "/panel" || source.startsWith("/panel/")) &&
-        destination === "/panel.html") ||
+        destination === "/panel") ||
       (authRoutePaths.has(source) && destination === "/auth-shell")
     ),
   "Vercel clean URL, panel ve kimlik yaşam döngüsü yedek yapılandırması doğru.",

@@ -60,11 +60,11 @@
                      },
                      {
                          "source":  "/panel",
-                         "destination":  "/panel.html"
+                         "destination": "/panel"
                      },
                      {
                          "source":  "/panel/:path*",
-                         "destination":  "/panel.html"
+                         "destination": "/panel"
                      },
                      {
                          "source":  "/sifre-sifirla",

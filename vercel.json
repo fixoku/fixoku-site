@@ -58,10 +58,7 @@
                          "source":  "/giris",
                          "destination":  "/auth-shell"
                      },
-                     {
-                         "source":  "/panel",
-                         "destination": "/panel"
-                     },
+
                      {
                          "source":  "/panel/:path*",
                          "destination": "/panel"

@@ -712,7 +712,7 @@ check(
     rewrites.length > 0 &&
     rewrites.filter(({ source }) => authRoutePaths.has(source)).length === 14 &&
     rewrites.every(({ source, destination }) =>
-      ((source === "/panel" || source.startsWith("/panel/")) &&
+      (source === "/panel/:path*" &&
         destination === "/panel") ||
       (authRoutePaths.has(source) && destination === "/auth-shell")
     ),

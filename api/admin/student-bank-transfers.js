@@ -61,7 +61,7 @@ async function readQueue(pool) {
     where o.catalog_scope_snapshot='STUDENT_COMMERCE'
       and o.payment_method='BANK_TRANSFER'
       and o.status in ('PENDING_PAYMENT','PAYMENT_REVIEW')
-      and (n.id is null or n.status in ('SUBMITTED','IN_REVIEW'))
+      and n.status in ('SUBMITTED','IN_REVIEW')
       and coalesce(pi.status,'CREATED') in ('CREATED','PENDING','AUTHORIZED')
     group by o.id,buyer.display_name,buyer.email,beneficiary.display_name,pi.id,n.id
     order by o.created_at asc
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
         const row = (await client.query("select * from orders where id=$1 for update", [orderId])).rows[0];
         if (!row || row.catalog_scope_snapshot !== "STUDENT_COMMERCE" || row.payment_method !== "BANK_TRANSFER") { await client.query("rollback"); return json(res, 404, { error: "STUDENT_BANK_TRANSFER_NOT_FOUND" }); }
         const payment = (await client.query("select * from payment_intents where order_id=$1 for update", [orderId])).rows[0];
-        if (!payment) throw Object.assign(new Error("PAYMENT_INTENT_NOT_FOUND"), { status: 409 });
+        if (!payment && action !== "REJECT") throw Object.assign(new Error("PAYMENT_INTENT_NOT_FOUND"), { status: 409 });
         if (action === "FOLLOW_UP") {
           const followUp = await recordStudentBankFollowUp(
             client,
@@ -115,8 +115,8 @@ export default async function handler(req, res) {
           return json(res, 200, { ...result, status: "APPROVED", duplicateApproval: true, entitlementActivated: true });
         }
         if (!["PENDING_PAYMENT", "PAYMENT_REVIEW"].includes(row.status)) { await client.query("rollback"); return json(res, 409, { error: "BANK_TRANSFER_NOT_REVIEWABLE" }); }
-        if (!["CREATED", "PENDING", "AUTHORIZED"].includes(payment.status)) throw Object.assign(new Error("PAYMENT_INTENT_NOT_REVIEWABLE"), { status: 409 });
-        if (Number(payment.amount_minor) !== Number(row.total_minor) || payment.currency !== row.currency) throw Object.assign(new Error("PAYMENT_INTENT_MISMATCH"), { status: 409 });
+        if (payment && !["CREATED", "PENDING", "AUTHORIZED"].includes(payment.status)) throw Object.assign(new Error("PAYMENT_INTENT_NOT_REVIEWABLE"), { status: 409 });
+        if (payment && (Number(payment.amount_minor) !== Number(row.total_minor) || payment.currency !== row.currency)) throw Object.assign(new Error("PAYMENT_INTENT_MISMATCH"), { status: 409 });
         if (action === "APPROVE") {
           const receivedAmountMinor = input.receivedAmountMinor;
           const bankTransactionReference = normalizeBankReference(input.bankTransactionReference);
@@ -156,6 +156,17 @@ export default async function handler(req, res) {
           if (!result.replay) await client.query("insert into platform_audit_events(actor_user_id,action,subject_type,subject_id,result,correlation_id,metadata_json) values($1,'student.commerce.bank_transfer.review.approved','order',$2,'SUCCESS',gen_random_uuid(),$3)", [principal.user.id, orderId, JSON.stringify({ reference: bankReference(orderId), paymentMethod: "BANK_TRANSFER", receivedAmountMinor, bankTransactionReference, bankVerified: true })]);
           await client.query("commit");
           return json(res, 200, { ...result, status: "APPROVED", duplicateApproval: Boolean(result.replay), entitlementActivated: true });
+        }
+        if (action === "REJECT") {
+          const notification = (await client.query(
+            "select status from student_bank_transfer_notifications where order_id=$1 for update",
+            [orderId]
+          )).rows[0];
+
+          if (!notification || !["SUBMITTED", "IN_REVIEW"].includes(notification.status)) {
+            await client.query("rollback");
+            return json(res, 409, { error: "BANK_TRANSFER_NOT_REVIEWABLE" });
+          }
         }
         const note = String(input.note || "").trim().slice(0, 500) || "Havale/EFT bildirimi reddedildi.";
         await client.query("update orders set status='CANCELLED',cancelled_at=coalesce(cancelled_at,now()),updated_at=now() where id=$1", [orderId]);

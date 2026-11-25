@@ -6,7 +6,7 @@ import { EMAIL_TEMPLATE_CATALOG, escapeHtml, renderEmail } from "./email-rendere
 const KEY_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const MAX_SUBJECT = 240;
 const MAX_BODY = 20_000;
-const CRITICAL_KEYS = new Set(["email-verification", "password-reset"]);
+const CRITICAL_KEYS = new Set(["email-verification", "password-reset", "bank-transfer-rejected"]);
 const ALLOWED_VARIABLES = Object.freeze([...new Set([
   "personName","studentName","trainerName","email","phone","city","grade","school","profession","institution","guardianName","date","reference","packageName","amount","paymentMethod","discount","shipping","vat","status","reportedAmount","payerName","programName","qualificationName","earningPeriod","reason","productName","stock","threshold","errorCode","messageSummary","studentSales","trainerSales","cardReceipts","bankReceipts","pendingBank","refunds","earnings","newTrainers","newStudents","newGuardians","orderCount","pendingAssignments","pendingShipments","pendingRefunds","completedTrainings",
   "recipientName", "packageName", "orderNumber", "reference", "amount", "paymentMethod",

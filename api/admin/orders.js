@@ -142,7 +142,7 @@ async function readOverview(pool, range) {
       ) else 0 end),0)::int as units
     from orders o
     where o.status in ('PAID','PARTIALLY_REFUNDED','REFUNDED')
-      and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
+      and coalesce((select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED'),o.created_at) >= ($1::date::timestamp at time zone 'Europe/Istanbul') and coalesce((select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED'),o.created_at) < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
       and coalesce(o.idempotency_key,'') not ilike 'demo-%'
       and coalesce(o.idempotency_key,'') not ilike 'test-%'
       and not exists (
@@ -163,7 +163,7 @@ async function readOverview(pool, range) {
       ) else 0 end),0)::int as units
     from trainer_package_orders o
     where o.status in ('PAID','REFUNDED')
-      and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
+      and coalesce(o.completed_at,o.created_at) >= ($1::date::timestamp at time zone 'Europe/Istanbul') and coalesce(o.completed_at,o.created_at) < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
       and coalesce(o.idempotency_key,'') not ilike 'demo-%'
       and coalesce(o.idempotency_key,'') not ilike 'test-%'
       and not exists (
@@ -234,7 +234,7 @@ async function readOverview(pool, range) {
     pool.query("select coalesce(sum(amount_minor),0)::bigint as amount from trainer_earning_ledger where status in ('EARNED','PAYABLE')"),
     pool.query("select count(*)::int as count from enrollments where status in ('ACTIVE','PAUSED')"),
     pool.query(`
-      select o.created_at as "createdAt",
+      select coalesce((select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED'),o.created_at) as "createdAt",
         greatest(0,o.total_minor-coalesce((
           select sum(pt.amount_minor)::bigint
           from payment_intents pi join payment_transactions pt on pt.payment_intent_id=pi.id
@@ -242,7 +242,7 @@ async function readOverview(pool, range) {
         ),0))::bigint as "netMinor"
       from orders o
       where o.status in ('PAID','PARTIALLY_REFUNDED','REFUNDED')
-        and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
+        and coalesce((select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED'),o.created_at) >= ($1::date::timestamp at time zone 'Europe/Istanbul') and coalesce((select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED'),o.created_at) < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
         and not exists (
         select 1 from order_items oi_demo
         where oi_demo.order_id=o.id
@@ -252,13 +252,13 @@ async function readOverview(pool, range) {
             or coalesce(oi_demo.title_snapshot,'') ilike 'qa-%'
           )
       )
-      order by o.created_at`, [range.from, range.to]),
+      order by coalesce((select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED'),o.created_at)`, [range.from, range.to]),
     pool.query(`
-      select o.created_at as "createdAt",
+      select coalesce(o.completed_at,o.created_at) as "createdAt",
         (case when o.status='PAID' then o.total_minor else 0 end)::bigint as "netMinor"
       from trainer_package_orders o
       where o.status in ('PAID','REFUNDED')
-        and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
+        and coalesce(o.completed_at,o.created_at) >= ($1::date::timestamp at time zone 'Europe/Istanbul') and coalesce(o.completed_at,o.created_at) < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
         and not exists (
         select 1 from trainer_package_order_items i_demo
         where i_demo.order_id=o.id
@@ -271,7 +271,7 @@ async function readOverview(pool, range) {
             or coalesce(i_demo.sku_snapshot,'') ilike 'qa-%'
           )
       )
-      order by o.created_at`, [range.from, range.to]),
+      order by coalesce(o.completed_at,o.created_at)`, [range.from, range.to]),
     pool.query(`
       select
         oi.package_version_id as "packageVersionId",
@@ -288,7 +288,7 @@ async function readOverview(pool, range) {
       join orders o on o.id=oi.order_id
       join packages p on p.id=oi.package_id
       where o.status in ('PAID','PARTIALLY_REFUNDED','REFUNDED')
-        and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
+        and coalesce((select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED'),o.created_at) >= ($1::date::timestamp at time zone 'Europe/Istanbul') and coalesce((select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED'),o.created_at) < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
         and coalesce(oi.title_snapshot,'') not ilike 'demo-%'
         and coalesce(oi.title_snapshot,'') not ilike 'test-%'
         and coalesce(oi.title_snapshot,'') not ilike 'qa-%'
@@ -302,7 +302,7 @@ async function readOverview(pool, range) {
       from trainer_package_order_items i
       join trainer_package_orders o on o.id=i.order_id
       where o.status='PAID'
-        and o.created_at >= ($1::date::timestamp at time zone 'Europe/Istanbul') and o.created_at < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
+        and coalesce(o.completed_at,o.created_at) >= ($1::date::timestamp at time zone 'Europe/Istanbul') and coalesce(o.completed_at,o.created_at) < (($2::date + interval '1 day') at time zone 'Europe/Istanbul')
         and coalesce(i.title_snapshot,'') not ilike 'demo-%'
         and coalesce(i.title_snapshot,'') not ilike 'test-%'
         and coalesce(i.title_snapshot,'') not ilike 'qa-%'

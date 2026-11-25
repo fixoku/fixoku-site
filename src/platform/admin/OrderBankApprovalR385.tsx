@@ -88,14 +88,14 @@ export function OrderBankApprovalR385({
       const body = await response.json().catch(() => ({}));
 
       if (!response.ok || body.status !== "REJECTED") {
-        throw new Error("Odeme reddedilemedi. Siparisi yenileyip tekrar kontrol edin.");
+        throw new Error(String(body.error || "BANK_REJECTION_FAILED"));
       }
 
       setDone(true);
       setRejected(true); setMessage("\u00d6deme reddedildi.");
       onApproved();
-    } catch {
-      setMessage("\u00d6deme reddedilemedi. L\u00fctfen tekrar deneyin.");
+    } catch (error) {
+      setMessage("Ödeme reddedilemedi: " + (error instanceof Error ? error.message : "UNKNOWN_ERROR"));
     } finally {
       setBusy(false);
       lock.current = false;

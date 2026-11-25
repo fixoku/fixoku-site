@@ -16,7 +16,7 @@ function parseFilters(req) {
 
 function orderScope(filters) {
   const values = []; const clauses = ["o.status IN ('PAID','PARTIALLY_REFUNDED','REFUNDED')"]; const add = (value, sql) => { values.push(value); clauses.push(sql.replace("$N", `$${values.length}`)); };
-  if (filters.from) add(filters.from, "o.created_at >= ($N::date::timestamp at time zone 'Europe/Istanbul')"); if (filters.to) add(filters.to, "o.created_at < (($N::date + 1)::timestamp at time zone 'Europe/Istanbul')"); if (filters.currency) add(filters.currency, "o.currency = $N"); if (filters.packageId) add(filters.packageId, "exists (select 1 from order_items f_oi where f_oi.order_id=o.id and f_oi.package_id=$N)"); if (filters.trainerId) add(filters.trainerId, "exists (select 1 from package_entitlement_enrollments f_pee join trainer_assignments f_ta on f_ta.enrollment_id=f_pee.enrollment_id where f_pee.source_order_item_id in (select oi.id from order_items oi where oi.order_id=o.id) and f_ta.trainer_user_id=$N)"); return { sql: clauses.join(" and "), values };
+  if (filters.from) add(filters.from, "(select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED') >= ($N::date::timestamp at time zone 'Europe/Istanbul')"); if (filters.to) add(filters.to, "(select min(pi.succeeded_at) from payment_intents pi where pi.order_id=o.id and pi.status='SUCCEEDED') < (($N::date + 1)::timestamp at time zone 'Europe/Istanbul')"); if (filters.currency) add(filters.currency, "o.currency = $N"); if (filters.packageId) add(filters.packageId, "exists (select 1 from order_items f_oi where f_oi.order_id=o.id and f_oi.package_id=$N)"); if (filters.trainerId) add(filters.trainerId, "exists (select 1 from package_entitlement_enrollments f_pee join trainer_assignments f_ta on f_ta.enrollment_id=f_pee.enrollment_id where f_pee.source_order_item_id in (select oi.id from order_items oi where oi.order_id=o.id) and f_ta.trainer_user_id=$N)"); return { sql: clauses.join(" and "), values };
 }
 
 export async function readFinance(pool, filters) {
@@ -30,8 +30,8 @@ export async function readFinance(pool, filters) {
   const trainerOrderClauses = ["o.status in ('PAID','REFUNDED')"];
   const trainerOrderValues = [];
   const addTrainerOrder = (value, sql) => { trainerOrderValues.push(value); trainerOrderClauses.push(sql.replace("$N", `$${trainerOrderValues.length}`)); };
-  if (filters.from) addTrainerOrder(filters.from, "o.created_at >= ($N::date::timestamp at time zone 'Europe/Istanbul')");
-  if (filters.to) addTrainerOrder(filters.to, "o.created_at < (($N::date + 1)::timestamp at time zone 'Europe/Istanbul')");
+  if (filters.from) addTrainerOrder(filters.from, "o.completed_at >= ($N::date::timestamp at time zone 'Europe/Istanbul')");
+  if (filters.to) addTrainerOrder(filters.to, "o.completed_at < (($N::date + 1)::timestamp at time zone 'Europe/Istanbul')");
   if (filters.currency) addTrainerOrder(filters.currency, "o.currency = $N");
   if (filters.packageId) addTrainerOrder(filters.packageId, "oi.package_id = $N");
   if (filters.trainerId) addTrainerOrder(filters.trainerId, "o.trainer_user_id = $N");

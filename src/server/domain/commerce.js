@@ -228,6 +228,7 @@ export async function fulfillSuccessfulPayment(pool, { orderId, actorUserId = nu
       if (!["PENDING_PAYMENT", "PAYMENT_REVIEW", "PAID"].includes(order.status)) throw error("BANK_TRANSFER_NOT_REVIEWABLE", 409);
       if (Number(payment.amount_minor) !== Number(order.total_minor) || payment.currency !== order.currency) throw error("PAYMENT_INTENT_MISMATCH", 409);
     }
+    if (provider === "PAYTR" && (amountMinor === undefined || currency === undefined)) throw error("PAYMENT_SETTLEMENT_FACTS_REQUIRED", 409);
     if (provider === "PAYTR" && order.payment_method !== "PAYTR") throw error("PAYTR_METHOD_REQUIRED", 409);
     const payloadHash = sha256({ provider, providerEventId, orderId, amountMinor: order.total_minor, currency: order.currency });
     const existingEvent = (await client.query("select * from payment_webhook_events where provider=$1 and provider_event_id=$2 for update", [provider, providerEventId])).rows[0];

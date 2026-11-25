@@ -14,10 +14,13 @@ export default async function handler(req, res) {
   if (supplied !== process.env.COMMERCE_WEBHOOK_SECRET) return json(res, 401, { error: "WEBHOOK_UNAUTHORIZED" });
   let payload;
   try { payload = await body(req); } catch (error) { return json(res, error.status || 400, { error: error.message }); }
+  if (!payload.provider || !payload.providerEventId || !payload.orderId || !payload.eventType) return json(res, 400, { error: "WEBHOOK_IDENTITY_REQUIRED" });
+  if (!["PAYMENT_SUCCEEDED", "payment.succeeded", "succeeded"].includes(payload.eventType)) return json(res, 202, { ignored: true, eventType: payload.eventType });
+  if (["PAYTR", "BANK_TRANSFER", "DEV_ONLY_LOCAL"].includes(String(payload.provider).toUpperCase())) return json(res, 403, { error: "DEDICATED_PAYMENT_APPROVAL_REQUIRED" });
+  if (!Number.isSafeInteger(payload.amountMinor) || payload.amountMinor <= 0 || !/^[A-Z]{3}$/.test(String(payload.currency || ""))) return json(res, 400, { error: "PAYMENT_SETTLEMENT_FACTS_REQUIRED" });
+  return json(res, 503, { error: "COMMERCE_WEBHOOK_PROVIDER_NOT_APPROVED" });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
-    if (!payload.provider || !payload.providerEventId || !payload.orderId || !payload.eventType) return json(res, 400, { error: "WEBHOOK_IDENTITY_REQUIRED" });
-    if (!["PAYMENT_SUCCEEDED", "payment.succeeded", "succeeded"].includes(payload.eventType)) return json(res, 202, { ignored: true, eventType: payload.eventType });
     const result = await fulfillSuccessfulPayment(pool, { orderId: payload.orderId, provider: payload.provider, providerEventId: payload.providerEventId, amountMinor: payload.amountMinor, currency: payload.currency });
     return json(res, 200, { duplicate: Boolean(result.replay), event: { id: result.webhookEventId, status: result.replay ? "APPLIED" : "APPLIED" }, ...result });
   } catch (error) { return json(res, error.status || 409, { error: error.code || error.message || "WEBHOOK_FAILED" }); } finally { await pool.end(); }

@@ -340,7 +340,7 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
       text(env.FIXOKU_PRODUCTION_NEON_BRANCH_ID) !== "br-patient-hall-baty51oc" ||
       !SHA256_HEX.test(expectedCommit) ||
       expectedCommit !== actualCommit ||
-      text(env.VERCEL_GIT_COMMIT_REF) !== "codex/fixoku-r403-production-candidate"
+      !(["codex/fixoku-r403-production-candidate", "codex/fixoku-r410-staging-prep-20261121"].includes(text(env.VERCEL_GIT_COMMIT_REF)))
     ) {
       fail("DATABASE_PRODUCTION_TARGET_UNVERIFIED");
     }

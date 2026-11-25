@@ -30,8 +30,9 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return send(res, 405, { error: "METHOD_NOT_ALLOWED" });
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) return send(res, 503, { error: "KATALOG_BAGLANTISI_HAZIR_DEGIL", requestId }, requestId);
-  const pool = new pg.Pool({ connectionString, max: 2, connectionTimeoutMillis: 5000 });
+  let pool;
   try {
+    pool = new pg.Pool({ connectionString, max: 2, connectionTimeoutMillis: 5000 });
     const { rows } = await pool.query(`
       select p.id, p.slug, p.education_stage::text as "educationStage",
              p.display_order as "displayOrder", p.icon_reference as "coverImage",
@@ -93,5 +94,5 @@ export default async function handler(req, res) {
     // Keep database diagnostics on server only.
     console.error("PUBLIC_STUDENT_COMMERCE_CATALOG_ERROR", requestId, error?.code || error?.name || "UNKNOWN");
     return send(res, 503, { error: "KATALOG_GECICI_OLARAK_ERISILEMIYOR", requestId }, requestId);
-  } finally { await pool.end(); }
+  } finally { if (pool) await pool.end(); }
 }

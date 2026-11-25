@@ -70,8 +70,8 @@ export default async function handler(req, res) {
   } catch {
     return reply(res,503,{...result,error:"READ_ONLY_DB_FINGERPRINT_UNAVAILABLE"});
   } finally {
-    if (tx && client) try { await client.query("ROLLBACK"); } catch {}
+    if (tx && client) try { await client.query("ROLLBACK"); } catch { /* cleanup */ }
     if (client) client.release();
-    await pool.end().catch(()=>{});
+    await pool.end().catch(()=>{ /* cleanup */ });
   }
 }

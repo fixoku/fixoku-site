@@ -1,5 +1,3 @@
-import pg from "../../src/server/db/guarded-pg.js";
-import { fulfillSuccessfulPayment } from "../../src/server/domain/commerce.js";
 import { cleanPreviewGateResponse } from "../../src/server/auth/preview-contract.js";
 
 const json = (res, status, body) => { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); };
@@ -19,9 +17,4 @@ export default async function handler(req, res) {
   if (["PAYTR", "BANK_TRANSFER", "DEV_ONLY_LOCAL"].includes(String(payload.provider).toUpperCase())) return json(res, 403, { error: "DEDICATED_PAYMENT_APPROVAL_REQUIRED" });
   if (!Number.isSafeInteger(payload.amountMinor) || payload.amountMinor <= 0 || !/^[A-Z]{3}$/.test(String(payload.currency || ""))) return json(res, 400, { error: "PAYMENT_SETTLEMENT_FACTS_REQUIRED" });
   return json(res, 503, { error: "COMMERCE_WEBHOOK_PROVIDER_NOT_APPROVED" });
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-  try {
-    const result = await fulfillSuccessfulPayment(pool, { orderId: payload.orderId, provider: payload.provider, providerEventId: payload.providerEventId, amountMinor: payload.amountMinor, currency: payload.currency });
-    return json(res, 200, { duplicate: Boolean(result.replay), event: { id: result.webhookEventId, status: result.replay ? "APPLIED" : "APPLIED" }, ...result });
-  } catch (error) { return json(res, error.status || 409, { error: error.code || error.message || "WEBHOOK_FAILED" }); } finally { await pool.end(); }
 }

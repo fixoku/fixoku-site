@@ -1,3 +1,4 @@
+/* global process */
 // R410 D8G: opt-in, transaction-bound order product-cost capture.
 // Feature remains OFF until controlled migration, staging acceptance and explicit enablement.
 import {recordOrderProductCostSnapshots} from './r410-order-cost-snapshot.js';

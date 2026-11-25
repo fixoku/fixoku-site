@@ -1,3 +1,4 @@
+/* global process */
 import crypto from "node:crypto";
 import { paytrRuntime, verifyPaytrCallback } from "./paytr.js";
 

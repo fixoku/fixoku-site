@@ -106,7 +106,7 @@ export function createHandler({
         emailSent:false
       });
     } finally {
-      try { transport?.close(); } catch {}
+      try { transport?.close(); } catch { /* cleanup */ }
     }
   };
 }

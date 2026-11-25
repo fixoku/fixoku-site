@@ -1,3 +1,4 @@
+/* global process */
 /* R410: fail-closed Preview-only external side-effect containment for PayTR TEST. */
 import { r404ConnectionTargetsConfigured, PREVIEW_CONTRACTS, exactPreviewCommit, previewContractMetadataAttested } from "../auth/preview-contract.js";
 

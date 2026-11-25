@@ -1,3 +1,4 @@
+/* global process */
 import {
   recordPaytrFinance
 } from "./paytr-finance-store-r410.js";

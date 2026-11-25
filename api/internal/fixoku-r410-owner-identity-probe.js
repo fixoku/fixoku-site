@@ -124,10 +124,10 @@ export function createHandler({
       });
     }finally{
       if(client){
-        if(begun)try{await client.query("ROLLBACK");}catch{}
-        try{client.release();}catch{}
+        if(begun)try{await client.query("ROLLBACK");}catch{ /* cleanup */ }
+        try{client.release();}catch{ /* cleanup */ }
       }
-      if(pool)try{await pool.end();}catch{}
+      if(pool)try{await pool.end();}catch{ /* cleanup */ }
     }
   };
 }

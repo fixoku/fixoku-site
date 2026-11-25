@@ -1,3 +1,4 @@
+/* global Buffer */
 /* global process */
 import crypto from "node:crypto";
 import { buildKgMeasurementPayload } from "./kolaygelsin-measurements-r408.js";

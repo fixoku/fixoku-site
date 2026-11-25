@@ -138,6 +138,33 @@ const R16_ENV = {
   DATABASE_URL_UNPOOLED: R16_DIRECT,
 };
 
+const R410_CONTRACT = PREVIEW_CONTRACTS.r410Staging;
+const R410_TOKEN = "r410-runtime-probe-token-012345678901234567890";
+const R410_COMMIT = "cccccccccccccccccccccccccccccccccccccccc";
+const R410_POOLED = "postgresql://runtime-user:runtime-password@" + STAGING_ACCEPTANCE_HOSTS.pooled + "/neondb?sslmode=verify-full";
+const R410_DIRECT = "postgresql://runtime-user:runtime-password@" + STAGING_ACCEPTANCE_HOSTS.direct + "/neondb?sslmode=verify-full";
+const R410_HANDLER_ENV = {
+  VERCEL: "1",
+  VERCEL_ENV: "preview",
+  VERCEL_PROJECT_ID: "prj_yWvXfOndJ6se89FdCiPbvKIZoGwR",
+  VERCEL_ORG_ID: "team_G4NbdNKM6NSdvIVMUkszTQYc",
+  VERCEL_GIT_COMMIT_REF: R410_CONTRACT.branch,
+  VERCEL_GIT_COMMIT_SHA: R410_COMMIT,
+  VERCEL_URL: "fixoku-site-git-codex-fixoku-r410-staging-prep-20261121-fixoku.vercel.app",
+  [R410_CONTRACT.expectedCommitEnv]: R410_COMMIT,
+  [R410_CONTRACT.probeEnabledEnv]: "1",
+  [R410_CONTRACT.probeTokenEnv]: R410_TOKEN,
+  [R410_CONTRACT.metadata.attested]: "1",
+  [R410_CONTRACT.metadata.project]: STAGING_ACCEPTANCE_METADATA.project,
+  [R410_CONTRACT.metadata.branch]: STAGING_ACCEPTANCE_METADATA.branch,
+  [R410_CONTRACT.metadata.database]: STAGING_ACCEPTANCE_METADATA.database,
+  [R410_CONTRACT.metadata.pooledHost]: STAGING_ACCEPTANCE_HOSTS.pooled,
+  [R410_CONTRACT.metadata.directHost]: STAGING_ACCEPTANCE_HOSTS.direct,
+  NEON_PROJECT_ID: STAGING_ACCEPTANCE_METADATA.project,
+  NEON_BRANCH_ID: STAGING_ACCEPTANCE_METADATA.branch,
+  DATABASE_URL: R410_POOLED,
+  DATABASE_URL_UNPOOLED: R410_DIRECT,
+};
 const STAGING_ACCEPTANCE_ENV = {
   VERCEL: "1",
   VERCEL_ENV: "preview",
@@ -161,6 +188,19 @@ const STAGING_ACCEPTANCE_ENV = {
   DATABASE_URL_UNPOOLED: STAGING_ACCEPTANCE_DIRECT,
 };
 
+{
+  const calls = [];
+  const result = await invoke(
+    R410_HANDLER_ENV,
+    request({ host: R410_HANDLER_ENV.VERCEL_URL, [R410_CONTRACT.probeTokenHeader]: R410_TOKEN }),
+    fakePoolFactory(calls, STAGING_ACCEPTANCE_METADATA.project, STAGING_ACCEPTANCE_METADATA.branch),
+  );
+  assert.equal(result.state.statusCode, 200);
+  assert.equal(result.body.commit, R410_COMMIT);
+  assert.equal(result.body.target.neonProjectId, STAGING_ACCEPTANCE_METADATA.project);
+  assert.equal(calls.length, 2);
+  console.log("R410_HANDLER=PASS");
+}
 await withEnv(BASE_ENV, async () => {
   const calls = [];
   const result = await invoke(BASE_ENV, request({ host: BASE_ENV.VERCEL_URL, [STAGING_DIAGNOSTIC_TOKEN_HEADER]: TOKEN }), fakePoolFactory(calls));

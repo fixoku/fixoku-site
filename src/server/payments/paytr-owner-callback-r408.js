@@ -1,3 +1,4 @@
+/* global process */
 import crypto from "node:crypto";
 
 import pg from "../db/guarded-pg.js";

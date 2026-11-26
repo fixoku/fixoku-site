@@ -382,6 +382,17 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
   const [trackRound, setTrackRound] = useState(1);
   const [trackWarning, setTrackWarning] = useState("");
   const [trackPickedId, setTrackPickedId] = useState(null);
+  const [trackShuffleTick, setTrackShuffleTick] = useState(0);
+  const trackShuffleCountRef = useRef(0);
+  const trackShuffleDoneRef = useRef(false);
+  const trackShuffleTimerRef = useRef(null);
+  const trackShuffleDueAtRef = useRef(null);
+  const trackShuffleRemainingRef = useRef(null);
+  const trackPhaseTimerRef = useRef(null);
+  const trackPhaseDueAtRef = useRef(null);
+  const trackPhaseRemainingRef = useRef(null);
+  const trackFeedbackTimerRef = useRef(null);
+  const startTrackRoundRef = useRef(null);
 
   const [textTimeLeft, setTextTimeLeft] = useState(TEXT_TOTAL_SECONDS);
   const [textRound, setTextRound] = useState(0);
@@ -466,6 +477,19 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
     setTrackRound(1);
     setTrackWarning("");
     setTrackPickedId(null);
+    setTrackShuffleTick(0);
+    trackShuffleCountRef.current = 0;
+    trackShuffleDoneRef.current = false;
+    trackShuffleDueAtRef.current = null;
+    trackShuffleRemainingRef.current = null;
+    trackPhaseDueAtRef.current = null;
+    trackPhaseRemainingRef.current = null;
+    if (trackShuffleTimerRef.current) clearTimeout(trackShuffleTimerRef.current);
+    if (trackPhaseTimerRef.current) clearTimeout(trackPhaseTimerRef.current);
+    if (trackFeedbackTimerRef.current) clearTimeout(trackFeedbackTimerRef.current);
+    trackShuffleTimerRef.current = null;
+    trackPhaseTimerRef.current = null;
+    trackFeedbackTimerRef.current = null;
     setTextTimeLeft(TEXT_TOTAL_SECONDS);
     setTextRound(0);
     setTextPhase("show");
@@ -633,21 +657,39 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
   useEffect(() => {
     if (screen !== "trackGame" || paused || trackPhase !== "show") return undefined;
 
-    const timer = setTimeout(() => {
+    const delay = trackPhaseRemainingRef.current ?? 1000;
+    trackPhaseDueAtRef.current = Date.now() + delay;
+    trackPhaseTimerRef.current = setTimeout(() => {
+      trackPhaseRemainingRef.current = null;
+      trackPhaseDueAtRef.current = null;
       setTrackPhase("shuffle");
-    }, 1000);
+    }, delay);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (trackPhaseTimerRef.current) clearTimeout(trackPhaseTimerRef.current);
+      trackPhaseTimerRef.current = null;
+      if (trackPhaseDueAtRef.current) {
+        trackPhaseRemainingRef.current = Math.max(0, trackPhaseDueAtRef.current - Date.now());
+      }
+      trackPhaseDueAtRef.current = null;
+    };
   }, [screen, paused, trackPhase, trackRound]);
 
   useEffect(() => {
     if (screen !== "trackGame" || paused || trackPhase !== "shuffle") return undefined;
 
     const settings = TRACK_SETTINGS[levelKey || "ilkokul"] || TRACK_SETTINGS.ilkokul;
-    let swapCount = 0;
+    const delay = trackShuffleRemainingRef.current ?? settings.interval;
+    trackShuffleDueAtRef.current = Date.now() + delay;
+    trackShuffleTimerRef.current = setTimeout(() => {
+      trackShuffleRemainingRef.current = null;
+      trackShuffleDueAtRef.current = null;
+      if (trackShuffleDoneRef.current) {
+        setTrackPhase("guess");
+        return;
+      }
 
-    const timer = setInterval(() => {
-      swapCount += 1;
+      trackShuffleCountRef.current += 1;
       setTrackCups((items) => {
         const first = Math.floor(Math.random() * 3);
         let second = Math.floor(Math.random() * 3);
@@ -663,14 +705,38 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
         });
       });
 
-      if (swapCount >= settings.swaps) {
-        clearInterval(timer);
-        setTimeout(() => setTrackPhase("guess"), settings.interval);
+      if (trackShuffleCountRef.current >= settings.swaps) {
+        trackShuffleDoneRef.current = true;
+        trackShuffleRemainingRef.current = settings.interval;
+      } else {
+        trackShuffleRemainingRef.current = settings.interval;
       }
-    }, settings.interval);
 
-    return () => clearInterval(timer);
-  }, [screen, paused, trackPhase, trackRound, levelKey]);
+      setTrackShuffleTick((value) => value + 1);
+    }, delay);
+
+    return () => {
+      if (trackShuffleTimerRef.current) clearTimeout(trackShuffleTimerRef.current);
+      trackShuffleTimerRef.current = null;
+      if (trackShuffleDueAtRef.current) {
+        trackShuffleRemainingRef.current = Math.max(0, trackShuffleDueAtRef.current - Date.now());
+      }
+      trackShuffleDueAtRef.current = null;
+    };
+  }, [screen, paused, trackPhase, trackRound, levelKey, trackShuffleTick]);
+
+  useEffect(() => {
+    if (screen !== "trackGame" || paused || trackPhase !== "result") return undefined;
+
+    const timer = setTimeout(() => startTrackRoundRef.current?.(trackRound + 1), 700);
+    return () => clearTimeout(timer);
+  }, [screen, paused, trackPhase, trackRound]);
+
+  useEffect(() => () => {
+    if (trackShuffleTimerRef.current) clearTimeout(trackShuffleTimerRef.current);
+    if (trackPhaseTimerRef.current) clearTimeout(trackPhaseTimerRef.current);
+    if (trackFeedbackTimerRef.current) clearTimeout(trackFeedbackTimerRef.current);
+  }, []);
 
 
   useEffect(() => {
@@ -814,7 +880,13 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
     setTrackWarning("");
     setTrackRound(nextRound);
     setTrackPhase("show");
+    setTrackShuffleTick((value) => value + 1);
+    trackShuffleCountRef.current = 0;
+    trackShuffleDoneRef.current = false;
+    trackShuffleRemainingRef.current = null;
+    trackPhaseRemainingRef.current = null;
   };
+  startTrackRoundRef.current = startTrackRound;
 
   const startTrackGame = () => {
     setTrackTimeLeft(TRACK_TOTAL_SECONDS);
@@ -834,15 +906,16 @@ export default function AttentionFocusTest({ isOpen, onClose }) {
       setTrackCorrect((value) => value + 1);
       setTrackWarning("Doğru! Yeşil topu takip ettin.");
       setTrackPhase("result");
-      setTimeout(() => startTrackRound(trackRound + 1), 700);
       return;
     }
 
     setTrackWrong((value) => value + 1);
     setTrackWarning("Dikkat! Yeşil top başka yuvarlağın içindeydi.");
-    setTimeout(() => {
+    if (trackFeedbackTimerRef.current) clearTimeout(trackFeedbackTimerRef.current);
+    trackFeedbackTimerRef.current = setTimeout(() => {
       setTrackPickedId(null);
       setTrackWarning("");
+      trackFeedbackTimerRef.current = null;
     }, 650);
   };
 

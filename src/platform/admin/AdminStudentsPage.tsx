@@ -7,6 +7,7 @@ import "./admin-panel.css";
 type Student = {
   studentProfileId: string;
   studentUserId: string;
+  hasPhoto?: boolean;
   name: string;
   email: string;
   educationStage: string | null;
@@ -248,10 +249,13 @@ export function AdminStudentsPage() {
         header: "Öğrenci",
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="students-name-cell">
-            <strong>{row.original.name}</strong>
-            <small>{row.original.email}</small>
-          </div>
+          <div className="students-name-cell" style={{display:"flex",alignItems:"center",gap:10}}>
+  <StudentPhotoR411 student={row.original} />
+  <div>
+    <strong>{row.original.name}</strong>
+    <small style={{display:"block"}}>{row.original.email}</small>
+  </div>
+</div>
         ),
       },
       {
@@ -706,7 +710,10 @@ export function AdminStudentsPage() {
             <div className="students-drawer-header">
               <div>
                 <span className="admin-eyebrow">ÖĞRENCİ DOSYASI</span>
-                <h2>{selected?.name || "Öğrenci detayı"}</h2>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+  {selected && <StudentPhotoR411 student={selected} />}
+  <h2>{selected?.name || "Öğrenci detayı"}</h2>
+</div>
                 {selected && <p>{selected.email}</p>}
               </div>
 
@@ -853,5 +860,43 @@ export function AdminStudentsPage() {
         </>
       )}
     </main>
+  );
+}
+function StudentPhotoR411({student}:{
+  student:{
+    studentProfileId:string;
+    name:string;
+    hasPhoto?:boolean;
+  }
+}) {
+  const initials=String(student.name||"")
+    .trim().split(/\s+/u).filter(Boolean)
+    .slice(0,2)
+    .map(part=>part.charAt(0).toLocaleUpperCase("tr-TR"))
+    .join("")||"?";
+
+  return (
+    <span style={{
+      position:"relative",width:42,height:42,minWidth:42,
+      display:"inline-flex",alignItems:"center",
+      justifyContent:"center",borderRadius:"50%",
+      overflow:"hidden",background:"#f5e7df",
+      color:"#9c431d",fontWeight:700
+    }}>
+      {initials}
+      {student.hasPhoto && (
+        <img
+          src={`/api/admin/student-profile-photo?studentProfileId=${encodeURIComponent(student.studentProfileId)}`}
+          alt={`${student.name} profil fotoğrafı`}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={event=>{event.currentTarget.style.display="none";}}
+          style={{
+            position:"absolute",inset:0,
+            width:"100%",height:"100%",objectFit:"cover"
+          }}
+        />
+      )}
+    </span>
   );
 }

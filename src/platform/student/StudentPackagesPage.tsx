@@ -116,7 +116,7 @@ function studentCommerceMessage(code: unknown) {
     PACKAGE_ALREADY_OWNED: "Bu pakete ait aktif erişim kaydınız bulunuyor.",
   };
   const value = String(code || "");
-  return messages[value] || (value && !/^[A-Z][A-Z0-9_:-]{2,80}$/u.test(value) ? value : "Paket işlemi şu anda tamamlanamadı.");
+  return messages[value] || (value && /^[A-Z][A-Z0-9_:-]{2,80}$/u.test(value) ? `Paket işlemi tamamlanamadı. Hata kodu: ${value}` : "Paket işlemi tamamlanamadı. Lütfen yeniden deneyin.");
 }
 
 export function StudentPackagesPage({

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const commerceTrainerPhotoV20=(name:string)=>{
-  const key=name.trim().toLocaleLowerCase("tr-TR");
-  if(key==="elif usta") return "/images/profiles/elif.jpg";
-  if(key==="özlem kaplan") return "/images/profiles/ozlem.jpg";
-  return "";
+const commerceTrainerPhotoV20=(id:string,trainers:Trainer[])=>{
+  const trainer=trainers.find(item=>item.id===id);
+  return trainer?.hasPhoto
+    ? `/api/admin/trainer-profile-photo?trainerUserId=${encodeURIComponent(id)}`
+    : "";
 };import { PanelIcon } from "../panel/components/PanelIcon";
 import "./admin-panel.css";
 import { TrainerQualificationBadgeR5 } from "../../shared/FixokuTrainerBadgeR5"; // FIXOKU_TRAINER_BADGES_R5
@@ -24,7 +24,7 @@ type Entitlement = {
   revokeReason: string | null;
 };
 
-type Trainer = { id: string; name: string };
+type Trainer = { id: string; name: string; hasPhoto?: boolean };
 type Choice = { packageId: string; packageVersionId: string; title: string; qualifications?: Array<{qualificationId:string;code:string;title:string}> };
 type ExpertiseV29 = { trainerUserId:string; qualificationId:string; status:string; source:string; sourceRef?:string; code:string; title:string };
 
@@ -818,7 +818,7 @@ const response = await fetch("/api/admin/trainer-bank-transfers", {
               const transferCanApprove=waitingBankTransfer&&["SUBMITTED","IN_REVIEW"].includes(String(purchase.transferStatus||""));
               return <article className="trainer-exact-sales-row-v24" key={purchase.id}>
                 <div className="trainer-exact-purchase-person-v24">
-                  <span>{commerceTrainerPhotoV20(purchase.trainerName)?<img src={commerceTrainerPhotoV20(purchase.trainerName)} alt=""/>:(purchase.trainerName?.trim()?.charAt(0)?.toUpperCase()||"E")}</span>
+                  <span>{commerceTrainerPhotoV20(purchase.trainerUserId,trainers)?<img src={commerceTrainerPhotoV20(purchase.trainerUserId,trainers)} alt=""/>:(purchase.trainerName?.trim()?.charAt(0)?.toUpperCase()||"E")}</span>
                   <div><strong>{purchase.trainerName}<i>✓</i></strong><small>✉ {purchase.trainerEmail}</small></div>
                 </div>
                 <div className="trainer-exact-purchase-course-v24"><i>▣</i><div><strong>{purchase.items[0]?.title||"Eğitim"}</strong>{purchase.items.length>1&&<small>+{purchase.items.length-1} eğitim daha</small>}</div></div>
@@ -911,7 +911,7 @@ const response = await fetch("/api/admin/trainer-bank-transfers", {
                 </select>
               </label>
               {selectedTrainer&&<div className="owner-identity">
-                <span className="owner-avatar">{commerceTrainerPhotoV20(selectedTrainer.name)?<img src={commerceTrainerPhotoV20(selectedTrainer.name)} alt=""/>:selectedTrainer.name.slice(0,1)}</span>
+                <span className="owner-avatar">{commerceTrainerPhotoV20(selectedTrainer.id,trainers)?<img src={commerceTrainerPhotoV20(selectedTrainer.id,trainers)} alt=""/>:selectedTrainer.name.slice(0,1)}</span>
                 <div><strong>{selectedTrainer.name}</strong><p className="owner-muted">Aktif öğretmen</p></div>
               </div>}
             </div>

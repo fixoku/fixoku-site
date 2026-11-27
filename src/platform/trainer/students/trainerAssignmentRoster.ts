@@ -58,8 +58,20 @@ export async function loadTrainerRoster(): Promise<TrainerRoster> {
     get('/api/admin/r6-training-groups'),get('/api/trainer/students'),get('/api/trainer/assignment-followup'),
   ]);
   const groups=arr(groupsResponse.groups), legacy=arr(legacyResponse.students);
-  const follow=obj(followResponse.assignments),profiles=obj(followResponse.profiles);
+  const follow=obj(followResponse.assignments),profilesByAssignment=obj(followResponse.profilesByAssignment);
   const people=new Map<string,RosterStudent>();
+  // Photos belong to the authorized assignment, not merely the account.
+  function assignmentProfile(key:string,id:string) {
+    const candidates=arr(profilesByAssignment[key]).map(obj);
+    const exact=candidates.filter(p=>word(p.targetId)===id);
+    if(exact.length===1) return exact[0];
+    if(exact.length>1) return {};
+
+    const matching=candidates.filter(
+      p=>word(p.studentUserId)===id
+    );
+    return matching.length===1 ? matching[0] : {};
+  }
   const education=new Map<string,{status:string;type:'GROUP'|'INDIVIDUAL'}>();
   function add(id:string,name:string,email:string,phone:string|null,image:string|null,a:RosterAssignment) {
     if(!id)return;
@@ -80,7 +92,7 @@ export async function loadTrainerRoster(): Promise<TrainerRoster> {
     const memberIds=Array.isArray(info.memberIds) ? info.memberIds.map(word) : members.map(m=>word(m.studentUserId)||word(m.id));
     const marks=obj(info.marks);
     for(const uid of new Set(memberIds.filter(Boolean))){
-      const m=obj(byId.get(uid)),pr=obj(profiles[uid]);
+      const m=obj(byId.get(uid)),pr=assignmentProfile(key,uid);
       add(uid,word(m.studentName)||word(pr.name),word(m.studentEmail)||word(pr.email),word(m.studentPhone)||word(m.phone)||word(pr.phone)||null,photo(m.photoUrl)||photo(pr.photoUrl),{
         key,name:label(group.trainingType),stage:label(group.educationStage),type,status,planned:Boolean(obj(marks[uid]).plannedAt)
       });
@@ -89,10 +101,11 @@ export async function loadTrainerRoster(): Promise<TrainerRoster> {
   }
   for(const st of legacy){
     const studentId=word(st.id);if(!studentId)continue;
-    const pr=obj(profiles[studentId]);
+
     for(const enroll of arr(st.enrollments)){
       const eid=word(enroll.id);if(!eid)continue;
       const key='legacy-'+eid,info=obj(follow[key]);
+      const pr=assignmentProfile(key,studentId);
       const status=word(enroll.status).toUpperCase();
       const assignedId=Array.isArray(info.memberIds)&&info.memberIds.length?word(info.memberIds[0]):studentId;
       const marks=obj(info.marks);

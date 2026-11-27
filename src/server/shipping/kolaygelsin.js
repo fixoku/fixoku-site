@@ -120,13 +120,22 @@ export function createKolayGelsinAdapter(options={}) {
   }
 
   async function request(service,{method='POST',body,query}={}) {
-    if (!enabled) throw fail('KG_DISPATCH_NOT_APPROVED',503);
+    const readOnlyCityLookup = service === 'GetCityDistricts' && method === 'GET' && body === undefined;
+    if (!enabled && !readOnlyCityLookup) throw fail('KG_DISPATCH_NOT_APPROVED',503);
+    if (readOnlyCityLookup && (
+      !configured ||
+      !url ||
+      url.origin !== 'https://apiintg.kolaygelsin.com' ||
+      url.username ||
+      url.password
+    )) throw fail('KG_READ_ONLY_CONFIGURATION_INVALID',503);
     const target=new URL(`/api/Cargo/${service}`,url);
     if (query) for(const [k,v] of Object.entries(query))target.searchParams.set(k,String(v));
+    const requestToken = await accessToken();
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),8000);
     try {
-      const result=await (options.fetchImpl || fetch)(target.toString(),{method,redirect:'error',signal:controller.signal,headers:{authorization:`Bearer ${await accessToken()}`,'content-type':'application/json',accept:'application/json'},...(method==='POST'?{body:JSON.stringify(body ?? {})}:{})});
+      const result=await (options.fetchImpl || fetch)(target.toString(),{method,redirect:'error',signal:controller.signal,headers:{authorization:`Bearer ${requestToken}`,'content-type':'application/json',accept:'application/json'},...(method==='POST'?{body:JSON.stringify(body ?? {})}:{})});
       const response=await result.json().catch(()=>({}));
       if(!result.ok || response?.IsSuccess===false || response?.isSuccess===false || response?.IsSuccessful===false || response?.isSuccessful===false || response?.ExceptionMessage) throw fail('KG_PROVIDER_REJECTED',502);
       return response;

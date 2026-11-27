@@ -12,26 +12,55 @@ const reply = (res, status, body) => {
 // Responses from the carrier can vary by API version. Output only public
 // city/district names and numeric IDs, never the whole provider response.
 const publicMatches = (root) => {
-  const found = [];
-  const seen = new Set();
-  const queue = [{ node: root, depth: 0 }];
-  while (queue.length && seen.size < 2500 && found.length < 40) {
-    const {node,depth} = queue.shift();
-    if (!node || typeof node !== 'object' || seen.has(node) || depth > 9) continue;
-    seen.add(node);
-    if (Array.isArray(node)) {
-      for (const child of node.slice(0, 1200)) queue.push({node:child,depth:depth+1});
-      continue;
-    }
-    const pairs = Object.entries(node);
-    const names = pairs.filter(([k,v]) => /(?:city|district|ilce|ilÃ§e|name|adi|adÄ±)/i.test(k) && typeof v === 'string' && /(?:izmir|iÌ‡zmir|konak)/i.test(v.normalize('NFC')));
-    if (names.length) {
-      const ids = pairs.filter(([k,v]) => /(?:city|district|ilce|ilÃ§e|^id$|_id$|Id$)/i.test(k) && (typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v))) && Number.isSafeInteger(Number(v)) && Number(v) > 0);
-      if (ids.length) found.push({ names:names.map(([field,value])=>({field,value:String(value).slice(0,80)})), ids:ids.map(([field,value])=>({field,value:Number(value)})) });
-    }
-    for (const [,value] of pairs.slice(0,100)) if (value && typeof value === 'object') queue.push({node:value,depth:depth+1});
-  }
-  return found;
+  const reject = () => {
+    throw new Error('KG_LOCATION_RESPONSE_INVALID');
+  };
+
+  const normalize = value =>
+    typeof value === 'string'
+      ? value.trim().normalize('NFD')
+          .replace(/[\u0300-\u036f]/g,'')
+          .toLowerCase()
+      : '';
+
+  const validId = value =>
+    typeof value === 'number' &&
+    Number.isSafeInteger(value) &&
+    value > 0;
+
+  if (!root ||
+      root.StatusCode !== 200 ||
+      root.IsSuccessful !== true ||
+      root.ExceptionMessage) reject();
+
+  const city = root.result;
+
+  if (!city ||
+      normalize(city.CityName) !== 'izmir' ||
+      !validId(city.CityId) ||
+      !Array.isArray(city.Districts)) reject();
+
+  const districts = city.Districts.filter(
+    item => item &&
+      normalize(item.DistrictName) === 'konak'
+  );
+
+  if (districts.length !== 1) reject();
+
+  const district = districts[0];
+
+  if (!validId(district.DistrictId)) reject();
+
+  return [{
+    names:[
+      {field:'CityName',value:'\u0130zmir'},
+      {field:'DistrictName',value:'Konak'}
+    ],
+    ids:[
+      {field:'CityId',value:city.CityId},
+      {field:'DistrictId',value:district.DistrictId}
+    ]
+  }];
 };
 
 export default async function handler(req,res) {
@@ -46,8 +75,8 @@ export default async function handler(req,res) {
   if (String(process.env.SHIPPING_PROVIDER || '').trim().toUpperCase() !== 'KOLAYGELSIN') return reply(res,409,{error:'PROVIDER_NOT_KOLAYGELSIN'});
   try {
     const adapter=createKolayGelsinAdapter({allowDispatch:false});
-    const data=await adapter.getCityDistricts({cityName:'Ä°zmir',districtName:'Konak'});
-    return reply(res,200,{provider:'KOLAYGELSIN',operation:'READ_ONLY_CITY_DISTRICT_LOOKUP',query:{city:'Ä°zmir',district:'Konak'},matches:publicMatches(data),rawResponseNotReturned:true,shipmentCreated:false});
+    const data=await adapter.getCityDistricts({cityName:'\u0130zmir',districtName:'Konak'});
+    return reply(res,200,{provider:'KOLAYGELSIN',operation:'READ_ONLY_CITY_DISTRICT_LOOKUP',query:{city:'\u0130zmir',district:'Konak'},matches:publicMatches(data),rawResponseNotReturned:true,shipmentCreated:false});
   } catch(error) {
     return reply(res,503,{error:'KG_CITY_DISTRICT_LOOKUP_UNVERIFIED',operation:'READ_ONLY_CITY_DISTRICT_LOOKUP',shipmentCreated:false});
   }

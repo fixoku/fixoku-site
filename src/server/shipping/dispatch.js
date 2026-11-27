@@ -1,3 +1,4 @@
+import { resolveKgReceiverR411, readKgSenderR411 } from "./kolaygelsin-location-r411.js";
 /* global Buffer */
 /* global process */
 import crypto from "node:crypto";
@@ -110,7 +111,7 @@ async function appendEvent(client, dispatchId, status, details = {}) {
   await client.query(`insert into shipment_status_events(dispatch_id,event_key,dispatch_status,provider_status_id,provider_status_text,event_at,source,metadata_json) values($1,$2,$3,$4,$5,$6,$7,$8) on conflict(dispatch_id,event_key) do nothing`, [dispatchId, details.eventKey || `${status}:${details.providerStatusId || ""}:${details.eventAt || ""}`, status, details.providerStatusId || null, details.providerStatusText || null, details.eventAt ? new Date(details.eventAt) : null, details.source || "SYSTEM", JSON.stringify(details.metadata || {})]);
 }
 
-export async function dispatchShipment(client, { shipmentKind, shipmentId, provider, packageCount, sender = senderFromEnvironment(), actorUserId = null } = {}) {
+export async function dispatchShipment(client, { shipmentKind, shipmentId, provider, packageCount, sender, actorUserId = null } = {}) {
   const source = sourceConfig(shipmentKind, shipmentId);
   await client.query("begin");
   try {
@@ -132,7 +133,21 @@ export async function dispatchShipment(client, { shipmentKind, shipmentId, provi
     if (existing?.dispatch_status === DISPATCH_STATUS.REVIEW_REQUIRED) throw Object.assign(new Error("SHIPMENT_REVIEW_REQUIRED"), { code: "SHIPMENT_REVIEW_REQUIRED", status: 409 });
     if (shipment.orderStatus !== "PAID") throw Object.assign(new Error("PAYMENT_NOT_SETTLED"), { code: "PAYMENT_NOT_SETTLED", status: 409 });
     if (shipment.status !== "PACKED") throw Object.assign(new Error("SHIPMENT_NOT_PACKED"), { code: "SHIPMENT_NOT_PACKED", status: 409 });
-    if (!sender) throw Object.assign(new Error("KG_SENDER_CONFIGURATION_REQUIRED"), { code: "KG_SENDER_CONFIGURATION_REQUIRED", status: 409 });
+    if (provider?.runtime?.provider === "KOLAYGELSIN") {
+      if (provider.runtime.enabled !== true)
+        throw Object.assign(
+          new Error("KG_DISPATCH_NOT_APPROVED"),
+          {code:"KG_DISPATCH_NOT_APPROVED",status:409}
+        );
+      sender = sender ?? readKgSenderR411();
+    } else {
+      sender = sender ?? senderFromEnvironment();
+    }
+    if (!sender)
+      throw Object.assign(
+        new Error("KG_SENDER_CONFIGURATION_REQUIRED"),
+        {code:"KG_SENDER_CONFIGURATION_REQUIRED",status:409}
+      );
     const parcelPlan = existing?.parcel_plan_r408_json;
 
     if (String(provider?.runtime?.provider || "").toUpperCase() ===
@@ -160,16 +175,35 @@ export async function dispatchShipment(client, { shipmentKind, shipmentId, provi
     if (provider?.runtime?.provider !== "KOLAYGELSIN" && provider?.runtime?.provider !== "MOCK") throw Object.assign(new Error("SHIPMENT_PROVIDER_INVALID"), {code:"SHIPMENT_PROVIDER_INVALID",status:409});
     if (parcelPlan) buildKgMeasurementPayload(existing.reference_no, parcelPlan);
     if (parcelPlan && typeof provider.updateMeasurements !== "function") throw Object.assign(new Error("MEASUREMENT_ADAPTER_REQUIRED"), {code:"MEASUREMENT_ADAPTER_REQUIRED",status:409});
-    const preflight = preflightOrderShipment({ audience: source.kind, shipment: { ...shipment, addressSnapshot: json(shipment.addressSnapshotJson) }, orderStatus: shipment.orderStatus, items, sender, packageCount });
+    const originalReceiverSnapshot = json(shipment.addressSnapshotJson);
+    const receiverSnapshot =
+      provider?.runtime?.provider === "KOLAYGELSIN"
+        ? await resolveKgReceiverR411(originalReceiverSnapshot,provider)
+        : originalReceiverSnapshot;
+
+    const preflight = preflightOrderShipment({
+      audience:source.kind,
+      shipment:{...shipment,addressSnapshot:receiverSnapshot},
+      orderStatus:shipment.orderStatus,
+      items,sender,packageCount
+    });
     if (!preflight.eligible) throw Object.assign(new Error(preflight.blockers[0] || "SHIPMENT_PREFLIGHT_FAILED"), { code: preflight.blockers[0] || "SHIPMENT_PREFLIGHT_FAILED", status: 409, blockers: preflight.blockers });
     const referenceNo = preflight.referenceNo || shipmentReference(source.kind, source.id);
-    const receiverSnapshot = json(shipment.addressSnapshotJson);
+    // Receiver snapshot was resolved before reservation.
     const providerName = ["KOLAYGELSIN", "MOCK"].includes(String(provider?.runtime?.provider || "").toUpperCase()) ? String(provider.runtime.provider).toUpperCase() : "KOLAYGELSIN";
     const dispatch = existing || (await client.query(
       `insert into shipment_dispatches(shipment_kind,${source.kind === "STUDENT" ? "shipment_id" : "trainer_order_shipment_id"},order_kind,order_id,provider_name,reference_no,dispatch_status,package_count,physical_items_json,sender_address_snapshot_json,receiver_address_snapshot_json) values($1,$2,$3,$4,$5,$6,'CREATING',$7,$8,$9,$10) returning *`,
       [source.kind, source.id, orderKind, shipment.orderId, providerName, referenceNo, Number(packageCount), JSON.stringify(items), JSON.stringify(sender), JSON.stringify(receiverSnapshot)],
     )).rows[0];
-    await client.query("update shipment_dispatches set dispatch_status='CREATING',provider_name=$2,attempt_count=attempt_count+1,last_attempt_at=now(),updated_at=now() where id=$1", [dispatch.id, providerName]);
+    await client.query(
+      "update shipment_dispatches set dispatch_status='CREATING',provider_name=$2,attempt_count=attempt_count+1,last_attempt_at=now(),sender_address_snapshot_json=$3::jsonb,receiver_address_snapshot_json=$4::jsonb,physical_items_json=$5::jsonb,updated_at=now() where id=$1",
+      [
+        dispatch.id,providerName,
+        JSON.stringify(sender),
+        JSON.stringify(receiverSnapshot),
+        JSON.stringify(items)
+      ]
+    );
     // Persist the creation reservation before any provider request.
     await client.query("commit");
 

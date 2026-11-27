@@ -1,4 +1,6 @@
-/* This endpoint is READ ONLY and NEVER calls the cargo provider. */
+import { resolveKgReceiverR411, readKgSenderR411 } from "../../../src/server/shipping/kolaygelsin-location-r411.js";
+import { createKolayGelsinAdapter } from "../../../src/server/shipping/kolaygelsin.js";
+/* Read-only database and carrier location preflight. Never dispatches. */
 import pg from '../../../src/server/db/guarded-pg.js';
 import { resolvePrincipal, requirePermission } from '../../../src/server/auth/authorization.js';
 import { preflightOrderShipment } from '../../../src/server/shipping/order-preflight.js';
@@ -33,8 +35,36 @@ export default async function handler(req,res){
       : 'select si.physical_product_id as "productId",si.quantity,p.product_type as "productType" from shipment_items si join physical_products p on p.id=si.physical_product_id where si.shipment_id=$1';
     const items=(await client.query(itemSql,[id])).rows;
     await client.query('COMMIT');
-    const sender={cityId:process.env.SHIPPING_KG_SENDER_CITY_ID,districtId:process.env.SHIPPING_KG_SENDER_DISTRICT_ID,address:process.env.SHIPPING_KG_SENDER_ADDRESS,phone:process.env.SHIPPING_KG_SENDER_PHONE};
+    let sender = {};
+    let locationBlocker = null;
+    try {
+      sender = readKgSenderR411();
+    } catch(error) {
+      locationBlocker = error.code || 'KG_SENDER_CONFIGURATION_REQUIRED';
+    }
+
+    if (String(process.env.SHIPPING_PROVIDER||'').trim().toUpperCase()==='KOLAYGELSIN') {
+      try {
+        const address = typeof row.addressSnapshot === 'string'
+          ? JSON.parse(row.addressSnapshot)
+          : row.addressSnapshot;
+
+        row.addressSnapshot = await resolveKgReceiverR411(
+          address,
+          createKolayGelsinAdapter({allowDispatch:false})
+        );
+      } catch(error) {
+        locationBlocker = locationBlocker ||
+          error.code || 'KG_RECEIVER_LOCATION_UNVERIFIED';
+      }
+    }
     const check=preflightOrderShipment({audience,shipment:row,orderStatus:row.orderStatus,items,sender,packageCount});
+    if (locationBlocker) {
+      if (!check.blockers.includes(locationBlocker))
+        check.blockers.push(locationBlocker);
+      check.eligible=false;
+      check.providerPayload=null;
+    }
     if(String(process.env.SHIPPING_PROVIDER||'').trim().toUpperCase()!=='KOLAYGELSIN'){
       check.blockers.push('KG_PROVIDER_NOT_SELECTED');check.eligible=false;
     }

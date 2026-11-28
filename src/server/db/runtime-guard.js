@@ -295,6 +295,27 @@ export function assertSafeDatabaseUrl(rawUrl, env = process.env) {
       if (!exactPreviewContractEnvironment(contract, env)
         || !previewContractMetadataAttested(contract, env)
         || !r404ConnectionTargetsConfigured(env)) {
+        try {
+          console.warn("FIXOKU_R410_RUNTIME_GATE", JSON.stringify({
+            vercelRuntime: env.VERCEL === "1",
+            previewEnvironment: text(env.VERCEL_ENV) === "preview",
+            branchMatch: text(env.VERCEL_GIT_COMMIT_REF) === contract.branch,
+            projectMatch: text(env.VERCEL_PROJECT_ID) === contract.vercelProjectId,
+            commitMatch:
+              SHA256_HEX.test(text(env.VERCEL_GIT_COMMIT_SHA)) &&
+              text(env[contract.expectedCommitEnv]).toLowerCase() ===
+              text(env.VERCEL_GIT_COMMIT_SHA).toLowerCase(),
+            probeEnabled: env[contract.probeEnabledEnv] === "1",
+            deploymentHost: trustedPreviewDeploymentHost(contract, env),
+            exactEnvironment: exactPreviewContractEnvironment(contract, env),
+            metadataAttested: previewContractMetadataAttested(contract, env),
+            pooledTargetValid: Boolean(r404ConnectionUrl(env.DATABASE_URL, "pooled")),
+            directTargetValid: Boolean(r404ConnectionUrl(env.DATABASE_URL_UNPOOLED, "direct")),
+            databaseTargetsValid: r404ConnectionTargetsConfigured(env)
+          }));
+        } catch {
+          // Diagnostics must never weaken or replace the original security gate.
+        }
         fail("DATABASE_RUNTIME_TARGET_UNVERIFIED");
       }
       const pooled = r404ConnectionUrl(rawUrl, "pooled");
